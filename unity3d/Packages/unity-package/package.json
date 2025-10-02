@@ -1,8 +1,8 @@
 {
   "name": "io.uframe.unity3d-mcp",
   "version": "1.0.0",
-  "displayName": "UnityMCP",
-  "description": "cursor unity3d mcp system!",
+  "displayName": "MCP",
+  "description": "unity3d mcp system!",
   "unity": "2020.3",
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
