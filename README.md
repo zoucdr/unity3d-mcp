@@ -1272,6 +1272,7 @@ Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议�
 
 ---
 
-*文档版本：v2.0*  
-*最后更新：2025年09月*  
+*文档版本：v1.1*  
+*引包："io.uframe.unity3d-mcp":"https://gitee.com/zouhunter/unity3d-mcp?path=unity3d/Packages/unity-package"
+*最后更新：2025年10月*  
 *维护团队：Unity3d MCP Development Team*
