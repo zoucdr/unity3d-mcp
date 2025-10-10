@@ -69,23 +69,72 @@ document.querySelectorAll('.feature-card, .scenario-card, .arch-layer, .tool-cat
     observer.observe(el);
 });
 
-// Code typing animation
-const codeContent = document.querySelector('.code-content code');
-if (codeContent) {
-    const originalText = codeContent.innerHTML;
-    codeContent.innerHTML = '';
+// Initialize hero code with syntax highlighting
+const heroCode = document.getElementById('hero-code');
+if (heroCode) {
+    // Create code content with proper HTML elements
+    const codeLines = [
+        { type: 'comment', text: '# 通过自然语言控制Unity' },
+        { type: 'string', text: '"创建一个名为Player的Cube对象"' },
+        { type: 'plain', text: '' },
+        { type: 'comment', text: '# 批量生成游戏纹理' },
+        { type: 'mixed', html: '<span class="keyword">from</span> diffusers <span class="keyword">import</span> StableDiffusionPipeline' },
+        { type: 'mixed', html: 'pipe = StableDiffusionPipeline.from_pretrained(<span class="string">"model"</span>)' },
+        { type: 'mixed', html: 'pipe.generate(<span class="string">"fantasy ground texture"</span>)' },
+        { type: 'plain', text: '' },
+        { type: 'comment', text: '# 性能分析' },
+        { type: 'mixed', html: '<span class="keyword">code_runner</span>: PerformanceAnalyzer.Analyze()' },
+        { type: 'plain', text: '' },
+        { type: 'output', text: '✓ GameObject创建成功' },
+        { type: 'output', text: '✓ 10张纹理已生成' },
+        { type: 'output', text: '✓ 场景性能报告已生成' }
+    ];
     
-    let index = 0;
-    const typeWriter = () => {
-        if (index < originalText.length) {
-            codeContent.innerHTML += originalText.charAt(index);
-            index++;
-            setTimeout(typeWriter, 10);
+    // Build HTML
+    let htmlContent = '';
+    codeLines.forEach(line => {
+        if (line.type === 'mixed') {
+            htmlContent += line.html + '\n';
+        } else if (line.type === 'plain') {
+            htmlContent += '\n';
+        } else {
+            htmlContent += `<span class="${line.type}">${line.text}</span>\n`;
         }
-    };
+    });
     
-    // Start typing after a short delay
-    setTimeout(typeWriter, 1000);
+    // Typing animation for desktop
+    if (window.innerWidth > 768) {
+        heroCode.innerHTML = '';
+        let charIndex = 0;
+        
+        const typeWriter = () => {
+            if (charIndex < htmlContent.length) {
+                const char = htmlContent[charIndex];
+                
+                // Handle HTML tags specially
+                if (char === '<') {
+                    const closingIndex = htmlContent.indexOf('>', charIndex);
+                    if (closingIndex !== -1) {
+                        heroCode.innerHTML += htmlContent.substring(charIndex, closingIndex + 1);
+                        charIndex = closingIndex + 1;
+                    } else {
+                        heroCode.innerHTML += char;
+                        charIndex++;
+                    }
+                } else {
+                    heroCode.innerHTML += char;
+                    charIndex++;
+                }
+                
+                setTimeout(typeWriter, 3);
+            }
+        };
+        
+        setTimeout(typeWriter, 800);
+    } else {
+        // Mobile: show immediately
+        heroCode.innerHTML = htmlContent;
+    }
 }
 
 // Add parallax effect to hero section

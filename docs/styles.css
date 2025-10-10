@@ -337,17 +337,38 @@ code, pre {
     padding: 1.5rem;
     font-size: 0.875rem;
     line-height: 1.8;
+    overflow-x: auto;
+}
+
+.code-content pre {
+    margin: 0;
+    white-space: pre;
 }
 
 .code-content code {
     display: block;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    color: var(--text-primary);
 }
 
-.comment { color: #6b7280; }
-.keyword { color: #a78bfa; }
-.string { color: #34d399; }
-.output { color: #10b981; }
-.key { color: #60a5fa; }
+.comment { 
+    color: #6b7280; 
+    font-style: italic;
+}
+.keyword { 
+    color: #a78bfa; 
+    font-weight: 600;
+}
+.string { 
+    color: #34d399; 
+}
+.output { 
+    color: #10b981; 
+    font-weight: 500;
+}
+.key { 
+    color: #60a5fa; 
+}
 
 @keyframes fade-in-up {
     from {

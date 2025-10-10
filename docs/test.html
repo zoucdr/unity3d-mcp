@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码块测试 - Unity3d MCP</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2rem;
+            line-height: 1.8;
+        }
+        
+        .test-section {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+        }
+        
+        h1, h2 {
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+        
+        .code-window {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .code-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .code-content {
+            padding: 1.5rem;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+        
+        .code-content pre {
+            margin: 0;
+            white-space: pre;
+        }
+        
+        .code-content code {
+            display: block;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            color: #f8fafc;
+        }
+        
+        .comment { 
+            color: #6b7280; 
+            font-style: italic;
+        }
+        .keyword { 
+            color: #a78bfa; 
+            font-weight: 600;
+        }
+        .string { 
+            color: #34d399; 
+        }
+        .output { 
+            color: #10b981; 
+            font-weight: 500;
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 0.5rem;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>🧪 代码块显示测试</h1>
+        <p>测试Unity3d MCP网站的代码块是否正常显示</p>
+        
+        <h2>测试 1：动态渲染显示</h2>
+        <div class="code-window">
+            <div class="code-header">
+                <span>AI → Unity</span>
+            </div>
+            <div class="code-content">
+                <pre><code id="test-code"></code></pre>
+            </div>
+        </div>
+        
+        <script>
+            // Dynamically render code with syntax highlighting
+            const testCode = document.getElementById('test-code');
+            if (testCode) {
+                const codeHTML = `<span class="comment"># 通过自然语言控制Unity</span>
+<span class="string">"创建一个名为Player的Cube对象"</span>
+
+<span class="comment"># 批量生成游戏纹理</span>
+<span class="keyword">from</span> diffusers <span class="keyword">import</span> StableDiffusionPipeline
+pipe = StableDiffusionPipeline.from_pretrained(<span class="string">"model"</span>)
+pipe.generate(<span class="string">"fantasy ground texture"</span>)
+
+<span class="comment"># 性能分析</span>
+<span class="keyword">code_runner</span>: PerformanceAnalyzer.Analyze()
+
+<span class="output">✓ GameObject创建成功</span>
+<span class="output">✓ 10张纹理已生成</span>
+<span class="output">✓ 场景性能报告已生成</span>`;
+                
+                testCode.innerHTML = codeHTML;
+            }
+        </script>
+        
+        <div class="status">
+            ✅ 如果你能看到上面的代码，且颜色正确显示，说明样式工作正常！
+        </div>
+        
+        <h2>检查清单</h2>
+        <ul>
+            <li>✓ 注释应该是<span style="color: #6b7280; font-style: italic;">灰色斜体</span></li>
+            <li>✓ 关键字应该是<span style="color: #a78bfa; font-weight: 600;">紫色加粗</span></li>
+            <li>✓ 字符串应该是<span style="color: #34d399;">绿色</span></li>
+            <li>✓ 输出应该是<span style="color: #10b981; font-weight: 500;">亮绿色加粗</span></li>
+            <li>✓ 代码块应该有深色半透明背景</li>
+        </ul>
+        
+        <h2>故障排除</h2>
+        <p><strong>如果代码不显示：</strong></p>
+        <ol>
+            <li>检查浏览器控制台（F12）是否有JavaScript错误</li>
+            <li>确认CSS文件正确加载（查看Network标签）</li>
+            <li>尝试禁用JavaScript，看代码是否显示（应该显示）</li>
+            <li>清除浏览器缓存并刷新页面</li>
+        </ol>
+        
+        <p><strong>如果颜色不对：</strong></p>
+        <ol>
+            <li>检查CSS中的颜色变量是否正确定义</li>
+            <li>确认span标签的class属性正确（comment, keyword, string, output）</li>
+            <li>查看浏览器开发者工具中Elements标签的样式应用情况</li>
+        </ol>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem;">
+            <p><strong>💡 提示：</strong></p>
+            <p>主页面的代码块在桌面端会有打字动画效果（800ms延迟后开始）。</p>
+            <p>移动端（宽度 ≤ 768px）会跳过动画，直接显示完整代码。</p>
+        </div>
+    </div>
+</body>
+</html>
+
