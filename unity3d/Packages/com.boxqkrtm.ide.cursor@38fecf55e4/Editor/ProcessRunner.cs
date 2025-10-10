@@ -34,7 +34,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 			return new ProcessStartInfo
 			{
 				UseShellExecute = shell,
-				CreateNoWindow = true, 
+				CreateNoWindow = true,
 				RedirectStandardOutput = redirect,
 				RedirectStandardError = redirect,
 				FileName = filename,
@@ -73,7 +73,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 
 				var outputSource = new TaskCompletionSource<bool>();
 				var errorSource = new TaskCompletionSource<bool>();
-				
+
 				process.OutputDataReceived += (_, e) =>
 				{
 					Append(sbOutput, e.Data, outputSource);
@@ -85,12 +85,12 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				process.Start();
 				process.BeginOutputReadLine();
 				process.BeginErrorReadLine();
-				
+
 				var run = Task.Run(() => process.WaitForExit(timeoutms));
 				var processTask = Task.WhenAll(run, outputSource.Task, errorSource.Task);
 
 				if (Task.WhenAny(Task.Delay(timeoutms), processTask).Result == processTask && run.Result)
-					return new ProcessRunnerResult {Success = true, Error = sbError.ToString(), Output = sbOutput.ToString()};
+					return new ProcessRunnerResult { Success = true, Error = sbError.ToString(), Output = sbOutput.ToString() };
 
 				try
 				{
@@ -100,8 +100,8 @@ namespace Microsoft.Unity.VisualStudio.Editor
 				{
 					/* ignore */
 				}
-				
-				return new ProcessRunnerResult {Success = false, Error = sbError.ToString(), Output = sbOutput.ToString()};
+
+				return new ProcessRunnerResult { Success = false, Error = sbError.ToString(), Output = sbOutput.ToString() };
 			}
 		}
 
@@ -134,9 +134,9 @@ namespace Microsoft.Unity.VisualStudio.Editor
 #else
 				cursorStoragePath = Path.Combine(userProfile, "AppData", "Roaming", "cursor", "User", "workspaceStorage");
 #endif
-				
+
 				Debug.Log($"[Cursor] Looking for workspaces in: {cursorStoragePath}");
-				
+
 				if (Directory.Exists(cursorStoragePath))
 				{
 					foreach (var workspaceDir in Directory.GetDirectories(cursorStoragePath))
@@ -149,7 +149,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 								var content = File.ReadAllText(workspaceStatePath);
 								if (!string.IsNullOrEmpty(content))
 								{
-									var workspace = JSONNode.Parse(content);
+									var workspace = JsonNode.Parse(content);
 									if (workspace != null)
 									{
 										var folder = workspace["folder"];
@@ -172,7 +172,7 @@ namespace Microsoft.Unity.VisualStudio.Editor
 								var content = File.ReadAllText(windowStatePath);
 								if (!string.IsNullOrEmpty(content))
 								{
-									var windowState = JSONNode.Parse(content);
+									var windowState = JsonNode.Parse(content);
 									if (windowState != null)
 									{
 										var workspace = windowState["workspace"];

@@ -1,8 +1,9 @@
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using System.Collections;
 using System.Threading.Tasks;
+using UnityMcp.Models;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// 工具方法接口，所有具体工具类都应实现此接口

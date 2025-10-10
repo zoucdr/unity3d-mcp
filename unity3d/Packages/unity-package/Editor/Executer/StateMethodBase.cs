@@ -5,11 +5,11 @@ using System.Threading;
 using UnityEngine;
 using UnityEditor;
 using UnityMcp.Models;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// 状态方法基类，提供基于状态树的方法调用框架。
@@ -87,7 +87,7 @@ namespace UnityMcp.Tools
             }
             else if (result != null && result != ctx)
             {
-                ctx.Complete(result);
+                ctx.Complete(Json.FromObject(result));
             }
             else
             {

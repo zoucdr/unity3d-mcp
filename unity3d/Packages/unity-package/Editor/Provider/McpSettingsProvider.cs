@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Gui
 {
     /// <summary>
     /// MCP设置提供器，用于在Unity的ProjectSettings窗口中显示MCP设置

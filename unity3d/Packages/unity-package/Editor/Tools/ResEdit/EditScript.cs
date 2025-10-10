@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -49,7 +49,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建脚本的操作
         /// </summary>
-        private object HandleCreateAction(JObject args)
+        private object HandleCreateAction(JsonClass args)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理读取脚本的操作
         /// </summary>
-        private object HandleReadAction(JObject args)
+        private object HandleReadAction(JsonClass args)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理更新脚本的操作
         /// </summary>
-        private object HandleUpdateAction(JObject args)
+        private object HandleUpdateAction(JsonClass args)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理删除脚本的操作
         /// </summary>
-        private object HandleDeleteAction(JObject args)
+        private object HandleDeleteAction(JsonClass args)
         {
             try
             {
@@ -155,13 +155,13 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 解析脚本相关参数
         /// </summary>
-        private ScriptInfo ParseScriptArguments(JObject args)
+        private ScriptInfo ParseScriptArguments(JsonClass args)
         {
             var info = new ScriptInfo();
 
             // Extract basic args
-            string name = args["name"]?.ToString();
-            string path = args["path"]?.ToString(); // Relative to Assets/
+            string name = args["name"]?.Value;
+            string path = args["path"]?.Value; // Relative to Assets/
             string contents = null;
 
             // Handle lines parameter (array of strings)
@@ -169,10 +169,10 @@ namespace UnityMcp.Tools
             {
                 try
                 {
-                    var linesArray = args["lines"] as JArray;
+                    var linesArray = args["lines"] as JsonArray;
                     if (linesArray != null)
                     {
-                        contents = string.Join("\n", linesArray.Select(line => line.ToString()));
+                        contents = string.Join("\n", linesArray.ToStringList().Select(line => line.ToString()));
                     }
                     else
                     {
@@ -187,8 +187,8 @@ namespace UnityMcp.Tools
                 }
             }
 
-            string scriptType = args["scriptType"]?.ToString();
-            string namespaceName = args["namespace"]?.ToString();
+            string scriptType = args["scriptType"]?.Value;
+            string namespaceName = args["namespace"]?.Value;
 
             // Validate required args
             if (string.IsNullOrEmpty(name))

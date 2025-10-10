@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditorInternal; // Required for tag management
 using UnityEngine;
@@ -81,7 +81,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理进入播放模式的操作
         /// </summary>
-        private object HandlePlayAction(JObject args)
+        private object HandlePlayAction(JsonClass args)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理暂停/恢复播放模式的操作
         /// </summary>
-        private object HandlePauseAction(JObject args)
+        private object HandlePauseAction(JsonClass args)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理停止播放模式的操作
         /// </summary>
-        private object HandleStopAction(JObject args)
+        private object HandleStopAction(JsonClass args)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取编辑器状态的操作
         /// </summary>
-        private object HandleGetStateAction(JObject args)
+        private object HandleGetStateAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting editor state");
             return GetEditorState();
@@ -157,7 +157,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取编辑器窗口的操作
         /// </summary>
-        private object HandleGetWindowsAction(JObject args)
+        private object HandleGetWindowsAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting editor windows");
             return GetEditorWindows();
@@ -166,7 +166,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取当前工具的操作
         /// </summary>
-        private object HandleGetActiveToolAction(JObject args)
+        private object HandleGetActiveToolAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting active tool");
             return GetActiveTool();
@@ -175,7 +175,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取选择对象的操作
         /// </summary>
-        private object HandleGetSelectionAction(JObject args)
+        private object HandleGetSelectionAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting selection");
             return GetSelection();
@@ -184,9 +184,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理设置激活工具的操作
         /// </summary>
-        private object HandleSetActiveToolAction(JObject args)
+        private object HandleSetActiveToolAction(JsonClass args)
         {
-            string toolName = args["toolName"]?.ToString();
+            string toolName = args["toolName"]?.Value;
             if (string.IsNullOrEmpty(toolName))
             {
                 return Response.Error("'toolName' parameter required for set_active_tool.");
@@ -199,9 +199,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理添加标签的操作
         /// </summary>
-        private object HandleAddTagAction(JObject args)
+        private object HandleAddTagAction(JsonClass args)
         {
-            string tagName = args["tagName"]?.ToString();
+            string tagName = args["tagName"]?.Value;
             if (string.IsNullOrEmpty(tagName))
             {
                 return Response.Error("'tagName' parameter required for add_tag.");
@@ -214,9 +214,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理移除标签的操作
         /// </summary>
-        private object HandleRemoveTagAction(JObject args)
+        private object HandleRemoveTagAction(JsonClass args)
         {
-            string tagName = args["tagName"]?.ToString();
+            string tagName = args["tagName"]?.Value;
             if (string.IsNullOrEmpty(tagName))
             {
                 return Response.Error("'tagName' parameter required for remove_tag.");
@@ -229,7 +229,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取标签列表的操作
         /// </summary>
-        private object HandleGetTagsAction(JObject args)
+        private object HandleGetTagsAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting tags");
             return GetTags();
@@ -238,9 +238,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理添加层的操作
         /// </summary>
-        private object HandleAddLayerAction(JObject args)
+        private object HandleAddLayerAction(JsonClass args)
         {
-            string layerName = args["layerName"]?.ToString();
+            string layerName = args["layerName"]?.Value;
             if (string.IsNullOrEmpty(layerName))
             {
                 return Response.Error("'layerName' parameter required for add_layer.");
@@ -253,9 +253,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理移除层的操作
         /// </summary>
-        private object HandleRemoveLayerAction(JObject args)
+        private object HandleRemoveLayerAction(JsonClass args)
         {
-            string layerName = args["layerName"]?.ToString();
+            string layerName = args["layerName"]?.Value;
             if (string.IsNullOrEmpty(layerName))
             {
                 return Response.Error("'layerName' parameter required for remove_layer.");
@@ -268,7 +268,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取层列表的操作
         /// </summary>
-        private object HandleGetLayersAction(JObject args)
+        private object HandleGetLayersAction(JsonClass args)
         {
             LogInfo("[ManageEditor] Getting layers");
             return GetLayers();
@@ -277,7 +277,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理设置游戏窗口分辨率的操作
         /// </summary>
-        private object HandleSetResolutionAction(JObject args)
+        private object HandleSetResolutionAction(JsonClass args)
         {
             var widthToken = args["width"];
             var heightToken = args["height"];
@@ -287,12 +287,12 @@ namespace UnityMcp.Tools
                 return Response.Error("Both 'width' and 'height' parameters are required for set_resolution.");
             }
 
-            if (!int.TryParse(widthToken.ToString(), out int width) || width <= 0)
+            if (!int.TryParse(widthToken.Value, out int width) || width <= 0)
             {
                 return Response.Error("Width must be a positive integer.");
             }
 
-            if (!int.TryParse(heightToken.ToString(), out int height) || height <= 0)
+            if (!int.TryParse(heightToken.Value, out int height) || height <= 0)
             {
                 return Response.Error("Height must be a positive integer.");
             }
@@ -827,7 +827,7 @@ namespace UnityMcp.Tools
 
         // --- Example Implementations for Settings ---
         /*
-        private object SetQualityLevel(JToken qualityLevelToken) { ... }
+        private object SetQualityLevel(JsonNode qualityLevelToken) { ... }
         */
     }
 

@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityMcp.Models;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// GameObject操作的通用工具类
@@ -20,17 +20,17 @@ namespace UnityMcp.Tools
         /// 根据Token和搜索方法查找单个GameObject
         /// </summary>
         public static GameObject FindObjectInternal(
-            JToken targetToken,
+            JsonNode targetToken,
             string searchMethod,
-            JObject findParams = null
+            JsonClass findParams = null
         )
         {
             // If find_all is not explicitly false, we still want only one for most single-target operations.
-            bool findAll = findParams?["find_all"]?.ToObject<bool>() ?? false;
+            bool findAll = findParams != null && findParams["find_all"] != null ? findParams["find_all"].AsBoolDefault(false) : false;
             // If a specific target ID is given, always find just that one.
             if (
-                targetToken?.Type == JTokenType.Integer
-                || (searchMethod == "by_id" && int.TryParse(targetToken?.ToString(), out _))
+                targetToken?.type == JsonNodeType.Integer
+                || (searchMethod == "by_id" && int.TryParse(targetToken?.Value, out _))
             )
             {
                 findAll = false;
@@ -48,21 +48,21 @@ namespace UnityMcp.Tools
         /// 根据Token和搜索方法查找多个GameObject
         /// </summary>
         public static List<GameObject> FindObjectsInternal(
-            JToken targetToken,
+            JsonNode targetToken,
             string searchMethod,
             bool findAll,
-            JObject findParams = null
+            JsonClass findParams = null
         )
         {
             List<GameObject> results = new List<GameObject>();
-            string searchTerm = findParams?["search_term"]?.ToString() ?? targetToken?.ToString();
-            bool searchInChildren = findParams?["search_in_children"]?.ToObject<bool>() ?? false;
-            bool searchInactive = findParams?["search_in_inactive"]?.ToObject<bool>() ?? false;
+            string searchTerm = findParams?["search_term"]?.Value ?? targetToken?.Value;
+            bool searchInChildren = findParams != null && findParams["search_in_children"] != null ? findParams["search_in_children"].AsBoolDefault(false) : false;
+            bool searchInactive = findParams != null && findParams["search_in_inactive"] != null ? findParams["search_in_inactive"].AsBoolDefault(false) : false;
 
             // Default search method if not specified
             if (string.IsNullOrEmpty(searchMethod))
             {
-                if (targetToken?.Type == JTokenType.Integer)
+                if (targetToken?.type == JsonNodeType.Integer)
                     searchMethod = "by_id";
                 else if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Contains('/'))
                     searchMethod = "by_path";
@@ -205,9 +205,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 简单查找GameObject，用于父对象查找等场景
         /// </summary>
-        public static GameObject FindObjectByIdOrPath(JToken targetToken)
+        public static GameObject FindObjectByIdOrPath(JsonNode targetToken)
         {
-            string searchTerm = targetToken?.ToString();
+            string searchTerm = targetToken?.Value;
             if (string.IsNullOrEmpty(searchTerm))
                 return null;
 
@@ -420,16 +420,16 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 解析JArray为Vector3
         /// </summary>
-        public static Vector3? ParseVector3(JArray array)
+        public static Vector3? ParseVector3(JsonArray array)
         {
             if (array != null && array.Count == 3)
             {
                 try
                 {
                     return new Vector3(
-                        array[0].ToObject<float>(),
-                        array[1].ToObject<float>(),
-                        array[2].ToObject<float>()
+                        array[0].AsFloat,
+                        array[1].AsFloat,
+                        array[2].AsFloat
                     );
                 }
                 catch
@@ -440,16 +440,19 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建GameObject的可序列化表示
+        /// 创建GameObject的可序列化表示，返回JSONClass
         /// </summary>
-        public static object GetGameObjectData(GameObject go)
+        public static JsonClass GetGameObjectData(GameObject go)
         {
             if (go == null)
                 return null;
-            
+
             // 使用YAML格式的紧凑表示
             var yamlData = GetGameObjectDataYaml(go);
-            return new { yaml = yamlData };
+
+            JsonClass result = new JsonClass();
+            result["yaml"] = yamlData;
+            return result;
         }
 
         /// <summary>
@@ -459,12 +462,12 @@ namespace UnityMcp.Tools
         {
             if (go == null)
                 return "null";
-                
+
             var components = go.GetComponents<Component>()
                 .Where(c => c != null)
                 .Select(c => c.GetType().Name)
                 .ToArray();
-                
+
             var yaml = $@"name: {go.name}
 id: {go.GetInstanceID()}
 tag: {go.tag}
@@ -583,7 +586,7 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用通用GameObject设置
         /// </summary>
-        public static void ApplyCommonGameObjectSettings(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyCommonGameObjectSettings(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
 
             // 设置名称
@@ -608,7 +611,9 @@ scene: {go.scene.name}";
             ApplyComponentProperties(args, newGo, logAction);
 
             // 设置激活状态
-            bool? setActive = args["active"]?.ToObject<bool?>();
+            bool? setActive = args["active"] != null && !args["active"].IsNull()
+                ? (bool?)args["active"].AsBool
+                : null;
             if (setActive.HasValue)
             {
                 newGo.SetActive(setActive.Value);
@@ -617,9 +622,9 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用名称设置
         /// </summary>
-        public static void ApplyNameSetting(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyNameSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            string name = args["name"]?.ToString();
+            string name = args["name"]?.Value;
             if (!string.IsNullOrEmpty(name))
             {
                 newGo.name = name;
@@ -628,9 +633,9 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用父对象设置
         /// </summary>
-        public static void ApplyParentSetting(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyParentSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            JToken parentToken = args["parent_id"] ?? args["parent_path"] ?? args["parent"];
+            JsonNode parentToken = args["parent_id"] ?? args["parent_path"] ?? args["parent"];
             if (parentToken != null)
             {
                 GameObject parentGo = FindObjectByIdOrPath(parentToken);
@@ -646,11 +651,11 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用变换设置
         /// </summary>
-        public static void ApplyTransformSettings(JObject args, GameObject newGo)
+        public static void ApplyTransformSettings(JsonClass args, GameObject newGo)
         {
-            Vector3? position = ParseVector3(args["position"] as JArray);
-            Vector3? rotation = ParseVector3(args["rotation"] as JArray);
-            Vector3? scale = ParseVector3(args["scale"] as JArray);
+            Vector3? position = ParseVector3(args["position"] as JsonArray);
+            Vector3? rotation = ParseVector3(args["rotation"] as JsonArray);
+            Vector3? scale = ParseVector3(args["scale"] as JsonArray);
 
             if (position.HasValue)
                 newGo.transform.localPosition = position.Value;
@@ -663,9 +668,9 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用标签设置
         /// </summary>
-        public static void ApplyTagSetting(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyTagSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            string tag = args["tag"]?.ToString();
+            string tag = args["tag"]?.Value;
             if (!string.IsNullOrEmpty(tag))
             {
                 string tagToSet = string.IsNullOrEmpty(tag) ? "Untagged" : tag;
@@ -700,9 +705,9 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用层设置
         /// </summary>
-        public static void ApplyLayerSetting(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyLayerSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            string layerName = args["layer"]?.ToString();
+            string layerName = args["layer"]?.Value;
             if (!string.IsNullOrEmpty(layerName))
             {
                 int layerId = LayerMask.NameToLayer(layerName);
@@ -720,23 +725,23 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用组件添加
         /// </summary>
-        public static void ApplyComponentsToAdd(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyComponentsToAdd(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            if (args["components"] is JArray componentsToAddArray)
+            if (args["components"] is JsonArray componentsToAddArray)
             {
-                foreach (var compToken in componentsToAddArray)
+                foreach (JsonNode compToken in componentsToAddArray)
                 {
                     string typeName = null;
-                    JObject properties = null;
+                    JsonClass properties = null;
 
-                    if (compToken.Type == JTokenType.String)
+                    if (compToken.type == JsonNodeType.String)
                     {
-                        typeName = compToken.ToString();
+                        typeName = compToken.Value;
                     }
-                    else if (compToken is JObject compObj)
+                    else if (compToken is JsonClass compObj)
                     {
-                        typeName = compObj["type_name"]?.ToString();
-                        properties = compObj["properties"] as JObject;
+                        typeName = compObj["type_name"]?.Value;
+                        properties = compObj["properties"] as JsonClass;
                     }
 
                     if (!string.IsNullOrEmpty(typeName))
@@ -758,15 +763,15 @@ scene: {go.scene.name}";
         /// <summary>
         /// 应用组件属性设置
         /// </summary>
-        public static void ApplyComponentProperties(JObject args, GameObject newGo, Action<string> logAction = null)
+        public static void ApplyComponentProperties(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
             // 处理component_properties
-            if (args["component_properties"] is JObject componentPropsObj)
+            if (args["component_properties"] is JsonClass componentPropsObj)
             {
-                foreach (var componentProp in componentPropsObj.Properties())
+                foreach (KeyValuePair<string, JsonNode> componentProp in componentPropsObj.Properties())
                 {
-                    string componentName = componentProp.Name;
-                    if (componentProp.Value is JObject properties)
+                    string componentName = componentProp.Key;
+                    if (componentProp.Value is JsonClass properties)
                     {
                         SetComponentPropertiesInternal(newGo, componentName, properties, logAction);
                     }
@@ -774,11 +779,11 @@ scene: {go.scene.name}";
             }
 
             // 处理单个component_type和component_properties的情况
-            string singleComponentName = args["component_type"]?.ToString();
-            if (!string.IsNullOrEmpty(singleComponentName) && args["component_properties"] is JObject singleProps)
+            string singleComponentName = args["component_type"]?.Value;
+            if (!string.IsNullOrEmpty(singleComponentName) && args["component_properties"] is JsonClass singleProps)
             {
                 // 检查是否是嵌套结构
-                if (singleProps[singleComponentName] is JObject nestedProps)
+                if (singleProps[singleComponentName] is JsonClass nestedProps)
                 {
                     SetComponentPropertiesInternal(newGo, singleComponentName, nestedProps, logAction);
                 }
@@ -796,11 +801,11 @@ scene: {go.scene.name}";
         private static void SetComponentPropertiesInternal(
             GameObject targetGo,
             string componentName,
-            JObject properties,
+            JsonClass properties,
             Action<string> logAction = null
         )
         {
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return;
 
             // 查找组件类型
@@ -835,10 +840,10 @@ scene: {go.scene.name}";
 
             Undo.RecordObject(targetComponent, "Set Component Properties");
 
-            foreach (var prop in properties.Properties())
+            foreach (KeyValuePair<string, JsonNode> prop in properties.Properties())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
 
                 try
                 {
@@ -859,7 +864,7 @@ scene: {go.scene.name}";
         /// <summary>
         /// 设置组件属性
         /// </summary>
-        public static bool SetObjectPropertyDeepth(object target, string memberName, JToken value, Action<string> logAction = null)
+        public static bool SetObjectPropertyDeepth(object target, string memberName, JsonNode value, Action<string> logAction = null)
         {
             Type type = target.GetType();
             BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
@@ -867,9 +872,9 @@ scene: {go.scene.name}";
             try
             {
                 // 处理材质属性的特殊情况
-                if (memberName.Equals("material", StringComparison.OrdinalIgnoreCase) && value.Type == JTokenType.String)
+                if (memberName.Equals("material", StringComparison.OrdinalIgnoreCase) && value.type == JsonNodeType.String)
                 {
-                    string materialPath = value.ToString();
+                    string materialPath = value.Value;
                     if (!string.IsNullOrEmpty(materialPath))
                     {
                         Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
@@ -932,7 +937,7 @@ scene: {go.scene.name}";
         /// <summary>
         /// 设置嵌套属性
         /// </summary>
-        private static bool SetNestedProperty(object target, string path, JToken value, Action<string> logAction = null)
+        private static bool SetNestedProperty(object target, string path, JsonNode value, Action<string> logAction = null)
         {
             string[] pathParts = path.Split('.');
             if (pathParts.Length < 2)
@@ -972,39 +977,39 @@ scene: {go.scene.name}";
         /// <summary>
         /// 转换JToken为指定类型
         /// </summary>
-        private static object ConvertJTokenToType(JToken token, Type targetType)
+        private static object ConvertJTokenToType(JsonNode token, Type targetType)
         {
             try
             {
                 if (targetType == typeof(string))
-                    return token.ToObject<string>();
+                    return token.Value;
                 if (targetType == typeof(int))
-                    return token.ToObject<int>();
+                    return token.AsInt;
                 if (targetType == typeof(float))
-                    return token.ToObject<float>();
+                    return token.AsFloat;
                 if (targetType == typeof(bool))
-                    return token.ToObject<bool>();
+                    return token.AsBool;
 
                 // Vector类型
-                if (targetType == typeof(Vector2) && token is JArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].ToObject<float>(), arrV2[1].ToObject<float>());
-                if (targetType == typeof(Vector3) && token is JArray arrV3 && arrV3.Count == 3)
-                    return new Vector3(arrV3[0].ToObject<float>(), arrV3[1].ToObject<float>(), arrV3[2].ToObject<float>());
-                if (targetType == typeof(Vector4) && token is JArray arrV4 && arrV4.Count == 4)
-                    return new Vector4(arrV4[0].ToObject<float>(), arrV4[1].ToObject<float>(), arrV4[2].ToObject<float>(), arrV4[3].ToObject<float>());
+                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
+                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
+                    return new Vector3(arrV3[0].AsFloat, arrV3[1].AsFloat, arrV3[2].AsFloat);
+                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
+                    return new Vector4(arrV4[0].AsFloat, arrV4[1].AsFloat, arrV4[2].AsFloat, arrV4[3].AsFloat);
 
                 // Color类型
-                if (targetType == typeof(Color) && token is JArray arrC && arrC.Count >= 3)
-                    return new Color(arrC[0].ToObject<float>(), arrC[1].ToObject<float>(), arrC[2].ToObject<float>(), arrC.Count > 3 ? arrC[3].ToObject<float>() : 1.0f);
+                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3)
+                    return new Color(arrC[0].AsFloat, arrC[1].AsFloat, arrC[2].AsFloat, arrC.Count > 3 ? arrC[3].AsFloat : 1.0f);
 
                 // 枚举类型
                 if (targetType.IsEnum)
-                    return Enum.Parse(targetType, token.ToString(), true);
+                    return Enum.Parse(targetType, token.Value, true);
 
                 // Unity Object类型（Material, Texture等）
-                if (typeof(UnityEngine.Object).IsAssignableFrom(targetType) && token.Type == JTokenType.String)
+                if (typeof(UnityEngine.Object).IsAssignableFrom(targetType) && token.type == JsonNodeType.String)
                 {
-                    string assetPath = token.ToString();
+                    string assetPath = token.Value;
                     if (!string.IsNullOrEmpty(assetPath))
                     {
                         return AssetDatabase.LoadAssetAtPath(assetPath, targetType);
@@ -1027,7 +1032,7 @@ scene: {go.scene.name}";
         public static object AddComponentInternal(
             GameObject targetGo,
             string typeName,
-            JObject properties = null
+            JsonClass properties = null
         )
         {
             Type componentType = FindType(typeName);

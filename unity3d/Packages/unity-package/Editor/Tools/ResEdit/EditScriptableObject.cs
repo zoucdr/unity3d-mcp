@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -52,11 +52,11 @@ namespace UnityMcp.Tools
                 .Build();
         }
 
-        private object CreateScriptableObject(JObject args)
+        private object CreateScriptableObject(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string scriptClassName = args["script_class"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            string scriptClassName = args["script_class"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create.");
@@ -88,8 +88,8 @@ namespace UnityMcp.Tools
 
                 ScriptableObject so = ScriptableObject.CreateInstance(scriptType);
 
-                // Apply properties from JObject to the ScriptableObject instance
-                if (properties != null && properties.HasValues)
+                // Apply properties from JsonClass to the ScriptableObject instance
+                if (properties != null && properties.Count > 0)
                 {
                     bool soModified = ApplyObjectProperties(so, properties);
                     if (soModified)
@@ -112,14 +112,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyScriptableObject(JObject args)
+        private object ModifyScriptableObject(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return Response.Error("'properties' are required for modify.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -164,10 +164,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicateScriptableObject(JObject args)
+        private object DuplicateScriptableObject(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -214,13 +214,13 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SearchScriptableObjects(JObject args)
+        private object SearchScriptableObjects(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString(); // Use path as folder scope
-            int pageSize = args["page_size"]?.ToObject<int?>() ?? 50; // Default page size
-            int pageNumber = args["page_number"]?.ToObject<int?>() ?? 1; // Default page number (1-based)
-            bool generatePreview = args["generate_preview"]?.ToObject<bool>() ?? false;
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value; // Use path as folder scope
+            int pageSize = args["page_size"].AsIntDefault(50); // Default page size
+            int pageNumber = args["page_number"].AsIntDefault(1); // Default page number (1-based)
+            bool generatePreview = args["generate_preview"].AsBoolDefault(false);
 
             List<string> searchFilters = new List<string>();
             if (!string.IsNullOrEmpty(searchPattern))
@@ -287,10 +287,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GetScriptableObjectInfo(JObject args)
+        private object GetScriptableObjectInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            bool generatePreview = args["generate_preview"]?.ToObject<bool>() ?? false;
+            string path = args["path"]?.Value;
+            bool generatePreview = args["generate_preview"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -362,7 +362,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Generic helper to set properties on any UnityEngine.Object using reflection.
         /// </summary>
-        private bool ApplyObjectProperties(UnityEngine.Object target, JObject properties)
+        private bool ApplyObjectProperties(UnityEngine.Object target, JsonClass properties)
         {
             if (target == null || properties == null)
                 return false;
@@ -371,8 +371,8 @@ namespace UnityMcp.Tools
 
             foreach (var prop in properties.Properties())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
                 if (SetPropertyOrField(target, propName, propValue, type))
                 {
                     modified = true;
@@ -387,7 +387,7 @@ namespace UnityMcp.Tools
         private bool SetPropertyOrField(
             object target,
             string memberName,
-            JToken value,
+            JsonNode value,
             Type type = null
         )
         {
@@ -439,62 +439,62 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simple JToken to Type conversion for common Unity types and primitives.
+        /// Simple JsonNode to Type conversion for common Unity types and primitives.
         /// </summary>
-        private object ConvertJTokenToType(JToken token, Type targetType)
+        private object ConvertJTokenToType(JsonNode token, Type targetType)
         {
             try
             {
-                if (token == null || token.Type == JTokenType.Null)
+                if (token == null || token.type == JsonNodeType.Null)
                     return null;
 
                 if (targetType == typeof(string))
-                    return token.ToObject<string>();
+                    return token.Value;
                 if (targetType == typeof(int))
-                    return token.ToObject<int>();
+                    return token.AsInt;
                 if (targetType == typeof(float))
-                    return token.ToObject<float>();
+                    return token.AsFloat;
                 if (targetType == typeof(bool))
-                    return token.ToObject<bool>();
-                if (targetType == typeof(Vector2) && token is JArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].ToObject<float>(), arrV2[1].ToObject<float>());
-                if (targetType == typeof(Vector3) && token is JArray arrV3 && arrV3.Count == 3)
+                    return token.AsBool;
+                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
+                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
                     return new Vector3(
-                        arrV3[0].ToObject<float>(),
-                        arrV3[1].ToObject<float>(),
-                        arrV3[2].ToObject<float>()
+                        arrV3[0].AsFloat,
+                        arrV3[1].AsFloat,
+                        arrV3[2].AsFloat
                     );
-                if (targetType == typeof(Vector4) && token is JArray arrV4 && arrV4.Count == 4)
+                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
                     return new Vector4(
-                        arrV4[0].ToObject<float>(),
-                        arrV4[1].ToObject<float>(),
-                        arrV4[2].ToObject<float>(),
-                        arrV4[3].ToObject<float>()
+                        arrV4[0].AsFloat,
+                        arrV4[1].AsFloat,
+                        arrV4[2].AsFloat,
+                        arrV4[3].AsFloat
                     );
-                if (targetType == typeof(Quaternion) && token is JArray arrQ && arrQ.Count == 4)
+                if (targetType == typeof(Quaternion) && token is JsonArray arrQ && arrQ.Count == 4)
                     return new Quaternion(
-                        arrQ[0].ToObject<float>(),
-                        arrQ[1].ToObject<float>(),
-                        arrQ[2].ToObject<float>(),
-                        arrQ[3].ToObject<float>()
+                        arrQ[0].AsFloat,
+                        arrQ[1].AsFloat,
+                        arrQ[2].AsFloat,
+                        arrQ[3].AsFloat
                     );
-                if (targetType == typeof(Color) && token is JArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
+                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
                     return new Color(
-                        arrC[0].ToObject<float>(),
-                        arrC[1].ToObject<float>(),
-                        arrC[2].ToObject<float>(),
-                        arrC.Count > 3 ? arrC[3].ToObject<float>() : 1.0f
+                        arrC[0].AsFloat,
+                        arrC[1].AsFloat,
+                        arrC[2].AsFloat,
+                        arrC.Count > 3 ? arrC[3].AsFloat : 1.0f
                     );
                 if (targetType.IsEnum)
-                    return Enum.Parse(targetType, token.ToString(), true); // Case-insensitive enum parsing
+                    return Enum.Parse(targetType, token.Value, true); // Case-insensitive enum parsing
 
                 // Handle loading Unity Objects (Materials, Textures, etc.) by path
                 if (
                     typeof(UnityEngine.Object).IsAssignableFrom(targetType)
-                    && token.Type == JTokenType.String
+                    && token.type == JsonNodeType.String
                 )
                 {
-                    string assetPath = SanitizeAssetPath(token.ToString());
+                    string assetPath = SanitizeAssetPath(token.Value);
                     UnityEngine.Object loadedAsset = AssetDatabase.LoadAssetAtPath(
                         assetPath,
                         targetType
@@ -514,7 +514,7 @@ namespace UnityMcp.Tools
             catch (Exception ex)
             {
                 Debug.LogWarning(
-                    $"[ConvertJTokenToType] Could not convert JToken '{token}' (type {token.Type}) to type '{targetType.Name}': {ex.Message}"
+                    $"[ConvertJTokenToType] Could not convert JsonNode '{token}' (type {token.type}) to type '{targetType.Name}': {ex.Message}"
                 );
                 return null;
             }

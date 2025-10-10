@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -50,7 +50,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理写入错误日志的操作
         /// </summary>
-        private object HandleWriteError(JObject args)
+        private object HandleWriteError(JsonClass args)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理写入警告日志的操作
         /// </summary>
-        private object HandleWriteWarning(JObject args)
+        private object HandleWriteWarning(JsonClass args)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理写入普通日志的操作
         /// </summary>
-        private object HandleWriteLog(JObject args)
+        private object HandleWriteLog(JsonClass args)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理写入断言日志的操作
         /// </summary>
-        private object HandleWriteAssert(JObject args)
+        private object HandleWriteAssert(JsonClass args)
         {
             try
             {
@@ -183,7 +183,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理写入异常日志的操作
         /// </summary>
-        private object HandleWriteException(JObject args)
+        private object HandleWriteException(JsonClass args)
         {
             try
             {
@@ -219,9 +219,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理未知操作的回调方法
         /// </summary>
-        private object HandleUnknownAction(JObject args)
+        private object HandleUnknownAction(JsonClass args)
         {
-            string action = args["action"]?.ToString() ?? "null";
+            string action = args["action"]?.Value ?? "null";
             return Response.Error($"Unknown action: '{action}' for console_write. Valid actions are 'error', 'warning', 'log', 'assert', or 'exception'.");
         }
 
@@ -230,9 +230,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取消息参数
         /// </summary>
-        private string ExtractMessage(JObject args)
+        private string ExtractMessage(JsonClass args)
         {
-            string message = args["message"]?.ToString();
+            string message = args["message"]?.Value;
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException("Message parameter is required and cannot be empty.");
@@ -243,25 +243,25 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取标签参数
         /// </summary>
-        private string ExtractTag(JObject args)
+        private string ExtractTag(JsonClass args)
         {
-            return args["tag"]?.ToString();
+            return args["tag"]?.Value;
         }
 
         /// <summary>
         /// 提取条件参数（用于断言）
         /// </summary>
-        private string ExtractCondition(JObject args)
+        private string ExtractCondition(JsonClass args)
         {
-            return args["condition"]?.ToString();
+            return args["condition"]?.Value;
         }
 
         /// <summary>
         /// 提取上下文对象
         /// </summary>
-        private UnityEngine.Object ExtractContext(JObject args)
+        private UnityEngine.Object ExtractContext(JsonClass args)
         {
-            string contextName = args["context"]?.ToString();
+            string contextName = args["context"]?.Value;
             if (string.IsNullOrEmpty(contextName))
             {
                 return null;

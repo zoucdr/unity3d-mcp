@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// 用于标记工具方法类的名称和分组的特性

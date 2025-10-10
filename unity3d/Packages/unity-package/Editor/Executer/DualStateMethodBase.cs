@@ -1,15 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
-using UnityEditor;
 using UnityMcp.Models;
-using Newtonsoft.Json.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// 双状态树方法基类，提供基于两棵状态树的方法调用框架。
@@ -151,7 +145,7 @@ namespace UnityMcp.Tools
             if (processedTarget == null)
             {
                 Debug.LogError("[DualStateMethodBase] Target processing failed or returned null:，path:" + args["path"] + " ,instance_id:" + args["instance_id"]);
-                args.Complete(targetResult);
+                args.Complete(Json.FromObject(targetResult));
                 return;
             }
 
@@ -179,7 +173,7 @@ namespace UnityMcp.Tools
             // 完成执行
             else if (actionResult != null && actionResult != args)
             {
-                args.Complete(actionResult);
+                args.Complete(Json.FromObject(actionResult));
             }
             else
             {

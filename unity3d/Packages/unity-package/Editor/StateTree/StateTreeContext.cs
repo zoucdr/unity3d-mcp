@@ -1,11 +1,12 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using System.Collections;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace UnityMcp.Tools
+
+namespace UnityMcp
 {
     /// <summary>
     /// StateTree执行上下文包装类，支持JSON序列化字段和非序列化对象引用
@@ -13,34 +14,35 @@ namespace UnityMcp.Tools
     public class StateTreeContext
     {
         /// <summary>
-        /// JSON可序列化的参数数据
+        /// JSON可序列化的参数数据（已从 JsonClass 迁移到 JSONClass）
         /// </summary>
-        public JObject JsonData { get; }
+        public JsonClass JsonData { get; }
 
         /// <summary>
         /// 非序列化的对象引用字典，用于存储Unity对象等不可序列化的数据
         /// </summary>
         public Dictionary<string, object> ObjectReferences { get; }
 
-        public Action<object> CompleteAction { get; private set; }
+        public Action<JsonNode> CompleteAction { get; private set; }
 
-        public object Result { get; private set; }
+        public JsonNode Result { get; private set; }
         /// <summary>
-        /// 构造函数，基于现有JObject创建上下文
+        /// 构造函数，基于现有 JsonClass 创建上下文
         /// </summary>
         /// <param name="jsonData">JSON数据</param>
         /// <param name="objectReferences">可选的对象引用字典</param>
-        public StateTreeContext(JObject jsonData = null, Dictionary<string, object> objectReferences = null)
+        public StateTreeContext(JsonClass jsonData = null, Dictionary<string, object> objectReferences = null)
         {
-            JsonData = jsonData ?? new JObject();
+            JsonData = jsonData ?? new JsonClass();
             ObjectReferences = objectReferences ?? new Dictionary<string, object>();
         }
         /// <summary>
         /// 注册完成回调
         /// </summary>
         /// <param name="completeAction"></param>
-        public void RegistComplete(Action<object> completeAction)
+        public void RegistComplete(Action<JsonNode> completeAction)
         {
+            UnityEngine.Debug.LogError($"[StateTreeContext] RegistComplete: {completeAction}");
             CompleteAction = completeAction;
             if (Result != null)
             {
@@ -51,8 +53,9 @@ namespace UnityMcp.Tools
         /// 结束回调
         /// </summary>
         /// <param name="result"></param>
-        public void Complete(object result)
+        public void Complete(JsonNode result)
         {
+            UnityEngine.Debug.LogError($"[StateTreeContext] Complete: {result}");
             if (Result == null)
             {
                 Result = result;
@@ -60,12 +63,12 @@ namespace UnityMcp.Tools
             }
         }
         /// <summary>
-        /// 获取JSON字段值
+        /// 获取JSON字段值（已从 JsonNode 迁移到 JSONNode）
         /// </summary>
         /// <param name="key">字段键</param>
         /// <param name="token">输出的Token值</param>
         /// <returns>是否找到该字段</returns>
-        public bool TryGetJsonValue(string key, out JToken token)
+        public bool TryGetJsonValue(string key, out JsonNode token)
         {
             return JsonData.TryGetValue(key, out token);
         }
@@ -100,11 +103,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 设置JSON字段值
+        /// 设置JSON字段值（已从 JsonNode 迁移到 JSONNode）
         /// </summary>
         /// <param name="key">字段键</param>
         /// <param name="value">字段值</param>
-        public void SetJsonValue(string key, JToken value)
+        public void SetJsonValue(string key, JsonNode value)
         {
             JsonData[key] = value;
         }
@@ -125,7 +128,7 @@ namespace UnityMcp.Tools
         /// <returns>新的上下文实例</returns>
         public StateTreeContext Clone()
         {
-            var newJsonData = new JObject(JsonData);
+            var newJsonData = JsonData.Clone();
             var newObjectReferences = new Dictionary<string, object>(ObjectReferences);
             return new StateTreeContext(newJsonData, newObjectReferences);
         }
@@ -142,23 +145,24 @@ namespace UnityMcp.Tools
             get
             {
                 // 优先查找JsonData
-                if (JsonData.TryGetValue(key, out JToken token))
+                if (JsonData.TryGetValue(key, out JsonNode token))
                 {
                     // 如果是基本类型，直接返回值
-                    switch (token.Type)
+                    var nodeType = token.type;
+                    switch (nodeType)
                     {
-                        case JTokenType.String:
-                            return token.Value<string>();
-                        case JTokenType.Integer:
-                            return token.Value<long>();
-                        case JTokenType.Float:
-                            return token.Value<double>();
-                        case JTokenType.Boolean:
-                            return token.Value<bool>();
-                        case JTokenType.Null:
+                        case JsonNodeType.String:
+                            return token.Value;
+                        case JsonNodeType.Integer:
+                            return token.AsInt;
+                        case JsonNodeType.Float:
+                            return token.AsFloat;
+                        case JsonNodeType.Boolean:
+                            return token.AsBool;
+                        case JsonNodeType.Null:
                             return null;
                         default:
-                            return token; // 返回JToken本身
+                            return token; // 返回 JsonNode 本身
                     }
                 }
 
@@ -175,14 +179,14 @@ namespace UnityMcp.Tools
                 if (value == null)
                 {
                     // null值优先存储到JsonData中
-                    JsonData[key] = JValue.CreateNull();
+                    JsonData[key] = new JsonData("null");
                     // 同时从ObjectReferences中移除
                     ObjectReferences.Remove(key);
                 }
                 else if (IsSerializableType(value))
                 {
                     // 可序列化类型存储到JsonData
-                    JsonData[key] = JToken.FromObject(value);
+                    JsonData[key] = Json.FromObject(value);
                     // 从ObjectReferences中移除
                     ObjectReferences.Remove(key);
                 }
@@ -215,23 +219,24 @@ namespace UnityMcp.Tools
         public bool TryGetValue(string key, out object value)
         {
             // 优先从JsonData获取
-            if (JsonData.TryGetValue(key, out JToken token))
+            if (JsonData.TryGetValue(key, out JsonNode token))
             {
-                switch (token.Type)
+                var nodeType = token.type;
+                switch (nodeType)
                 {
-                    case JTokenType.String:
-                        value = token.Value<string>();
+                    case JsonNodeType.String:
+                        value = token.Value;
                         return true;
-                    case JTokenType.Integer:
-                        value = token.Value<long>();
+                    case JsonNodeType.Integer:
+                        value = token.AsInt;
                         return true;
-                    case JTokenType.Float:
-                        value = token.Value<double>();
+                    case JsonNodeType.Float:
+                        value = token.AsFloat;
                         return true;
-                    case JTokenType.Boolean:
-                        value = token.Value<bool>();
+                    case JsonNodeType.Boolean:
+                        value = token.AsBool;
                         return true;
-                    case JTokenType.Null:
+                    case JsonNodeType.Null:
                         value = null;
                         return true;
                     default:
@@ -284,7 +289,7 @@ namespace UnityMcp.Tools
         /// <returns>是否移除了任何值</returns>
         public bool Remove(string key)
         {
-            bool removedFromJson = JsonData.Remove(key);
+            bool removedFromJson = JsonData.Remove(key) != null;
             bool removedFromObjects = ObjectReferences.Remove(key);
             return removedFromJson || removedFromObjects;
         }
@@ -330,7 +335,7 @@ namespace UnityMcp.Tools
             // 尝试序列化测试（谨慎使用，可能有性能影响）
             try
             {
-                JToken.FromObject(value);
+                Json.FromObject(value);
                 return true;
             }
             catch
@@ -354,7 +359,7 @@ namespace UnityMcp.Tools
             {
                 // 调用完成回调
                 UnityEngine.Debug.Log($"AsyncReturn: {result}");
-                CompleteAction?.Invoke(result);
+                CompleteAction?.Invoke(Json.FromObject(result));
             });
             return this;
         }

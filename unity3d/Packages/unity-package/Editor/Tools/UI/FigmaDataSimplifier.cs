@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
+// Migrated from Newtonsoft.Json to SimpleJson
 
 namespace UnityMcp.Tools
 {
@@ -133,7 +133,7 @@ namespace UnityMcp.Tools
         /// <param name="canvasHeight">保留参数以兼容</param>
         /// <param name="canvasWidth">保留参数以兼容</param>
         /// <returns>简化后的节点数据</returns>
-        public static SimplifiedNode SimplifyNode(JToken figmaNode, int maxDepth = -1, bool convertToUGUI = true, bool cleanupRedundantData = true, float canvasHeight = 720f, float canvasWidth = 1200f)
+        public static SimplifiedNode SimplifyNode(JsonNode figmaNode, int maxDepth = -1, bool convertToUGUI = true, bool cleanupRedundantData = true, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             var result = SimplifyNodeInternal(figmaNode, maxDepth, convertToUGUI, cleanupRedundantData, null, null, canvasHeight, canvasWidth);
 
@@ -144,21 +144,21 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 内部简化方法，支持传递父节点信息
         /// </summary>
-        private static SimplifiedNode SimplifyNodeInternal(JToken figmaNode, int maxDepth, bool convertToUGUI, bool cleanupRedundantData, SimplifiedNode parentNode, JToken parentFigmaNode, float canvasHeight = 720f, float canvasWidth = 1200f)
+        private static SimplifiedNode SimplifyNodeInternal(JsonNode figmaNode, int maxDepth, bool convertToUGUI, bool cleanupRedundantData, SimplifiedNode parentNode, JsonNode parentFigmaNode, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             if (figmaNode == null || maxDepth == 0)
                 return null;
 
             // 如果节点不可见，直接返回null，不进行解析
-            bool visible = figmaNode["visible"]?.ToObject<bool?>() ?? true;
+            bool visible = figmaNode["visible"].AsBoolDefault(true);
             if (!visible)
                 return null;
 
             var simplified = new SimplifiedNode
             {
-                id = figmaNode["id"]?.ToString(),
-                name = figmaNode["name"]?.ToString(),
-                type = figmaNode["type"]?.ToString()
+                id = figmaNode["id"]?.Value,
+                name = figmaNode["name"]?.Value,
+                type = figmaNode["type"]?.Value
                 // visible字段已移除，因为所有返回的节点都是可见的
             };
 
@@ -166,10 +166,10 @@ namespace UnityMcp.Tools
             var absoluteBoundingBox = figmaNode["absoluteBoundingBox"];
             if (absoluteBoundingBox != null)
             {
-                float figmaX = absoluteBoundingBox["x"]?.ToObject<float>() ?? 0;
-                float figmaY = absoluteBoundingBox["y"]?.ToObject<float>() ?? 0;
-                float width = absoluteBoundingBox["width"]?.ToObject<float>() ?? 0;
-                float height = absoluteBoundingBox["height"]?.ToObject<float>() ?? 0;
+                float figmaX = absoluteBoundingBox["x"].AsFloatDefault(0);
+                float figmaY = absoluteBoundingBox["y"].AsFloatDefault(0);
+                float width = absoluteBoundingBox["width"].AsFloatDefault(0);
+                float height = absoluteBoundingBox["height"].AsFloatDefault(0);
 
                 // 使用Figma原始坐标系（左上角原点）
                 simplified.pos = new float[]
@@ -202,10 +202,10 @@ namespace UnityMcp.Tools
 
             // 递归处理子节点
             var children = figmaNode["children"];
-            if (children != null && children.Type == JTokenType.Array)
+            if (children != null && children.type == JsonNodeType.Array)
             {
                 simplified.children = new List<SimplifiedNode>();
-                foreach (var child in children) // 处理所有子节点
+                foreach (JsonNode child in children.Childs) // 处理所有子节点
                 {
                     var nextDepth = maxDepth > 0 ? maxDepth - 1 : -1; // 如果maxDepth为-1则保持无限制
                     var simplifiedChild = SimplifyNodeInternal(child, nextDepth, convertToUGUI, cleanupRedundantData, simplified, figmaNode, canvasHeight, canvasWidth);
@@ -229,22 +229,22 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取文本信息
         /// </summary>
-        private static void ExtractTextInfo(JToken node, SimplifiedNode simplified)
+        private static void ExtractTextInfo(JsonNode node, SimplifiedNode simplified)
         {
             // 文本内容
-            simplified.text = node["characters"]?.ToString();
+            simplified.text = node["characters"]?.Value;
 
             // 文本样式
             var style = node["style"];
-            if (style != null && style.Type == JTokenType.Object)
+            if (style != null && style.type == JsonNodeType.Object)
             {
                 simplified.textStyle = new TextStyle
                 {
-                    fontFamily = style["fontFamily"]?.ToString(),
-                    fontWeight = style["fontWeight"]?.ToString(),
-                    fontSize = (float)Math.Round(style["fontSize"]?.ToObject<float>() ?? 0, 2),
-                    textAlign = style["textAlignHorizontal"]?.ToString(),
-                    lineHeight = (float)Math.Round(style["lineHeightPx"]?.ToObject<float>() ?? 0, 2)
+                    fontFamily = style["fontFamily"]?.Value,
+                    fontWeight = style["fontWeight"]?.Value,
+                    fontSize = (float)Math.Round(style["fontSize"].AsFloatDefault(0), 2),
+                    textAlign = style["textAlignHorizontal"]?.Value,
+                    lineHeight = (float)Math.Round(style["lineHeightPx"].AsFloatDefault(0), 2)
                 };
             }
         }
@@ -252,11 +252,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取样式信息
         /// </summary>
-        private static void ExtractStyleInfo(JToken node, SimplifiedNode simplified)
+        private static void ExtractStyleInfo(JsonNode node, SimplifiedNode simplified)
         {
             // 提取完整的填充信息
             var fills = node["fills"];
-            if (fills != null && fills.Type == JTokenType.Array && fills.Any())
+            if (fills != null && fills.type == JsonNodeType.Array && fills.Count > 0)
             {
                 simplified.fills = ExtractFillsInfo(fills);
 
@@ -269,17 +269,17 @@ namespace UnityMcp.Tools
             }
 
             // 文字颜色
-            if (simplified.textStyle != null && fills != null && fills.Type == JTokenType.Array && fills.Any())
+            if (simplified.textStyle != null && fills != null && fills.type == JsonNodeType.Array && fills.Count > 0)
             {
-                var firstFill = fills.First();
-                if (firstFill != null && firstFill.Type == JTokenType.Object)
+                var firstFill = fills.Childs.FirstOrDefault();
+                if (firstFill != null && firstFill.type == JsonNodeType.Object)
                 {
                     simplified.textColor = ExtractColor(firstFill);
                 }
             }
 
             // 圆角
-            simplified.cornerRadius = (float)Math.Round(node["cornerRadius"]?.ToObject<float>() ?? 0, 2);
+            simplified.cornerRadius = (float)Math.Round(node["cornerRadius"].AsFloatDefault(0), 2);
 
             // 图片信息 - 检查是否包含图片引用
             if (simplified.fills != null)
@@ -295,24 +295,24 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取完整的填充信息列表
         /// </summary>
-        private static List<FillInfo> ExtractFillsInfo(JToken fills)
+        private static List<FillInfo> ExtractFillsInfo(JsonNode fills)
         {
             var fillInfos = new List<FillInfo>();
 
-            if (fills == null || fills.Type != JTokenType.Array)
+            if (fills == null || fills.type != JsonNodeType.Array)
                 return fillInfos;
 
-            foreach (var fill in fills)
+            foreach (JsonNode fill in fills.Childs)
             {
-                if (fill == null || fill.Type != JTokenType.Object)
+                if (fill == null)
                     continue;
 
                 var fillInfo = new FillInfo
                 {
-                    type = fill["type"]?.ToString(),
-                    visible = fill["visible"]?.ToObject<bool?>() ?? true,
-                    opacity = (float)Math.Round(fill["opacity"]?.ToObject<float>() ?? 1.0f, 2),
-                    blendMode = fill["blendMode"]?.ToString()
+                    type = fill["type"]?.Value,
+                    visible = fill["visible"].AsBoolDefault(true),
+                    opacity = (float)Math.Round(fill["opacity"].AsFloatDefault(1.0f), 2),
+                    blendMode = fill["blendMode"]?.Value
                 };
 
                 // 根据填充类型提取具体信息
@@ -323,7 +323,7 @@ namespace UnityMcp.Tools
                         break;
 
                     case "IMAGE":
-                        fillInfo.imageRef = fill["imageRef"]?.ToString();
+                        fillInfo.imageRef = fill["imageRef"]?.Value;
                         break;
 
                     case "GRADIENT_LINEAR":
@@ -342,25 +342,25 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取渐变信息
         /// </summary>
-        private static GradientInfo ExtractGradientInfo(JToken fill)
+        private static GradientInfo ExtractGradientInfo(JsonNode fill)
         {
             var gradientInfo = new GradientInfo
             {
-                type = fill["type"]?.ToString()
+                type = fill["type"]?.Value
             };
 
             // 提取渐变停止点
             var gradientStops = fill["gradientStops"];
-            if (gradientStops != null && gradientStops.Type == JTokenType.Array)
+            if (gradientStops != null && gradientStops.type == JsonNodeType.Array)
             {
                 gradientInfo.gradientStops = new List<GradientStop>();
-                foreach (var stop in gradientStops)
+                foreach (JsonNode stop in gradientStops.Childs)
                 {
-                    if (stop != null && stop.Type == JTokenType.Object)
+                    if (stop != null)
                     {
                         var gradientStop = new GradientStop
                         {
-                            position = (float)Math.Round(stop["position"]?.ToObject<float>() ?? 0, 2),
+                            position = (float)Math.Round(stop["position"].AsFloatDefault(0), 2),
                             color = ExtractColor(stop)
                         };
                         gradientInfo.gradientStops.Add(gradientStop);
@@ -370,15 +370,15 @@ namespace UnityMcp.Tools
 
             // 提取渐变句柄位置
             var gradientHandlePositions = fill["gradientHandlePositions"];
-            if (gradientHandlePositions != null && gradientHandlePositions.Type == JTokenType.Array)
+            if (gradientHandlePositions != null && gradientHandlePositions.type == JsonNodeType.Array)
             {
                 var positions = new List<float>();
-                foreach (var position in gradientHandlePositions)
+                foreach (JsonNode position in gradientHandlePositions.Childs)
                 {
-                    if (position != null && position.Type == JTokenType.Array && position.Count() >= 2)
+                    if (position != null && position.Count >= 2)
                     {
-                        positions.Add((float)Math.Round(position[0]?.ToObject<float>() ?? 0, 2));
-                        positions.Add((float)Math.Round(position[1]?.ToObject<float>() ?? 0, 2));
+                        positions.Add((float)Math.Round(position[0].AsFloatDefault(0), 2));
+                        positions.Add((float)Math.Round(position[1].AsFloatDefault(0), 2));
                     }
                 }
                 gradientInfo.gradientHandlePositions = positions.ToArray();
@@ -390,22 +390,22 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取颜色信息
         /// </summary>
-        private static ColorInfo ExtractColor(JToken fill)
+        private static ColorInfo ExtractColor(JsonNode fill)
         {
-            if (fill == null || fill.Type != JTokenType.Object) return null;
+            if (fill == null || fill.type != JsonNodeType.Object) return null;
 
             var colorInfo = new ColorInfo
             {
-                type = fill["type"]?.ToString()
+                type = fill["type"]?.Value
             };
 
             var color = fill["color"];
-            if (color != null && color.Type == JTokenType.Object)
+            if (color != null && color.type == JsonNodeType.Object)
             {
-                colorInfo.r = (float)Math.Round(color["r"]?.ToObject<float>() ?? 0, 2);
-                colorInfo.g = (float)Math.Round(color["g"]?.ToObject<float>() ?? 0, 2);
-                colorInfo.b = (float)Math.Round(color["b"]?.ToObject<float>() ?? 0, 2);
-                colorInfo.a = (float)Math.Round(color["a"]?.ToObject<float>() ?? 1, 2);
+                colorInfo.r = (float)Math.Round(color["r"].AsFloatDefault(0), 2);
+                colorInfo.g = (float)Math.Round(color["g"].AsFloatDefault(0), 2);
+                colorInfo.b = (float)Math.Round(color["b"].AsFloatDefault(0), 2);
+                colorInfo.a = (float)Math.Round(color["a"].AsFloatDefault(1), 2);
 
                 // 转换为十六进制
                 int r = Mathf.RoundToInt(colorInfo.r * 255);
@@ -420,23 +420,23 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取布局信息
         /// </summary>
-        private static void ExtractLayoutInfo(JToken node, SimplifiedNode simplified)
+        private static void ExtractLayoutInfo(JsonNode node, SimplifiedNode simplified)
         {
-            var layoutMode = node["layoutMode"]?.ToString();
+            var layoutMode = node["layoutMode"]?.Value;
             if (!string.IsNullOrEmpty(layoutMode))
             {
                 simplified.layout = new LayoutInfo
                 {
                     layoutMode = layoutMode,
-                    alignItems = node["primaryAxisAlignItems"]?.ToString() ?? node["counterAxisAlignItems"]?.ToString(),
-                    itemSpacing = (float)Math.Round(node["itemSpacing"]?.ToObject<float>() ?? 0, 2)
+                    alignItems = node["primaryAxisAlignItems"]?.Value ?? node["counterAxisAlignItems"]?.Value,
+                    itemSpacing = (float)Math.Round(node["itemSpacing"].AsFloatDefault(0), 2)
                 };
 
                 // 内边距
-                var paddingLeft = (float)Math.Round(node["paddingLeft"]?.ToObject<float>() ?? 0, 2);
-                var paddingTop = (float)Math.Round(node["paddingTop"]?.ToObject<float>() ?? 0, 2);
-                var paddingRight = (float)Math.Round(node["paddingRight"]?.ToObject<float>() ?? 0, 2);
-                var paddingBottom = (float)Math.Round(node["paddingBottom"]?.ToObject<float>() ?? 0, 2);
+                var paddingLeft = (float)Math.Round(node["paddingLeft"].AsFloatDefault(0), 2);
+                var paddingTop = (float)Math.Round(node["paddingTop"].AsFloatDefault(0), 2);
+                var paddingRight = (float)Math.Round(node["paddingRight"].AsFloatDefault(0), 2);
+                var paddingBottom = (float)Math.Round(node["paddingBottom"].AsFloatDefault(0), 2);
 
                 if (paddingLeft > 0 || paddingTop > 0 || paddingRight > 0 || paddingBottom > 0)
                 {
@@ -454,14 +454,8 @@ namespace UnityMcp.Tools
         /// <returns>JSON字符串</returns>
         public static string ToCompactJson(SimplifiedNode simplifiedNode, bool prettyPrint = false)
         {
-            var settings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore, // 忽略null值
-                DefaultValueHandling = DefaultValueHandling.Ignore, // 忽略默认值
-                Formatting = prettyPrint ? Formatting.Indented : Formatting.None
-            };
-
-            return JsonConvert.SerializeObject(simplifiedNode, settings);
+            // 使用SimpleJson序列化
+            return Json.FromObject(simplifiedNode);
         }
 
         /// <summary>
@@ -473,13 +467,13 @@ namespace UnityMcp.Tools
         /// <param name="canvasHeight">Canvas高度，用于Unity坐标系转换，默认720</param>
         /// <param name="canvasWidth">Canvas宽度，用于Unity坐标系转换，默认1200</param>
         /// <returns>简化后的节点字典</returns>
-        public static Dictionary<string, SimplifiedNode> SimplifyNodes(JObject figmaNodes, int maxDepth = -1, bool convertToUGUI = true, float canvasHeight = 720f, float canvasWidth = 1200f)
+        public static Dictionary<string, SimplifiedNode> SimplifyNodes(JsonClass figmaNodes, int maxDepth = -1, bool convertToUGUI = true, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             var result = new Dictionary<string, SimplifiedNode>();
 
             if (figmaNodes == null) return result;
 
-            foreach (var kvp in figmaNodes)
+            foreach (KeyValuePair<string, JsonNode> kvp in figmaNodes.AsEnumerable())
             {
                 var nodeData = kvp.Value["document"];
                 if (nodeData != null)
@@ -489,7 +483,7 @@ namespace UnityMcp.Tools
                     {
                         // 提取并简化 components
                         var componentsData = kvp.Value["components"];
-                        if (componentsData != null && componentsData.Type == JTokenType.Object)
+                        if (componentsData != null && componentsData is JsonClass)
                         {
                             simplified.components = ExtractComponentIds(componentsData);
                         }
@@ -507,17 +501,17 @@ namespace UnityMcp.Tools
         /// </summary>
         /// <param name="componentsData">组件数据对象</param>
         /// <returns>组件ID列表</returns>
-        private static List<string> ExtractComponentIds(JToken componentsData)
+        private static List<string> ExtractComponentIds(JsonNode componentsData)
         {
             var componentIds = new List<string>();
 
-            if (componentsData == null || componentsData.Type != JTokenType.Object)
+            if (componentsData == null || componentsData.type != JsonNodeType.Object)
                 return componentIds;
 
-            foreach (var property in ((JObject)componentsData).Properties())
+            foreach (string key in ((JsonClass)componentsData).GetKeys())
             {
-                // property.Name 就是组件ID
-                componentIds.Add(property.Name);
+                // key 就是组件ID
+                componentIds.Add(key);
             }
 
             return componentIds;
@@ -875,11 +869,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 智能分析节点，判断是否需要下载为图片
         /// </summary>
-        private static bool IsDownloadableNode(JToken node)
+        private static bool IsDownloadableNode(JsonNode node)
         {
             if (node == null) return false;
 
-            string nodeType = node["type"]?.ToString();
+            string nodeType = node["type"]?.Value;
             // 不需要检查visible，因为不可见的节点已经在外层被过滤掉了
 
             // 1. 包含图片引用的节点
@@ -936,14 +930,14 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 检查节点是否包含图片引用
         /// </summary>
-        private static bool HasImageRef(JToken node)
+        private static bool HasImageRef(JsonNode node)
         {
             var fills = node["fills"];
             if (fills != null)
             {
-                foreach (var fill in fills)
+                foreach (JsonNode fill in fills.Childs)
                 {
-                    if (fill["type"]?.ToString() == "IMAGE" && fill["imageRef"] != null)
+                    if (fill["type"]?.Value == "IMAGE" && fill["imageRef"] != null)
                     {
                         return true;
                     }
@@ -955,14 +949,14 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 检查是否有复杂填充（渐变、图片等）
         /// </summary>
-        private static bool HasComplexFills(JToken node)
+        private static bool HasComplexFills(JsonNode node)
         {
             var fills = node["fills"];
             if (fills != null)
             {
-                foreach (var fill in fills)
+                foreach (JsonNode fill in fills.Childs)
                 {
-                    string fillType = fill["type"]?.ToString();
+                    string fillType = fill["type"]?.Value;
                     if (fillType == "GRADIENT_LINEAR" ||
                         fillType == "GRADIENT_RADIAL" ||
                         fillType == "GRADIENT_ANGULAR" ||
@@ -978,39 +972,39 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 检查是否有描边
         /// </summary>
-        private static bool HasStrokes(JToken node)
+        private static bool HasStrokes(JsonNode node)
         {
             var strokes = node["strokes"];
-            return strokes != null && strokes.HasValues;
+            return strokes != null && strokes.Count > 0;
         }
 
         /// <summary>
         /// 检查是否有效果
         /// </summary>
-        private static bool HasEffects(JToken node)
+        private static bool HasEffects(JsonNode node)
         {
             var effects = node["effects"];
-            return effects != null && effects.HasValues;
+            return effects != null && effects.Count > 0;
         }
 
         /// <summary>
         /// 检查是否有圆角
         /// </summary>
-        private static bool HasRoundedCorners(JToken node)
+        private static bool HasRoundedCorners(JsonNode node)
         {
             var cornerRadius = node["cornerRadius"];
             if (cornerRadius != null)
             {
-                float radius = cornerRadius.ToObject<float>();
+                float radius = cornerRadius.AsFloat;
                 return radius > 0;
             }
 
             var rectangleCornerRadii = node["rectangleCornerRadii"];
             if (rectangleCornerRadii != null)
             {
-                foreach (var radius in rectangleCornerRadii)
+                foreach (JsonNode radius in rectangleCornerRadii.Childs)
                 {
-                    if (radius.ToObject<float>() > 0)
+                    if (radius.AsFloat > 0)
                         return true;
                 }
             }
@@ -1021,10 +1015,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 检查是否为复杂Frame
         /// </summary>
-        private static bool IsComplexFrame(JToken node)
+        private static bool IsComplexFrame(JsonNode node)
         {
             var children = node["children"];
-            if (children == null || !children.HasValues)
+            if (children == null || children.Count == 0)
                 return false;
 
             // 如果Frame有背景色、效果或者包含多个不同类型的子元素，认为是复杂Frame
@@ -1032,7 +1026,7 @@ namespace UnityMcp.Tools
                 return true;
 
             // 检查子元素数量和类型多样性
-            int childCount = children.Count();
+            int childCount = children.Count;
             if (childCount > 3) // 超过3个子元素的复杂布局
                 return true;
 

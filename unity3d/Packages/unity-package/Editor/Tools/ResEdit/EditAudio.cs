@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -77,21 +77,21 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理导入操作
         /// </summary>
-        private object HandleImportAction(JObject args)
+        private object HandleImportAction(JsonClass args)
         {
-            string sourceFile = args["source_file"]?.ToString();
-            string path = args["path"]?.ToString();
+            string sourceFile = args["source_file"]?.Value;
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(sourceFile))
                 return Response.Error("'source_file' is required for import.");
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for import.");
 
-            JObject importSettings = args["import_settings"] as JObject;
+            JsonClass importSettings = args["import_settings"] as JsonClass;
             return ImportAudio(sourceFile, path, importSettings);
         }
 
-        private object ImportAudio(string sourceFile, string path, JObject importSettings)
+        private object ImportAudio(string sourceFile, string path, JsonClass importSettings)
         {
             string fullPath = SanitizeAssetPath(path);
             string directory = Path.GetDirectoryName(fullPath);
@@ -117,7 +117,7 @@ namespace UnityMcp.Tools
                 File.Copy(sourceFile, targetFilePath);
 
                 // 导入设置
-                if (importSettings != null && importSettings.HasValues)
+                if (importSettings != null && importSettings.Count > 0)
                 {
                     AssetDatabase.ImportAsset(fullPath);
                     AudioImporter importer = AssetImporter.GetAtPath(fullPath) as AudioImporter;
@@ -144,20 +144,20 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理修改操作
         /// </summary>
-        private object HandleModifyAction(JObject args)
+        private object HandleModifyAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject importSettings = args["import_settings"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass importSettings = args["import_settings"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (importSettings == null || !importSettings.HasValues)
+            if (importSettings == null || importSettings.Count == 0)
                 return Response.Error("'import_settings' are required for modify.");
 
             return ModifyAudio(path, importSettings);
         }
 
-        private object ModifyAudio(string path, JObject importSettings)
+        private object ModifyAudio(string path, JsonClass importSettings)
         {
             string fullPath = SanitizeAssetPath(path);
             if (!AssetExists(fullPath))
@@ -191,10 +191,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理复制操作
         /// </summary>
-        private object HandleDuplicateAction(JObject args)
+        private object HandleDuplicateAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -243,9 +243,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理删除操作
         /// </summary>
-        private object HandleDeleteAction(JObject args)
+        private object HandleDeleteAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for delete.");
@@ -281,9 +281,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取信息操作
         /// </summary>
-        private object HandleGetInfoAction(JObject args)
+        private object HandleGetInfoAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -310,10 +310,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理搜索操作
         /// </summary>
-        private object HandleSearchAction(JObject args)
+        private object HandleSearchAction(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
 
             // 搜索操作至少需要query或path之一
             if (string.IsNullOrEmpty(searchPattern) && string.IsNullOrEmpty(pathScope))
@@ -324,14 +324,14 @@ namespace UnityMcp.Tools
             return SearchAudios(args);
         }
 
-        private object SearchAudios(JObject args)
+        private object SearchAudios(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
             bool recursive = true;
             if (args["recursive"] != null)
             {
-                if (bool.TryParse(args["recursive"].ToString(), out bool recursiveValue))
+                if (bool.TryParse(args["recursive"].Value, out bool recursiveValue))
                 {
                     recursive = recursiveValue;
                 }
@@ -379,20 +379,20 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理设置导入设置操作
         /// </summary>
-        private object HandleSetImportSettingsAction(JObject args)
+        private object HandleSetImportSettingsAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject importSettings = args["import_settings"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass importSettings = args["import_settings"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for set_import_settings.");
-            if (importSettings == null || !importSettings.HasValues)
+            if (importSettings == null || importSettings.Count == 0)
                 return Response.Error("'import_settings' are required for set_import_settings.");
 
             return SetAudioImportSettings(path, importSettings);
         }
 
-        private object SetAudioImportSettings(string path, JObject importSettings)
+        private object SetAudioImportSettings(string path, JsonClass importSettings)
         {
             string fullPath = SanitizeAssetPath(path);
             if (!AssetExists(fullPath))
@@ -426,10 +426,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理转换格式操作
         /// </summary>
-        private object HandleConvertFormatAction(JObject args)
+        private object HandleConvertFormatAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string targetFormat = args["target_format"]?.ToString();
+            string path = args["path"]?.Value;
+            string targetFormat = args["target_format"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for convert_format.");
@@ -498,9 +498,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理提取元数据操作
         /// </summary>
-        private object HandleExtractMetadataAction(JObject args)
+        private object HandleExtractMetadataAction(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for extract_metadata.");
@@ -600,7 +600,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用音频导入设置
         /// </summary>
-        private bool ApplyAudioImportSettings(AudioImporter importer, JObject settings)
+        private bool ApplyAudioImportSettings(AudioImporter importer, JsonClass settings)
         {
             if (importer == null || settings == null)
                 return false;
@@ -610,26 +610,26 @@ namespace UnityMcp.Tools
 
             foreach (var setting in settings.Properties())
             {
-                string settingName = setting.Name;
-                JToken settingValue = setting.Value;
+                string settingName = setting.Key;
+                JsonNode settingValue = setting.Value;
 
                 try
                 {
                     switch (settingName.ToLowerInvariant())
                     {
                         case "force_to_mono":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool forceToMono = settingValue.ToObject<bool>();
+                                bool forceToMono = settingValue.AsBool;
                                 // 注意：forceToMono 属性在某些Unity版本中可能不可用
                                 // 这里使用注释掉的方式，避免编译错误
                                 LogInfo($"[ApplyAudioImportSettings] forceToMono setting not supported in current Unity version");
                             }
                             break;
                         case "load_type":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.type == JsonNodeType.String)
                             {
-                                string loadType = settingValue.ToString();
+                                string loadType = settingValue.Value;
                                 AudioClipLoadType clipLoadType = AudioClipLoadType.DecompressOnLoad;
 
                                 switch (loadType.ToLowerInvariant())
@@ -654,9 +654,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "compression_format":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.type == JsonNodeType.String)
                             {
-                                string compressionFormat = settingValue.ToString();
+                                string compressionFormat = settingValue.Value;
                                 AudioCompressionFormat format = AudioCompressionFormat.PCM;
 
                                 switch (compressionFormat.ToLowerInvariant())
@@ -684,9 +684,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "quality":
-                            if (settingValue.Type == JTokenType.Float || settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
-                                float quality = settingValue.ToObject<float>();
+                                float quality = settingValue.AsFloat;
                                 quality = Mathf.Clamp01(quality); // 确保在0-1范围内
                                 if (Math.Abs(sampleSettings.quality - quality) > 0.001f)
                                 {
@@ -696,9 +696,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "sample_rate_setting":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.GetJSONNodeType() == JsonNodeType.String)
                             {
-                                string sampleRateSetting = settingValue.ToString();
+                                string sampleRateSetting = settingValue.Value;
                                 AudioSampleRateSetting rateSetting = AudioSampleRateSetting.PreserveSampleRate;
 
                                 switch (sampleRateSetting.ToLowerInvariant())
@@ -723,9 +723,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "sample_rate":
-                            if (settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Integer)
                             {
-                                int sampleRate = settingValue.ToObject<int>();
+                                int sampleRate = settingValue.AsInt;
                                 if (sampleSettings.sampleRateOverride != (uint)sampleRate)
                                 {
                                     sampleSettings.sampleRateOverride = (uint)sampleRate;
@@ -734,25 +734,25 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "preload_audio_data":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool preloadAudioData = settingValue.ToObject<bool>();
+                                bool preloadAudioData = settingValue.AsBool;
                                 // 注意：preloadAudioData 属性在某些Unity版本中可能不可用
                                 LogInfo($"[ApplyAudioImportSettings] preloadAudioData setting not supported in current Unity version");
                             }
                             break;
                         case "load_in_background":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool loadInBackground = settingValue.ToObject<bool>();
+                                bool loadInBackground = settingValue.AsBool;
                                 // 注意：loadInBackground 属性在某些Unity版本中可能不可用
                                 LogInfo($"[ApplyAudioImportSettings] loadInBackground setting not supported in current Unity version");
                             }
                             break;
                         case "ambisonic_rendering":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool ambisonicRendering = settingValue.ToObject<bool>();
+                                bool ambisonicRendering = settingValue.AsBool;
                                 // 注意：ambisonicRendering 属性在某些Unity版本中可能不可用
                                 // if (sampleSettings.ambisonicRendering != ambisonicRendering)
                                 // {
@@ -763,9 +763,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "dsp_buffer_size":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.type == JsonNodeType.String)
                             {
-                                string dspBufferSize = settingValue.ToString();
+                                string dspBufferSize = settingValue.Value;
                                 // 注意：DSPBufferSize 枚举和 dspBufferSize 属性在某些Unity版本中可能不可用
                                 // DSPBufferSize bufferSize = DSPBufferSize.BestPerformance;
                                 // 
@@ -787,9 +787,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "virtualize_when_silent":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool virtualizeWhenSilent = settingValue.ToObject<bool>();
+                                bool virtualizeWhenSilent = settingValue.AsBool;
                                 // 注意：virtualizeWhenSilent 属性在某些Unity版本中可能不可用
                                 // if (sampleSettings.virtualizeWhenSilent != virtualizeWhenSilent)
                                 // {
@@ -800,17 +800,17 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "spatialize":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool spatialize = settingValue.ToObject<bool>();
+                                bool spatialize = settingValue.AsBool;
                                 // 注意：spatialize 属性在某些Unity版本中可能不可用
                                 LogInfo($"[ApplyAudioImportSettings] spatialize setting not supported in current Unity version");
                             }
                             break;
                         case "spatialize_post_effects":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool spatializePostEffects = settingValue.ToObject<bool>();
+                                bool spatializePostEffects = settingValue.AsBool;
                                 // 注意：spatializePostEffects 属性在某些Unity版本中可能不可用
                                 LogInfo($"[ApplyAudioImportSettings] spatializePostEffects setting not supported in current Unity version");
                             }

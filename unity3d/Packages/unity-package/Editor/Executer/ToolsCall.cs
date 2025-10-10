@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,13 +6,13 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
 using UnityMcp;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Executer
 {
     /// <summary>
     /// Handles method calls by routing to specific tool methods.
@@ -20,12 +20,12 @@ namespace UnityMcp.Tools
     /// The ToolName property is determined by the "type" field in the command.
     /// Example: {"type": "hierarchy_create", "args": {"from": "primitive", "primitive_type": "Cube", "name": "Enemy"}}
     /// </summary>
-    public class MethodsCall : McpTool
+    public class ToolsCall : McpTool
     {
-        private string _methodType = "methods_call";
+        private string _methodType = "tools_call";
         public override string ToolName => _methodType;
 
-        // »º´æÒÑ×¢²áµÄ¹¤¾ßÊµÀı (key: snake_caseÃû³Æ, value: ¹¤¾ßÊµÀı)
+        // å·²ç»æ³¨å†Œçš„å·¥å…·å®ä¾‹ (key: snake_caseåç§°, value: å·¥å…·å®ä¾‹)
         private static Dictionary<string, IToolMethod> _registeredMethods = null;
         private static readonly object _registrationLock = new object();
 
@@ -35,10 +35,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨Ãû³ÆµÄ¹¤¾ß·½·¨
+        /// è·å–æŒ‡å®šåç§°çš„å·¥å…·æ–¹æ³•
         /// </summary>
-        /// <param name="toolName">¹¤¾ßÃû³Æ</param>
-        /// <returns>¹¤¾ß·½·¨ÊµÀı£¬Èç¹ûÎ´ÕÒµ½Ôò·µ»Ønull</returns>
+        /// <param name="toolName">å·¥å…·åç§°</param>
+        /// <returns>å·¥å…·æ–¹æ³•å®ä¾‹ï¼Œå¦‚æœæœªæ‰¾åˆ°åˆ™è¿”å›null</returns>
         public IToolMethod GetToolMethod(string toolName)
         {
             EnsureMethodsRegistered();
@@ -47,10 +47,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Main handler for method calls (Í¬²½°æ±¾).
+        /// Main handler for method calls (åŒæ­¥ç‰ˆæœ¬).
         /// Expects command format: {"type": "hierarchy_create", "args": {...}}
         /// </summary>
-        public override void HandleCommand(JObject args, Action<object> callback)
+        public override void HandleCommand(JsonNode args, Action<JsonNode> callback)
         {
             try
             {
@@ -65,54 +65,48 @@ namespace UnityMcp.Tools
                     callback(Response.Error("Required parameter 'args' is missing or not an object."));
                     return;
                 }
-
-                string argsJson = args.ToString();
-                ExecuteMethod(_methodType, argsJson, callback);
+                ExecuteMethod(_methodType, args.AsObject, callback);
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[MethodsCall] Command execution failed: {e}");
+                if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Command execution failed: {e}");
                 callback(Response.Error($"Internal error processing method call: {e.Message}"));
                 return;
             }
         }
 
         /// <summary>
-        /// Executes a specific method by routing to the appropriate tool method (Í¬²½°æ±¾).
+        /// Executes a specific method by routing to the appropriate tool method (åŒæ­¥ç‰ˆæœ¬).
         /// </summary>
-        private void ExecuteMethod(string methodName, string argsJson, Action<object> callback)
+        private void ExecuteMethod(string methodName, JsonClass args, Action<JsonNode> callback)
         {
             if (McpConnect.EnableLog)
-                Debug.Log($"[MethodsCall] Executing method: {methodName}->{argsJson}");
+                Debug.Log($"[ToolsCall] Executing method: {methodName}->{args}");
             try
             {
-                // È·±£·½·¨ÒÑ×¢²á
+                // È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½
                 EnsureMethodsRegistered();
-
-                // ½âÎö²ÎÊı
-                JObject args = JObject.Parse(argsJson);
-
-                // ²éÕÒ¶ÔÓ¦µÄ¹¤¾ß·½·¨
+                // ï¿½ï¿½ï¿½Ò¶ï¿½Ó¦ï¿½Ä¹ï¿½ï¿½ß·ï¿½ï¿½ï¿½
                 if (!_registeredMethods.TryGetValue(methodName, out IToolMethod method))
                 {
-                    callback(Response.Error($"Unknown method: '{methodName}'. Available methods: {string.Join(", ", _registeredMethods.Keys)}"));
+                    callback(Response.Error($"ToolsCall Unknown method: '{methodName}'. Available methods: {string.Join(", ", _registeredMethods.Keys)}"));
                     return;
                 }
 
-                // µ÷ÓÃ¹¤¾ßµÄExecuteMethod·½·¨
+                // ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ßµï¿½ExecuteMethodï¿½ï¿½ï¿½ï¿½
                 var state = new StateTreeContext(args, new System.Collections.Generic.Dictionary<string, object>());
                 method.ExecuteMethod(state);
                 state.RegistComplete(callback);
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[MethodsCall] Failed to execute method '{methodName}': {e}");
-                callback(Response.Error($"Error executing method '{methodName}->{argsJson}': {e.Message}"));
+                if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to execute method '{methodName}': {e}");
+                callback(Response.Error($"Error executing method '{methodName}->{args}': {e.Message}"));
             }
         }
 
         /// <summary>
-        /// È·±£ËùÓĞ·½·¨ÒÑÍ¨¹ı·´Éä×¢²á (ÄÚ²¿·½·¨)
+        /// ç¡®ä¿æ‰€æœ‰æ–¹æ³•é€šè¿‡åå°„æ³¨å†Œ (å†…éƒ¨æ–¹æ³•)
         /// </summary>
         private void EnsureMethodsRegistered()
         {
@@ -120,7 +114,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// È·±£ËùÓĞ·½·¨ÒÑÍ¨¹ı·´Éä×¢²á (¾²Ì¬·½·¨£¬¹©ÆäËûÀàÊ¹ÓÃ)
+        /// ç¡®ä¿æ‰€æœ‰æ–¹æ³•é€šè¿‡åå°„æ³¨å†Œ (é™æ€æ–¹æ³•ï¼Œä¾›å¤–éƒ¨è°ƒç”¨ä½¿ç”¨)
         /// </summary>
         public static void EnsureMethodsRegisteredStatic()
         {
@@ -128,16 +122,16 @@ namespace UnityMcp.Tools
 
             lock (_registrationLock)
             {
-                if (_registeredMethods != null) return; // Ë«ÖØ¼ì²éËø¶¨
+                if (_registeredMethods != null) return; // åŒé‡æ£€æŸ¥é”å®š
 
                 _registeredMethods = new Dictionary<string, IToolMethod>();
 
                 try
                 {
-                    // Í¨¹ı·´Éä²éÕÒËùÓĞ³ÌĞò¼¯ÖĞÊµÏÖIToolMethod½Ó¿ÚµÄÀà
+                    // é€šè¿‡åå°„æŸ¥æ‰¾æ‰€æœ‰ç¨‹åºé›†ä¸­å®ç°IToolMethodæ¥å£çš„ç±»
                     var methodTypes = new List<Type>();
 
-                    // ±éÀúËùÓĞÒÑ¼ÓÔØµÄ³ÌĞò¼¯
+                    // éå†æ‰€æœ‰å·²åŠ è½½çš„ç¨‹åºé›†
                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                     {
                         try
@@ -151,19 +145,19 @@ namespace UnityMcp.Tools
                         }
                         catch (ReflectionTypeLoadException ex)
                         {
-                            // Ä³Ğ©³ÌĞò¼¯¿ÉÄÜÎŞ·¨ÍêÈ«¼ÓÔØ£¬µ«ÎÒÃÇ¿ÉÒÔ»ñÈ¡³É¹¦¼ÓÔØµÄÀàĞÍ
+                            // æŸäº›ç¨‹åºé›†å¯èƒ½æ— æ³•å®Œå…¨åŠ è½½ï¼Œä½†æˆ‘ä»¬å¯ä»¥è·å–æˆåŠŸåŠ è½½çš„ç±»å‹
                             var loadedTypes = ex.Types.Where(t => t != null &&
                                 typeof(IToolMethod).IsAssignableFrom(t) &&
                                 !t.IsInterface &&
                                 !t.IsAbstract).ToList();
                             methodTypes.AddRange(loadedTypes);
 
-                            if (McpConnect.EnableLog) Debug.LogWarning($"[MethodsCall] Partial load of assembly {assembly.FullName}: {ex.Message}");
+                            if (McpConnect.EnableLog) Debug.LogWarning($"[ToolsCall] Partial load of assembly {assembly.FullName}: {ex.Message}");
                         }
                         catch (Exception ex)
                         {
-                            // Ìø¹ıÎŞ·¨·ÃÎÊµÄ³ÌĞò¼¯
-                            if (McpConnect.EnableLog) Debug.LogWarning($"[MethodsCall] Failed to load types from assembly {assembly.FullName}: {ex.Message}");
+                            // å¿½ç•¥æ— æ³•è®¿é—®çš„ç¨‹åºé›†
+                            if (McpConnect.EnableLog) Debug.LogWarning($"[ToolsCall] Failed to load types from assembly {assembly.FullName}: {ex.Message}");
                             continue;
                         }
                     }
@@ -172,38 +166,38 @@ namespace UnityMcp.Tools
                     {
                         try
                         {
-                            // ´´½¨·½·¨ÊµÀı
+                            // åˆ›å»ºæ–¹æ³•å®ä¾‹
                             var methodInstance = Activator.CreateInstance(methodType) as IToolMethod;
                             if (methodInstance != null)
                             {
-                                // ÓÅÏÈÊ¹ÓÃToolNameAttributeÖ¸¶¨µÄÃû³Æ£¬·ñÔò×ª»»ÀàÃûÎªsnake_case¸ñÊ½
+                                // ä¼˜å…ˆä½¿ç”¨ToolNameAttributeæŒ‡å®šçš„åç§°ï¼Œå¦åˆ™è½¬æ¢ç±»åä¸ºsnake_caseå½¢å¼
                                 string methodName = GetMethodName(methodType);
                                 _registeredMethods[methodName] = methodInstance;
-                                if (McpConnect.EnableLog) Debug.Log($"[MethodsCall] Registered method: {methodName} -> {methodType.FullName}");
+                                if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Registered method: {methodName} -> {methodType.FullName}");
                             }
                         }
                         catch (Exception e)
                         {
-                            if (McpConnect.EnableLog) Debug.LogError($"[MethodsCall] Failed to register method {methodType.FullName}: {e}");
+                            if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to register method {methodType.FullName}: {e}");
                         }
                     }
 
-                    if (McpConnect.EnableLog) Debug.Log($"[MethodsCall] Total registered methods: {_registeredMethods.Count}");
-                    if (McpConnect.EnableLog) Debug.Log($"[MethodsCall] Available methods: {string.Join(", ", _registeredMethods.Keys)}");
+                    if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Total registered methods: {_registeredMethods.Count}");
+                    if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Available methods: {string.Join(", ", _registeredMethods.Keys)}");
                 }
                 catch (Exception e)
                 {
-                    if (McpConnect.EnableLog) Debug.LogError($"[MethodsCall] Failed to register methods: {e}");
-                    _registeredMethods = new Dictionary<string, IToolMethod>(); // È·±£²»Îªnull
+                    if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to register methods: {e}");
+                    _registeredMethods = new Dictionary<string, IToolMethod>(); // ç¡®ä¿ä¸ä¸ºnull
                 }
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ÒÑ×¢²áµÄ·½·¨ÊµÀı (¾²Ì¬·½·¨£¬¹©ÆäËûÀàÊ¹ÓÃ)
+        /// è·å–å·²æ³¨å†Œçš„æ–¹æ³•å®ä¾‹ (é™æ€æ–¹æ³•ï¼Œä¾›å¤–éƒ¨è°ƒç”¨ä½¿ç”¨)
         /// </summary>
-        /// <param name="methodName">·½·¨Ãû³Æ</param>
-        /// <returns>·½·¨ÊµÀı£¬Èç¹ûÎ´ÕÒµ½Ôò·µ»Ønull</returns>
+        /// <param name="methodName">æ–¹æ³•åç§°</param>
+        /// <returns>æ–¹æ³•å®ä¾‹ï¼Œå¦‚æœæœªæ‰¾åˆ°åˆ™è¿”å›null</returns>
         public static IToolMethod GetRegisteredMethod(string methodName)
         {
             EnsureMethodsRegisteredStatic();
@@ -212,38 +206,38 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// »ñÈ¡·½·¨Ãû³Æ£¬ÓÅÏÈÊ¹ÓÃToolNameAttributeÖ¸¶¨µÄÃû³Æ£¬·ñÔò×ª»»ÀàÃûÎªsnake_case¸ñÊ½
+        /// è·å–æ–¹æ³•åç§°ï¼Œä¼˜å…ˆä½¿ç”¨ToolNameAttributeæŒ‡å®šçš„åç§°ï¼Œå¦åˆ™è½¬æ¢ç±»åä¸ºsnake_caseå½¢å¼
         /// </summary>
-        /// <param name="methodType">·½·¨ÀàĞÍ</param>
-        /// <returns>·½·¨Ãû³Æ</returns>
+        /// <param name="methodType">æ–¹æ³•ç±»å‹</param>
+        /// <returns>æ–¹æ³•åç§°</returns>
         private static string GetMethodName(Type methodType)
         {
-            // ¼ì²éÊÇ·ñÓĞToolNameAttribute
+            // æ£€æŸ¥æ˜¯å¦æœ‰ToolNameAttribute
             var toolNameAttribute = methodType.GetCustomAttribute<ToolNameAttribute>();
             if (toolNameAttribute != null)
             {
                 return toolNameAttribute.ToolName;
             }
 
-            // »ØÍËµ½ÀàÃû×ª»»Îªsnake_case¸ñÊ½
+            // å¦åˆ™å°†ç±»åè½¬æ¢ä¸ºsnake_caseå½¢å¼
             return ConvertToSnakeCase(methodType.Name);
         }
 
         /// <summary>
-        /// ½«PascalÃüÃû·¨×ª»»Îªsnake_caseÃüÃû·¨
-        /// ÀıÈç: ManageAsset -> manage_asset, ExecuteMenuItem -> execute_menu_item
+        /// å°†Pascalå‘½åæ³•è½¬æ¢ä¸ºsnake_caseå‘½åæ³•
+        /// ä¾‹å¦‚: ManageAsset -> manage_asset, ExecuteMenuItem -> execute_menu_item
         /// </summary>
         private static string ConvertToSnakeCase(string pascalCase)
         {
             if (string.IsNullOrEmpty(pascalCase))
                 return pascalCase;
 
-            // Ê¹ÓÃÕıÔò±í´ïÊ½ÔÚ´óĞ´×ÖÄ¸Ç°²åÈëÏÂ»®Ïß£¬È»ºó×ª»»ÎªĞ¡Ğ´
+            // ä½¿ç”¨æ­£åˆ™è¡¨è¾¾å¼åœ¨å¤§å†™å­—æ¯å‰æ·»åŠ ä¸‹åˆ’çº¿ï¼Œç„¶åè½¬æ¢ä¸ºå°å†™
             return Regex.Replace(pascalCase, "(?<!^)([A-Z])", "_$1").ToLower();
         }
 
         /// <summary>
-        /// ÊÖ¶¯×¢²á·½·¨£¨¹©Íâ²¿µ÷ÓÃ£©
+        /// æ‰‹åŠ¨æ³¨å†Œæ–¹æ³•ï¼ˆä¾›å¤–éƒ¨è°ƒç”¨ï¼‰
         /// </summary>
         public static void RegisterMethod(string methodName, IToolMethod method)
         {
@@ -253,12 +247,12 @@ namespace UnityMcp.Tools
                     _registeredMethods = new Dictionary<string, IToolMethod>();
 
                 _registeredMethods[methodName] = method;
-                if (McpConnect.EnableLog) Debug.Log($"[MethodsCall] Manually registered method: {methodName}");
+                if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Manually registered method: {methodName}");
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ËùÓĞÒÑ×¢²áµÄ·½·¨Ãû³Æ
+        /// è·å–æ‰€æœ‰å·²æ³¨å†Œçš„æ–¹æ³•åç§°
         /// </summary>
         public static string[] GetRegisteredMethodNames()
         {

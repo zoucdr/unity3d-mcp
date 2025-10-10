@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.Linq;
 using UnityEngine;
 using System.Text;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// StateTree执行上下文包装类，支持JSON序列化字段和非序列化对象引用
@@ -15,19 +15,19 @@ namespace UnityMcp.Tools
         public string key;                         // 当前层变量
         public Dictionary<object, StateTree> select = new();
         public HashSet<string> optionalParams = new(); // 存储可选参数的key
-        public Func<JObject, object> func;     // 叶子函数（向后兼容）
+        public Func<JsonClass, object> func;     // 叶子函数（向后兼容，已从 JsonClass 迁移到 JSONClass）
         public Func<StateTreeContext, object> contextFunc; // 新的上下文叶子函数
         public const string Default = "*";          // 通配标识
         public string ErrorMessage;//执行错误信息
 
-        /* 隐式转换：Action → 叶子节点（向后兼容） */
-        public static implicit operator StateTree(Func<JObject, object> a) => new() { func = a };
+        /* 隐式转换：Action → 叶子节点（向后兼容，已从 JsonClass 迁移到 JSONClass） */
+        public static implicit operator StateTree(Func<JsonClass, object> a) => new() { func = a };
 
         /* 隐式转换：ContextAction → 叶子节点（新版本） */
         public static implicit operator StateTree(Func<StateTreeContext, object> a) => new() { contextFunc = a };
 
-        /* 运行：沿树唯一路径（JObject 上下文，向后兼容） */
-        public object Run(JObject ctx, Dictionary<string, object> dict = null)
+        /* 运行：沿树唯一路径（JSONClass 上下文，向后兼容） */
+        public object Run(JsonClass ctx, Dictionary<string, object> dict = null)
         {
             // 转换为StateTreeContext并调用新版本的Run方法
             StateTreeContext context = new StateTreeContext(ctx, dict ?? new Dictionary<string, object>());
@@ -44,7 +44,7 @@ namespace UnityMcp.Tools
                 StateTree next = null;
 
                 // 首先检查是否有常规的key匹配
-                if (!string.IsNullOrEmpty(cur.key) && ctx != null && ctx.TryGetJsonValue(cur.key, out JToken token))
+                if (!string.IsNullOrEmpty(cur.key) && ctx != null && ctx.TryGetJsonValue(cur.key, out JsonNode token))
                 {
                     keyToLookup = ConvertTokenToKey(token);
                     cur.select.TryGetValue(keyToLookup, out next);
@@ -62,10 +62,10 @@ namespace UnityMcp.Tools
                         if (!string.IsNullOrEmpty(key) && cur.optionalParams.Contains(key))
                         {
                             // 检查参数是否存在且不为空
-                            if (ctx.TryGetJsonValue(key, out JToken paramToken) &&
+                            if (ctx.TryGetJsonValue(key, out JsonNode paramToken) &&
                                 paramToken != null &&
-                                paramToken.Type != JTokenType.Null &&
-                                !string.IsNullOrEmpty(paramToken.ToString()))
+                                paramToken.type != JsonNodeType.Null &&
+                                !string.IsNullOrEmpty(paramToken.Value))
                             {
                                 next = kvp.Value;
                                 break; // 找到第一个匹配的可选参数就使用它
@@ -113,14 +113,14 @@ namespace UnityMcp.Tools
             return null;
         }
 
-        private static object ConvertTokenToKey(JToken token)
+        private static object ConvertTokenToKey(JsonNode token)
         {
-            if (token == null || token.Type == JTokenType.Null)
+            if (token == null || token.type == JsonNodeType.Null)
                 return Default;
 
-            if (token.Type == JTokenType.Integer)
+            if (token.type == JsonNodeType.Integer)
             {
-                long longVal = token.Value<long>();
+                int longVal = token.AsInt;
                 if (longVal <= int.MaxValue && longVal >= int.MinValue)
                 {
                     return (int)longVal;
@@ -128,27 +128,28 @@ namespace UnityMcp.Tools
                 return longVal;
             }
 
-            if (token.Type == JTokenType.Float)
+            if (token.type == JsonNodeType.Float)
             {
-                return token.Value<double>();
+                return token.AsDouble;
             }
 
-            if (token.Type == JTokenType.Boolean)
+            if (token.type == JsonNodeType.Boolean)
             {
-                return token.Value<bool>();
+                return token.AsBool;
             }
 
-            if (token.Type == JTokenType.String)
+            if (token.type == JsonNodeType.String)
             {
-                return token.Value<string>();
+                return token.Value;
             }
 
-            if (token is JValue jv && jv.Value != null)
+            // JsonData 类型直接返回值
+            if (token is JsonData jsonData && !string.IsNullOrEmpty(jsonData.Value))
             {
-                return jv.Value;
+                return jsonData.Value;
             }
 
-            return token.ToString();
+            return token.Value;
         }
 
         /* 美化打印（Unicode 框线） */

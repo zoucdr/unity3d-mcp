@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityMCP.Model
+namespace UnityMcp.Models
 {
     public class UIDefineRuleObject : ScriptableObject
     {

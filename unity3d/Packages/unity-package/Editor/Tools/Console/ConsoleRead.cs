@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -65,7 +65,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取全部控制台日志（无过滤，不包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetAllWithoutFilter(JObject args)
+        private object HandleGetAllWithoutFilter(JsonClass args)
         {
             return GetConsoleEntriesInternal(args, null, null, false, "all log entries (no filter, no stacktrace)");
         }
@@ -73,28 +73,28 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取全部控制台日志（有过滤，不包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetAllWithFilter(JObject args)
+        private object HandleGetAllWithFilter(JsonClass args)
         {
-            string filterText = args["filterText"]?.ToString();
+            string filterText = args["filterText"]?.Value;
             return GetConsoleEntriesInternal(args, null, filterText, false, $"all log entries (filtered by '{filterText}', no stacktrace)");
         }
 
         /// <summary>
         /// 处理获取部分控制台日志（无过滤，不包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetPartialWithoutFilter(JObject args)
+        private object HandleGetPartialWithoutFilter(JsonClass args)
         {
-            int count = args["count"]?.ToObject<int>() ?? 10;
+            int count = args["count"].AsIntDefault(10);
             return GetConsoleEntriesInternal(args, count, null, false, $"{count} log entries (no filter, no stacktrace)");
         }
 
         /// <summary>
         /// 处理获取部分控制台日志（有过滤，不包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetPartialWithFilter(JObject args)
+        private object HandleGetPartialWithFilter(JsonClass args)
         {
-            int count = args["count"]?.ToObject<int>() ?? 10;
-            string filterText = args["filterText"]?.ToString();
+            int count = args["count"].AsIntDefault(10);
+            string filterText = args["filterText"]?.Value;
             return GetConsoleEntriesInternal(args, count, filterText, false, $"{count} log entries (filtered by '{filterText}', no stacktrace)");
         }
 
@@ -103,7 +103,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取全部控制台日志（无过滤，包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetFullAllWithoutFilter(JObject args)
+        private object HandleGetFullAllWithoutFilter(JsonClass args)
         {
             return GetConsoleEntriesInternal(args, null, null, true, "all log entries (no filter, with stacktrace)");
         }
@@ -111,35 +111,35 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取全部控制台日志（有过滤，包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetFullAllWithFilter(JObject args)
+        private object HandleGetFullAllWithFilter(JsonClass args)
         {
-            string filterText = args["filterText"]?.ToString();
+            string filterText = args["filterText"]?.Value;
             return GetConsoleEntriesInternal(args, null, filterText, true, $"all log entries (filtered by '{filterText}', with stacktrace)");
         }
 
         /// <summary>
         /// 处理获取部分控制台日志（无过滤，包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetFullPartialWithoutFilter(JObject args)
+        private object HandleGetFullPartialWithoutFilter(JsonClass args)
         {
-            int count = args["count"]?.ToObject<int>() ?? 10;
+            int count = args["count"].AsIntDefault(10);
             return GetConsoleEntriesInternal(args, count, null, true, $"{count} log entries (no filter, with stacktrace)");
         }
 
         /// <summary>
         /// 处理获取部分控制台日志（有过滤，包含堆栈跟踪）的操作
         /// </summary>
-        private object HandleGetFullPartialWithFilter(JObject args)
+        private object HandleGetFullPartialWithFilter(JsonClass args)
         {
-            int count = args["count"]?.ToObject<int>() ?? 10;
-            string filterText = args["filterText"]?.ToString();
+            int count = args["count"].AsIntDefault(10);
+            string filterText = args["filterText"]?.Value;
             return GetConsoleEntriesInternal(args, count, filterText, true, $"{count} log entries (filtered by '{filterText}', with stacktrace)");
         }
 
         /// <summary>
         /// 统一的控制台日志获取逻辑
         /// </summary>
-        private object GetConsoleEntriesInternal(JObject args, int? count, string filterText, bool includeStacktrace, string description)
+        private object GetConsoleEntriesInternal(JsonClass args, int? count, string filterText, bool includeStacktrace, string description)
         {
             // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
@@ -177,7 +177,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理清空控制台的操作
         /// </summary>
-        private object HandleClearAction(JObject args)
+        private object HandleClearAction(JsonClass args)
         {
             // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
@@ -208,10 +208,23 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取消息类型参数
         /// </summary>
-        private List<string> ExtractTypes(JObject args)
+        private List<string> ExtractTypes(JsonClass args)
         {
-            var types = (args["types"] as JArray)?.Select(t => t.ToString().ToLower()).ToList()
-                ?? new List<string> { "error", "warning", "log" };
+            var typesArray = args["types"] as JsonArray;
+            List<string> types;
+
+            if (typesArray != null && typesArray.Count > 0)
+            {
+                types = new List<string>();
+                foreach (JsonNode typeNode in typesArray.Childs)
+                {
+                    types.Add(typeNode.Value.ToLower());
+                }
+            }
+            else
+            {
+                types = new List<string> { "error", "warning", "log" };
+            }
 
             if (types.Contains("all"))
             {
@@ -224,17 +237,17 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 提取格式参数
         /// </summary>
-        private string ExtractFormat(JObject args)
+        private string ExtractFormat(JsonClass args)
         {
-            return (args["format"]?.ToString() ?? "detailed").ToLower();
+            return (args["format"]?.Value ?? "detailed").ToLower();
         }
 
         /// <summary>
         /// 处理未知操作的回调方法
         /// </summary>
-        private object HandleUnknownAction(JObject args)
+        private object HandleUnknownAction(JsonClass args)
         {
-            string action = args["action"]?.ToString() ?? "null";
+            string action = args["action"]?.Value ?? "null";
             return Response.Error($"Unknown action: '{action}' for read_console. Valid actions are 'get', 'get_full', or 'clear'.");
         }
 

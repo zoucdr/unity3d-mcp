@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -212,21 +212,6 @@ namespace UnityMcp.Tools
                     }
                 }
             }
-
-            // 如果ObjectReferences中没有，尝试从JsonData获取（向后兼容）
-            if (context.TryGetJsonValue("_resolved_targets", out JToken targetToken))
-            {
-                if (targetToken is JArray targetArray && targetArray.Count > 0)
-                {
-                    return targetArray[0].ToObject<UnityEngine.Object>(); // 只取第一个
-                }
-                else
-                {
-                    // 单个对象的情况
-                    return targetToken.ToObject<UnityEngine.Object>();
-                }
-            }
-
             return null;
         }
 

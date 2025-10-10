@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityMcp.Tools;
-using Newtonsoft.Json.Linq;
 using UnityMcp.Models;
+using UnityMcp;
 
 [ToolName("gm_command", "调试工具")]
 public class GMCommandMethod : StateMethodBase
@@ -27,7 +26,7 @@ public class GMCommandMethod : StateMethodBase
             .Build();
     }
 
-    private object Execute(JObject args)
+    private object Execute(StateTreeContext ctx)
     {
         return Response.Success("Test");
     }

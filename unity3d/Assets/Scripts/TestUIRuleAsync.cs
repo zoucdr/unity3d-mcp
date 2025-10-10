@@ -1,8 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEditor;
-using Newtonsoft.Json.Linq;
-using UnityMcp.Tools;
+using UnityMcp;
 
 public class TestUIRuleAsync : MonoBehaviour
 {
@@ -10,7 +9,7 @@ public class TestUIRuleAsync : MonoBehaviour
     public static void TestUIRuleAsyncFunction()
     {
         // 创建测试数据
-        var testData = new JObject();
+        var testData = new JsonClass();
         testData["name"] = "MatchRuleUI";
 
         Debug.Log("[TestUIRuleAsync] 开始测试异步UI规则获取");

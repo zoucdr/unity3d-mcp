@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -55,7 +55,7 @@ namespace UnityMcp.Tools
                 new MethodKey("working_directory", "Working directory for script execution", true),
                 new MethodKey("timeout", "Execution timeout (seconds), default 300 seconds", true),
                 new MethodKey("cleanup", "Whether to clean up temporary files after execution, default true", true),
-                new MethodKey("packages", "Python packages to install (comma-separated or JSON array)", true),
+                new MethodKey("packages", "Python packages to install (comma-separated or Json array)", true),
                 new MethodKey("requirements_file", "Path to requirements.txt file", true),
                 new MethodKey("virtual_env", "Path to virtual environment to use", true),
                 new MethodKey("refresh_project", "Whether to refresh Unity project after execution, default false", true)
@@ -121,15 +121,15 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 异步执行Python代码协程
         /// </summary>
-        private IEnumerator ExecutePythonCoroutine(JObject args)
+        private IEnumerator ExecutePythonCoroutine(JsonClass args)
         {
             string tempFilePath = null;
             bool isTemporaryFile = false;
 
             try
             {
-                string pythonCode = args["code"]?.ToString();
-                string scriptPath = args["script_path"]?.ToString();
+                string pythonCode = args["code"]?.Value;
+                string scriptPath = args["script_path"]?.Value;
 
                 // 检查参数：必须提供 code 或 script_path 之一
                 if (string.IsNullOrEmpty(pythonCode) && string.IsNullOrEmpty(scriptPath))
@@ -145,13 +145,13 @@ namespace UnityMcp.Tools
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
-                string scriptName = args["script_name"]?.ToString() ?? "script.py";
-                string pythonPath = args["python_path"]?.ToString() ?? "python";
-                string workingDirectory = args["working_directory"]?.ToString() ?? System.Environment.CurrentDirectory;
-                int timeout = args["timeout"]?.ToObject<int>() ?? 300;
-                bool cleanup = args["cleanup"]?.ToObject<bool>() ?? true;
-                bool refreshProject = args["refresh_project"]?.ToObject<bool>() ?? false;
-                string virtualEnv = args["virtual_env"]?.ToString();
+                string scriptName = args["script_name"]?.Value ?? "script.py";
+                string pythonPath = args["python_path"]?.Value ?? "python";
+                string workingDirectory = args["working_directory"]?.Value ?? System.Environment.CurrentDirectory;
+                int timeout = args["timeout"].AsIntDefault(300);
+                bool cleanup = args["cleanup"].AsBoolDefault(true);
+                bool refreshProject = args["refresh_project"].AsBoolDefault(false);
+                string virtualEnv = args["virtual_env"]?.Value;
 
                 if (!string.IsNullOrEmpty(scriptPath))
                 {
@@ -224,15 +224,15 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 验证Python代码协程
         /// </summary>
-        private IEnumerator ValidatePythonCoroutine(JObject args)
+        private IEnumerator ValidatePythonCoroutine(JsonClass args)
         {
             string tempFilePath = null;
             bool isTemporaryFile = false;
 
             try
             {
-                string pythonCode = args["code"]?.ToString();
-                string scriptPath = args["script_path"]?.ToString();
+                string pythonCode = args["code"]?.Value;
+                string scriptPath = args["script_path"]?.Value;
 
                 // 检查参数：必须提供 code 或 script_path 之一
                 if (string.IsNullOrEmpty(pythonCode) && string.IsNullOrEmpty(scriptPath))
@@ -248,9 +248,9 @@ namespace UnityMcp.Tools
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
-                string scriptName = args["script_name"]?.ToString() ?? "script.py";
-                string pythonPath = args["python_path"]?.ToString() ?? "python";
-                string virtualEnv = args["virtual_env"]?.ToString();
+                string scriptName = args["script_name"]?.Value ?? "script.py";
+                string pythonPath = args["python_path"]?.Value ?? "python";
+                string virtualEnv = args["virtual_env"]?.Value;
 
                 string targetScriptPath;
 
@@ -330,13 +330,13 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 安装Python包协程
         /// </summary>
-        private IEnumerator InstallPackageCoroutine(JObject args)
+        private IEnumerator InstallPackageCoroutine(JsonClass args)
         {
             var packages = args["packages"];
-            string requirementsFile = args["requirements_file"]?.ToString();
-            string pythonPath = args["python_path"]?.ToString() ?? "python";
-            string virtualEnv = args["virtual_env"]?.ToString();
-            int timeout = args["timeout"]?.ToObject<int>() ?? 60;
+            string requirementsFile = args["requirements_file"]?.Value;
+            string pythonPath = args["python_path"]?.Value ?? "python";
+            string virtualEnv = args["virtual_env"]?.Value;
+            int timeout = args["timeout"].AsIntDefault(60);
 
             if (packages == null && string.IsNullOrEmpty(requirementsFile))
             {
@@ -360,13 +360,17 @@ namespace UnityMcp.Tools
             {
                 // 安装指定的包
                 var packageList = new List<string>();
-                if (packages.Type == JTokenType.Array)
+                if (packages.type == JsonNodeType.Array)
                 {
-                    packageList.AddRange(packages.ToObject<string[]>());
+                    var packagesArray = packages as JsonArray;
+                    if (packagesArray != null)
+                    {
+                        packageList.AddRange(packagesArray.ToStringList());
+                    }
                 }
                 else
                 {
-                    packageList.AddRange(packages.ToString().Split(',').Select(p => p.Trim()));
+                    packageList.AddRange(packages.Value.Split(',').Select(p => p.Trim()));
                 }
 
                 yield return InstallPackages(packageList.ToArray(), pythonPath, virtualEnv, timeout, (result) =>
@@ -381,13 +385,13 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 创建Python脚本协程
         /// </summary>
-        private IEnumerator CreateScriptCoroutine(JObject args)
+        private IEnumerator CreateScriptCoroutine(JsonClass args)
         {
             object result = null;
 
-            string pythonCode = args["code"]?.ToString();
-            string scriptPath = args["script_path"]?.ToString();
-            string scriptName = args["script_name"]?.ToString() ?? "script.py";
+            string pythonCode = args["code"]?.Value;
+            string scriptPath = args["script_path"]?.Value;
+            string scriptName = args["script_name"]?.Value ?? "script.py";
 
             // 检查参数：必须提供 code
             if (string.IsNullOrEmpty(pythonCode))

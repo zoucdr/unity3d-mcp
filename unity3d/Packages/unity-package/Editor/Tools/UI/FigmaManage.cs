@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -8,11 +8,8 @@ using UnityEditor;
 using UnityEngine.Networking;
 using UnityMcp.Tools;
 using UnityMcp.Models;
-using UnityMCP.Model;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace UnityMCP.Tools
+namespace UnityMcp.Tools
 {
     /// <summary>
     /// Figma管理工具，支持下载图片、层级分析、节点数据拉取等功能
@@ -307,14 +304,14 @@ namespace UnityMCP.Tools
                 yield break;
             }
 
-            JObject nodeData = null;
+            JsonClass nodeData = null;
             string errorMessage = null;
 
             try
             {
                 // 读取并解析本地JSON文件
                 string jsonContent = File.ReadAllText(localJsonPath);
-                nodeData = JsonConvert.DeserializeObject<JObject>(jsonContent);
+                nodeData = Json.Parse(jsonContent) as JsonClass;
                 Debug.Log($"[FigmaManage] 成功读取本地JSON文件: {localJsonPath}");
             }
             catch (Exception ex)
@@ -329,14 +326,14 @@ namespace UnityMCP.Tools
             }
 
             // 从JSON数据中提取节点信息
-            JToken rootNode = null;
+            JsonNode rootNode = null;
 
             // 尝试不同的JSON结构
             // 1. 检查是否是FetchNodes保存的简化格式
-            if (nodeData.ContainsKey("nodes") && nodeData["nodes"] is JObject nodesObj)
+            if (nodeData.ContainsKey("nodes") && nodeData["nodes"] is JsonClass nodesObj)
             {
                 // 取第一个节点作为根节点
-                var firstNodeId = nodesObj.Properties().FirstOrDefault()?.Name;
+                var firstNodeId = nodesObj.GetKeys().FirstOrDefault();
                 if (!string.IsNullOrEmpty(firstNodeId))
                 {
                     rootNode = nodesObj[firstNodeId]?["document"];
@@ -392,11 +389,11 @@ namespace UnityMCP.Tools
 
             // 首先获取根节点的完整数据
             var rootNodeList = new List<string> { rootNodeId };
-            JObject rootNodeData = null;
+            JsonClass rootNodeData = null;
 
             yield return FetchNodesCoroutine(fileKey, rootNodeList, token, true, null, (nodes) =>
             {
-                rootNodeData = nodes;
+                rootNodeData = nodes as JsonClass;
             });
 
             if (rootNodeData == null)
@@ -479,12 +476,12 @@ namespace UnityMCP.Tools
                 yield break;
             }
 
-            JObject fileData = null;
+            JsonClass fileData = null;
             string errorMessage = null;
 
             try
             {
-                fileData = JsonConvert.DeserializeObject<JObject>(request.downloadHandler.text);
+                fileData = Json.Parse(request.downloadHandler.text) as JsonClass;
             }
             catch (Exception ex)
             {
@@ -660,7 +657,7 @@ namespace UnityMCP.Tools
                         total_count = totalCount,
                         cancelled = true,
                         save_path = savePath,
-                        node_index_mapping = JObject.FromObject(nodeIndexMapping),
+                        node_index_mapping = Json.FromObject(nodeIndexMapping),
                         index_file_path = partialIndexFilePath
                     });
                 }
@@ -704,7 +701,7 @@ namespace UnityMCP.Tools
                     downloaded_count = downloadedCount,
                     total_count = totalCount,
                     save_path = savePath,
-                    node_index_mapping = JObject.FromObject(nodeIndexMapping),
+                    node_index_mapping = Json.FromObject(nodeIndexMapping),
                     index_file_path = indexFilePath
                 });
             }
@@ -716,7 +713,7 @@ namespace UnityMCP.Tools
                     downloaded_count = downloadedCount,
                     total_count = totalCount,
                     save_path = savePath,
-                    node_index_mapping = JObject.FromObject(nodeIndexMapping),
+                    node_index_mapping = Json.FromObject(nodeIndexMapping),
                     index_file_path = indexFilePath
                 });
             }
@@ -796,8 +793,16 @@ namespace UnityMCP.Tools
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                var response = JsonConvert.DeserializeObject<JObject>(request.downloadHandler.text);
-                var images = response["images"]?.ToObject<Dictionary<string, string>>();
+                var response = Json.Parse(request.downloadHandler.text) as JsonClass;
+                var imagesNode = response["images"] as JsonClass;
+                var images = new Dictionary<string, string>();
+                if (imagesNode != null)
+                {
+                    foreach (var key in imagesNode.Keys)
+                    {
+                        images[key] = imagesNode[key]?.Value;
+                    }
+                }
 
                 Debug.Log($"成功获取{images?.Count ?? 0}个图片链接");
                 callback?.Invoke(images);
@@ -816,7 +821,7 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 拉取节点数据协程
         /// </summary>
-        private IEnumerator FetchNodesCoroutine(string fileKey, List<string> nodeIds, string token, bool includeChildren, System.Action<Dictionary<string, string>> nodeNamesCallback = null, System.Action<JObject> fullDataCallback = null)
+        private IEnumerator FetchNodesCoroutine(string fileKey, List<string> nodeIds, string token, bool includeChildren, System.Action<Dictionary<string, string>> nodeNamesCallback = null, System.Action<JsonNode> fullDataCallback = null)
         {
             string nodeIdsStr = string.Join(",", nodeIds);
             string url = $"{FIGMA_API_BASE}/files/{fileKey}/nodes?ids={nodeIdsStr}&geometry=paths";
@@ -856,7 +861,7 @@ namespace UnityMCP.Tools
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                var response = JsonConvert.DeserializeObject<JObject>(request.downloadHandler.text);
+                var response = Json.Parse(request.downloadHandler.text);
                 var nodes = response["nodes"];
 
                 if (nodes != null)
@@ -871,7 +876,7 @@ namespace UnityMCP.Tools
                             var document = nodeData["document"];
                             if (document != null)
                             {
-                                string nodeName = document["name"]?.ToString() ?? nodeId;
+                                string nodeName = document["name"]?.Value ?? nodeId;
                                 // 清理文件名中的无效字符
                                 nodeName = SanitizeFileName(nodeName);
                                 nodeNamesDict[nodeId] = nodeName;
@@ -889,7 +894,7 @@ namespace UnityMCP.Tools
                     if (nodeNamesCallback == null && fullDataCallback == null)
                     {
                         // 简化节点数据
-                        var nodesObject = nodes as JObject ?? new JObject();
+                        var nodesObject = nodes as JsonClass ?? new JsonClass();
                         var simplifiedNodes = FigmaDataSimplifier.SimplifyNodes(nodesObject);
                         var aiPrompt = FigmaDataSimplifier.GenerateBatchAIPrompt(simplifiedNodes);
 
@@ -900,14 +905,14 @@ namespace UnityMCP.Tools
                         string originalPath = Path.Combine(assetsPath, $"original_nodes_{fileKey}_{nodeIdsJoined}.json");
                         string simplifiedPath = Path.Combine(assetsPath, $"simplified_nodes_{fileKey}_{nodeIdsJoined}.json");
                         Directory.CreateDirectory(Path.GetDirectoryName(simplifiedPath));
-                        File.WriteAllText(originalPath, JsonConvert.SerializeObject(nodes, Formatting.None));
+                        File.WriteAllText(originalPath, Json.FromObject(nodes));
                         string simplifiedJson = FigmaDataSimplifier.ToCompactJson(simplifiedNodes.Values.FirstOrDefault(), false);
                         File.WriteAllText(simplifiedPath, simplifiedJson);
 
                         AssetDatabase.Refresh();
 
                         // 计算压缩率
-                        var originalJson = JsonConvert.SerializeObject(nodes, Formatting.None);
+                        var originalJson = Json.FromObject(nodes);
                         var compressionRatio = FigmaDataSimplifier.CalculateCompressionRatio(originalJson, simplifiedJson);
 
                         Debug.Log($"节点数据拉取完成，共{nodeIds.Count}个节点，压缩率: {compressionRatio:F1}%");
@@ -964,7 +969,15 @@ namespace UnityMCP.Tools
             {
                 try
                 {
-                    nodeNames = JsonConvert.DeserializeObject<Dictionary<string, string>>(nodesParam);
+                    var jsonObj = Json.Parse(nodesParam) as JsonClass;
+                    if (jsonObj != null)
+                    {
+                        nodeNames = new Dictionary<string, string>();
+                        foreach (KeyValuePair<string, JsonNode> kvp in jsonObj.AsEnumerable())
+                        {
+                            nodeNames[kvp.Key] = kvp.Value.Value;
+                        }
+                    }
                     if (nodeNames != null && nodeNames.Count > 0)
                     {
                         nodeIds = nodeNames.Keys.ToList();
@@ -1107,11 +1120,20 @@ namespace UnityMCP.Tools
                     try
                     {
                         string existingContent = File.ReadAllText(indexFilePath);
-                        var existingData = JsonConvert.DeserializeObject<JObject>(existingContent);
+                        var existingData = Json.Parse(existingContent) as JsonClass;
                         var existingMappingObj = existingData["node_index_mapping"];
                         if (existingMappingObj != null)
                         {
-                            existingMapping = existingMappingObj.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+                            // Convert JsonClass to Dictionary
+                            var mappingNode = existingMappingObj as JsonClass;
+                            existingMapping = new Dictionary<string, string>();
+                            if (mappingNode != null)
+                            {
+                                foreach (var key in mappingNode.Keys)
+                                {
+                                    existingMapping[key] = mappingNode[key]?.Value;
+                                }
+                            }
                             Debug.Log($"[FigmaManage] 读取到现有索引文件，包含 {existingMapping.Count} 个条目");
                         }
                     }
@@ -1137,7 +1159,7 @@ namespace UnityMCP.Tools
                     node_index_mapping = existingMapping
                 };
 
-                string jsonContent = JsonConvert.SerializeObject(indexData, Formatting.Indented);
+                string jsonContent = Json.FromObject(indexData);
                 File.WriteAllText(indexFilePath, jsonContent);
 
                 Debug.Log($"[FigmaManage] 索引文件已保存/更新: {indexFilePath}");
@@ -1191,20 +1213,20 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 计算节点哈希值（用于变更检测）
         /// </summary>
-        private string CalculateNodeHash(JToken node)
+        private string CalculateNodeHash(JsonNode node)
         {
             var hashData = new
             {
-                id = node["id"]?.ToString(),
-                name = node["name"]?.ToString(),
-                type = node["type"]?.ToString(),
-                visible = node["visible"]?.ToObject<bool?>(),
+                id = node["id"]?.Value,
+                name = node["name"]?.Value,
+                type = node["type"]?.Value,
+                visible = node["visible"] != null && !node["visible"].IsNull() ? (bool?)node["visible"].AsBool : null,
                 absoluteBoundingBox = node["absoluteBoundingBox"],
                 fills = node["fills"],
                 strokes = node["strokes"]
             };
 
-            return JsonConvert.SerializeObject(hashData).GetHashCode().ToString();
+            return Json.FromObject(hashData).GetHashCode().ToString();
         }
 
         /// <summary>
@@ -1253,12 +1275,12 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 智能分析节点，判断是否需要下载为图片
         /// </summary>
-        private bool IsDownloadableNode(JToken node)
+        private bool IsDownloadableNode(JsonNode node)
         {
             if (node == null) return false;
 
-            string nodeType = node["type"]?.ToString();
-            bool visible = node["visible"]?.ToObject<bool?>() ?? true;
+            string nodeType = node["type"]?.Value;
+            bool visible = node["visible"].AsBoolDefault(true);
 
             if (!visible) return false;
 
@@ -1316,14 +1338,14 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 检查节点是否包含图片引用
         /// </summary>
-        private bool HasImageRef(JToken node)
+        private bool HasImageRef(JsonNode node)
         {
             var fills = node["fills"];
             if (fills != null)
             {
-                foreach (var fill in fills)
+                foreach (JsonNode fill in fills.Childs)
                 {
-                    if (fill["type"]?.ToString() == "IMAGE" && fill["imageRef"] != null)
+                    if (fill["type"]?.Value == "IMAGE" && fill["imageRef"] != null)
                     {
                         return true;
                     }
@@ -1335,14 +1357,14 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 检查是否有复杂填充（渐变、图片等）
         /// </summary>
-        private bool HasComplexFills(JToken node)
+        private bool HasComplexFills(JsonNode node)
         {
             var fills = node["fills"];
             if (fills != null)
             {
-                foreach (var fill in fills)
+                foreach (JsonNode fill in fills.Childs)
                 {
-                    string fillType = fill["type"]?.ToString();
+                    string fillType = fill["type"]?.Value;
                     if (fillType == "GRADIENT_LINEAR" ||
                         fillType == "GRADIENT_RADIAL" ||
                         fillType == "GRADIENT_ANGULAR" ||
@@ -1358,39 +1380,39 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 检查是否有描边
         /// </summary>
-        private bool HasStrokes(JToken node)
+        private bool HasStrokes(JsonNode node)
         {
             var strokes = node["strokes"];
-            return strokes != null && strokes.HasValues;
+            return strokes != null && strokes.Count > 0;
         }
 
         /// <summary>
         /// 检查是否有效果
         /// </summary>
-        private bool HasEffects(JToken node)
+        private bool HasEffects(JsonNode node)
         {
             var effects = node["effects"];
-            return effects != null && effects.HasValues;
+            return effects != null && effects.Count > 0;
         }
 
         /// <summary>
         /// 检查是否有圆角
         /// </summary>
-        private bool HasRoundedCorners(JToken node)
+        private bool HasRoundedCorners(JsonNode node)
         {
             var cornerRadius = node["cornerRadius"];
             if (cornerRadius != null)
             {
-                float radius = cornerRadius.ToObject<float>();
+                float radius = cornerRadius.AsFloat;
                 return radius > 0;
             }
 
             var rectangleCornerRadii = node["rectangleCornerRadii"];
             if (rectangleCornerRadii != null)
             {
-                foreach (var radius in rectangleCornerRadii)
+                foreach (JsonNode radius in rectangleCornerRadii.Childs)
                 {
-                    if (radius.ToObject<float>() > 0)
+                    if (radius.AsFloat > 0)
                         return true;
                 }
             }
@@ -1401,10 +1423,10 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 检查是否为复杂Frame
         /// </summary>
-        private bool IsComplexFrame(JToken node)
+        private bool IsComplexFrame(JsonNode node)
         {
             var children = node["children"];
-            if (children == null || !children.HasValues)
+            if (children == null || children.Count == 0)
                 return false;
 
             // 如果Frame有背景色、效果或者包含多个不同类型的子元素，认为是复杂Frame
@@ -1412,7 +1434,7 @@ namespace UnityMCP.Tools
                 return true;
 
             // 检查子元素数量和类型多样性
-            int childCount = children.Count();
+            int childCount = children.Count;
             if (childCount > 3) // 超过3个子元素的复杂布局
                 return true;
 
@@ -1422,7 +1444,7 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 递归扫描节点树，找出所有需要下载的图片节点
         /// </summary>
-        private List<string> FindDownloadableNodes(JToken node, List<string> result = null)
+        private List<string> FindDownloadableNodes(JsonNode node, List<string> result = null)
         {
             if (result == null)
                 result = new List<string>();
@@ -1430,7 +1452,7 @@ namespace UnityMCP.Tools
             if (node == null)
                 return result;
 
-            string nodeId = node["id"]?.ToString();
+            string nodeId = node["id"]?.Value;
             if (!string.IsNullOrEmpty(nodeId) && IsDownloadableNode(node))
             {
                 result.Add(nodeId);
@@ -1440,7 +1462,7 @@ namespace UnityMCP.Tools
             var children = node["children"];
             if (children != null)
             {
-                foreach (var child in children)
+                foreach (JsonNode child in children.Childs)
                 {
                     FindDownloadableNodes(child, result);
                 }

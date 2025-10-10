@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -96,19 +96,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 如果ObjectReferences中没有，尝试从JsonData获取
-            if (context.TryGetJsonValue("_resolved_targets", out JToken targetToken))
-            {
-                if (targetToken is JArray targetArray && targetArray.Count > 0)
-                {
-                    return targetArray[0].ToObject<GameObject>();
-                }
-                else
-                {
-                    return targetToken.ToObject<GameObject>();
-                }
-            }
-
+            // 不要尝试从JSONNode转换，因为JSONNode不能转为GameObject
             return null;
         }
 
@@ -257,8 +245,8 @@ namespace UnityMcp.Tools
                 return Response.Error("'properties' parameter is required for setting component properties.");
             }
 
-            JObject propertiesToSet = null;
-            if (propertiesObj is JObject jObj)
+            JsonClass propertiesToSet = null;
+            if (propertiesObj is JsonClass jObj)
             {
                 propertiesToSet = jObj;
             }
@@ -267,7 +255,7 @@ namespace UnityMcp.Tools
                 // 尝试从其他格式转换
                 try
                 {
-                    propertiesToSet = JObject.FromObject(propertiesObj);
+                    propertiesToSet = Json.FromObject(propertiesObj) as JsonClass;
                 }
                 catch (Exception ex)
                 {
@@ -275,7 +263,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            if (propertiesToSet == null || !propertiesToSet.HasValues)
+            if (propertiesToSet == null || propertiesToSet.Count == 0)
             {
                 return Response.Error("'properties' dictionary cannot be empty.");
             }
@@ -286,10 +274,10 @@ namespace UnityMcp.Tools
             var errors = new List<string>();
             int successCount = 0;
 
-            foreach (var prop in propertiesToSet.Properties())
+            foreach (var prop in propertiesToSet.AsEnumerable())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
 
                 try
                 {
@@ -321,7 +309,7 @@ namespace UnityMcp.Tools
                 { "total_properties", propertiesToSet.Count },
                 { "successful_properties", successCount },
                 { "failed_properties", propertiesToSet.Count - successCount },
-                { "results", JObject.FromObject(results) }
+                { "results", Json.FromObject(results) }
             };
 
             if (errors.Count > 0)
@@ -332,11 +320,11 @@ namespace UnityMcp.Tools
 
             if (successCount > 0)
             {
-                return Response.Success(message, JObject.FromObject(responseData));
+                return Response.Success(message, Json.FromObject(responseData));
             }
             else
             {
-                return Response.Error($"Failed to set any properties on component '{compName}'.", JObject.FromObject(responseData));
+                return Response.Error($"Failed to set any properties on component '{compName}'.", Json.FromObject(responseData));
             }
         }
 
@@ -567,7 +555,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Helper to set a property or field via reflection, handling basic types.
         /// </summary>
-        private bool SetComponentProperty(object target, string memberName, JToken value, out string error)
+        private bool SetComponentProperty(object target, string memberName, JsonNode value, out string error)
         {
             Type type = target.GetType();
             BindingFlags flags =
@@ -608,7 +596,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Sets a nested property using dot notation (e.g., "material.color") or array access (e.g., "materials[0]")
         /// </summary>
-        private bool SetNestedProperty(object target, string path, JToken value, out string error)
+        private bool SetNestedProperty(object target, string path, JsonNode value, out string error)
         {
             try
             {
@@ -766,22 +754,22 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Sets material shader properties
         /// </summary>
-        private bool SetMaterialShaderProperty(Material material, string propertyName, JToken value, out string error)
+        private bool SetMaterialShaderProperty(Material material, string propertyName, JsonNode value, out string error)
         {
             try
             {
                 // Handle various material property types
-                if (value is JArray jArray)
+                if (value is JsonArray JsonArray)
                 {
-                    if (jArray.Count == 4) // Color with alpha or Vector4
+                    if (JsonArray.Count == 4) // Color with alpha or Vector4
                     {
                         if (propertyName.ToLower().Contains("color"))
                         {
                             Color color = new Color(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>(),
-                                jArray[2].ToObject<float>(),
-                                jArray[3].ToObject<float>()
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat,
+                                JsonArray[2].AsFloat,
+                                JsonArray[3].AsFloat
                             );
                             material.SetColor(propertyName, color);
                             error = null;
@@ -790,55 +778,55 @@ namespace UnityMcp.Tools
                         else
                         {
                             Vector4 vec = new Vector4(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>(),
-                                jArray[2].ToObject<float>(),
-                                jArray[3].ToObject<float>()
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat,
+                                JsonArray[2].AsFloat,
+                                JsonArray[3].AsFloat
                             );
                             material.SetVector(propertyName, vec);
                             error = null;
                             return true;
                         }
                     }
-                    else if (jArray.Count == 3) // Color without alpha
+                    else if (JsonArray.Count == 3) // Color without alpha
                     {
                         Color color = new Color(
-                            jArray[0].ToObject<float>(),
-                            jArray[1].ToObject<float>(),
-                            jArray[2].ToObject<float>(),
+                            JsonArray[0].AsFloat,
+                            JsonArray[1].AsFloat,
+                            JsonArray[2].AsFloat,
                             1.0f
                         );
                         material.SetColor(propertyName, color);
                         error = null;
                         return true;
                     }
-                    else if (jArray.Count == 2) // Vector2
+                    else if (JsonArray.Count == 2) // Vector2
                     {
                         Vector2 vec = new Vector2(
-                            jArray[0].ToObject<float>(),
-                            jArray[1].ToObject<float>()
+                            JsonArray[0].AsFloat,
+                            JsonArray[1].AsFloat
                         );
                         material.SetVector(propertyName, vec);
                         error = null;
                         return true;
                     }
                 }
-                else if (value.Type == JTokenType.Float || value.Type == JTokenType.Integer)
+                else if (value.type == JsonNodeType.Float || value.type == JsonNodeType.Integer)
                 {
-                    material.SetFloat(propertyName, value.ToObject<float>());
+                    material.SetFloat(propertyName, value.AsFloat);
                     error = null;
                     return true;
                 }
-                else if (value.Type == JTokenType.Boolean)
+                else if (value.type == JsonNodeType.Boolean)
                 {
-                    material.SetFloat(propertyName, value.ToObject<bool>() ? 1f : 0f);
+                    material.SetFloat(propertyName, value.AsBool ? 1f : 0f);
                     error = null;
                     return true;
                 }
-                else if (value.Type == JTokenType.String)
+                else if (value.type == JsonNodeType.String)
                 {
                     // Might be a texture path
-                    string texturePath = value.ToString();
+                    string texturePath = value.Value;
                     if (texturePath.EndsWith(".png") || texturePath.EndsWith(".jpg") || texturePath.EndsWith(".tga"))
                     {
                         Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
@@ -851,7 +839,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                error = $"{material} ,Unsupported material property value type: {value.Type} for {propertyName}";
+                error = $"{material} ,Unsupported material property value type: {value.type} for {propertyName}";
                 Debug.LogWarning(error);
                 return false;
             }
@@ -903,68 +891,68 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simple JToken to Type conversion for common Unity types.
+        /// Simple JsonNode to Type conversion for common Unity types.
         /// </summary>
-        private object ConvertJTokenToType(JToken token, Type targetType)
+        private object ConvertJTokenToType(JsonNode token, Type targetType)
         {
             try
             {
                 // Basic types first
                 if (targetType == typeof(string))
-                    return token.ToObject<string>();
+                    return token.Value;
                 if (targetType == typeof(int))
-                    return token.ToObject<int>();
+                    return token.AsInt;
                 if (targetType == typeof(float))
-                    return token.ToObject<float>();
+                    return token.AsFloat;
                 if (targetType == typeof(bool))
-                    return token.ToObject<bool>();
+                    return token.AsBool;
 
                 // Vector/Quaternion/Color types
-                if (targetType == typeof(Vector2) && token is JArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].ToObject<float>(), arrV2[1].ToObject<float>());
-                if (targetType == typeof(Vector3) && token is JArray arrV3 && arrV3.Count == 3)
+                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
+                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
                     return new Vector3(
-                        arrV3[0].ToObject<float>(),
-                        arrV3[1].ToObject<float>(),
-                        arrV3[2].ToObject<float>()
+                        arrV3[0].AsFloat,
+                        arrV3[1].AsFloat,
+                        arrV3[2].AsFloat
                     );
-                if (targetType == typeof(Vector4) && token is JArray arrV4 && arrV4.Count == 4)
+                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
                     return new Vector4(
-                        arrV4[0].ToObject<float>(),
-                        arrV4[1].ToObject<float>(),
-                        arrV4[2].ToObject<float>(),
-                        arrV4[3].ToObject<float>()
+                        arrV4[0].AsFloat,
+                        arrV4[1].AsFloat,
+                        arrV4[2].AsFloat,
+                        arrV4[3].AsFloat
                     );
-                if (targetType == typeof(Quaternion) && token is JArray arrQ && arrQ.Count == 4)
+                if (targetType == typeof(Quaternion) && token is JsonArray arrQ && arrQ.Count == 4)
                     return new Quaternion(
-                        arrQ[0].ToObject<float>(),
-                        arrQ[1].ToObject<float>(),
-                        arrQ[2].ToObject<float>(),
-                        arrQ[3].ToObject<float>()
+                        arrQ[0].AsFloat,
+                        arrQ[1].AsFloat,
+                        arrQ[2].AsFloat,
+                        arrQ[3].AsFloat
                     );
-                if (targetType == typeof(Color) && token is JArray arrC && arrC.Count >= 3)
+                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3)
                     return new Color(
-                        arrC[0].ToObject<float>(),
-                        arrC[1].ToObject<float>(),
-                        arrC[2].ToObject<float>(),
-                        arrC.Count > 3 ? arrC[3].ToObject<float>() : 1.0f
+                        arrC[0].AsFloat,
+                        arrC[1].AsFloat,
+                        arrC[2].AsFloat,
+                        arrC.Count > 3 ? arrC[3].AsFloat : 1.0f
                     );
 
                 // Enum types
                 if (targetType.IsEnum)
-                    return Enum.Parse(targetType, token.ToString(), true);
+                    return Enum.Parse(targetType, token.Value, true);
 
                 // Handle Array types
-                if (targetType.IsArray && token is JArray jArray)
+                if (targetType.IsArray && token is JsonArray JsonArray)
                 {
                     Type elementType = targetType.GetElementType();
-                    Array array = Array.CreateInstance(elementType, jArray.Count);
+                    Array array = Array.CreateInstance(elementType, JsonArray.Count);
 
-                    for (int i = 0; i < jArray.Count; i++)
+                    for (int i = 0; i < JsonArray.Count; i++)
                     {
                         try
                         {
-                            object convertedElement = ConvertJTokenToType(jArray[i], elementType);
+                            object convertedElement = ConvertJTokenToType(JsonArray[i], elementType);
                             if (convertedElement != null || elementType.IsClass)
                             {
                                 array.SetValue(convertedElement, i);
@@ -980,7 +968,7 @@ namespace UnityMcp.Tools
                 }
 
                 // Handle List<> types
-                if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>) && token is JArray jList)
+                if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>) && token is JsonArray jList)
                 {
                     Type elementType = targetType.GetGenericArguments()[0];
                     var list = (System.Collections.IList)Activator.CreateInstance(targetType);
@@ -1007,9 +995,9 @@ namespace UnityMcp.Tools
                 // Handle Unity Objects (Assets)
                 if (typeof(UnityEngine.Object).IsAssignableFrom(targetType))
                 {
-                    if (token.Type == JTokenType.String)
+                    if (token.type == JsonNodeType.String)
                     {
-                        string assetPath = token.ToString();
+                        string assetPath = token.Value;
                         if (!string.IsNullOrEmpty(assetPath) && System.IO.File.Exists(assetPath))
                         {
                             UnityEngine.Object loadedAsset = AssetDatabase.LoadAssetAtPath(assetPath, targetType);
@@ -1035,9 +1023,9 @@ namespace UnityMcp.Tools
                             }
                         }
                     }
-                    else if (token.Type == JTokenType.Integer)
+                    else if (token.type == JsonNodeType.Integer)
                     {
-                        var instanceId = token.ToObject<int>();
+                        var instanceId = token.AsInt;
                         var objectItem = UnityEditor.EditorUtility.InstanceIDToObject(instanceId);
                         if (objectItem != null)
                         {
@@ -1063,12 +1051,12 @@ namespace UnityMcp.Tools
                     return null;
                 }
 
-                // Fallback: Try direct conversion
-                return token.ToObject(targetType);
+                // SimpleJson 不支持 ToObject(targetType)
+                return null;
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[ConvertJTokenToType] Could not convert JToken '{token}' to type '{targetType.Name}': {ex.Message}");
+                Debug.LogWarning($"[ConvertJTokenToType] Could not convert JsonNode '{token}' to type '{targetType.Name}': {ex.Message}");
                 return null;
             }
         }

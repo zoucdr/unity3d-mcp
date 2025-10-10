@@ -1,13 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityMCP.Model;
-using UnityMCP.Tools;
-using System.Collections;
+using UnityMcp.Models;
 using UnityMcp.Tools;
-using Newtonsoft.Json.Linq;
 
-namespace UnityMCP.Tools
+namespace UnityMcp.Gui
 {
     /// <summary>
     /// UIDefineRuleObject的自定义Inspector，使用ReorderableList绘制node_names和node_sprites
@@ -438,17 +435,17 @@ namespace UnityMCP.Tools
             var uiRuleManage = new UIRuleManage();
 
             // 创建参数
-            var args = new Newtonsoft.Json.Linq.JObject();
+            var args = new JsonClass();
             args["action"] = "get_rule";
             args["name"] = uiName;
 
             // 调用get_rule方法
-            object result = null;
+            JsonNode result = null;
             bool completed = false;
             System.Exception error = null;
 
             // 使用StateTreeContext调用ExecuteMethod
-            var context = new UnityMcp.Tools.StateTreeContext(args);
+            var context = new UnityMcp.StateTreeContext(args);
             bool resultReceived = false;
 
             // 注册完成回调
@@ -461,14 +458,14 @@ namespace UnityMCP.Tools
             try
             {
                 uiRuleManage.ExecuteMethod(context);
-                context.RegistComplete(x =>
+                context.RegistComplete((System.Action<JsonNode>)(x =>
                 {
                     // 如果立即有结果，直接使用
                     if (x != null)
                     {
                         result = x;
                         completed = true;
-                        SendToCursor(JObject.FromObject(result).ToString(), uiName);
+                        SendToCursor((string)Json.FromObject(result).Value, uiName);
                     }
                     else
                     {
@@ -481,14 +478,14 @@ namespace UnityMCP.Tools
 
                         completed = true;
                     }
-                });
+                }));
 
             }
             catch (System.Exception e)
             {
                 error = e;
             }
-
+            Debug.Log($"[UIDefineRuleObjectEditor] completed: {completed}");
             if (error != null)
             {
                 Debug.LogError($"[UIDefineRuleObjectEditor] Error getting UI rule: {error.Message}");
@@ -528,12 +525,12 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 构建发送到Cursor的消息
         /// </summary>
-        private string BuildCursorMessage(object result, string uiName)
+        private string BuildCursorMessage(JsonNode result, string uiName)
         {
             try
             {
                 // 将结果转换为JSON字符串以便解析
-                string resultJson = Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented);
+                string resultJson = Json.FromObject(result);
 
                 var message = new System.Text.StringBuilder();
                 message.AppendLine($"# Unity UI规则信息 - {uiName}");

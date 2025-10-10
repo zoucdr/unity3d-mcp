@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -60,11 +60,11 @@ namespace UnityMcp.Tools
 
         // --- 状态树操作方法 ---
 
-        private object CreateMaterial(JObject args)
+        private object CreateMaterial(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string shaderName = args["shader"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            string shaderName = args["shader"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create.");
@@ -104,7 +104,7 @@ namespace UnityMcp.Tools
                 Material material = new Material(shader);
 
                 // 应用属性
-                if (properties != null && properties.HasValues)
+                if (properties != null && properties.Count > 0)
                 {
                     ApplyMaterialProperties(material, properties);
                 }
@@ -121,14 +121,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SetProperties(JObject args)
+        private object SetProperties(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return Response.Error("'properties' are required for set_properties.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -163,10 +163,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicateMaterial(JObject args)
+        private object DuplicateMaterial(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -209,9 +209,9 @@ namespace UnityMcp.Tools
 
 
 
-        private object GetMaterialInfo(JObject args)
+        private object GetMaterialInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -230,11 +230,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SearchMaterials(JObject args)
+        private object SearchMaterials(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
-            bool recursive = args["recursive"]?.ToObject<bool>() ?? true;
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
+            bool recursive = args["recursive"].AsBoolDefault(true);
 
             List<string> searchFilters = new List<string>();
             if (!string.IsNullOrEmpty(searchPattern))
@@ -275,10 +275,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object CopyMaterialProperties(JObject args)
+        private object CopyMaterialProperties(JsonClass args)
         {
-            string sourcePath = args["source_path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string sourcePath = args["source_path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(sourcePath))
                 return Response.Error("'source_path' is required for copy_properties.");
@@ -355,10 +355,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ChangeMaterialShader(JObject args)
+        private object ChangeMaterialShader(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string shaderName = args["shader"]?.ToString();
+            string path = args["path"]?.Value;
+            string shaderName = args["shader"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for change_shader.");
@@ -398,10 +398,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object EnableMaterialKeyword(JObject args)
+        private object EnableMaterialKeyword(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string keyword = args["keyword"]?.ToString();
+            string path = args["path"]?.Value;
+            string keyword = args["keyword"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for enable_keyword.");
@@ -432,10 +432,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DisableMaterialKeyword(JObject args)
+        private object DisableMaterialKeyword(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string keyword = args["keyword"]?.ToString();
+            string path = args["path"]?.Value;
+            string keyword = args["keyword"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for disable_keyword.");
@@ -522,7 +522,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用材质属性
         /// </summary>
-        private bool ApplyMaterialProperties(Material material, JObject properties)
+        private bool ApplyMaterialProperties(Material material, JsonClass properties)
         {
             if (material == null || properties == null)
                 return false;
@@ -530,21 +530,21 @@ namespace UnityMcp.Tools
 
             foreach (var prop in properties.Properties())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
 
                 try
                 {
                     if (material.HasProperty(propName))
                     {
-                        if (propValue is JObject colorObj &&
+                        if (propValue is JsonClass colorObj &&
                             colorObj["r"] != null && colorObj["g"] != null && colorObj["b"] != null)
                         {
                             Color newColor = new Color(
-                                colorObj["r"].ToObject<float>(),
-                                colorObj["g"].ToObject<float>(),
-                                colorObj["b"].ToObject<float>(),
-                                colorObj["a"]?.ToObject<float>() ?? 1.0f
+                                colorObj["r"].AsFloat,
+                                colorObj["g"].AsFloat,
+                                colorObj["b"].AsFloat,
+                                colorObj["a"].AsFloatDefault(1.0f)
                             );
                             if (material.GetColor(propName) != newColor)
                             {
@@ -552,13 +552,13 @@ namespace UnityMcp.Tools
                                 modified = true;
                             }
                         }
-                        else if (propValue is JArray vecArray && vecArray.Count >= 4)
+                        else if (propValue is JsonArray vecArray && vecArray.Count >= 4)
                         {
                             Vector4 newVector = new Vector4(
-                                vecArray[0].ToObject<float>(),
-                                vecArray[1].ToObject<float>(),
-                                vecArray[2].ToObject<float>(),
-                                vecArray[3].ToObject<float>()
+                                vecArray[0].AsFloat,
+                                vecArray[1].AsFloat,
+                                vecArray[2].AsFloat,
+                                vecArray[3].AsFloat
                             );
                             if (material.GetVector(propName) != newVector)
                             {
@@ -566,18 +566,18 @@ namespace UnityMcp.Tools
                                 modified = true;
                             }
                         }
-                        else if (propValue.Type == JTokenType.Float || propValue.Type == JTokenType.Integer)
+                        else if (propValue.type == JsonNodeType.Float || propValue.type == JsonNodeType.Integer)
                         {
-                            float newVal = propValue.ToObject<float>();
+                            float newVal = propValue.AsFloat;
                             if (Math.Abs(material.GetFloat(propName) - newVal) > 0.001f)
                             {
                                 material.SetFloat(propName, newVal);
                                 modified = true;
                             }
                         }
-                        else if (propValue.Type == JTokenType.String)
+                        else if (propValue.type == JsonNodeType.String)
                         {
-                            string texPath = propValue.ToString();
+                            string texPath = propValue.Value;
                             if (!string.IsNullOrEmpty(texPath))
                             {
                                 Texture newTex = AssetDatabase.LoadAssetAtPath<Texture>(SanitizeAssetPath(texPath));
@@ -618,7 +618,7 @@ namespace UnityMcp.Tools
             string color = null;
             string metallic = null;
             string smoothness = null;
-            
+
             Shader shader = material.shader;
             if (shader != null)
             {
@@ -628,16 +628,16 @@ namespace UnityMcp.Tools
                     Texture tex = material.GetTexture("_MainTex");
                     mainTexture = tex != null ? Path.GetFileName(AssetDatabase.GetAssetPath(tex)) : "none";
                 }
-                
+
                 if (material.HasProperty("_Color"))
                 {
                     Color c = material.GetColor("_Color");
                     color = $"[{c.r:F2}, {c.g:F2}, {c.b:F2}, {c.a:F2}]";
                 }
-                
+
                 if (material.HasProperty("_Metallic"))
                     metallic = material.GetFloat("_Metallic").ToString("F2");
-                    
+
                 if (material.HasProperty("_Glossiness"))
                     smoothness = material.GetFloat("_Glossiness").ToString("F2");
             }

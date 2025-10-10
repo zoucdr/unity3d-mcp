@@ -1,17 +1,17 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityMcp.Models;
-using UnityMcp.Tools;
+using UnityMcp.Executer;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Gui
 {
     /// <summary>
     /// MCP调试客户端窗口 - 用于测试和调试MCP函数调用
@@ -62,7 +62,7 @@ namespace UnityMcp.Tools
         private int currentExecutionIndex = 0; // 当前执行的任务索引
         private int totalExecutionCount = 0; // 总任务数
 
-        private object currentResult = null; // 存储当前执行结果
+        private JsonNode currentResult = null; // 存储当前执行结果
 
         // 执行记录相关变量
         private ReorderableList recordList;
@@ -99,7 +99,7 @@ namespace UnityMcp.Tools
         private GUIStyle codeStyle;
         private GUIStyle inputStyle;  // 专门用于输入框的样式
         private GUIStyle resultStyle;
-        private MethodsCall methodsCall = new MethodsCall();
+        private ToolsCall methodsCall = new ToolsCall();
         private void InitializeStyles()
         {
             if (headerStyle == null)
@@ -825,10 +825,10 @@ namespace UnityMcp.Tools
         {
             try
             {
-                JObject jsonObj = JObject.Parse(inputJson);
-                inputJson = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
+                JsonClass jsonObj = Json.Parse(inputJson) as JsonClass;
+                inputJson = Json.FromObject(jsonObj);
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 EditorUtility.DisplayDialog("JSON格式错误", $"无法解析JSON: {e.Message}", "确定");
             }
@@ -860,15 +860,15 @@ namespace UnityMcp.Tools
                         continue;
                     }
 
-                    // 检查当前行是否是 JSON 对象或数组的开始
+                    // 检查当前行是否是 Json 对象或数组的开始
                     string trimmedLine = line.TrimStart();
 
                     if (trimmedLine.StartsWith("{") || trimmedLine.StartsWith("["))
                     {
-                        // 收集完整的 JSON 块
+                        // 收集完整的 Json 块
                         string jsonBlock = CollectJsonBlock(lines, ref i);
 
-                        // 尝试格式化 JSON
+                        // 尝试格式化 Json
                         string formattedJson = TryFormatJson(jsonBlock);
                         if (formattedJson != null)
                         {
@@ -882,7 +882,7 @@ namespace UnityMcp.Tools
                     }
                     else if (!string.IsNullOrEmpty(line))
                     {
-                        // 非 JSON 行，检查是否包含内嵌 JSON
+                        // 非 Json 行，检查是否包含内嵌 Json
                         string processedLine = ProcessLineWithEmbeddedJson(line);
                         formattedResult.AppendLine(processedLine);
                         i++;
@@ -906,7 +906,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 收集完整的 JSON 块（处理多行 JSON）
+        /// 收集完整的 Json 块（处理多行 JSON）
         /// </summary>
         private string CollectJsonBlock(string[] lines, ref int startIndex)
         {
@@ -953,7 +953,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理包含内嵌 JSON 的行（如 "执行结果: {...}"）
+        /// 处理包含内嵌 Json 的行（如 "执行结果: {...}"）
         /// </summary>
         private string ProcessLineWithEmbeddedJson(string line)
         {
@@ -970,11 +970,11 @@ namespace UnityMcp.Tools
 
             if (jsonStartIndex > 0)
             {
-                // 有前缀文本和 JSON
+                // 有前缀文本和 Json
                 string prefix = line.Substring(0, jsonStartIndex);
                 string jsonPart = line.Substring(jsonStartIndex);
 
-                // 尝试格式化 JSON 部分
+                // 尝试格式化 Json 部分
                 string formattedJson = TryFormatJson(jsonPart);
                 if (formattedJson != null)
                 {
@@ -1006,8 +1006,8 @@ namespace UnityMcp.Tools
                 // 尝试作为JObject解析
                 try
                 {
-                    JObject jsonObj = JObject.Parse(text);
-                    string formatted = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
+                    JsonClass jsonObj = Json.Parse(text) as JsonClass;
+                    string formatted = Json.FromObject(jsonObj);
 
                     // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
@@ -1015,8 +1015,8 @@ namespace UnityMcp.Tools
                 catch
                 {
                     // 尝试作为JArray解析
-                    JArray jsonArray = JArray.Parse(text);
-                    string formatted = JsonConvert.SerializeObject(jsonArray, Formatting.Indented);
+                    JsonArray jsonArray = Json.Parse(text) as JsonArray;
+                    string formatted = Json.FromObject(jsonArray);
 
                     // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
@@ -1030,7 +1030,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 在格式化后的 JSON 文本中展开 yaml 字段的换行符
+        /// 在格式化后的 Json 文本中展开 yaml 字段的换行符
         /// </summary>
         private string ExpandYamlInFormattedJson(string formattedJson)
         {
@@ -1050,7 +1050,7 @@ namespace UnityMcp.Tools
                 if (!yamlContent.Contains("\\n"))
                     return fullMatch;
 
-                // 展开 \n 为实际换行，并保持 JSON 的缩进
+                // 展开 \n 为实际换行，并保持 Json 的缩进
                 string expandedYaml = yamlContent.Replace("\\n", "\n");
 
                 // 获取当前的缩进级别
@@ -1196,7 +1196,7 @@ namespace UnityMcp.Tools
             try
             {
                 DateTime startTime = DateTime.Now;
-                object result = ExecuteJsonCall(startTime);
+                JsonNode result = ExecuteJsonCall(startTime);
 
                 // 如果结果为null，表示异步执行
                 if (result == null)
@@ -1227,7 +1227,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 完成执行并更新UI显示
         /// </summary>
-        private void CompleteExecution(object result, TimeSpan duration)
+        private void CompleteExecution(JsonNode result, TimeSpan duration)
         {
 
             try
@@ -1250,7 +1250,7 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ExecuteJsonCall(DateTime startTime)
+        private JsonNode ExecuteJsonCall(DateTime startTime)
         {
             return ExecuteJsonCallInternal(inputJson, startTime, (result, duration) =>
             {
@@ -1261,18 +1261,20 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 执行JSON调用的内部通用方法
         /// </summary>
-        private object ExecuteJsonCallInternal(string jsonString, DateTime startTime, System.Action<object, TimeSpan> onSingleComplete)
+        private JsonNode ExecuteJsonCallInternal(string jsonString, DateTime startTime, System.Action<JsonNode, TimeSpan> onSingleComplete)
         {
-            JObject inputObj = JObject.Parse(jsonString);
+            JsonNode inputObj = Json.Parse(jsonString);
+            if (inputObj == null)
+                return Response.Error("无法解析JSON输入");
 
             // 检查是否为批量调用
-            if (inputObj.ContainsKey("func") && inputObj["func"].ToString() == "batch_call")
+            if (inputObj is JsonArray jArray)
             {
                 // 批量函数调用
                 var functionsCall = new BatchCall();
-                object callResult = null;
+                JsonNode callResult = null;
                 bool callbackExecuted = false;
-                functionsCall.HandleCommand(inputObj, (result) =>
+                functionsCall.HandleCommand(jArray, (result) =>
                 {
                     callResult = result;
                     callbackExecuted = true;
@@ -1288,11 +1290,11 @@ namespace UnityMcp.Tools
                 // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
-            else if (inputObj.ContainsKey("func"))
+            else if (inputObj is JsonClass inputObjClass && inputObjClass.ContainsKey("func"))
             {
                 // 单个函数调用
                 var functionCall = new SingleCall();
-                object callResult = null;
+                JsonNode callResult = null;
                 bool callbackExecuted = false;
 
                 functionCall.HandleCommand(inputObj, (result) =>
@@ -1319,36 +1321,20 @@ namespace UnityMcp.Tools
         }
 
 
-        private string FormatResult(object result, TimeSpan duration)
+        private string FormatResult(JsonNode result, TimeSpan duration)
         {
             string formattedResult = $"执行时间: {duration.TotalMilliseconds:F2}ms\n\n";
 
             if (result != null)
             {
-                // 检查是否为批量调用结果
+                // 不再反射判断类型，直接使用 JsonNode 的结构判断是否为批量调用结果
                 if (IsBatchCallResult(result))
                 {
                     formattedResult += FormatBatchCallResult(result);
                 }
                 else
                 {
-                    // 单个结果处理
-                    if (result.GetType().Name == "Response" || result.ToString().Contains("\"success\""))
-                    {
-                        try
-                        {
-                            string jsonResult = JsonConvert.SerializeObject(result, Formatting.Indented);
-                            formattedResult += jsonResult;
-                        }
-                        catch
-                        {
-                            formattedResult += result.ToString();
-                        }
-                    }
-                    else
-                    {
-                        formattedResult += result.ToString();
-                    }
+                    formattedResult += result.ToString();
                 }
             }
             else
@@ -1362,17 +1348,19 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 检查是否为批量调用结果
         /// </summary>
-        private bool IsBatchCallResult(object result)
+        private bool IsBatchCallResult(JsonNode result)
         {
             try
             {
-                var resultJson = JsonConvert.SerializeObject(result);
-                var resultObj = JObject.Parse(resultJson);
-
-                return resultObj.ContainsKey("results") &&
-                       resultObj.ContainsKey("total_calls") &&
-                       resultObj.ContainsKey("successful_calls") &&
-                       resultObj.ContainsKey("failed_calls");
+                // 直接判断result本身的结构（避免二次Parse带来的问题）
+                if (result is JsonClass obj)
+                {
+                    return obj.ContainsKey("results") &&
+                           obj.ContainsKey("total_calls") &&
+                           obj.ContainsKey("successful_calls") &&
+                           obj.ContainsKey("failed_calls");
+                }
+                return false;
             }
             catch
             {
@@ -1387,15 +1375,15 @@ namespace UnityMcp.Tools
         {
             try
             {
-                var resultJson = JsonConvert.SerializeObject(result);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(result);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                var results = resultObj["results"] as JArray;
-                var errors = resultObj["errors"] as JArray;
-                var totalCalls = resultObj["total_calls"]?.Value<int>() ?? 0;
-                var successfulCalls = resultObj["successful_calls"]?.Value<int>() ?? 0;
-                var failedCalls = resultObj["failed_calls"]?.Value<int>() ?? 0;
-                var overallSuccess = resultObj["success"]?.Value<bool>() ?? false;
+                var results = resultObj["results"] as JsonArray;
+                var errors = resultObj["errors"] as JsonArray;
+                var totalCalls = resultObj["total_calls"]?.AsInt ?? 0;
+                var successfulCalls = resultObj["successful_calls"]?.AsInt ?? 0;
+                var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
+                var overallSuccess = resultObj["success"]?.AsBool ?? false;
 
                 var output = new StringBuilder();
 
@@ -1415,17 +1403,17 @@ namespace UnityMcp.Tools
                         output.AppendLine($"--- 调用 #{i + 1} ---");
 
                         var singleResult = results[i];
-                        if (singleResult != null && !singleResult.Type.Equals(JTokenType.Null))
+                        if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
                         {
                             output.AppendLine("✅ 成功");
                             try
                             {
-                                string formattedSingleResult = JsonConvert.SerializeObject(singleResult, Formatting.Indented);
+                                string formattedSingleResult = Json.FromObject(singleResult);
                                 output.AppendLine(formattedSingleResult);
                             }
                             catch
                             {
-                                output.AppendLine(singleResult.ToString());
+                                output.AppendLine(singleResult.Value);
                             }
                         }
                         else
@@ -1446,7 +1434,7 @@ namespace UnityMcp.Tools
                     output.AppendLine("=== 错误汇总 ===");
                     for (int i = 0; i < errors.Count; i++)
                     {
-                        if (errors[i] != null && !string.IsNullOrEmpty(errors[i].ToString()))
+                        if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                         {
                             output.AppendLine($"{i + 1}. {errors[i]}");
                         }
@@ -1457,7 +1445,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return $"批量结果格式化失败: {e.Message}\n\n原始结果:\n{JsonConvert.SerializeObject(result, Formatting.Indented)}";
+                return $"批量结果格式化失败: {e.Message}\n\n原始结果:\n{Json.FromObject(result)}";
             }
         }
 
@@ -1491,13 +1479,13 @@ namespace UnityMcp.Tools
 
             try
             {
-                var resultJson = JsonConvert.SerializeObject(currentResult);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(currentResult);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                var totalCalls = resultObj["total_calls"]?.Value<int>() ?? 0;
-                var successfulCalls = resultObj["successful_calls"]?.Value<int>() ?? 0;
-                var failedCalls = resultObj["failed_calls"]?.Value<int>() ?? 0;
-                var overallSuccess = resultObj["success"]?.Value<bool>() ?? false;
+                var totalCalls = resultObj["total_calls"]?.AsInt ?? 0;
+                var successfulCalls = resultObj["successful_calls"]?.AsInt ?? 0;
+                var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
+                var overallSuccess = resultObj["success"]?.AsBool ?? false;
 
                 var statistics = $"批量调用统计:\n" +
                                $"总调用数: {totalCalls}\n" +
@@ -1524,11 +1512,11 @@ namespace UnityMcp.Tools
 
             try
             {
-                var resultJson = JsonConvert.SerializeObject(currentResult);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(currentResult);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                var errors = resultObj["errors"] as JArray;
-                var failedCalls = resultObj["failed_calls"]?.Value<int>() ?? 0;
+                var errors = resultObj["errors"] as JsonArray;
+                var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
 
                 var output = new StringBuilder();
                 output.AppendLine("=== 错误信息汇总 ===");
@@ -1539,7 +1527,7 @@ namespace UnityMcp.Tools
                 {
                     for (int i = 0; i < errors.Count; i++)
                     {
-                        if (errors[i] != null && !string.IsNullOrEmpty(errors[i].ToString()))
+                        if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                         {
                             output.AppendLine($"错误 #{i + 1}:");
                             output.AppendLine($"  {errors[i]}");
@@ -1590,7 +1578,7 @@ namespace UnityMcp.Tools
                 try
                 {
                     DateTime startTime = DateTime.Now;
-                    object result = ExecuteJsonCallFromString(clipboardContent, startTime);
+                    JsonNode result = ExecuteJsonCallFromString(clipboardContent, startTime);
 
                     // 如果结果为null，表示异步执行
                     if (result == null)
@@ -1638,7 +1626,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从字符串执行JSON调用，支持异步回调
         /// </summary>
-        private object ExecuteJsonCallFromString(string jsonString, DateTime startTime)
+        private JsonNode ExecuteJsonCallFromString(string jsonString, DateTime startTime)
         {
             return ExecuteJsonCallInternal(jsonString, startTime, (result, duration) =>
             {
@@ -1767,7 +1755,7 @@ namespace UnityMcp.Tools
                     if (isValidJson)
                     {
                         statusColor = Color.green;
-                        statusText = $"剪切板: ✅ JSON ({clipboardContent.Length} 字符)";
+                        statusText = $"剪切板: ✅ Json ({clipboardContent.Length} 字符)";
                     }
                     else
                     {
@@ -1806,17 +1794,12 @@ namespace UnityMcp.Tools
 
             try
             {
-                JObject.Parse(content);
+                Json.Parse(content);
                 return true;
             }
-            catch (JsonException e)
+            catch (System.Exception e)
             {
                 errorMessage = e.Message;
-                return false;
-            }
-            catch (Exception e)
-            {
-                errorMessage = $"未知错误: {e.Message}";
                 return false;
             }
         }
@@ -1830,13 +1813,13 @@ namespace UnityMcp.Tools
 
             try
             {
-                var resultJson = JsonConvert.SerializeObject(result);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(result);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
                 // 检查是否有success字段且为false
                 if (resultObj.ContainsKey("success"))
                 {
-                    return !resultObj["success"]?.Value<bool>() ?? true;
+                    return !resultObj["success"]?.AsBool ?? true;
                 }
 
                 // 检查是否有error字段
@@ -1857,19 +1840,19 @@ namespace UnityMcp.Tools
 
             try
             {
-                var resultJson = JsonConvert.SerializeObject(result);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(result);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
                 // 尝试从error字段获取错误信息
                 if (resultObj.ContainsKey("error"))
                 {
-                    return resultObj["error"]?.ToString() ?? "未知错误";
+                    return resultObj["error"]?.Value ?? "未知错误";
                 }
 
                 // 尝试从message字段获取错误信息
                 if (resultObj.ContainsKey("message"))
                 {
-                    return resultObj["message"]?.ToString() ?? "未知错误";
+                    return resultObj["message"]?.Value ?? "未知错误";
                 }
 
                 return result.ToString();
@@ -1894,7 +1877,7 @@ namespace UnityMcp.Tools
             try
             {
                 // 解析输入的JSON来获取函数名和参数
-                JObject inputObj = JObject.Parse(inputJson);
+                JsonClass inputObj = Json.Parse(inputJson) as JsonClass;
 
                 // 检查是否为批量调用
                 if (inputObj.ContainsKey("funcs"))
@@ -1929,10 +1912,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 记录单个函数调用结果
         /// </summary>
-        private void RecordSingleResult(JObject inputObj, object result)
+        private void RecordSingleResult(JsonClass inputObj, object result)
         {
-            var funcName = inputObj["func"]?.ToString() ?? "Unknown";
-            var argsJson = inputObj["args"]?.ToString() ?? "{}";
+            var funcName = inputObj["func"]?.Value ?? "Unknown";
+            var argsJson = inputObj["args"]?.Value ?? "{}";
             var recordObject = McpExecuteRecordObject.instance;
 
             bool isSuccess = result != null && !IsErrorResponse(result);
@@ -1941,16 +1924,16 @@ namespace UnityMcp.Tools
 
             if (isSuccess)
             {
-                resultJson = JsonConvert.SerializeObject(result);
-                if (result is JObject resultObj && resultObj["success"] != null && resultObj["success"].Type == JTokenType.Boolean && resultObj["success"].Value<bool>() == false)
+                resultJson = Json.FromObject(result);
+                if (result is JsonClass resultObj && resultObj["success"] != null && resultObj["success"].type == JsonNodeType.Boolean && resultObj["success"].AsBool == false)
                 {
-                    errorMsg = resultObj["error"]?.ToString() ?? "执行失败";
+                    errorMsg = resultObj["error"]?.Value ?? "执行失败";
                 }
             }
             else
             {
                 errorMsg = result != null ? ExtractErrorMessage(result) : "执行失败，返回null";
-                resultJson = result != null ? JsonConvert.SerializeObject(result) : "";
+                resultJson = result != null ? Json.FromObject(result) : "";
             }
 
             recordObject.addRecord(
@@ -1967,16 +1950,16 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 记录批量函数调用结果
         /// </summary>
-        private void RecordBatchResult(JObject inputObj, object result)
+        private void RecordBatchResult(JsonClass inputObj, object result)
         {
             try
             {
-                var resultJson = JsonConvert.SerializeObject(result);
-                var resultObj = JObject.Parse(resultJson);
+                var resultJson = Json.FromObject(result);
+                var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                var results = resultObj["results"] as JArray;
-                var errors = resultObj["errors"] as JArray;
-                var funcsArray = inputObj["funcs"] as JArray;
+                var results = resultObj["results"] as JsonArray;
+                var errors = resultObj["errors"] as JsonArray;
+                var funcsArray = inputObj["funcs"] as JsonArray;
 
                 if (funcsArray != null && results != null)
                 {
@@ -1984,26 +1967,26 @@ namespace UnityMcp.Tools
 
                     for (int i = 0; i < funcsArray.Count && i < results.Count; i++)
                     {
-                        var funcCall = funcsArray[i] as JObject;
+                        var funcCall = funcsArray[i] as JsonClass;
                         if (funcCall == null) continue;
 
-                        var funcName = funcCall["func"]?.ToString() ?? "Unknown";
-                        var argsJson = funcCall["args"]?.ToString() ?? "{}";
+                        var funcName = funcCall["func"]?.Value ?? "Unknown";
+                        var argsJson = funcCall["args"]?.Value ?? "{}";
                         var singleResult = results[i];
 
-                        bool isSuccess = singleResult != null && !singleResult.Type.Equals(JTokenType.Null);
+                        bool isSuccess = singleResult != null && !singleResult.type.Equals(JsonNodeType.Null);
                         string errorMsg = "";
                         string singleResultJson = "";
 
                         if (isSuccess)
                         {
-                            singleResultJson = JsonConvert.SerializeObject(singleResult);
+                            singleResultJson = Json.FromObject(singleResult);
                         }
                         else
                         {
                             if (errors != null && i < errors.Count && errors[i] != null)
                             {
-                                errorMsg = errors[i].ToString();
+                                errorMsg = errors[i].Value;
                             }
                             else
                             {

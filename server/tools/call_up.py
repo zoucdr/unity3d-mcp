@@ -214,14 +214,8 @@ def register_call_tools(mcp: FastMCP):
                         "failed_calls": 1
                     }
             
-            # 准备发送给Unity的参数，保持架构一致性
-            params = {
-                "func": "batch_call",
-                "args": funcs
-            }
-            
             # 使用带重试机制的命令发送到Unity的functions_call处理器
-            result = bridge.send_command_with_retry("batch_call", params, max_retries=1)
+            result = bridge.send_command_with_retry("batch_call", funcs, max_retries=1)
             
             # Unity的functions_call处理器返回的结果已经是完整的格式，直接返回data部分
             if isinstance(result, dict) and "data" in result:

@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -61,9 +61,9 @@ namespace UnityMcp.Tools
                 .Build();
         }
 
-        private object ReimportAsset(JObject args)
+        private object ReimportAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for reimport.");
             string fullPath = SanitizeAssetPath(path);
@@ -75,8 +75,8 @@ namespace UnityMcp.Tools
                 // TODO: Apply importer properties before reimporting?
                 // This is complex as it requires getting the AssetImporter, casting it,
                 // applying properties via reflection or specific methods, saving, then reimporting.
-                JObject properties = args["properties"] as JObject;
-                if (properties != null && properties.HasValues)
+                JsonClass properties = args["properties"] as JsonClass;
+                if (properties != null && properties.Count > 0)
                 {
                     Debug.LogWarning(
                         "[ManageAsset.Reimport] Modifying importer properties before reimport is not fully implemented yet."
@@ -97,9 +97,9 @@ namespace UnityMcp.Tools
 
 
 
-        private object CreateFolder(JObject args)
+        private object CreateFolder(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create_folder.");
@@ -154,14 +154,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyAsset(JObject args)
+        private object ModifyAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return Response.Error("'properties' are required for modify.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -184,17 +184,17 @@ namespace UnityMcp.Tools
                 // --- NEW: Handle GameObject / Prefab Component Modification ---
                 if (asset is GameObject gameObject)
                 {
-                    // Iterate through the properties JSON: keys are component names, values are properties objects for that component
-                    foreach (var prop in properties.Properties())
+                    // Iterate through the properties Json: keys are component names, values are properties objects for that component
+                    foreach (KeyValuePair<string, JsonNode> prop in properties.AsEnumerable())
                     {
-                        string component_type = prop.Name; // e.g., "Collectible"
+                        string component_type = prop.Key; // e.g., "Collectible"
                         // Check if the value associated with the component name is actually an object containing properties
                         if (
-                            prop.Value is JObject component_properties
-                            && component_properties.HasValues
+                            prop.Value is JsonClass component_properties
+                            && component_properties.Count > 0
                         ) // e.g., {"bobSpeed": 2.0}
                         {
-                            // Find the component on the GameObject using the name from the JSON key
+                            // Find the component on the GameObject using the name from the Json key
                             // Using GetComponent(string) is convenient but might require exact type name or be ambiguous.
                             // Consider using FindType helper if needed for more complex scenarios.
                             Component targetComponent = gameObject.GetComponent(component_type);
@@ -225,7 +225,7 @@ namespace UnityMcp.Tools
                             // We could potentially try to apply this property directly to the GameObject here if needed,
                             // but the primary goal is component modification.
                             Debug.LogWarning(
-                                $"[ManageAsset.ModifyAsset] Property '{prop.Name}' for GameObject modification should have a JSON object value containing component properties. Value was: {prop.Value.Type}. Skipping."
+                                $"[ManageAsset.ModifyAsset] Property '{prop.Key}' for GameObject modification should have a Json object value containing component properties. Value was: {prop.Value.type}. Skipping."
                             );
                         }
                     }
@@ -320,10 +320,10 @@ namespace UnityMcp.Tools
 
 
 
-        private object DuplicateAsset(JObject args)
+        private object DuplicateAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -371,10 +371,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object MoveOrRenameAsset(JObject args)
+        private object MoveOrRenameAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for move/rename.");
@@ -431,9 +431,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 选中指定路径的资源
         /// </summary>
-        private object SelectAsset(JObject args)
+        private object SelectAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for select.");
 
@@ -462,9 +462,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 定位（ping）指定路径的资源，在Project窗口中高亮显示
         /// </summary>
-        private object PingAsset(JObject args)
+        private object PingAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for ping.");
 
@@ -493,10 +493,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 选择指定资源的所有依赖项
         /// </summary>
-        private object SelectDependencies(JObject args)
+        private object SelectDependencies(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            bool includeIndirect = args["include_indirect"]?.ToObject<bool?>() ?? false;
+            string path = args["path"]?.Value;
+            bool includeIndirect = args["include_indirect"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for select_depends.");
@@ -546,11 +546,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 查询并选择引用指定资源的所有资源（优化版本）
         /// </summary>
-        private object SelectUsages(JObject args)
+        private object SelectUsages(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            bool includeIndirect = args["include_indirect"]?.ToObject<bool?>() ?? false;
-            int maxResults = args["max_results"]?.ToObject<int?>() ?? 100; // 限制结果数量
+            string path = args["path"]?.Value;
+            bool includeIndirect = args["include_indirect"].AsBoolDefault(false);
+            int maxResults = args["max_results"].AsIntDefault(100); // 限制结果数量
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for select_usage.");
@@ -694,10 +694,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GetAssetInfo(JObject args)
+        private object GetAssetInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            bool generatePreview = args["generate_preview"]?.ToObject<bool>() ?? false;
+            string path = args["path"]?.Value;
+            bool generatePreview = args["generate_preview"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -721,13 +721,13 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 重载（刷新）Unity工程资产数据库
         /// </summary>
-        private object RefreshProject(JObject args)
+        private object RefreshProject(JsonClass args)
         {
             try
             {
-                string refreshType = args["refresh_type"]?.ToString()?.ToLower() ?? "all";
-                bool saveBeforeRefresh = args["save_before_refresh"]?.ToObject<bool?>() ?? true;
-                string specificPath = args["path"]?.ToString();
+                string refreshType = args["refresh_type"]?.Value?.ToLower() ?? "all";
+                bool saveBeforeRefresh = args["save_before_refresh"].AsBoolDefault(true);
+                string specificPath = args["path"]?.Value;
 
                 LogInfo($"[ProjectOperate] Starting project reload with type: {refreshType}");
 
@@ -939,18 +939,18 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Applies properties from JObject to a Material.
+        /// Applies properties from JsonClass to a Material.
         /// </summary>
-        private bool ApplyMaterialProperties(Material mat, JObject properties)
+        private bool ApplyMaterialProperties(Material mat, JsonClass properties)
         {
             if (mat == null || properties == null)
                 return false;
             bool modified = false;
 
             // Example: Set shader
-            if (properties["shader"]?.Type == JTokenType.String)
+            if (properties["shader"]?.type == JsonNodeType.String)
             {
-                Shader newShader = Shader.Find(properties["shader"].ToString());
+                Shader newShader = Shader.Find(properties["shader"].Value);
                 if (newShader != null && mat.shader != newShader)
                 {
                     mat.shader = newShader;
@@ -958,18 +958,18 @@ namespace UnityMcp.Tools
                 }
             }
             // Example: Set color property
-            if (properties["color"] is JObject colorProps)
+            if (properties["color"] is JsonClass colorProps)
             {
-                string propName = colorProps["name"]?.ToString() ?? "_Color"; // Default main color
-                if (colorProps["value"] is JArray colArr && colArr.Count >= 3)
+                string propName = colorProps["name"]?.Value ?? "_Color"; // Default main color
+                if (colorProps["value"] is JsonArray colArr && colArr.Count >= 3)
                 {
                     try
                     {
                         Color newColor = new Color(
-                            colArr[0].ToObject<float>(),
-                            colArr[1].ToObject<float>(),
-                            colArr[2].ToObject<float>(),
-                            colArr.Count > 3 ? colArr[3].ToObject<float>() : 1.0f
+                            colArr[0].AsFloat,
+                            colArr[1].AsFloat,
+                            colArr[2].AsFloat,
+                            colArr.Count > 3 ? colArr[3].AsFloat : 1.0f
                         );
                         if (mat.HasProperty(propName) && mat.GetColor(propName) != newColor)
                         {
@@ -986,17 +986,17 @@ namespace UnityMcp.Tools
                 }
             }
             // Example: Set float property
-            if (properties["float"] is JObject floatProps)
+            if (properties["float"] is JsonClass floatProps)
             {
-                string propName = floatProps["name"]?.ToString();
+                string propName = floatProps["name"]?.Value;
                 if (
-                    !string.IsNullOrEmpty(propName) && floatProps["value"]?.Type == JTokenType.Float
-                    || floatProps["value"]?.Type == JTokenType.Integer
+                    !string.IsNullOrEmpty(propName) && floatProps["value"]?.type == JsonNodeType.Float
+                    || floatProps["value"]?.type == JsonNodeType.Integer
                 )
                 {
                     try
                     {
-                        float newVal = floatProps["value"].ToObject<float>();
+                        float newVal = floatProps["value"].AsFloat;
                         if (mat.HasProperty(propName) && mat.GetFloat(propName) != newVal)
                         {
                             mat.SetFloat(propName, newVal);
@@ -1012,10 +1012,10 @@ namespace UnityMcp.Tools
                 }
             }
             // Example: Set texture property
-            if (properties["texture"] is JObject texProps)
+            if (properties["texture"] is JsonClass texProps)
             {
-                string propName = texProps["name"]?.ToString() ?? "_MainTex"; // Default main texture
-                string texPath = texProps["path"]?.ToString();
+                string propName = texProps["name"]?.Value ?? "_MainTex"; // Default main texture
+                string texPath = texProps["path"]?.Value;
                 if (!string.IsNullOrEmpty(texPath))
                 {
                     Texture newTex = AssetDatabase.LoadAssetAtPath<Texture>(
@@ -1038,10 +1038,10 @@ namespace UnityMcp.Tools
             }
 
             // Handle direct material properties (e.g., "_Color", "_MainTex", etc.)
-            foreach (var prop in properties.Properties())
+            foreach (KeyValuePair<string, JsonNode> prop in properties.AsEnumerable())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
 
                 // Skip properties already handled above
                 if (propName == "shader" || propName == "color" || propName == "float" || propName == "texture")
@@ -1052,14 +1052,14 @@ namespace UnityMcp.Tools
                     if (mat.HasProperty(propName))
                     {
                         // Handle Color properties (like "_Color")
-                        if (propValue is JObject colorObj &&
+                        if (propValue is JsonClass colorObj &&
                             colorObj["r"] != null && colorObj["g"] != null && colorObj["b"] != null)
                         {
                             Color newColor = new Color(
-                                colorObj["r"].ToObject<float>(),
-                                colorObj["g"].ToObject<float>(),
-                                colorObj["b"].ToObject<float>(),
-                                colorObj["a"]?.ToObject<float>() ?? 1.0f
+                                colorObj["r"].AsFloat,
+                                colorObj["g"].AsFloat,
+                                colorObj["b"].AsFloat,
+                                colorObj["a"].AsFloatDefault(1.0f)
                             );
                             if (mat.GetColor(propName) != newColor)
                             {
@@ -1069,13 +1069,13 @@ namespace UnityMcp.Tools
                             }
                         }
                         // Handle Vector4 properties
-                        else if (propValue is JArray vecArray && vecArray.Count >= 4)
+                        else if (propValue is JsonArray vecArray && vecArray.Count >= 4)
                         {
                             Vector4 newVector = new Vector4(
-                                vecArray[0].ToObject<float>(),
-                                vecArray[1].ToObject<float>(),
-                                vecArray[2].ToObject<float>(),
-                                vecArray[3].ToObject<float>()
+                                vecArray[0].AsFloat,
+                                vecArray[1].AsFloat,
+                                vecArray[2].AsFloat,
+                                vecArray[3].AsFloat
                             );
                             if (mat.GetVector(propName) != newVector)
                             {
@@ -1084,9 +1084,9 @@ namespace UnityMcp.Tools
                             }
                         }
                         // Handle Float properties
-                        else if (propValue.Type == JTokenType.Float || propValue.Type == JTokenType.Integer)
+                        else if (propValue.type == JsonNodeType.Float || propValue.type == JsonNodeType.Integer)
                         {
-                            float newVal = propValue.ToObject<float>();
+                            float newVal = propValue.AsFloat;
                             if (Math.Abs(mat.GetFloat(propName) - newVal) > 0.001f)
                             {
                                 mat.SetFloat(propName, newVal);
@@ -1094,9 +1094,9 @@ namespace UnityMcp.Tools
                             }
                         }
                         // Handle Texture properties (string paths)
-                        else if (propValue.Type == JTokenType.String)
+                        else if (propValue.type == JsonNodeType.String)
                         {
-                            string texPath = propValue.ToString();
+                            string texPath = propValue.Value;
                             if (!string.IsNullOrEmpty(texPath))
                             {
                                 Texture newTex = AssetDatabase.LoadAssetAtPath<Texture>(SanitizeAssetPath(texPath));
@@ -1122,17 +1122,17 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Generic helper to set properties on any UnityEngine.Object using reflection.
         /// </summary>
-        private bool ApplyObjectProperties(UnityEngine.Object target, JObject properties)
+        private bool ApplyObjectProperties(UnityEngine.Object target, JsonClass properties)
         {
             if (target == null || properties == null)
                 return false;
             bool modified = false;
             Type type = target.GetType();
 
-            foreach (var prop in properties.Properties())
+            foreach (KeyValuePair<string, JsonNode> prop in properties.AsEnumerable())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                string propName = prop.Key;
+                JsonNode propValue = prop.Value;
                 if (SetPropertyOrField(target, propName, propValue, type))
                 {
                     modified = true;
@@ -1147,7 +1147,7 @@ namespace UnityMcp.Tools
         private bool SetPropertyOrField(
             object target,
             string memberName,
-            JToken value,
+            JsonNode value,
             Type type = null
         )
         {
@@ -1199,62 +1199,62 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simple JToken to Type conversion for common Unity types and primitives.
+        /// Simple JsonNode to Type conversion for common Unity types and primitives.
         /// </summary>
-        private object ConvertJTokenToType(JToken token, Type targetType)
+        private object ConvertJTokenToType(JsonNode token, Type targetType)
         {
             try
             {
-                if (token == null || token.Type == JTokenType.Null)
+                if (token == null || token.type == JsonNodeType.Null)
                     return null;
 
                 if (targetType == typeof(string))
-                    return token.ToObject<string>();
+                    return token.Value;
                 if (targetType == typeof(int))
-                    return token.ToObject<int>();
+                    return token.AsInt;
                 if (targetType == typeof(float))
-                    return token.ToObject<float>();
+                    return token.AsFloat;
                 if (targetType == typeof(bool))
-                    return token.ToObject<bool>();
-                if (targetType == typeof(Vector2) && token is JArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].ToObject<float>(), arrV2[1].ToObject<float>());
-                if (targetType == typeof(Vector3) && token is JArray arrV3 && arrV3.Count == 3)
+                    return token.AsBool;
+                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
+                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
                     return new Vector3(
-                        arrV3[0].ToObject<float>(),
-                        arrV3[1].ToObject<float>(),
-                        arrV3[2].ToObject<float>()
+                        arrV3[0].AsFloat,
+                        arrV3[1].AsFloat,
+                        arrV3[2].AsFloat
                     );
-                if (targetType == typeof(Vector4) && token is JArray arrV4 && arrV4.Count == 4)
+                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
                     return new Vector4(
-                        arrV4[0].ToObject<float>(),
-                        arrV4[1].ToObject<float>(),
-                        arrV4[2].ToObject<float>(),
-                        arrV4[3].ToObject<float>()
+                        arrV4[0].AsFloat,
+                        arrV4[1].AsFloat,
+                        arrV4[2].AsFloat,
+                        arrV4[3].AsFloat
                     );
-                if (targetType == typeof(Quaternion) && token is JArray arrQ && arrQ.Count == 4)
+                if (targetType == typeof(Quaternion) && token is JsonArray arrQ && arrQ.Count == 4)
                     return new Quaternion(
-                        arrQ[0].ToObject<float>(),
-                        arrQ[1].ToObject<float>(),
-                        arrQ[2].ToObject<float>(),
-                        arrQ[3].ToObject<float>()
+                        arrQ[0].AsFloat,
+                        arrQ[1].AsFloat,
+                        arrQ[2].AsFloat,
+                        arrQ[3].AsFloat
                     );
-                if (targetType == typeof(Color) && token is JArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
+                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
                     return new Color(
-                        arrC[0].ToObject<float>(),
-                        arrC[1].ToObject<float>(),
-                        arrC[2].ToObject<float>(),
-                        arrC.Count > 3 ? arrC[3].ToObject<float>() : 1.0f
+                        arrC[0].AsFloat,
+                        arrC[1].AsFloat,
+                        arrC[2].AsFloat,
+                        arrC.Count > 3 ? arrC[3].AsFloat : 1.0f
                     );
                 if (targetType.IsEnum)
-                    return Enum.Parse(targetType, token.ToString(), true); // Case-insensitive enum parsing
+                    return Enum.Parse(targetType, token.Value, true); // Case-insensitive enum parsing
 
                 // Handle loading Unity Objects (Materials, Textures, etc.) by path
                 if (
                     typeof(UnityEngine.Object).IsAssignableFrom(targetType)
-                    && token.Type == JTokenType.String
+                    && token.type == JsonNodeType.String
                 )
                 {
-                    string assetPath = SanitizeAssetPath(token.ToString());
+                    string assetPath = SanitizeAssetPath(token.Value);
                     UnityEngine.Object loadedAsset = AssetDatabase.LoadAssetAtPath(
                         assetPath,
                         targetType
@@ -1268,13 +1268,13 @@ namespace UnityMcp.Tools
                     return loadedAsset;
                 }
 
-                // Fallback: Try direct conversion (might work for other simple value types)
-                return token.ToObject(targetType);
+                // SimpleJson 不支持 ToObject(targetType)
+                return null;
             }
             catch (Exception ex)
             {
                 Debug.LogWarning(
-                    $"[ConvertJTokenToType] Could not convert JToken '{token}' (type {token.Type}) to type '{targetType.Name}': {ex.Message}"
+                    $"[ConvertJTokenToType] Could not convert JsonNode '{token}' (type {token.type}) to type '{targetType.Name}': {ex.Message}"
                 );
                 return null;
             }

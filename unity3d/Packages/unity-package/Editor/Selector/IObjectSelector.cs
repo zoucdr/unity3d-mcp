@@ -1,8 +1,7 @@
-using System;
-using Newtonsoft.Json.Linq;
+﻿using System;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
 using UnityMcp.Models;
-
 namespace UnityMcp.Tools
 {
     /// <summary>

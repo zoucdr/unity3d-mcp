@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
 using UnityMcp.Models;
 using UnityMcp;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Executer
 {
     /// <summary>
     /// Handles batch function calls from MCP server.
@@ -19,11 +19,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Main handler for batch function calls.
         /// </summary>
-        public override void HandleCommand(JObject cmd, Action<object> callback)
+        public override void HandleCommand(JsonNode cmd, Action<JsonNode> callback)
         {
             try
             {
-                var funcsArray = cmd["args"] as JArray;
+                var funcsArray = cmd.AsArray;
 
                 if (funcsArray == null)
                 {
@@ -44,7 +44,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Executes multiple functions sequentially and collects results (异步版本).
         /// </summary>
-        private void ExecuteFunctions(JArray funcsArray, Action<object> callback)
+        private void ExecuteFunctions(JsonArray funcsArray, Action<JsonNode> callback)
         {
             if (McpConnect.EnableLog)
                 Debug.Log($"[FunctionsCall] Executing {funcsArray.Count} function calls asynchronously");
@@ -57,7 +57,7 @@ namespace UnityMcp.Tools
             try
             {
                 // 确保方法已注册
-                MethodsCall.EnsureMethodsRegisteredStatic();
+                ToolsCall.EnsureMethodsRegisteredStatic();
 
                 // 如果没有函数调用，直接返回
                 if (totalCalls == 0)
@@ -87,8 +87,8 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 异步顺序执行指定索引的函数，完成后递归执行下一个.
         /// </summary>
-        private void ExecuteFunctionAtIndex(JArray funcsArray, int currentIndex, List<object> results,
-            int totalCalls, Action<object> finalCallback)
+        private void ExecuteFunctionAtIndex(JsonArray funcsArray, int currentIndex, List<object> results,
+            int totalCalls, Action<JsonClass> finalCallback)
         {
             // 如果所有函数都执行完毕，返回最终结果
             if (currentIndex >= totalCalls)
@@ -109,7 +109,7 @@ namespace UnityMcp.Tools
                 var funcCallToken = funcsArray[currentIndex];
 
                 // 验证函数调用对象格式
-                if (!(funcCallToken is JObject funcCall))
+                if (!(funcCallToken is JsonClass funcCall))
                 {
                     string errorMsg = $"第{currentIndex + 1}个函数调用必须是对象类型";
                     results[currentIndex] = null;
@@ -122,7 +122,7 @@ namespace UnityMcp.Tools
                 }
 
                 // 提取func和args字段
-                string funcName = funcCall["func"]?.ToString();
+                string funcName = funcCall["func"]?.Value;
                 var argsToken = funcCall["args"];
 
                 // 验证func字段
@@ -139,7 +139,7 @@ namespace UnityMcp.Tools
                 }
 
                 // 验证args字段（应该是对象）
-                if (!(argsToken is JObject args))
+                if (!(argsToken is JsonClass args))
                 {
                     string errorMsg = $"第{currentIndex + 1}个函数调用的args字段必须是对象类型";
                     results[currentIndex] = null;
@@ -181,16 +181,16 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Executes a single function asynchronously with callback.
         /// </summary>
-        private void ExecuteSingleFunctionAsync(string functionName, JObject args, Action<object> callback)
+        private void ExecuteSingleFunctionAsync(string functionName, JsonClass args, Action<object> callback)
         {
             try
             {
                 // 查找对应的工具方法
-                var method = MethodsCall.GetRegisteredMethod(functionName);
+                var method = ToolsCall.GetRegisteredMethod(functionName);
                 if (method == null)
                 {
-                    var availableMethods = string.Join(", ", MethodsCall.GetRegisteredMethodNames());
-                    if (McpConnect.EnableLog) Debug.LogWarning($"Unknown method: '{functionName}'. Available methods: {availableMethods}");
+                    var availableMethods = string.Join(", ", ToolsCall.GetRegisteredMethodNames());
+                    if (McpConnect.EnableLog) Debug.LogWarning($"BatchCall Unknown method: '{functionName}'. Available methods: {availableMethods}");
                     callback(null);
                     return;
                 }
@@ -226,25 +226,23 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Creates the batch response in the format expected by the Python layer.
         /// </summary>
-        private object CreateBatchResponse(bool success, List<object> results,
+        private JsonClass CreateBatchResponse(bool success, List<object> results,
             int totalCalls, int successfulCalls, int failedCalls, string globalError = null)
         {
-            var responseData = new Dictionary<string, object>
-            {
-                ["success"] = success,
-                ["results"] = JArray.FromObject(results) ?? new JArray(),
-                ["total_calls"] = totalCalls,
-                ["successful_calls"] = successfulCalls,
-                ["failed_calls"] = failedCalls
-            };
+            var responseData = new JsonClass();
+            responseData.Add("success", new JsonData(success ? "true" : "false"));
+            responseData.Add("results", Json.FromObject(results));
+            responseData.Add("total_calls", new JsonData(totalCalls.ToString()));
+            responseData.Add("successful_calls", new JsonData(successfulCalls.ToString()));
+            responseData.Add("failed_calls", new JsonData(failedCalls.ToString()));
 
             if (!string.IsNullOrEmpty(globalError))
             {
-                responseData["error"] = globalError;
+                responseData.Add("error", new JsonData(globalError));
             }
 
             // 返回包含data字段的Response格式，以便Python层可以提取data部分
-            return Response.Success("Batch function calls completed", JObject.FromObject(responseData));
+            return Response.Success("Batch function calls completed", responseData);
         }
     }
 }

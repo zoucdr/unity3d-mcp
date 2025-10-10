@@ -1,0 +1,1569 @@
+﻿
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace UnityMcp
+{
+    public enum JsonBinaryTag
+    {
+        Array = 1,
+        Class = 2,
+        Value = 3,
+        IntValue = 4,
+        DoubleValue = 5,
+        BoolValue = 6,
+        FloatValue = 7,
+    }
+
+    public class JsonNode
+    {
+        #region common interface
+        public virtual void Add(string aKey, JsonNode aItem) { }
+        public virtual JsonNode this[int aIndex] { get { return null; } set { } }
+        public virtual JsonNode this[string aKey] { get { return null; } set { } }
+        public virtual string Value { get { return ""; } set { } }
+        public virtual int Count { get { return 0; } }
+
+        public virtual void Add(JsonNode aItem)
+        {
+            Add("", aItem);
+        }
+        public virtual JsonNodeType type
+        {
+            get
+            {
+                return GetJSONNodeType();
+            }
+        }
+        public virtual JsonNode Remove(string aKey) { return null; }
+        public virtual JsonNode Remove(int aIndex) { return null; }
+        public virtual JsonNode Remove(JsonNode aNode) { return aNode; }
+
+        public virtual IEnumerable<JsonNode> Childs { get { yield break; } }
+        public IEnumerable<JsonNode> DeepChilds
+        {
+            get
+            {
+                foreach (var C in Childs)
+                    foreach (var D in C.DeepChilds)
+                        yield return D;
+            }
+        }
+
+        public override string ToString()
+        {
+            return "JsonNode";
+        }
+        public virtual string ToString(string aPrefix)
+        {
+            return "JsonNode";
+        }
+
+        #endregion common interface
+
+        #region typecasting properties
+        public virtual int AsInt
+        {
+            get
+            {
+                int v = 0;
+                if (int.TryParse(Value, out v))
+                    return v;
+                return 0;
+            }
+            set
+            {
+                Value = value.ToString();
+            }
+        }
+        public virtual float AsFloat
+        {
+            get
+            {
+                float v = 0.0f;
+                if (float.TryParse(Value, out v))
+                    return v;
+                return 0.0f;
+            }
+            set
+            {
+                Value = value.ToString();
+            }
+        }
+        public virtual double AsDouble
+        {
+            get
+            {
+                double v = 0.0;
+                if (double.TryParse(Value, out v))
+                    return v;
+                return 0.0;
+            }
+            set
+            {
+                Value = value.ToString();
+            }
+        }
+        public virtual bool AsBool
+        {
+            get
+            {
+                bool v = false;
+                if (bool.TryParse(Value, out v))
+                    return v;
+                return !string.IsNullOrEmpty(Value);
+            }
+            set
+            {
+                Value = (value) ? "true" : "false";
+            }
+        }
+
+        /// <summary>
+        /// 获取布尔值，如果节点为 null 则返回默认值
+        /// </summary>
+        public bool AsBoolDefault(bool defaultValue)
+        {
+            if (this == null || this.IsNull()) return defaultValue;
+            return AsBool;
+        }
+
+        /// <summary>
+        /// 获取整数值，如果节点为 null 则返回默认值
+        /// </summary>
+        public int AsIntDefault(int defaultValue)
+        {
+            if (this == null || this.IsNull()) return defaultValue;
+            return AsInt;
+        }
+
+        /// <summary>
+        /// 获取浮点值，如果节点为 null 则返回默认值
+        /// </summary>
+        public float AsFloatDefault(float defaultValue)
+        {
+            if (this == null || this.IsNull()) return defaultValue;
+            return AsFloat;
+        }
+
+        /// <summary>
+        /// 获取双精度浮点值，如果节点为 null 则返回默认值
+        /// </summary>
+        public double AsDoubleDefault(double defaultValue)
+        {
+            if (this == null || this.IsNull()) return defaultValue;
+            return AsDouble;
+        }
+        public virtual JsonArray AsArray
+        {
+            get
+            {
+                return this as JsonArray;
+            }
+        }
+        public virtual JsonClass AsObject
+        {
+            get
+            {
+                return this as JsonClass;
+            }
+        }
+
+
+        #endregion typecasting properties
+
+        #region operators
+        public static implicit operator JsonNode(string s)
+        {
+            return new JsonData(s);
+        }
+        public static implicit operator string(JsonNode d)
+        {
+            return (d == null) ? null : d.Value;
+        }
+
+        // 隐式转换：支持从基本类型转换为 JsonNode
+        public static implicit operator JsonNode(int aInt)
+        {
+            return new JsonData(aInt);
+        }
+        public static implicit operator JsonNode(float aFloat)
+        {
+            return new JsonData(aFloat);
+        }
+        public static implicit operator JsonNode(double aDouble)
+        {
+            return new JsonData(aDouble);
+        }
+        public static implicit operator JsonNode(bool aBool)
+        {
+            return new JsonData(aBool);
+        }
+        public static implicit operator JsonNode(long aLong)
+        {
+            return new JsonData(aLong.ToString());
+        }
+        public static bool operator ==(JsonNode a, object b)
+        {
+            if (b == null && a is JsonLazyCreator)
+                return true;
+            return System.Object.ReferenceEquals(a, b);
+        }
+
+        public static bool operator !=(JsonNode a, object b)
+        {
+            return !(a == b);
+        }
+        public override bool Equals(object obj)
+        {
+            return System.Object.ReferenceEquals(this, obj);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+
+        #endregion operators
+
+        #region 兼容 Newtonsoft.Json 的方法
+
+        /// <summary>
+        /// 尝试获取值（类似 JsonClass.TryGetValue）
+        /// </summary>
+        public virtual bool TryGetValue(string key, out JsonNode value)
+        {
+            value = this[key];
+            return value != null && !value.IsNull();
+        }
+
+        /// <summary>
+        /// 尝试获取 Json 值（别名，兼容旧代码）
+        /// </summary>
+        public virtual bool TryGetJsonValue(string key, out JsonNode token)
+        {
+            return TryGetValue(key, out token);
+        }
+
+        /// <summary>
+        /// 检查是否为 null
+        /// </summary>
+        public virtual bool IsNull()
+        {
+            return this == null || Value == "null" || Value == "";
+        }
+
+        /// <summary>
+        /// 获取 JsonNode 的类型（类似 JsonNode.type）
+        /// </summary>
+        public virtual JsonNodeType GetJSONNodeType()
+        {
+            if (this == null || this.IsNull())
+                return JsonNodeType.Null;
+
+            if (this is JsonArray)
+                return JsonNodeType.Array;
+
+            if (this is JsonClass)
+                return JsonNodeType.Object;
+
+            // JsonData - 尝试判断实际类型
+            var val = Value;
+            if (bool.TryParse(val, out _))
+                return JsonNodeType.Boolean;
+
+            if (int.TryParse(val, out _))
+                return JsonNodeType.Integer;
+
+            if (float.TryParse(val, out _))
+                return JsonNodeType.Float;
+
+            return JsonNodeType.String;
+        }
+
+        /// <summary>
+        /// 安全地转换为 JsonClass
+        /// </summary>
+        public JsonClass ToObject()
+        {
+            return this as JsonClass;
+        }
+
+        /// <summary>
+        /// 安全地转换为 JsonArray
+        /// </summary>
+        public JsonArray ToArray()
+        {
+            return this as JsonArray;
+        }
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+        /// <summary>
+        /// 转换为 Vector2
+        /// </summary>
+        public UnityEngine.Vector2? ToVector2()
+        {
+            var array = this as JsonArray;
+            if (array == null || array.Count < 2) return null;
+
+            return new UnityEngine.Vector2(
+                array[0].AsFloat,
+                array[1].AsFloat
+            );
+        }
+
+        /// <summary>
+        /// 转换为 Vector3
+        /// </summary>
+        public UnityEngine.Vector3? ToVector3()
+        {
+            var array = this as JsonArray;
+            if (array == null || array.Count < 3) return null;
+
+            return new UnityEngine.Vector3(
+                array[0].AsFloat,
+                array[1].AsFloat,
+                array[2].AsFloat
+            );
+        }
+
+        /// <summary>
+        /// 转换为 Vector4
+        /// </summary>
+        public UnityEngine.Vector4? ToVector4()
+        {
+            var array = this as JsonArray;
+            if (array == null || array.Count < 4) return null;
+
+            return new UnityEngine.Vector4(
+                array[0].AsFloat,
+                array[1].AsFloat,
+                array[2].AsFloat,
+                array[3].AsFloat
+            );
+        }
+
+        /// <summary>
+        /// 转换为 Color
+        /// </summary>
+        public UnityEngine.Color? ToColor()
+        {
+            var obj = this as JsonClass;
+            if (obj != null && obj.ContainsKey("r"))
+            {
+                return new UnityEngine.Color(
+                    obj["r"].AsFloat,
+                    obj["g"].AsFloat,
+                    obj["b"].AsFloat,
+                    obj["a"].AsFloat
+                );
+            }
+
+            var array = this as JsonArray;
+            if (array != null && array.Count >= 3)
+            {
+                return new UnityEngine.Color(
+                    array[0].AsFloat,
+                    array[1].AsFloat,
+                    array[2].AsFloat,
+                    array.Count > 3 ? array[3].AsFloat : 1f
+                );
+            }
+
+            return null;
+        }
+#endif
+
+        /// <summary>
+        /// 将 JsonNode 转换为指定类型的对象（兼容 Newtonsoft.Json 的 ToObject 方法）
+        /// </summary>
+        /// <param name="targetType">目标类型</param>
+        /// <returns>转换后的对象，如果无法转换则返回 null</returns>
+        public virtual object ToObject(Type targetType)
+        {
+            try
+            {
+                if (this == null || this.IsNull())
+                    return null;
+
+                if (targetType == typeof(string))
+                    return this.Value;
+                if (targetType == typeof(int) || targetType == typeof(Int32))
+                    return this.AsInt;
+                if (targetType == typeof(long) || targetType == typeof(Int64))
+                    return (long)this.AsInt;
+                if (targetType == typeof(short) || targetType == typeof(Int16))
+                    return (short)this.AsInt;
+                if (targetType == typeof(float) || targetType == typeof(Single))
+                    return this.AsFloat;
+                if (targetType == typeof(double) || targetType == typeof(Double))
+                    return (double)this.AsFloat;
+                if (targetType == typeof(bool) || targetType == typeof(Boolean))
+                    return this.AsBool;
+                if (targetType == typeof(byte))
+                    return (byte)this.AsInt;
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+                if (targetType == typeof(UnityEngine.Vector2))
+                {
+                    var vec2 = this.ToVector2();
+                    return vec2.HasValue ? vec2.Value : default(UnityEngine.Vector2);
+                }
+                if (targetType == typeof(UnityEngine.Vector3))
+                {
+                    var vec3 = this.ToVector3();
+                    return vec3.HasValue ? vec3.Value : default(UnityEngine.Vector3);
+                }
+                if (targetType == typeof(UnityEngine.Vector4))
+                {
+                    var vec4 = this.ToVector4();
+                    return vec4.HasValue ? vec4.Value : default(UnityEngine.Vector4);
+                }
+                if (targetType == typeof(UnityEngine.Color))
+                {
+                    var color = this.ToColor();
+                    return color.HasValue ? color.Value : default(UnityEngine.Color);
+                }
+                if (targetType == typeof(UnityEngine.Quaternion) && this is JsonArray arr && arr.Count >= 4)
+                {
+                    return new UnityEngine.Quaternion(
+                        arr[0].AsFloat,
+                        arr[1].AsFloat,
+                        arr[2].AsFloat,
+                        arr[3].AsFloat
+                    );
+                }
+#endif
+
+                if (targetType.IsEnum)
+                {
+                    return Enum.Parse(targetType, this.Value, true);
+                }
+
+                // 如果是字符串且目标类型是 UnityEngine.Object 的子类，尝试加载资源
+#if UNITY_EDITOR || UNITY_STANDALONE
+                if (this is JsonData && this.type == JsonNodeType.String &&
+                    typeof(UnityEngine.Object).IsAssignableFrom(targetType))
+                {
+                    string assetPath = this.Value;
+                    if (!string.IsNullOrEmpty(assetPath))
+                    {
+                        return UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, targetType);
+                    }
+                }
+#endif
+                return System.Convert.ChangeType(this.Value, targetType);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning($"[JsonNode.ToObject] 无法将 '{this}' 转换为类型 '{targetType.Name}': {ex.Message}");
+            }
+
+            return null;
+        }
+
+        #endregion
+
+        internal static string Escape(string aText)
+        {
+            string result = "";
+            foreach (char c in aText)
+            {
+                switch (c)
+                {
+                    case '\\': result += "\\\\"; break;
+                    case '\"': result += "\\\""; break;
+                    case '\n': result += "\\n"; break;
+                    case '\r': result += "\\r"; break;
+                    case '\t': result += "\\t"; break;
+                    case '\b': result += "\\b"; break;
+                    case '\f': result += "\\f"; break;
+                    default: result += c; break;
+                }
+            }
+            return result;
+        }
+
+        public static JsonNode Parse(string aJSON)
+        {
+            Stack<JsonNode> stack = new Stack<JsonNode>();
+            JsonNode ctx = null;
+            int i = 0;
+            string Token = "";
+            string TokenName = "";
+            bool QuoteMode = false;
+            while (i < aJSON.Length)
+            {
+                switch (aJSON[i])
+                {
+                    case '{':
+                        if (QuoteMode)
+                        {
+                            Token += aJSON[i];
+                            break;
+                        }
+                        stack.Push(new JsonClass());
+                        if (ctx != null)
+                        {
+                            TokenName = TokenName.Trim();
+                            if (ctx is JsonArray)
+                                ctx.Add(stack.Peek());
+                            else if (TokenName != "")
+                                ctx.Add(TokenName, stack.Peek());
+                        }
+                        TokenName = "";
+                        Token = "";
+                        ctx = stack.Peek();
+                        break;
+
+                    case '[':
+                        if (QuoteMode)
+                        {
+                            Token += aJSON[i];
+                            break;
+                        }
+
+                        stack.Push(new JsonArray());
+                        if (ctx != null)
+                        {
+                            TokenName = TokenName.Trim();
+                            if (ctx is JsonArray)
+                                ctx.Add(stack.Peek());
+                            else if (TokenName != "")
+                                ctx.Add(TokenName, stack.Peek());
+                        }
+                        TokenName = "";
+                        Token = "";
+                        ctx = stack.Peek();
+                        break;
+
+                    case '}':
+                    case ']':
+                        if (QuoteMode)
+                        {
+                            Token += aJSON[i];
+                            break;
+                        }
+                        if (stack.Count == 0)
+                            throw new Exception("Json Parse: Too many closing brackets");
+
+                        stack.Pop();
+                        if (Token != "")
+                        {
+                            TokenName = TokenName.Trim();
+                            if (ctx is JsonArray)
+                                ctx.Add(Token);
+                            else if (TokenName != "")
+                                ctx.Add(TokenName, Token);
+                        }
+                        TokenName = "";
+                        Token = "";
+                        if (stack.Count > 0)
+                            ctx = stack.Peek();
+                        break;
+
+                    case ':':
+                        if (QuoteMode)
+                        {
+                            Token += aJSON[i];
+                            break;
+                        }
+                        TokenName = Token;
+                        Token = "";
+                        break;
+
+                    case '"':
+                        QuoteMode ^= true;
+                        break;
+
+                    case ',':
+                        if (QuoteMode)
+                        {
+                            Token += aJSON[i];
+                            break;
+                        }
+                        if (Token != "")
+                        {
+                            if (ctx is JsonArray)
+                                ctx.Add(Token);
+                            else if (TokenName != "")
+                                ctx.Add(TokenName, Token);
+                        }
+                        TokenName = "";
+                        Token = "";
+                        break;
+
+                    case '\r':
+                    case '\n':
+                        break;
+
+                    case ' ':
+                    case '\t':
+                        if (QuoteMode)
+                            Token += aJSON[i];
+                        break;
+
+                    case '\\':
+                        ++i;
+                        if (QuoteMode)
+                        {
+                            char C = aJSON[i];
+                            switch (C)
+                            {
+                                case 't': Token += '\t'; break;
+                                case 'r': Token += '\r'; break;
+                                case 'n': Token += '\n'; break;
+                                case 'b': Token += '\b'; break;
+                                case 'f': Token += '\f'; break;
+                                case 'u':
+                                    {
+                                        string s = aJSON.Substring(i + 1, 4);
+                                        Token += (char)int.Parse(s, System.Globalization.NumberStyles.AllowHexSpecifier);
+                                        i += 4;
+                                        break;
+                                    }
+                                default: Token += C; break;
+                            }
+                        }
+                        break;
+
+                    default:
+                        Token += aJSON[i];
+                        break;
+                }
+                ++i;
+            }
+            if (QuoteMode)
+            {
+                throw new Exception("Json Parse: Quotation marks seems to be messed up.");
+            }
+            return ctx;
+        }
+
+        public virtual void Serialize(System.IO.BinaryWriter aWriter) { }
+
+        public void SaveToStream(System.IO.Stream aData)
+        {
+            var W = new System.IO.BinaryWriter(aData);
+            Serialize(W);
+        }
+
+#if USE_SharpZipLib
+            public void SaveToCompressedStream(System.IO.Stream aData)
+{
+            using (var gzipOut = new ICSharpCode.SharpZipLib.BZip2.BZip2OutputStream(aData))
+{
+                gzipOut.IsStreamOwner = false;
+SaveToStream(gzipOut);
+gzipOut.Close();
+}
+}
+ 
+public void SaveToCompressedFile(string aFileName)
+{
+#if USE_FileIO
+            System.IO.Directory.CreateDirectory((new System.IO.FileInfo(aFileName)).Directory.FullName);
+using(var F = System.IO.File.OpenWrite(aFileName))
+{
+    SaveToCompressedStream(F);
+}
+#else
+            throw new Exception("Can't use File IO stuff in webplayer");
+#endif
+}
+public string SaveToCompressedBase64()
+{
+    using (var stream = new System.IO.MemoryStream())
+    {
+        SaveToCompressedStream(stream);
+        stream.Position = 0;
+        return System.Convert.ToBase64String(stream.ToArray());
+    }
+}
+ 
+#else
+        public void SaveToCompressedStream(System.IO.Stream aData)
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+        public void SaveToCompressedFile(string aFileName)
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+        public string SaveToCompressedBase64()
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+#endif
+
+        public void SaveToFile(string aFileName)
+        {
+#if USE_FileIO
+            System.IO.Directory.CreateDirectory((new System.IO.FileInfo(aFileName)).Directory.FullName);
+using(var F = System.IO.File.OpenWrite(aFileName))
+{
+    SaveToStream(F);
+}
+#else
+            throw new Exception("Can't use File IO stuff in webplayer");
+#endif
+        }
+        public string SaveToBase64()
+        {
+            using (var stream = new System.IO.MemoryStream())
+            {
+                SaveToStream(stream);
+                stream.Position = 0;
+                return System.Convert.ToBase64String(stream.ToArray());
+            }
+        }
+        public static JsonNode Deserialize(System.IO.BinaryReader aReader)
+        {
+            JsonBinaryTag type = (JsonBinaryTag)aReader.ReadByte();
+            switch (type)
+            {
+                case JsonBinaryTag.Array:
+                    {
+                        int count = aReader.ReadInt32();
+                        JsonArray tmp = new JsonArray();
+                        for (int i = 0; i < count; i++)
+                            tmp.Add(Deserialize(aReader));
+                        return tmp;
+                    }
+                case JsonBinaryTag.Class:
+                    {
+                        int count = aReader.ReadInt32();
+                        JsonClass tmp = new JsonClass();
+                        for (int i = 0; i < count; i++)
+                        {
+                            string key = aReader.ReadString();
+                            var val = Deserialize(aReader);
+                            tmp.Add(key, val);
+                        }
+                        return tmp;
+                    }
+                case JsonBinaryTag.Value:
+                    {
+                        return new JsonData(aReader.ReadString());
+                    }
+                case JsonBinaryTag.IntValue:
+                    {
+                        return new JsonData(aReader.ReadInt32());
+                    }
+                case JsonBinaryTag.DoubleValue:
+                    {
+                        return new JsonData(aReader.ReadDouble());
+                    }
+                case JsonBinaryTag.BoolValue:
+                    {
+                        return new JsonData(aReader.ReadBoolean());
+                    }
+                case JsonBinaryTag.FloatValue:
+                    {
+                        return new JsonData(aReader.ReadSingle());
+                    }
+
+                default:
+                    {
+                        throw new Exception("Error deserializing Json. Unknown tag: " + type);
+                    }
+            }
+        }
+
+#if USE_SharpZipLib
+            public static JsonNode LoadFromCompressedStream(System.IO.Stream aData)
+{
+            var zin = new ICSharpCode.SharpZipLib.BZip2.BZip2InputStream(aData);
+return LoadFromStream(zin);
+}
+public static JsonNode LoadFromCompressedFile(string aFileName)
+{
+#if USE_FileIO
+            using(var F = System.IO.File.OpenRead(aFileName))
+{
+                return LoadFromCompressedStream(F);
+}
+#else
+throw new Exception("Can't use File IO stuff in webplayer");
+#endif
+}
+public static JsonNode LoadFromCompressedBase64(string aBase64)
+{
+            var tmp = System.Convert.FromBase64String(aBase64);
+var stream = new System.IO.MemoryStream(tmp);
+stream.Position = 0;
+return LoadFromCompressedStream(stream);
+}
+#else
+        public static JsonNode LoadFromCompressedFile(string aFileName)
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+        public static JsonNode LoadFromCompressedStream(System.IO.Stream aData)
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+        public static JsonNode LoadFromCompressedBase64(string aBase64)
+        {
+            throw new Exception("Can't use compressed functions. You need include the SharpZipLib and uncomment the define at the top of SimpleJSON");
+        }
+#endif
+
+        public static JsonNode LoadFromStream(System.IO.Stream aData)
+        {
+            using (var R = new System.IO.BinaryReader(aData))
+            {
+                return Deserialize(R);
+            }
+        }
+        public static JsonNode LoadFromFile(string aFileName)
+        {
+#if USE_FileIO
+            using(var F = System.IO.File.OpenRead(aFileName))
+{
+                return LoadFromStream(F);
+}
+#else
+            throw new Exception("Can't use File IO stuff in webplayer");
+#endif
+        }
+        public static JsonNode LoadFromBase64(string aBase64)
+        {
+            var tmp = System.Convert.FromBase64String(aBase64);
+            var stream = new System.IO.MemoryStream(tmp);
+            stream.Position = 0;
+            return LoadFromStream(stream);
+        }
+    } // End of JsonNode
+
+    public class JsonArray : JsonNode, IEnumerable
+    {
+        private List<JsonNode> m_List = new List<JsonNode>();
+        public override JsonNode this[int aIndex]
+        {
+            get
+            {
+                if (aIndex < 0 || aIndex >= m_List.Count)
+                    return new JsonLazyCreator(this);
+                return m_List[aIndex];
+            }
+            set
+            {
+                if (aIndex < 0 || aIndex >= m_List.Count)
+                    m_List.Add(value);
+                else
+                    m_List[aIndex] = value;
+            }
+        }
+        public override JsonNode this[string aKey]
+        {
+            get { return new JsonLazyCreator(this); }
+            set { m_List.Add(value); }
+        }
+        public override int Count
+        {
+            get { return m_List.Count; }
+        }
+        public override void Add(string aKey, JsonNode aItem)
+        {
+            m_List.Add(aItem);
+        }
+        public override JsonNode Remove(int aIndex)
+        {
+            if (aIndex < 0 || aIndex >= m_List.Count)
+                return null;
+            JsonNode tmp = m_List[aIndex];
+            m_List.RemoveAt(aIndex);
+            return tmp;
+        }
+        public override JsonNode Remove(JsonNode aNode)
+        {
+            m_List.Remove(aNode);
+            return aNode;
+        }
+        public override IEnumerable<JsonNode> Childs
+        {
+            get
+            {
+                foreach (JsonNode N in m_List)
+                    yield return N;
+            }
+        }
+        public IEnumerator GetEnumerator()
+        {
+            foreach (JsonNode N in m_List)
+                yield return N;
+        }
+        public override string ToString()
+        {
+            string result = "[ ";
+            foreach (JsonNode N in m_List)
+            {
+                if (result.Length > 2)
+                    result += ", ";
+                result += N.ToString();
+            }
+            result += " ]";
+            return result;
+        }
+        public override string ToString(string aPrefix)
+        {
+            string result = "[ ";
+            foreach (JsonNode N in m_List)
+            {
+                if (result.Length > 3)
+                    result += ", ";
+                result += "\n" + aPrefix + "   ";
+                result += N.ToString(aPrefix + "   ");
+            }
+            result += "\n" + aPrefix + "]";
+            return result;
+        }
+        public override void Serialize(System.IO.BinaryWriter aWriter)
+        {
+            aWriter.Write((byte)JsonBinaryTag.Array);
+            aWriter.Write(m_List.Count);
+            for (int i = 0; i < m_List.Count; i++)
+            {
+                m_List[i].Serialize(aWriter);
+            }
+        }
+
+        /// <summary>
+        /// 转换为 List&lt;JsonNode&gt;
+        /// </summary>
+        public List<JsonNode> ToList()
+        {
+            return new List<JsonNode>(m_List);
+        }
+
+        /// <summary>
+        /// 转换为字符串列表
+        /// </summary>
+        public List<string> ToStringList()
+        {
+            var list = new List<string>();
+            foreach (JsonNode node in m_List)
+            {
+                list.Add(node.Value);
+            }
+            return list;
+        }
+
+    } // End of JsonArray
+
+    public class JsonClass : JsonNode, IEnumerable
+    {
+        private Dictionary<string, JsonNode> m_Dict = new Dictionary<string, JsonNode>();
+        public override JsonNode this[string aKey]
+        {
+            get
+            {
+                if (m_Dict.ContainsKey(aKey))
+                    return m_Dict[aKey];
+                else
+                    return new JsonLazyCreator(this, aKey);
+            }
+            set
+            {
+                if (m_Dict.ContainsKey(aKey))
+                    m_Dict[aKey] = value;
+                else
+                    m_Dict.Add(aKey, value);
+            }
+        }
+        public override JsonNode this[int aIndex]
+        {
+            get
+            {
+                if (aIndex < 0 || aIndex >= m_Dict.Count)
+                    return null;
+                return m_Dict.ElementAt(aIndex).Value;
+            }
+            set
+            {
+                if (aIndex < 0 || aIndex >= m_Dict.Count)
+                    return;
+                string key = m_Dict.ElementAt(aIndex).Key;
+                m_Dict[key] = value;
+            }
+        }
+        public override int Count
+        {
+            get { return m_Dict.Count; }
+        }
+
+
+        public override void Add(string aKey, JsonNode aItem)
+        {
+            if (!string.IsNullOrEmpty(aKey))
+            {
+                if (m_Dict.ContainsKey(aKey))
+                    m_Dict[aKey] = aItem;
+                else
+                    m_Dict.Add(aKey, aItem);
+            }
+            else
+                m_Dict.Add(Guid.NewGuid().ToString(), aItem);
+        }
+
+        public override JsonNode Remove(string aKey)
+        {
+            if (!m_Dict.ContainsKey(aKey))
+                return null;
+            JsonNode tmp = m_Dict[aKey];
+            m_Dict.Remove(aKey);
+            return tmp;
+        }
+        public override JsonNode Remove(int aIndex)
+        {
+            if (aIndex < 0 || aIndex >= m_Dict.Count)
+                return null;
+            var item = m_Dict.ElementAt(aIndex);
+            m_Dict.Remove(item.Key);
+            return item.Value;
+        }
+        public override JsonNode Remove(JsonNode aNode)
+        {
+            try
+            {
+                var item = m_Dict.Where(k => k.Value == aNode).First();
+                m_Dict.Remove(item.Key);
+                return aNode;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public override IEnumerable<JsonNode> Childs
+        {
+            get
+            {
+                foreach (KeyValuePair<string, JsonNode> N in m_Dict)
+                    yield return N.Value;
+            }
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            foreach (KeyValuePair<string, JsonNode> N in m_Dict)
+                yield return N;
+        }
+        public override string ToString()
+        {
+            string result = "{";
+            foreach (KeyValuePair<string, JsonNode> N in m_Dict)
+            {
+                if (result.Length > 2)
+                    result += ", ";
+                result += "\"" + Escape(N.Key) + "\":" + N.Value.ToString();
+            }
+            result += "}";
+            return result;
+        }
+        public override string ToString(string aPrefix)
+        {
+            string result = "{ ";
+            foreach (KeyValuePair<string, JsonNode> N in m_Dict)
+            {
+                if (result.Length > 3)
+                    result += ", ";
+                result += "\n" + aPrefix + "   ";
+                result += "\"" + Escape(N.Key) + "\" : " + N.Value.ToString(aPrefix + "   ");
+            }
+            result += "\n" + aPrefix + "}";
+            return result;
+        }
+        public override void Serialize(System.IO.BinaryWriter aWriter)
+        {
+            aWriter.Write((byte)JsonBinaryTag.Class);
+            aWriter.Write(m_Dict.Count);
+            foreach (string K in m_Dict.Keys)
+            {
+                aWriter.Write(K);
+                m_Dict[K].Serialize(aWriter);
+            }
+        }
+
+        /// <summary>
+        /// 创建 JsonClass 的深度副本
+        /// </summary>
+        public JsonClass Clone()
+        {
+            return Json.Parse(this.ToString()) as JsonClass;
+        }
+
+        /// <summary>
+        /// 获取所有键（兼容 JSONClass）
+        /// </summary>
+        public IEnumerable<string> GetKeys()
+        {
+            foreach (string key in m_Dict.Keys)
+            {
+                yield return key;
+            }
+        }
+
+        /// <summary>
+        /// 获取所有键（属性，便于访问）
+        /// </summary>
+        public IEnumerable<string> Keys
+        {
+            get { return m_Dict.Keys; }
+        }
+
+        /// <summary>
+        /// 检查是否包含指定的键
+        /// </summary>
+        public bool ContainsKey(string key)
+        {
+            if (m_Dict.ContainsKey(key))
+            {
+                var value = m_Dict[key];
+                return value != null && !value.IsNull();
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 返回可枚举的键值对集合，用于foreach循环
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, JsonNode>> AsEnumerable()
+        {
+            foreach (var kvp in m_Dict)
+            {
+                yield return new KeyValuePair<string, JsonNode>(kvp.Key, kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// 兼容 Newtonsoft.Json 的 Properties() 方法，返回可枚举的键值对集合
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, JsonNode>> Properties()
+        {
+            return AsEnumerable();
+        }
+
+    } // End of JsonClass
+
+    public class JsonData : JsonNode
+    {
+        private string m_Data;
+        public override string Value
+        {
+            get { return m_Data; }
+            set { m_Data = value; }
+        }
+        public JsonData(string aData)
+        {
+            m_Data = aData;
+        }
+        public JsonData(float aData)
+        {
+            AsFloat = aData;
+        }
+        public JsonData(double aData)
+        {
+            AsDouble = aData;
+        }
+        public JsonData(bool aData)
+        {
+            AsBool = aData;
+        }
+        public JsonData(int aData)
+        {
+            AsInt = aData;
+        }
+
+        public override string ToString()
+        {
+            return "\"" + Escape(m_Data) + "\"";
+        }
+
+        public override string ToString(string aPrefix)
+        {
+            return "\"" + Escape(m_Data) + "\"";
+        }
+
+        // 隐式转换操作符，支持从基本类型转换为 JsonData
+        public static implicit operator JsonData(int aInt)
+        {
+            return new JsonData(aInt);
+        }
+        public static implicit operator JsonData(float aFloat)
+        {
+            return new JsonData(aFloat);
+        }
+        public static implicit operator JsonData(double aDouble)
+        {
+            return new JsonData(aDouble);
+        }
+        public static implicit operator JsonData(bool aBool)
+        {
+            return new JsonData(aBool);
+        }
+        public static implicit operator JsonData(long aLong)
+        {
+            return new JsonData(aLong.ToString());
+        }
+
+        public override void Serialize(System.IO.BinaryWriter aWriter)
+        {
+            var tmp = new JsonData("");
+
+            tmp.AsInt = AsInt;
+            if (tmp.m_Data == this.m_Data)
+            {
+                aWriter.Write((byte)JsonBinaryTag.IntValue);
+                aWriter.Write(AsInt);
+                return;
+            }
+            tmp.AsFloat = AsFloat;
+            if (tmp.m_Data == this.m_Data)
+            {
+                aWriter.Write((byte)JsonBinaryTag.FloatValue);
+                aWriter.Write(AsFloat);
+                return;
+            }
+            tmp.AsDouble = AsDouble;
+            if (tmp.m_Data == this.m_Data)
+            {
+                aWriter.Write((byte)JsonBinaryTag.DoubleValue);
+                aWriter.Write(AsDouble);
+                return;
+            }
+
+            tmp.AsBool = AsBool;
+            if (tmp.m_Data == this.m_Data)
+            {
+                aWriter.Write((byte)JsonBinaryTag.BoolValue);
+                aWriter.Write(AsBool);
+                return;
+            }
+            aWriter.Write((byte)JsonBinaryTag.Value);
+            aWriter.Write(m_Data);
+        }
+    } // End of JsonData
+
+    internal class JsonLazyCreator : JsonNode
+    {
+        private JsonNode m_Node = null;
+        private string m_Key = null;
+
+        public JsonLazyCreator(JsonNode aNode)
+        {
+            m_Node = aNode;
+            m_Key = null;
+        }
+        public JsonLazyCreator(JsonNode aNode, string aKey)
+        {
+            m_Node = aNode;
+            m_Key = aKey;
+        }
+
+        private void Set(JsonNode aVal)
+        {
+            if (m_Key == null)
+            {
+                m_Node.Add(aVal);
+            }
+            else
+            {
+                m_Node.Add(m_Key, aVal);
+            }
+            m_Node = null; // Be GC friendly.
+        }
+
+        public override JsonNode this[int aIndex]
+        {
+            get
+            {
+                return new JsonLazyCreator(this);
+            }
+            set
+            {
+                var tmp = new JsonArray();
+                tmp.Add(value);
+                Set(tmp);
+            }
+        }
+
+        public override JsonNode this[string aKey]
+        {
+            get
+            {
+                return new JsonLazyCreator(this, aKey);
+            }
+            set
+            {
+                var tmp = new JsonClass();
+                tmp.Add(aKey, value);
+                Set(tmp);
+            }
+        }
+        public override void Add(JsonNode aItem)
+        {
+            var tmp = new JsonArray();
+            tmp.Add(aItem);
+            Set(tmp);
+        }
+        public override void Add(string aKey, JsonNode aItem)
+        {
+            var tmp = new JsonClass();
+            tmp.Add(aKey, aItem);
+            Set(tmp);
+        }
+        public static bool operator ==(JsonLazyCreator a, object b)
+        {
+            if (b == null)
+                return true;
+            return System.Object.ReferenceEquals(a, b);
+        }
+
+        public static bool operator !=(JsonLazyCreator a, object b)
+        {
+            return !(a == b);
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return true;
+            return System.Object.ReferenceEquals(this, obj);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return "";
+        }
+        public override string ToString(string aPrefix)
+        {
+            return "";
+        }
+
+        public override int AsInt
+        {
+            get
+            {
+                JsonData tmp = new JsonData(0);
+                Set(tmp);
+                return 0;
+            }
+            set
+            {
+                JsonData tmp = new JsonData(value);
+                Set(tmp);
+            }
+        }
+        public override float AsFloat
+        {
+            get
+            {
+                JsonData tmp = new JsonData(0.0f);
+                Set(tmp);
+                return 0.0f;
+            }
+            set
+            {
+                JsonData tmp = new JsonData(value);
+                Set(tmp);
+            }
+        }
+        public override double AsDouble
+        {
+            get
+            {
+                JsonData tmp = new JsonData(0.0);
+                Set(tmp);
+                return 0.0;
+            }
+            set
+            {
+                JsonData tmp = new JsonData(value);
+                Set(tmp);
+            }
+        }
+        public override bool AsBool
+        {
+            get
+            {
+                JsonData tmp = new JsonData(false);
+                Set(tmp);
+                return false;
+            }
+            set
+            {
+                JsonData tmp = new JsonData(value);
+                Set(tmp);
+            }
+        }
+        public override JsonArray AsArray
+        {
+            get
+            {
+                JsonArray tmp = new JsonArray();
+                Set(tmp);
+                return tmp;
+            }
+        }
+        public override JsonClass AsObject
+        {
+            get
+            {
+                JsonClass tmp = new JsonClass();
+                Set(tmp);
+                return tmp;
+            }
+        }
+    } // End of JsonLazyCreator
+
+    /// <summary>
+    /// JsonNode 类型枚举（类似 Newtonsoft.Json 的 JSONNodeType）
+    /// </summary>
+    public enum JsonNodeType
+    {
+        Null,
+        Object,
+        Array,
+        String,
+        Integer,
+        Float,
+        Boolean
+    }
+
+    public static class Json
+    {
+        public static JsonNode Parse(string aJSON)
+        {
+            return JsonNode.Parse(aJSON);
+        }
+
+        /// <summary>
+        /// 从对象创建 JSONNode（类似 Json.FromObject）
+        /// </summary>
+        public static JsonNode FromObject(object obj)
+        {
+            if (obj == null)
+                return new JsonData("null");
+
+            if (obj is JsonNode jsonNode)
+                return jsonNode;
+
+            if (obj is string str)
+                return new JsonData(str);
+
+            if (obj is int || obj is long || obj is short || obj is byte)
+                return new JsonData(obj.ToString());
+
+            if (obj is float || obj is double || obj is decimal)
+                return new JsonData(obj.ToString());
+
+            if (obj is bool b)
+                return new JsonData(b ? "true" : "false");
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+            if (obj is UnityEngine.Vector2 v2)
+            {
+                var arr = new JsonArray();
+                arr.Add(new JsonData(v2.x.ToString()));
+                arr.Add(new JsonData(v2.y.ToString()));
+                return arr;
+            }
+
+            if (obj is UnityEngine.Vector3 v3)
+            {
+                var arr = new JsonArray();
+                arr.Add(new JsonData(v3.x.ToString()));
+                arr.Add(new JsonData(v3.y.ToString()));
+                arr.Add(new JsonData(v3.z.ToString()));
+                return arr;
+            }
+
+            if (obj is UnityEngine.Vector4 v4)
+            {
+                var arr = new JsonArray();
+                arr.Add(new JsonData(v4.x.ToString()));
+                arr.Add(new JsonData(v4.y.ToString()));
+                arr.Add(new JsonData(v4.z.ToString()));
+                arr.Add(new JsonData(v4.w.ToString()));
+                return arr;
+            }
+
+            if (obj is UnityEngine.Quaternion q)
+            {
+                var arr = new JsonArray();
+                arr.Add(new JsonData(q.x.ToString()));
+                arr.Add(new JsonData(q.y.ToString()));
+                arr.Add(new JsonData(q.z.ToString()));
+                arr.Add(new JsonData(q.w.ToString()));
+                return arr;
+            }
+
+            if (obj is UnityEngine.Color c)
+            {
+                var colorObj = new JsonClass();
+                colorObj.Add("r", new JsonData(c.r.ToString()));
+                colorObj.Add("g", new JsonData(c.g.ToString()));
+                colorObj.Add("b", new JsonData(c.b.ToString()));
+                colorObj.Add("a", new JsonData(c.a.ToString()));
+                return colorObj;
+            }
+#endif
+
+            if (obj is System.Collections.IEnumerable enumerable && !(obj is string))
+            {
+                var arr = new JsonArray();
+                foreach (var item in enumerable)
+                {
+                    arr.Add(FromObject(item));
+                }
+                return arr;
+            }
+
+            if (obj is System.Collections.IDictionary dict)
+            {
+                var jsonObj = new JsonClass();
+                foreach (System.Collections.DictionaryEntry entry in dict)
+                {
+                    jsonObj.Add(entry.Key.ToString(), FromObject(entry.Value));
+                }
+                return jsonObj;
+            }
+
+            // 特殊处理匿名类型和具有属性的对象
+            if (obj.GetType().IsClass && !(obj is string))
+            {
+                var fields = obj.GetType().GetFields();
+                if (fields.Length > 0)
+                {
+                    var jsonObj = new JsonClass();
+                    foreach (var field in fields)
+                    {
+                        try
+                        {
+                            var value = field.GetValue(obj);
+                            jsonObj.Add(field.Name, FromObject(value));
+                        }
+                        catch (Exception ex)
+                        {
+                            // 处理字段访问异常，确保序列化过程不会中断
+                            UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问字段 {field.Name}: {ex.Message}");
+                            jsonObj.Add(field.Name, new JsonData("null"));
+                        }
+                    }
+                    return jsonObj;
+                }
+            }
+
+            // 默认转换为字符串
+            return new JsonData(obj.ToString());
+        }
+    }
+}

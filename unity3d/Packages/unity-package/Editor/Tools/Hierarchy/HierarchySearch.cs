@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -54,16 +54,16 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 默认搜索处理函数 - 当没有指定search_type时使用按名称搜索
         /// </summary>
-        private object HandleDefaultSearch(JObject args)
+        private object HandleDefaultSearch(JsonClass args)
         {
-            string query = args["query"]?.ToString();
-            
+            string query = args["query"]?.Value;
+
             // 如果有query参数，默认使用按名称搜索
             if (!string.IsNullOrEmpty(query))
             {
                 return HandleSearchByName(args);
             }
-            
+
             return Response.Error("Either 'search_type' must be specified or 'query' must be provided for default name search.");
         }
 
@@ -72,17 +72,17 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按名称搜索GameObject
         /// </summary>
-        private object HandleSearchByName(JObject args)
+        private object HandleSearchByName(JsonClass args)
         {
-            string query = args["query"]?.ToString();
+            string query = args["query"]?.Value;
             if (string.IsNullOrEmpty(query))
             {
                 return Response.Error("query is required for by_name search.");
             }
 
-            bool findAll = args["select_many"]?.ToObject<bool>() ?? false;
-            bool includeHierarchy = args["include_hierarchy"]?.ToObject<bool>() ?? false;
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
+            bool findAll = args["select_many"].AsBoolDefault(false);
+            bool includeHierarchy = args["include_hierarchy"].AsBoolDefault(false);
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
 
             List<GameObject> foundObjects = new List<GameObject>();
 
@@ -101,7 +101,7 @@ namespace UnityMcp.Tools
                 // 检查是否包含通配符
                 bool hasWildcards = query.Contains('*');
                 Regex regex = null;
-                
+
                 if (hasWildcards)
                 {
                     // 将通配符转换为正则表达式
@@ -120,7 +120,7 @@ namespace UnityMcp.Tools
                 foreach (GameObject go in allObjects)
                 {
                     bool nameMatches;
-                    
+
                     if (hasWildcards && regex != null)
                     {
                         nameMatches = regex.IsMatch(go.name);
@@ -145,10 +145,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按ID搜索GameObject
         /// </summary>
-        private object HandleSearchById(JObject args)
+        private object HandleSearchById(JsonClass args)
         {
-            string query = args["query"]?.ToString();
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
+            string query = args["query"]?.Value;
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(query))
             {
@@ -173,11 +173,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按标签搜索GameObject
         /// </summary>
-        private object HandleSearchByTag(JObject args)
+        private object HandleSearchByTag(JsonClass args)
         {
-            string searchTerm = args["query"]?.ToString();
-            bool findAll = args["select_many"]?.ToObject<bool>() ?? false;
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
+            string searchTerm = args["query"]?.Value;
+            bool findAll = args["select_many"].AsBoolDefault(false);
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(searchTerm))
             {
@@ -209,11 +209,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按层级搜索GameObject
         /// </summary>
-        private object HandleSearchByLayer(JObject args)
+        private object HandleSearchByLayer(JsonClass args)
         {
-            string searchTerm = args["query"]?.ToString();
-            bool findAll = args["select_many"]?.ToObject<bool>() ?? false;
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
+            string searchTerm = args["query"]?.Value;
+            bool findAll = args["select_many"].AsBoolDefault(false);
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(searchTerm))
             {
@@ -246,11 +246,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按组件搜索GameObject
         /// </summary>
-        private object HandleSearchByComponent(JObject args)
+        private object HandleSearchByComponent(JsonClass args)
         {
-            string searchTerm = args["query"]?.ToString();
-            bool findAll = args["select_many"]?.ToObject<bool>() ?? false;
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
+            string searchTerm = args["query"]?.Value;
+            bool findAll = args["select_many"].AsBoolDefault(false);
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(searchTerm))
             {
@@ -283,13 +283,13 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 按通用术语搜索GameObject
         /// </summary>
-        private object HandleSearchByquery(JObject args)
+        private object HandleSearchByquery(JsonClass args)
         {
-            string searchTerm = args["query"]?.ToString();
-            bool findAll = args["select_many"]?.ToObject<bool>() ?? false;
-            bool includeHierarchy = args["include_hierarchy"]?.ToObject<bool>() ?? false;
-            bool searchInInactive = args["include_inactive"]?.ToObject<bool>() ?? false;
-            bool useRegex = args["use_regex"]?.ToObject<bool>() ?? false;
+            string searchTerm = args["query"]?.Value;
+            bool findAll = args["select_many"].AsBoolDefault(false);
+            bool includeHierarchy = args["include_hierarchy"].AsBoolDefault(false);
+            bool searchInInactive = args["include_inactive"].AsBoolDefault(false);
+            bool useRegex = args["use_regex"].AsBoolDefault(false);
 
             if (string.IsNullOrEmpty(searchTerm))
             {
@@ -566,7 +566,7 @@ namespace UnityMcp.Tools
         private object CreateSearchResult(List<GameObject> foundObjects, string searchType)
         {
             // 构建结果数据
-            var results = foundObjects.Select(go => JObject.FromObject(GameObjectUtils.GetGameObjectData(go))).ToList();
+            var results = foundObjects.Select(go => Json.FromObject(GameObjectUtils.GetGameObjectData(go))).ToList();
 
             // 构建中文消息
             string message;
@@ -580,11 +580,11 @@ namespace UnityMcp.Tools
             }
 
             // 构建响应对象，包含执行时间、成功标志、消息和数据
-            var response = new JObject
+            var response = new JsonClass
             {
                 ["success"] = true,
                 ["message"] = message,
-                ["data"] = JToken.FromObject(results),
+                ["data"] = Json.FromObject(results),
                 ["exec_time_ms"] = 1.00,
                 ["mode"] = "Async mode"
             };
@@ -598,15 +598,15 @@ namespace UnityMcp.Tools
         private object CreateHierarchySearchResult(List<GameObject> foundObjects, string searchType, bool includeHierarchy)
         {
             // 构建结果数据 - 使用JObject确保正确序列化
-            var results = new List<JObject>();
-            
+            var results = new List<JsonClass>();
+
             if (includeHierarchy)
             {
                 // 获取完整的层级数据
                 foreach (var go in foundObjects)
                 {
                     var hierarchyData = GetCompleteHierarchyData(go);
-                    results.Add(JObject.FromObject(hierarchyData));
+                    results.Add(hierarchyData);
                 }
             }
             else
@@ -614,7 +614,7 @@ namespace UnityMcp.Tools
                 // 使用标准的GameObject数据
                 foreach (var go in foundObjects)
                 {
-                    results.Add(JObject.FromObject(GameObjectUtils.GetGameObjectData(go)));
+                    results.Add(GameObjectUtils.GetGameObjectData(go));
                 }
             }
 
@@ -631,11 +631,11 @@ namespace UnityMcp.Tools
             }
 
             // 构建响应对象，确保正确序列化
-            var response = new JObject
+            var response = new JsonClass
             {
                 ["success"] = true,
                 ["message"] = message,
-                ["data"] = JToken.FromObject(results),
+                ["data"] = Json.FromObject(results),
                 ["exec_time_ms"] = 1.00,
                 ["mode"] = "Async mode"
             };
@@ -646,29 +646,41 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 获取GameObject的完整层级数据（包含所有子对象的完整信息）
         /// </summary>
-        private object GetCompleteHierarchyData(GameObject go)
+        private JsonClass GetCompleteHierarchyData(GameObject go)
         {
             if (go == null)
                 return null;
 
             // 获取当前对象的基本YAML数据
             var baseYaml = GameObjectUtils.GetGameObjectDataYaml(go);
-            
+
+            // 创建结果JSONClass
+            JsonClass result = new JsonClass();
+            result["yaml"] = baseYaml;
+
             // 递归获取所有子对象的完整数据
-            var childrenData = new List<object>();
-            foreach (Transform child in go.transform)
+            if (go.transform.childCount > 0)
             {
-                if (child != null && child.gameObject != null)
+                JsonArray childrenArray = new JsonArray();
+                foreach (Transform child in go.transform)
                 {
-                    childrenData.Add(GetCompleteHierarchyData(child.gameObject));
+                    if (child != null && child.gameObject != null)
+                    {
+                        JsonClass childData = GetCompleteHierarchyData(child.gameObject);
+                        if (childData != null)
+                        {
+                            childrenArray.Add(childData);
+                        }
+                    }
+                }
+
+                if (childrenArray.Count > 0)
+                {
+                    result["children"] = childrenArray;
                 }
             }
 
-            return new
-            {
-                yaml = baseYaml,
-                children = childrenData.Count > 0 ? childrenData : null
-            };
+            return result;
         }
 
         /// <summary>

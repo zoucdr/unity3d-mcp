@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.SearchService;
@@ -157,22 +157,6 @@ namespace UnityMcp.Tools
                     return gameObjects.ToArray();
                 }
             }
-
-            // 如果ObjectReferences中没有，尝试从JsonData获取（向后兼容）
-            if (context.TryGetJsonValue("_resolved_targets", out JToken targetToken))
-            {
-                if (targetToken is JArray targetArray)
-                {
-                    return targetArray.ToObject<GameObject[]>();
-                }
-                else
-                {
-                    // 单个对象的情况
-                    GameObject single = targetToken.ToObject<GameObject>();
-                    return single != null ? new GameObject[] { single } : new GameObject[0];
-                }
-            }
-
             return new GameObject[0];
         }
 
@@ -276,14 +260,14 @@ namespace UnityMcp.Tools
             {
                 return Response.Success(
                     $"No modifications applied to GameObject '{targetGo.name}'.",
-                    JObject.FromObject(GetGameObjectData(targetGo))
+                    Json.FromObject(GetGameObjectData(targetGo))
                 );
             }
 
             EditorUtility.SetDirty(targetGo); // Mark scene as dirty
             return Response.Success(
                 $"GameObject '{targetGo.name}' modified successfully.",
-                JObject.FromObject(GetGameObjectData(targetGo))
+                Json.FromObject(GetGameObjectData(targetGo))
             );
         }
 
@@ -315,8 +299,8 @@ namespace UnityMcp.Tools
                         {
                             // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
-                            results.Add(new Dictionary<string, object> 
-                            { 
+                            results.Add(new Dictionary<string, object>
+                            {
                                 { "target", targetGo.name },
                                 { "instanceID", targetGo.GetInstanceID() },
                                 { "data", gameObjectData }
@@ -401,7 +385,7 @@ namespace UnityMcp.Tools
                 return false;
             }
 
-            GameObject newParentGo = GameObjectUtils.FindObjectByIdOrPath(JToken.FromObject(parentIdObj));
+            GameObject newParentGo = GameObjectUtils.FindObjectByIdOrPath(Json.FromObject(parentIdObj));
             if (newParentGo != null)
             {
                 if (newParentGo != null && newParentGo.transform.IsChildOf(targetGo.transform))
@@ -540,24 +524,24 @@ namespace UnityMcp.Tools
         {
             bool modified = false;
 
-            // 获取transform参数并转换为JArray（如果需要）
-            JArray positionArray = null;
-            JArray rotationArray = null;
-            JArray scaleArray = null;
+            // 获取transform参数并转换为JSONArray（如果需要）
+            JsonArray positionArray = null;
+            JsonArray rotationArray = null;
+            JsonArray scaleArray = null;
 
             if (args.TryGetValue("position", out object positionObj))
             {
-                positionArray = positionObj as JArray ?? (positionObj != null ? JArray.FromObject(positionObj) : null);
+                positionArray = positionObj as JsonArray ?? (positionObj != null ? Json.FromObject(positionObj) as JsonArray : null);
             }
 
             if (args.TryGetValue("rotation", out object rotationObj))
             {
-                rotationArray = rotationObj as JArray ?? (rotationObj != null ? JArray.FromObject(rotationObj) : null);
+                rotationArray = rotationObj as JsonArray ?? (rotationObj != null ? Json.FromObject(rotationObj) as JsonArray : null);
             }
 
             if (args.TryGetValue("scale", out object scaleObj))
             {
-                scaleArray = scaleObj as JArray ?? (scaleObj != null ? JArray.FromObject(scaleObj) : null);
+                scaleArray = scaleObj as JsonArray ?? (positionObj != null ? Json.FromObject(scaleObj) as JsonArray : null);
             }
 
             Vector3? position = GameObjectUtils.ParseVector3(positionArray);
@@ -600,7 +584,7 @@ namespace UnityMcp.Tools
                 if (args.TryGetValue("parent_id", out object parentIdObj) && parentIdObj != null)
                 {
                     // 通过GameObjectUtils.FindObjectByIdOrPath查找父级
-                    newParent = GameObjectUtils.FindObjectByIdOrPath(JToken.FromObject(parentIdObj));
+                    newParent = GameObjectUtils.FindObjectByIdOrPath(Json.FromObject(parentIdObj));
                     // 如果parent_id为0或找不到，newParent为null，表示设置为根对象
                 }
                 else if (args.TryGetValue("parent_path", out object parentPathObj) && parentPathObj != null)
@@ -848,7 +832,7 @@ namespace UnityMcp.Tools
         private object AddComponentToTarget(StateTreeContext cmd, GameObject targetGo)
         {
             string typeName = null;
-            JObject properties = null;
+            JsonClass properties = null;
 
             // Allow adding component specified directly or via components array (take first)
             if (cmd.TryGetValue("component_type", out object componentNameObj))
@@ -858,25 +842,25 @@ namespace UnityMcp.Tools
                 // Check if props are nested under name
                 if (cmd.TryGetValue("component_properties", out object componentPropsObj))
                 {
-                    if (componentPropsObj is JObject allProps && !string.IsNullOrEmpty(typeName))
+                    if (componentPropsObj is JsonClass allProps && !string.IsNullOrEmpty(typeName))
                     {
-                        properties = allProps[typeName] as JObject ?? allProps;
+                        properties = allProps[typeName] as JsonClass ?? allProps;
                     }
-                    else if (componentPropsObj is JObject directProps)
+                    else if (componentPropsObj is JsonClass directProps)
                     {
                         properties = directProps;
                     }
                 }
             }
-            else if (cmd.TryGetValue("components", out object componentsObj) && componentsObj is JArray componentsToAddArray && componentsToAddArray.Count > 0)
+            else if (cmd.TryGetValue("components", out object componentsObj) && componentsObj is JsonArray componentsToAddArray && componentsToAddArray.Count > 0)
             {
-                var compToken = componentsToAddArray.First;
-                if (compToken.Type == JTokenType.String)
-                    typeName = compToken.ToString();
-                else if (compToken is JObject compObj)
+                var compToken = componentsToAddArray[0];
+                if (compToken != null && compToken.type == JsonNodeType.String)
+                    typeName = compToken.Value;
+                else if (compToken is JsonClass compObj)
                 {
-                    typeName = compObj["typeName"]?.ToString();
-                    properties = compObj["properties"] as JObject;
+                    typeName = compObj["typeName"]?.Value;
+                    properties = compObj["properties"] as JsonClass;
                 }
             }
 
@@ -909,7 +893,7 @@ namespace UnityMcp.Tools
             EditorUtility.SetDirty(targetGo);
             return Response.Success(
                 $"Component '{typeName}' added to '{targetGo.name}'.",
-               JObject.FromObject(GetGameObjectData(targetGo))
+               Json.FromObject(GetGameObjectData(targetGo))
             ); // Return updated GO data
         }
 
@@ -922,10 +906,10 @@ namespace UnityMcp.Tools
                 typeName = componentNameObj?.ToString();
             }
             else if (cmd.TryGetValue("components_to_remove", out object componentsToRemoveObj) &&
-                     componentsToRemoveObj is JArray componentsToRemoveArray &&
+                     componentsToRemoveObj is JsonArray componentsToRemoveArray &&
                      componentsToRemoveArray.Count > 0)
             {
-                typeName = componentsToRemoveArray.First?.ToString();
+                typeName = componentsToRemoveArray[0]?.Value;
             }
 
             if (string.IsNullOrEmpty(typeName))
@@ -942,7 +926,7 @@ namespace UnityMcp.Tools
             EditorUtility.SetDirty(targetGo);
             return Response.Success(
                 $"Component '{typeName}' removed from '{targetGo.name}'.",
-                JObject.FromObject(GetGameObjectData(targetGo))
+                Json.FromObject(GetGameObjectData(targetGo))
             );
         }
 
@@ -954,15 +938,15 @@ namespace UnityMcp.Tools
             }
 
             string compName = compNameObj.ToString();
-            JObject propertiesToSet = null;
+            JsonClass propertiesToSet = null;
 
             // Properties might be directly under component_properties or nested under the component name
-            if (cmd.TryGetValue("component_properties", out object compPropsObj) && compPropsObj is JObject compProps)
+            if (cmd.TryGetValue("component_properties", out object compPropsObj) && compPropsObj is JsonClass compProps)
             {
-                propertiesToSet = compProps[compName] as JObject ?? compProps; // Allow flat or nested structure
+                propertiesToSet = compProps[compName] as JsonClass ?? compProps; // Allow flat or nested structure
             }
 
-            if (propertiesToSet == null || !propertiesToSet.HasValues)
+            if (propertiesToSet == null || propertiesToSet.Count == 0)
             {
                 return Response.Error(
                     "'component_properties' dictionary for the specified component is required and cannot be empty."
@@ -976,7 +960,7 @@ namespace UnityMcp.Tools
             EditorUtility.SetDirty(targetGo);
             return Response.Success(
                 $"Properties set for component '{compName}' on '{targetGo.name}'.",
-                JObject.FromObject(GetGameObjectData(targetGo))
+                Json.FromObject(GetGameObjectData(targetGo))
             );
         }
 
@@ -1008,8 +992,8 @@ namespace UnityMcp.Tools
                         {
                             // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
-                            results.Add(new Dictionary<string, object> 
-                            { 
+                            results.Add(new Dictionary<string, object>
+                            {
                                 { "target", targetGo.name },
                                 { "instanceID", targetGo.GetInstanceID() },
                                 { "data", gameObjectData }
@@ -1058,8 +1042,8 @@ namespace UnityMcp.Tools
                         {
                             // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
-                            results.Add(new Dictionary<string, object> 
-                            { 
+                            results.Add(new Dictionary<string, object>
+                            {
                                 { "target", targetGo.name },
                                 { "instanceID", targetGo.GetInstanceID() },
                                 { "data", gameObjectData }
@@ -1108,8 +1092,8 @@ namespace UnityMcp.Tools
                         {
                             // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
-                            results.Add(new Dictionary<string, object> 
-                            { 
+                            results.Add(new Dictionary<string, object>
+                            {
                                 { "target", targetGo.name },
                                 { "instanceID", targetGo.GetInstanceID() },
                                 { "data", gameObjectData }
@@ -1248,7 +1232,7 @@ namespace UnityMcp.Tools
         private object SetComponentPropertiesInternal(
             GameObject targetGo,
             string compName,
-            JObject propertiesToSet,
+            JsonClass propertiesToSet,
             Component targetComponentInstance = null
         )
         {
@@ -1289,10 +1273,9 @@ namespace UnityMcp.Tools
 
             Undo.RecordObject(targetComponent, "Set Component Properties");
 
-            foreach (var prop in propertiesToSet.Properties())
+            foreach (var propName in propertiesToSet.GetKeys())
             {
-                string propName = prop.Name;
-                JToken propValue = prop.Value;
+                JsonNode propValue = propertiesToSet[propName];
 
                 try
                 {
@@ -1338,7 +1321,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Helper to set a property or field via reflection, handling basic types.
         /// </summary>
-        private bool SetComponentProperty(object target, string memberName, JToken value)
+        private bool SetComponentProperty(object target, string memberName, JsonNode value)
         {
             Type type = target.GetType();
             BindingFlags flags =
@@ -1389,7 +1372,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// Sets a nested property using dot notation (e.g., "material.color") or array access (e.g., "materials[0]")
         /// </summary>
-        private bool SetNestedProperty(object target, string path, JToken value)
+        private bool SetNestedProperty(object target, string path, JsonNode value)
         {
             try
             {
@@ -1506,65 +1489,65 @@ namespace UnityMcp.Tools
                 if (currentObject is Material material && finalPart.StartsWith("_"))
                 {
                     // Handle various material property types
-                    if (value is JArray jArray)
+                    if (value is JsonArray JsonArray)
                     {
-                        if (jArray.Count == 4) // Color with alpha
+                        if (JsonArray.Count == 4) // Color with alpha
                         {
                             Color color = new Color(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>(),
-                                jArray[2].ToObject<float>(),
-                                jArray[3].ToObject<float>()
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat,
+                                JsonArray[2].AsFloat,
+                                JsonArray[3].AsFloat
                             );
                             material.SetColor(finalPart, color);
                             return true;
                         }
-                        else if (jArray.Count == 3) // Color without alpha
+                        else if (JsonArray.Count == 3) // Color without alpha
                         {
                             Color color = new Color(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>(),
-                                jArray[2].ToObject<float>(),
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat,
+                                JsonArray[2].AsFloat,
                                 1.0f
                             );
                             material.SetColor(finalPart, color);
                             return true;
                         }
-                        else if (jArray.Count == 2) // Vector2
+                        else if (JsonArray.Count == 2) // Vector2
                         {
                             Vector2 vec = new Vector2(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>()
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat
                             );
                             material.SetVector(finalPart, vec);
                             return true;
                         }
-                        else if (jArray.Count == 4) // Vector4
+                        else if (JsonArray.Count == 4) // Vector4
                         {
                             Vector4 vec = new Vector4(
-                                jArray[0].ToObject<float>(),
-                                jArray[1].ToObject<float>(),
-                                jArray[2].ToObject<float>(),
-                                jArray[3].ToObject<float>()
+                                JsonArray[0].AsFloat,
+                                JsonArray[1].AsFloat,
+                                JsonArray[2].AsFloat,
+                                JsonArray[3].AsFloat
                             );
                             material.SetVector(finalPart, vec);
                             return true;
                         }
                     }
-                    else if (value.Type == JTokenType.Float || value.Type == JTokenType.Integer)
+                    else if (value.type == JsonNodeType.Float || value.type == JsonNodeType.Integer)
                     {
-                        material.SetFloat(finalPart, value.ToObject<float>());
+                        material.SetFloat(finalPart, value.AsFloat);
                         return true;
                     }
-                    else if (value.Type == JTokenType.Boolean)
+                    else if (value.type == JsonNodeType.Boolean)
                     {
-                        material.SetFloat(finalPart, value.ToObject<bool>() ? 1f : 0f);
+                        material.SetFloat(finalPart, value.AsBool ? 1f : 0f);
                         return true;
                     }
-                    else if (value.Type == JTokenType.String)
+                    else if (value.type == JsonNodeType.String)
                     {
                         // Might be a texture path
-                        string texturePath = value.ToString();
+                        string texturePath = value.Value;
                         if (
                             texturePath.EndsWith(".png")
                             || texturePath.EndsWith(".jpg")
@@ -1591,7 +1574,7 @@ namespace UnityMcp.Tools
                     }
 
                     Debug.LogWarning(
-                        $"[SetNestedProperty] Unsupported material property value type: {value.Type} for {finalPart}"
+                        $"[SetNestedProperty] Unsupported material property value type: {value.type} for {finalPart}"
                     );
                     return false;
                 }
@@ -1680,17 +1663,17 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simple JToken to Type conversion for common Unity types.
+        /// Simple JsonNode to Type conversion for common Unity types.
         /// </summary>
-        private object ConvertJTokenToType(JToken token, Type targetType)
+        private object ConvertJTokenToType(JsonNode token, Type targetType)
         {
             try
             {
                 // Unwrap nested material properties if we're assigning to a Material
-                if (typeof(Material).IsAssignableFrom(targetType) && token is JObject materialProps)
+                if (typeof(Material).IsAssignableFrom(targetType) && token is JsonClass materialProps)
                 {
                     // Handle case where we're passing shader properties directly in a nested object
-                    string materialPath = token["path"]?.ToString();
+                    string materialPath = token["path"]?.Value;
                     if (!string.IsNullOrEmpty(materialPath))
                     {
                         // Load the material by path
@@ -1698,11 +1681,11 @@ namespace UnityMcp.Tools
                         if (material != null)
                         {
                             // If there are additional properties, set them
-                            foreach (var prop in materialProps.Properties())
+                            foreach (var propName in materialProps.GetKeys())
                             {
-                                if (prop.Name != "path")
+                                if (propName != "path")
                                 {
-                                    SetComponentProperty(material, prop.Name, prop.Value);
+                                    SetComponentProperty(material, propName, materialProps[propName]);
                                 }
                             }
                             return material;
@@ -1722,59 +1705,59 @@ namespace UnityMcp.Tools
 
                 // Basic types first
                 if (targetType == typeof(string))
-                    return token.ToObject<string>();
+                    return token.Value;
                 if (targetType == typeof(int))
-                    return token.ToObject<int>();
+                    return token.AsInt;
                 if (targetType == typeof(float))
-                    return token.ToObject<float>();
+                    return token.AsFloat;
                 if (targetType == typeof(bool))
-                    return token.ToObject<bool>();
+                    return token.AsBool;
 
                 // Vector/Quaternion/Color types
-                if (targetType == typeof(Vector2) && token is JArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].ToObject<float>(), arrV2[1].ToObject<float>());
-                if (targetType == typeof(Vector3) && token is JArray arrV3 && arrV3.Count == 3)
+                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
+                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
                     return new Vector3(
-                        arrV3[0].ToObject<float>(),
-                        arrV3[1].ToObject<float>(),
-                        arrV3[2].ToObject<float>()
+                        arrV3[0].AsFloat,
+                        arrV3[1].AsFloat,
+                        arrV3[2].AsFloat
                     );
-                if (targetType == typeof(Vector4) && token is JArray arrV4 && arrV4.Count == 4)
+                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
                     return new Vector4(
-                        arrV4[0].ToObject<float>(),
-                        arrV4[1].ToObject<float>(),
-                        arrV4[2].ToObject<float>(),
-                        arrV4[3].ToObject<float>()
+                        arrV4[0].AsFloat,
+                        arrV4[1].AsFloat,
+                        arrV4[2].AsFloat,
+                        arrV4[3].AsFloat
                     );
-                if (targetType == typeof(Quaternion) && token is JArray arrQ && arrQ.Count == 4)
+                if (targetType == typeof(Quaternion) && token is JsonArray arrQ && arrQ.Count == 4)
                     return new Quaternion(
-                        arrQ[0].ToObject<float>(),
-                        arrQ[1].ToObject<float>(),
-                        arrQ[2].ToObject<float>(),
-                        arrQ[3].ToObject<float>()
+                        arrQ[0].AsFloat,
+                        arrQ[1].AsFloat,
+                        arrQ[2].AsFloat,
+                        arrQ[3].AsFloat
                     );
-                if (targetType == typeof(Color) && token is JArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
+                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3) // Allow RGB or RGBA
                     return new Color(
-                        arrC[0].ToObject<float>(),
-                        arrC[1].ToObject<float>(),
-                        arrC[2].ToObject<float>(),
-                        arrC.Count > 3 ? arrC[3].ToObject<float>() : 1.0f
+                        arrC[0].AsFloat,
+                        arrC[1].AsFloat,
+                        arrC[2].AsFloat,
+                        arrC.Count > 3 ? arrC[3].AsFloat : 1.0f
                     );
 
                 // Enum types
                 if (targetType.IsEnum)
-                    return Enum.Parse(targetType, token.ToString(), true); // Case-insensitive enum parsing
+                    return Enum.Parse(targetType, token.Value, true); // Case-insensitive enum parsing
 
                 // Handle assigning Unity Objects (Assets, Scene Objects, Components)
                 if (typeof(UnityEngine.Object).IsAssignableFrom(targetType))
                 {
-                    // CASE 1: Reference is a JSON Object specifying a scene object/component find criteria
-                    if (token is JObject refObject)
+                    // CASE 1: Reference is a Json Object specifying a scene object/component find criteria
+                    if (token is JsonClass refObject)
                     {
-                        JToken findToken = refObject["find"];
+                        JsonNode findToken = refObject["find"];
                         string findMethod =
-                            refObject["method"]?.ToString() ?? "by_id_or_name_or_path"; // Default search
-                        string componentTypeName = refObject["component"]?.ToString();
+                            refObject["method"]?.Value ?? "by_id_or_name_or_path"; // Default search
+                        string componentTypeName = refObject["component"]?.Value;
 
                         if (findToken == null)
                         {
@@ -1786,8 +1769,8 @@ namespace UnityMcp.Tools
 
                         // Find the target GameObject
                         // Pass 'searchInactive: true' for internal lookups to be more robust
-                        JObject findParams = new JObject();
-                        findParams["searchInactive"] = true;
+                        JsonClass findParams = new JsonClass();
+                        findParams["searchInactive"] = new JsonData("true");
                         GameObject foundGo = GameObjectUtils.FindObjectInternal(findToken, findMethod, findParams);
 
                         if (foundGo == null)
@@ -1843,9 +1826,9 @@ namespace UnityMcp.Tools
                         }
                     }
                     // CASE 2: Reference is a string, assume it's an asset path
-                    else if (token.Type == JTokenType.String)
+                    else if (token.type == JsonNodeType.String)
                     {
-                        string assetPath = token.ToString();
+                        string assetPath = token.Value;
                         if (!string.IsNullOrEmpty(assetPath))
                         {
                             // Attempt to load the asset from the provided path using the target type
@@ -1872,10 +1855,10 @@ namespace UnityMcp.Tools
                             return null; // Assign null if the path is empty
                         }
                     }
-                    // CASE 3: Reference is null or empty JToken, assign null
+                    // CASE 3: Reference is null or empty JsonNode, assign null
                     else if (
-                        token.Type == JTokenType.Null
-                        || string.IsNullOrEmpty(token.ToString())
+                        token.type == JsonNodeType.Null
+                        || string.IsNullOrEmpty(token.Value)
                     )
                     {
                         return null;
@@ -1884,30 +1867,23 @@ namespace UnityMcp.Tools
                     else
                     {
                         Debug.LogWarning(
-                            $"[ConvertJTokenToType] Expected a string asset path or a reference object to assign Unity Object of type '{targetType.Name}', but received token type '{token.Type}'. Value: {token}"
+                            $"[ConvertJTokenToType] Expected a string asset path or a reference object to assign Unity Object of type '{targetType.Name}', but received token type '{token.type}'. Value: {token}"
                         );
                         return null;
                     }
                 }
 
-                // Fallback: Try direct conversion (might work for other simple value types)
-                // Be cautious here, this might throw errors for complex types not handled above
-                try
-                {
-                    return token.ToObject(targetType);
-                }
-                catch (Exception directConversionEx)
-                {
-                    Debug.LogWarning(
-                        $"[ConvertJTokenToType] Direct conversion failed for JToken '{token}' to type '{targetType.Name}': {directConversionEx.Message}. Specific handling might be needed."
-                    );
-                    return null;
-                }
+                // Fallback: For other types, return null
+                // Complex types should be handled by specific cases above
+                Debug.LogWarning(
+                    $"[ConvertJTokenToType] No conversion handler for type '{targetType.Name}'. Token: {token}"
+                );
+                return null;
             }
             catch (Exception ex)
             {
                 Debug.LogWarning(
-                    $"[ConvertJTokenToType] Could not convert JToken '{token}' to type '{targetType.Name}': {ex.Message}"
+                    $"[ConvertJTokenToType] Could not convert JsonNode '{token}' to type '{targetType.Name}': {ex.Message}"
                 );
                 return null;
             }
@@ -1920,18 +1896,18 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 查找父GameObject（用于设置父级关系）
         /// </summary>
-        private GameObject FindParentGameObject(JToken parentToken)
+        private GameObject FindParentGameObject(JsonNode parentToken)
         {
-            if (parentToken == null || parentToken.Type == JTokenType.Null)
+            if (parentToken == null || parentToken.type == JsonNodeType.Null)
                 return null;
 
-            string parentIdentifier = parentToken.ToString();
+            string parentIdentifier = parentToken.Value;
             if (string.IsNullOrEmpty(parentIdentifier))
                 return null;
 
             // 使用GameObjectDynamicSelector来查找父对象
             var selector = new ObjectSelector<GameObject>();
-            JObject findArgs = new JObject();
+            JsonClass findArgs = new JsonClass();
             findArgs["id"] = parentIdentifier;
             findArgs["path"] = parentIdentifier;
             var stateTree = selector.BuildStateTree();
@@ -1989,7 +1965,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 添加组件到GameObject的内部实现
         /// </summary>
-        private object AddComponentInternal(GameObject targetGo, string typeName, JObject properties)
+        private object AddComponentInternal(GameObject targetGo, string typeName, JsonClass properties)
         {
             Type componentType = FindComponentType(typeName);
             if (componentType == null)
@@ -2030,7 +2006,7 @@ namespace UnityMcp.Tools
         private object GetGameObjectData(GameObject go)
         {
             if (go == null) return null;
-            
+
             // 使用统一的YAML格式，大幅减少token使用量
             var yamlData = GameObjectUtils.GetGameObjectDataYaml(go);
             return new { yaml = yamlData };

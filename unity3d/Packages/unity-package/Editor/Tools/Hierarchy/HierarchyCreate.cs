@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -181,9 +181,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理从预制体创建GameObject的操作
         /// </summary>
-        private object HandleCreateFromPrefab(JObject args)
+        private object HandleCreateFromPrefab(JsonClass args)
         {
-            string prefabPath = args["prefab_path"]?.ToString();
+            string prefabPath = args["prefab_path"]?.Value;
             if (string.IsNullOrEmpty(prefabPath))
             {
                 return Response.Error("'prefab_path' parameter is required for prefab instantiation.");
@@ -196,9 +196,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理从基元类型创建GameObject的操作
         /// </summary>
-        private object HandleCreateFromPrimitive(JObject args)
+        private object HandleCreateFromPrimitive(JsonClass args)
         {
-            string primitiveType = args["primitive_type"]?.ToString();
+            string primitiveType = args["primitive_type"]?.Value;
             if (string.IsNullOrEmpty(primitiveType))
             {
                 // 默认使用Cube作为基元类型
@@ -213,7 +213,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Cube的操作
         /// </summary>
-        private object HandleCreateCube(JObject args)
+        private object HandleCreateCube(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Cube primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Cube");
@@ -222,7 +222,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Sphere的操作
         /// </summary>
-        private object HandleCreateSphere(JObject args)
+        private object HandleCreateSphere(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Sphere primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Sphere");
@@ -231,7 +231,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Cylinder的操作
         /// </summary>
-        private object HandleCreateCylinder(JObject args)
+        private object HandleCreateCylinder(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Cylinder primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Cylinder");
@@ -240,7 +240,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Capsule的操作
         /// </summary>
-        private object HandleCreateCapsule(JObject args)
+        private object HandleCreateCapsule(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Capsule primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Capsule");
@@ -249,7 +249,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Plane的操作
         /// </summary>
-        private object HandleCreatePlane(JObject args)
+        private object HandleCreatePlane(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Plane primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Plane");
@@ -258,7 +258,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Quad的操作
         /// </summary>
-        private object HandleCreateQuad(JObject args)
+        private object HandleCreateQuad(JsonClass args)
         {
             LogInfo("[HierarchyCreate] Creating Quad primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Quad");
@@ -269,7 +269,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从预制体创建GameObject
         /// </summary>
-        private object CreateGameObjectFromPrefab(JObject args, string prefabPath)
+        private object CreateGameObjectFromPrefab(JsonClass args, string prefabPath)
         {
             try
             {
@@ -300,7 +300,7 @@ namespace UnityMcp.Tools
                 //Thread.Sleep(10);
 
                 // 设置名称
-                string name = args["name"]?.ToString();
+                string name = args["name"]?.Value;
                 if (!string.IsNullOrEmpty(name))
                 {
                     newGo.name = name;
@@ -322,7 +322,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从基元类型创建GameObject
         /// </summary>
-        private object CreateGameObjectFromPrimitive(JObject args, string primitiveType)
+        private object CreateGameObjectFromPrimitive(JsonClass args, string primitiveType)
         {
             try
             {
@@ -333,7 +333,7 @@ namespace UnityMcp.Tools
                 //Thread.Sleep(10);
 
                 // 设置名称
-                string name = args["name"]?.ToString();
+                string name = args["name"]?.Value;
                 if (!string.IsNullOrEmpty(name))
                 {
                     newGo.name = name;
@@ -362,7 +362,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 创建空GameObject
         /// </summary>
-        private object CreateEmptyGameObject(JObject args, string name)
+        private object CreateEmptyGameObject(JsonClass args, string name)
         {
             try
             {
@@ -421,7 +421,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 完成GameObject创建的通用设置
         /// </summary>
-        private object FinalizeGameObjectCreation(JObject args, GameObject newGo, bool createdNewObject)
+        private object FinalizeGameObjectCreation(JsonClass args, GameObject newGo, bool createdNewObject)
         {
             if (newGo == null)
             {
@@ -443,7 +443,7 @@ namespace UnityMcp.Tools
 
                 // 处理预制体保存
                 GameObject finalInstance = newGo;
-                bool saveAsPrefab = args["save_as_prefab"]?.ToObject<bool>() ?? false;
+                bool saveAsPrefab = args["save_as_prefab"].AsBoolDefault(false);
 
                 if (createdNewObject && saveAsPrefab)
                 {
@@ -505,9 +505,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理预制体保存
         /// </summary>
-        private GameObject HandlePrefabSaving(JObject args, GameObject newGo)
+        private GameObject HandlePrefabSaving(JsonClass args, GameObject newGo)
         {
-            string prefabPath = args["prefab_path"]?.ToString();
+            string prefabPath = args["prefab_path"]?.Value;
             if (string.IsNullOrEmpty(prefabPath))
             {
                 LogInfo("[HierarchyCreate] 'prefab_path' is required when 'save_as_prefab' is true.");
@@ -565,7 +565,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 生成创建成功消息
         /// </summary>
-        private string GenerateCreationSuccessMessage(JObject args, GameObject finalInstance, bool createdNewObject, bool saveAsPrefab)
+        private string GenerateCreationSuccessMessage(JsonClass args, GameObject finalInstance, bool createdNewObject, bool saveAsPrefab)
         {
             string messagePrefabPath = AssetDatabase.GetAssetPath(
                 PrefabUtility.GetCorrespondingObjectFromSource(finalInstance) ?? (UnityEngine.Object)finalInstance

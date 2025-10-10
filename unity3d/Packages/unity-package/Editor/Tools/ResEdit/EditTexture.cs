@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -57,10 +57,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理设置纹理类型的操作
         /// </summary>
-        private object HandleSetTypeAction(JObject args)
+        private object HandleSetTypeAction(JsonClass args)
         {
-            string texturePath = args["texture_path"]?.ToString();
-            string textureType = args["texture_type"]?.ToString();
+            string texturePath = args["texture_path"]?.Value;
+            string textureType = args["texture_type"]?.Value;
 
             if (string.IsNullOrEmpty(texturePath))
             {
@@ -79,9 +79,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理设置Sprite设置的操作
         /// </summary>
-        private object HandleSetSpriteSettingsAction(JObject args)
+        private object HandleSetSpriteSettingsAction(JsonClass args)
         {
-            string texturePath = args["texture_path"]?.ToString();
+            string texturePath = args["texture_path"]?.Value;
 
             if (string.IsNullOrEmpty(texturePath))
             {
@@ -95,9 +95,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取纹理设置的操作
         /// </summary>
-        private object HandleGetSettingsAction(JObject args)
+        private object HandleGetSettingsAction(JsonClass args)
         {
-            string texturePath = args["texture_path"]?.ToString();
+            string texturePath = args["texture_path"]?.Value;
 
             if (string.IsNullOrEmpty(texturePath))
             {
@@ -158,7 +158,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 设置Sprite设置
         /// </summary>
-        private object SetSpriteSettings(JObject args, string texturePath)
+        private object SetSpriteSettings(JsonClass args, string texturePath)
         {
             try
             {
@@ -176,7 +176,7 @@ namespace UnityMcp.Tools
                 }
 
                 // 设置Sprite模式
-                string spriteMode = args["sprite_mode"]?.ToString();
+                string spriteMode = args["sprite_mode"]?.Value;
                 if (!string.IsNullOrEmpty(spriteMode))
                 {
                     if (Enum.TryParse<SpriteImportMode>(spriteMode, true, out SpriteImportMode mode))
@@ -186,11 +186,11 @@ namespace UnityMcp.Tools
                 }
 
                 // 设置每单位像素数
-                float pixelsPerUnit = args["pixels_per_unit"]?.ToObject<float>() ?? 100f;
+                float pixelsPerUnit = args["pixels_per_unit"].AsFloatDefault(100f);
                 textureImporter.spritePixelsPerUnit = pixelsPerUnit;
 
                 // 设置轴心点
-                string spritePivot = args["sprite_pivot"]?.ToString();
+                string spritePivot = args["sprite_pivot"]?.Value;
                 if (!string.IsNullOrEmpty(spritePivot))
                 {
                     Vector2 pivot = GetPivotVector(spritePivot);
@@ -309,10 +309,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 设置纹理压缩设置
         /// </summary>
-        private void SetTextureCompressionSettings(TextureImporter textureImporter, JObject args)
+        private void SetTextureCompressionSettings(TextureImporter textureImporter, JsonClass args)
         {
             // 设置压缩格式
-            string compression = args["compression"]?.ToString();
+            string compression = args["compression"]?.Value;
             if (!string.IsNullOrEmpty(compression))
             {
                 switch (compression.ToLower())
@@ -333,17 +333,17 @@ namespace UnityMcp.Tools
             }
 
             // 设置最大纹理尺寸
-            int maxSize = args["max_texture_size"]?.ToObject<int>() ?? 2048;
+            int maxSize = args["max_texture_size"].AsIntDefault(2048);
             textureImporter.maxTextureSize = maxSize;
         }
 
         /// <summary>
         /// 设置通用纹理设置
         /// </summary>
-        private void SetGeneralTextureSettings(TextureImporter textureImporter, JObject args)
+        private void SetGeneralTextureSettings(TextureImporter textureImporter, JsonClass args)
         {
             // 设置过滤模式
-            string filterMode = args["filter_mode"]?.ToString();
+            string filterMode = args["filter_mode"]?.Value;
             if (!string.IsNullOrEmpty(filterMode))
             {
                 if (Enum.TryParse<FilterMode>(filterMode, true, out FilterMode mode))
@@ -353,7 +353,7 @@ namespace UnityMcp.Tools
             }
 
             // 设置包装模式
-            string wrapMode = args["wrap_mode"]?.ToString();
+            string wrapMode = args["wrap_mode"]?.Value;
             if (!string.IsNullOrEmpty(wrapMode))
             {
                 if (Enum.TryParse<TextureWrapMode>(wrapMode, true, out TextureWrapMode mode))
@@ -363,15 +363,15 @@ namespace UnityMcp.Tools
             }
 
             // 设置是否可读
-            bool readable = args["readable"]?.ToObject<bool>() ?? false;
+            bool readable = args["readable"].AsBoolDefault(false);
             textureImporter.isReadable = readable;
 
             // 设置是否生成Mip贴图
-            bool generateMipMaps = args["generate_mip_maps"]?.ToObject<bool>() ?? true;
+            bool generateMipMaps = args["generate_mip_maps"].AsBoolDefault(true);
             textureImporter.mipmapEnabled = generateMipMaps;
 
             // 设置sRGB纹理
-            bool srgbTexture = args["srgb_texture"]?.ToObject<bool>() ?? true;
+            bool srgbTexture = args["srgb_texture"].AsBoolDefault(true);
             textureImporter.sRGBTexture = srgbTexture;
         }
     }

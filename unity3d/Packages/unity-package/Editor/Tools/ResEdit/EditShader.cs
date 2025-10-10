@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -46,7 +46,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建Shader操作
         /// </summary>
-        private object HandleCreateShader(JObject args)
+        private object HandleCreateShader(JsonClass args)
         {
             LogInfo("[ManageShader] Creating shader");
             var validationResult = ValidateParameters(args);
@@ -86,7 +86,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理读取Shader操作
         /// </summary>
-        private object HandleReadShader(JObject args)
+        private object HandleReadShader(JsonClass args)
         {
             LogInfo("[ManageShader] Reading shader");
             var validationResult = ValidateParameters(args);
@@ -131,7 +131,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理更新Shader操作
         /// </summary>
-        private object HandleUpdateShader(JObject args)
+        private object HandleUpdateShader(JsonClass args)
         {
             LogInfo("[ManageShader] Updating shader");
             var validationResult = ValidateParameters(args);
@@ -161,7 +161,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理删除Shader操作
         /// </summary>
-        private object HandleDeleteShader(JObject args)
+        private object HandleDeleteShader(JsonClass args)
         {
             LogInfo("[ManageShader] Deleting shader");
             var validationResult = ValidateParameters(args);
@@ -226,9 +226,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 验证基础参数
         /// </summary>
-        private ValidationResult ValidateParameters(JObject args)
+        private ValidationResult ValidateParameters(JsonClass args)
         {
-            string name = args["name"]?.ToString();
+            string name = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(name))
             {
@@ -259,10 +259,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 获取路径信息
         /// </summary>
-        private PathInfo GetPathInfo(JObject args)
+        private PathInfo GetPathInfo(JsonClass args)
         {
-            string name = args["name"]?.ToString();
-            string path = args["path"]?.ToString();
+            string name = args["name"]?.Value;
+            string path = args["path"]?.Value;
 
             // Ensure path is relative to Assets/, removing any leading "Assets/"
             // Set default directory to "Shaders" if path is not provided
@@ -298,17 +298,17 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 获取Shader内容
         /// </summary>
-        private string GetShaderContents(JObject args)
+        private string GetShaderContents(JsonClass args)
         {
             // Handle lines parameter (array of strings)
             if (args["lines"] != null)
             {
                 try
                 {
-                    var linesArray = args["lines"] as JArray;
+                    var linesArray = args["lines"] as JsonArray;
                     if (linesArray != null)
                     {
-                        return string.Join("\n", linesArray.Select(line => line.ToString()));
+                        return string.Join("\n", linesArray.ToStringList().Select(line => line.ToString()));
                     }
                     else
                     {

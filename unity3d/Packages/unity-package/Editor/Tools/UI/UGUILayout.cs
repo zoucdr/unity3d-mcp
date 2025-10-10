@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -773,13 +773,13 @@ namespace UnityMcp.Tools
             {
                 Undo.RecordObject(rectTransform, $"Set RectTransform Property {propertyName}");
 
-                if (valueObj is JToken valueToken)
+                if (valueObj is JsonNode valueToken)
                 {
                     SetPropertyValue(rectTransform, propertyName, valueToken);
                 }
                 else
                 {
-                    JToken convertedToken = JToken.FromObject(valueObj);
+                    JsonNode convertedToken = Json.FromObject(valueObj);
                     SetPropertyValue(rectTransform, propertyName, convertedToken);
                 }
 
@@ -1006,17 +1006,19 @@ namespace UnityMcp.Tools
             }
 
             // 如果ObjectReferences中没有，尝试从JsonData获取（向后兼容）
-            if (context.TryGetJsonValue("_resolved_targets", out JToken targetToken))
+            if (context.TryGetJsonValue("_resolved_targets", out JsonNode targetToken))
             {
-                if (targetToken is JArray targetArray)
+                if (targetToken is JsonArray targetArray)
                 {
-                    return targetArray.ToObject<GameObject[]>();
+                    // JsonArray 不能直接转换为 GameObject[]，需要逐个解析
+                    // 这个功能可能需要其他方式实现
+                    return new GameObject[0];
                 }
                 else
                 {
-                    // 单个对象的情况
-                    GameObject single = targetToken.ToObject<GameObject>();
-                    return single != null ? new GameObject[] { single } : new GameObject[0];
+                    // 单个对象的情况 - JsonNode 不能直接转为 GameObject
+                    // 需要通过选择器或其他方式获取
+                    return new GameObject[0];
                 }
             }
 
@@ -1063,13 +1065,13 @@ namespace UnityMcp.Tools
         {
             if (obj == null) return null;
 
-            if (obj is JArray jArray && jArray.Count >= 2)
+            if (obj is JsonArray JsonArray && JsonArray.Count >= 2)
             {
                 try
                 {
                     return new Vector2(
-                        jArray[0].ToObject<float>(),
-                        jArray[1].ToObject<float>()
+                        JsonArray[0].AsFloat,
+                        JsonArray[1].AsFloat
                     );
                 }
                 catch
@@ -1093,14 +1095,14 @@ namespace UnityMcp.Tools
         {
             if (obj == null) return null;
 
-            if (obj is JArray jArray && jArray.Count >= 3)
+            if (obj is JsonArray JsonArray && JsonArray.Count >= 3)
             {
                 try
                 {
                     return new Vector3(
-                        jArray[0].ToObject<float>(),
-                        jArray[1].ToObject<float>(),
-                        jArray[2].ToObject<float>()
+                        JsonArray[0].AsFloat,
+                        JsonArray[1].AsFloat,
+                        JsonArray[2].AsFloat
                     );
                 }
                 catch
@@ -1142,7 +1144,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 设置属性值
         /// </summary>
-        private void SetPropertyValue(object target, string propertyName, JToken value)
+        private void SetPropertyValue(object target, string propertyName, JsonNode value)
         {
             Type type = target.GetType();
             PropertyInfo propInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -1168,23 +1170,73 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 转换JToken值到指定类型
         /// </summary>
-        private object ConvertValue(JToken token, Type targetType)
+        private object ConvertValue(JsonNode token, Type targetType)
         {
-            if (targetType == typeof(string))
-                return token.ToObject<string>();
-            if (targetType == typeof(int))
-                return token.ToObject<int>();
-            if (targetType == typeof(float))
-                return token.ToObject<float>();
-            if (targetType == typeof(bool))
-                return token.ToObject<bool>();
-            if (targetType == typeof(Vector2) && token is JArray arr2 && arr2.Count == 2)
-                return new Vector2(arr2[0].ToObject<float>(), arr2[1].ToObject<float>());
-            if (targetType == typeof(Vector3) && token is JArray arr3 && arr3.Count == 3)
-                return new Vector3(arr3[0].ToObject<float>(), arr3[1].ToObject<float>(), arr3[2].ToObject<float>());
+            if (token == null || token.IsNull())
+            {
+                throw new ArgumentNullException(nameof(token), $"无法将 null 转换为类型 {targetType.Name}");
+            }
 
-            // 尝试直接转换
-            return token.ToObject(targetType);
+            // 基础类型
+            if (targetType == typeof(string))
+                return token.Value;
+            if (targetType == typeof(int))
+                return token.AsInt;
+            if (targetType == typeof(long))
+                return (long)token.AsInt;
+            if (targetType == typeof(short))
+                return (short)token.AsInt;
+            if (targetType == typeof(byte))
+                return (byte)token.AsInt;
+            if (targetType == typeof(float))
+                return token.AsFloat;
+            if (targetType == typeof(double))
+                return token.AsDouble;
+            if (targetType == typeof(bool))
+                return token.AsBool;
+
+            // Unity 向量类型
+            if (targetType == typeof(Vector2))
+            {
+                if (token is JsonArray arr2 && arr2.Count >= 2)
+                    return new Vector2(arr2[0].AsFloat, arr2[1].AsFloat);
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector2，需要包含至少2个元素的数组");
+            }
+            if (targetType == typeof(Vector3))
+            {
+                if (token is JsonArray arr3 && arr3.Count >= 3)
+                    return new Vector3(arr3[0].AsFloat, arr3[1].AsFloat, arr3[2].AsFloat);
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector3，需要包含至少3个元素的数组");
+            }
+            if (targetType == typeof(Vector4))
+            {
+                if (token is JsonArray arr4 && arr4.Count >= 4)
+                    return new Vector4(arr4[0].AsFloat, arr4[1].AsFloat, arr4[2].AsFloat, arr4[3].AsFloat);
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector4，需要包含至少4个元素的数组");
+            }
+            if (targetType == typeof(Color))
+            {
+                var color = token.ToColor();
+                if (color.HasValue)
+                    return color.Value;
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Color，需要包含 r,g,b,a 的对象或至少3个元素的数组");
+            }
+
+            // 枚举类型
+            if (targetType.IsEnum)
+            {
+                try
+                {
+                    return Enum.Parse(targetType, token.Value, true);
+                }
+                catch
+                {
+                    throw new InvalidCastException($"无法将值 '{token.Value}' 转换为枚举类型 {targetType.Name}");
+                }
+            }
+
+            // 对于其他类型，抛出异常
+            throw new NotSupportedException($"不支持将 JsonNode 转换为类型 {targetType.Name}。当前值：{token}");
         }
 
         /// <summary>

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityMcp.Tools;
 using System.Text;
-using Newtonsoft.Json.Linq;
+using UnityMcp;
 
 public class TestStateTree
 {
@@ -26,7 +26,7 @@ public class TestStateTree
             .Build();
         Debug.Log(tree.ToString());
         // 测试正常路径
-        var result1 = tree.Run(new JObject
+        var result1 = tree.Run(new StateTreeContext
         {
             ["role"] = "admin",
             ["level"] = 3,
@@ -35,7 +35,7 @@ public class TestStateTree
         Debug.Log($"TestBasicStateTree - 路径1结果: {result1}, 错误消息: {tree.ErrorMessage}");
         Assert.AreEqual("AnimProd", result1);
 
-        var result2 = tree.Run(new JObject
+        var result2 = tree.Run(new StateTreeContext
         {
             ["role"] = "admin",
             ["level"] = 3,
@@ -43,21 +43,21 @@ public class TestStateTree
         });
         Assert.AreEqual("AnimDev", result2);
 
-        var result3 = tree.Run(new JObject
+        var result3 = tree.Run(new StateTreeContext
         {
             ["role"] = "admin",
             ["level"] = 2
         });
         Assert.AreEqual("AdminL2", result3);
 
-        var result4 = tree.Run(new JObject
+        var result4 = tree.Run(new StateTreeContext
         {
             ["role"] = "user"
         });
         Assert.AreEqual("User", result4);
 
         // 测试错误路径
-        var result5 = tree.Run(new JObject
+        var result5 = tree.Run(new StateTreeContext
         {
             ["role"] = "admin1", // 不存在的角色
             ["level"] = 3,
@@ -85,7 +85,7 @@ public class TestStateTree
         Debug.Log(treeWithDefault.ToString());
 
         // 测试正常路径
-        var result1 = treeWithDefault.Run(new JObject
+        var result1 = treeWithDefault.Run(new StateTreeContext
         {
             ["role"] = "admin",
             ["level"] = 3,
@@ -94,7 +94,7 @@ public class TestStateTree
         Assert.AreEqual("AnimProd", result1);
 
         // 测试默认路径
-        var result2 = treeWithDefault.Run(new JObject
+        var result2 = treeWithDefault.Run(new StateTreeContext
         {
             ["role"] = "admin1", // 不存在的角色
             ["level"] = 3,
@@ -137,7 +137,7 @@ public class TestStateTree
             }
         }
         // 测试1：常规参数
-        var result1 = optionalTree.Run(new JObject
+        var result1 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "create"
         });
@@ -145,14 +145,14 @@ public class TestStateTree
         Assert.AreEqual("执行创建操作", result1);
 
         // 测试2：常规参数
-        var result2 = optionalTree.Run(new JObject
+        var result2 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "update"
         });
         Assert.AreEqual("执行更新操作", result2);
 
         // 测试3：create操作带debug参数
-        var result3 = optionalTree.Run(new JObject
+        var result3 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "create",
             ["debug"] = false
@@ -161,7 +161,7 @@ public class TestStateTree
         Assert.AreEqual("启用调试模式", result3);
 
         // 测试4：create操作带verbose参数
-        var result4 = optionalTree.Run(new JObject
+        var result4 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "create",
             ["verbose"] = "yes"
@@ -169,7 +169,7 @@ public class TestStateTree
         Assert.AreEqual("启用详细输出模式", result4);
 
         // 测试5：create操作带多个可选参数，应匹配第一个
-        var result5 = optionalTree.Run(new JObject
+        var result5 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "create",
             ["debug"] = true,
@@ -179,7 +179,7 @@ public class TestStateTree
         Assert.AreEqual("启用调试模式", result5);
 
         // 测试6：无匹配，使用默认
-        var result6 = optionalTree.Run(new JObject
+        var result6 = optionalTree.Run(new StateTreeContext
         {
             ["action"] = "unknown" // 无效action，无可选参数
         });
@@ -230,7 +230,7 @@ public class TestStateTree
         }
 
         // 测试1：基本搜索 - 用户
-        var result1 = mixedTree.Run(new JObject
+        var result1 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["type"] = "user"
@@ -238,7 +238,7 @@ public class TestStateTree
         Assert.AreEqual("搜索用户", result1);
 
         // 测试2：基本搜索 - 产品
-        var result2 = mixedTree.Run(new JObject
+        var result2 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["type"] = "product"
@@ -246,7 +246,7 @@ public class TestStateTree
         Assert.AreEqual("搜索产品", result2);
 
         // 测试3：高级搜索 - 按名称
-        var result3 = mixedTree.Run(new JObject
+        var result3 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["advanced"] = true,
@@ -255,7 +255,7 @@ public class TestStateTree
         Assert.AreEqual("高级名称搜索", result3);
 
         // 测试4：高级搜索 - 按ID
-        var result4 = mixedTree.Run(new JObject
+        var result4 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["advanced"] = true,
@@ -264,7 +264,7 @@ public class TestStateTree
         Assert.AreEqual("高级ID搜索", result4);
 
         // 测试5：高级搜索 - 默认
-        var result5 = mixedTree.Run(new JObject
+        var result5 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["advanced"] = true,
@@ -274,7 +274,7 @@ public class TestStateTree
         Assert.AreEqual("默认高级搜索", result5);
 
         // 测试6：排序
-        var result6 = mixedTree.Run(new JObject
+        var result6 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "unknown",
             ["sort"] = "desc"
@@ -282,7 +282,7 @@ public class TestStateTree
         Assert.AreEqual("按desc排序", result6);
 
         // 测试7：未知操作
-        var result7 = mixedTree.Run(new JObject
+        var result7 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "unknown"
         });
@@ -294,90 +294,90 @@ public class TestStateTree
     #region 处理方法
 
     // 基本处理方法
-    private object AnimProd(JObject ctx)
+    private object AnimProd(StateTreeContext ctx)
     {
         return "AnimProd";
     }
 
-    private object AnimDev(JObject ctx)
+    private object AnimDev(StateTreeContext ctx)
     {
         return "AnimDev";
     }
 
-    private object AdminL2(JObject ctx)
+    private object AdminL2(StateTreeContext ctx)
     {
         return "AdminL2";
     }
 
-    private object User(JObject ctx)
+    private object User(StateTreeContext ctx)
     {
         return "User";
     }
 
-    private object Default(JObject ctx)
+    private object Default(StateTreeContext ctx)
     {
         return "Default";
     }
 
     // 可选参数处理方法
-    private object HandleCreate(JObject ctx)
+    private object HandleCreate(StateTreeContext ctx)
     {
         return "执行创建操作";
     }
 
-    private object HandleUpdate(JObject ctx)
+    private object HandleUpdate(StateTreeContext ctx)
     {
         return "执行更新操作";
     }
 
-    private object HandleDebug(JObject ctx)
+    private object HandleDebug(StateTreeContext ctx)
     {
         return "启用调试模式";
     }
 
-    private object HandleVerbose(JObject ctx)
+    private object HandleVerbose(StateTreeContext ctx)
     {
         return "启用详细输出模式";
     }
 
-    private object HandleUnknown(JObject ctx)
+    private object HandleUnknown(StateTreeContext ctx)
     {
         return "未知操作";
     }
 
     // 混合参数处理方法
-    private object HandleSearchUser(JObject ctx)
+    private object HandleSearchUser(StateTreeContext ctx)
     {
         return "搜索用户";
     }
 
-    private object HandleSearchProduct(JObject ctx)
+    private object HandleSearchProduct(StateTreeContext ctx)
     {
         return "搜索产品";
     }
 
-    private object HandleAdvancedNameSearch(JObject ctx)
+    private object HandleAdvancedNameSearch(StateTreeContext ctx)
     {
         return "高级名称搜索";
     }
 
-    private object HandleAdvancedIdSearch(JObject ctx)
+    private object HandleAdvancedIdSearch(StateTreeContext ctx)
     {
         return "高级ID搜索";
     }
 
-    private object HandleAdvancedSearch(JObject ctx)
+    private object HandleAdvancedSearch(StateTreeContext ctx)
     {
         return "默认高级搜索";
     }
 
-    private object HandleSort(JObject ctx)
+    private object HandleSort(StateTreeContext ctx)
     {
         string direction = ctx["sort"]?.ToString() ?? "asc";
         return $"按{direction}排序";
     }
 
-    private object HandleUnknownOperation(JObject ctx)
+    private object HandleUnknownOperation(StateTreeContext ctx)
     {
         return "未知操作类型";
     }

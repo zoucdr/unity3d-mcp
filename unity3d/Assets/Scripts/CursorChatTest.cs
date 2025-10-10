@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityMCP.Tools;
+using UnityMcp.Tools;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityMCP.Test
+namespace UnityMcp.Test
 {
     /// <summary>
     /// Cursor聊天功能测试脚本

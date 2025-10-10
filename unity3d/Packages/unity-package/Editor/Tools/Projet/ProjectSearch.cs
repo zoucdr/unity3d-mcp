@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -56,7 +56,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索所有类型的资产
         /// </summary>
-        private object HandleAssetSearch(JObject args)
+        private object HandleAssetSearch(JsonClass args)
         {
             return PerformSearch(args, null);
         }
@@ -64,7 +64,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索文件夹
         /// </summary>
-        private object HandleFolderSearch(JObject args)
+        private object HandleFolderSearch(JsonClass args)
         {
             return PerformSearch(args, "folder");
         }
@@ -72,7 +72,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索脚本文件
         /// </summary>
-        private object HandleScriptSearch(JObject args)
+        private object HandleScriptSearch(JsonClass args)
         {
             return PerformSearch(args, "script", new[] { ".cs", ".js", ".boo" });
         }
@@ -80,7 +80,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索纹理文件
         /// </summary>
-        private object HandleTextureSearch(JObject args)
+        private object HandleTextureSearch(JsonClass args)
         {
             return PerformSearch(args, "texture", new[] { ".png", ".jpg", ".jpeg", ".tga", ".tiff", ".bmp", ".psd", ".exr" });
         }
@@ -88,7 +88,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索材质文件
         /// </summary>
-        private object HandleMaterialSearch(JObject args)
+        private object HandleMaterialSearch(JsonClass args)
         {
             return PerformSearch(args, "material", new[] { ".mat" });
         }
@@ -96,7 +96,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索预制体文件
         /// </summary>
-        private object HandlePrefabSearch(JObject args)
+        private object HandlePrefabSearch(JsonClass args)
         {
             return PerformSearch(args, "prefab", new[] { ".prefab" });
         }
@@ -104,7 +104,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索场景文件
         /// </summary>
-        private object HandleSceneSearch(JObject args)
+        private object HandleSceneSearch(JsonClass args)
         {
             return PerformSearch(args, "scene", new[] { ".unity" });
         }
@@ -112,7 +112,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索音频文件
         /// </summary>
-        private object HandleAudioSearch(JObject args)
+        private object HandleAudioSearch(JsonClass args)
         {
             return PerformSearch(args, "audio", new[] { ".mp3", ".wav", ".ogg", ".aiff", ".aif" });
         }
@@ -120,7 +120,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索3D模型文件
         /// </summary>
-        private object HandleModelSearch(JObject args)
+        private object HandleModelSearch(JsonClass args)
         {
             return PerformSearch(args, "model", new[] { ".fbx", ".obj", ".dae", ".3ds", ".dxf", ".skp", ".blend", ".max", ".c4d", ".ma", ".mb" });
         }
@@ -128,7 +128,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索Shader文件
         /// </summary>
-        private object HandleShaderSearch(JObject args)
+        private object HandleShaderSearch(JsonClass args)
         {
             return PerformSearch(args, "shader", new[] { ".shader", ".cginc", ".hlsl" });
         }
@@ -136,7 +136,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 搜索动画文件
         /// </summary>
-        private object HandleAnimationSearch(JObject args)
+        private object HandleAnimationSearch(JsonClass args)
         {
             return PerformSearch(args, "animation", new[] { ".anim", ".controller", ".playable" });
         }
@@ -144,7 +144,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 通用搜索
         /// </summary>
-        private object HandleGeneralSearch(JObject args)
+        private object HandleGeneralSearch(JsonClass args)
         {
             return PerformSearch(args, null);
         }
@@ -152,14 +152,14 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 执行搜索的主要实现
         /// </summary>
-        private object PerformSearch(JObject args, string searchType, string[] extensions = null)
+        private object PerformSearch(JsonClass args, string searchType, string[] extensions = null)
         {
-            string searchTerm = args["query"]?.ToString();
-            string searchPath = args["directory"]?.ToString() ?? "Assets";
-            bool recursive = args["recursive"]?.ToObject<bool>() ?? true;
-            bool caseSensitive = args["case_sensitive"]?.ToObject<bool>() ?? false;
-            int maxResults = args["max_results"]?.ToObject<int>() ?? 100;
-            bool includeMeta = args["include_meta"]?.ToObject<bool>() ?? false;
+            string searchTerm = args["query"]?.Value;
+            string searchPath = args["directory"]?.Value ?? "Assets";
+            bool recursive = args["recursive"].AsBoolDefault(true);
+            bool caseSensitive = args["case_sensitive"].AsBoolDefault(false);
+            int maxResults = args["max_results"].AsIntDefault(100);
+            bool includeMeta = args["include_meta"].AsBoolDefault(false);
 
             // 验证搜索路径
             if (!searchPath.StartsWith("Assets/") && searchPath != "Assets")
@@ -170,7 +170,7 @@ namespace UnityMcp.Tools
             try
             {
                 // 用JArray来序列化结果，确保兼容JSON序列化
-                List<JObject> results = new List<JObject>();
+                List<JsonClass> results = new List<JsonClass>();
 
                 // 获取所有资产GUID
                 string[] guids = AssetDatabase.FindAssets(searchTerm, new[] { searchPath });
@@ -211,14 +211,14 @@ namespace UnityMcp.Tools
                 }
 
                 // 用JObject包装返回，保证序列化友好
-                var resultObj = new JObject
+                var resultObj = new JsonClass
                 {
                     ["query"] = searchTerm,
                     ["directory"] = searchPath,
                     ["search_target"] = searchType,
                     ["total_results"] = results.Count,
                     ["max_results"] = maxResults,
-                    ["results"] = JToken.FromObject(results),
+                    ["results"] = Json.FromObject(results),
                 };
                 return Response.Success(message, resultObj);
             }
@@ -248,9 +248,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 获取资产的详细信息
         /// </summary>
-        private JObject GetAssetInfo(UnityEngine.Object asset, string assetPath, string guid)
+        private JsonClass GetAssetInfo(UnityEngine.Object asset, string assetPath, string guid)
         {
-            var info = new JObject
+            var info = new JsonClass
             {
                 ["name"] = asset.name,
                 ["path"] = assetPath,

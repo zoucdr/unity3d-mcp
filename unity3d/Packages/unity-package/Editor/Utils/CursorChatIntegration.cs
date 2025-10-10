@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using Debug = UnityEngine.Debug;
 
-namespace UnityMCP.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// Cursor聊天集成工具 - 极简版，仅支持DirectPaste功能

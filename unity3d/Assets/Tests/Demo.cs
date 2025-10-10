@@ -7,7 +7,7 @@ using UnityMcp.Tools;
 using UnityEngine;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json.Linq;
+using UnityMcp;
 
 public class Demo : MonoBehaviour
 {
@@ -56,11 +56,11 @@ public class Demo : MonoBehaviour
         Debug.Log("基本树结构:");
         Debug.Log(sb);
 
-        var reu = tree.Run(new JObject
+        var reu = tree.Run(new JsonClass
         {
-            ["role"] = "admin1",  // 这里使用了不存在的role值
-            ["level"] = 3,
-            ["env"] = "prod"
+            { "role", "admin1" },  // 这里使用了不存在的role值
+            { "level", 3 },
+            { "env", "prod" }
         });        // ? AdminProd
 
         // 检查是否有错误信息
@@ -73,11 +73,11 @@ public class Demo : MonoBehaviour
 
         // 测试带有DefaultLeaf的树
         Debug.Log("测试带有DefaultLeaf的树：");
-        var reuWithDefault = treeWithDefault.Run(new JObject
+        var reuWithDefault = treeWithDefault.Run(new JsonClass
         {
-            ["role"] = "admin1",  // 同样使用不存在的role值
-            ["level"] = 3,
-            ["env"] = "prod"
+            { "role", "admin1" },  // 同样使用不存在的role值
+            { "level", 3 },
+            { "env", "prod" }
         });
 
         // 检查是否有错误信息（这里不应该有，因为有DefaultLeaf）
@@ -110,37 +110,37 @@ public class Demo : MonoBehaviour
 
         // 测试1：没有可选参数
         Debug.Log("测试1：没有可选参数");
-        var result1 = optionalTree.Run(new JObject
+        var result1 = optionalTree.Run(new JsonClass
         {
-            ["action"] = "create"
+            { "action", "create" }
         });
         Debug.Log("结果1: " + result1);
 
         // 测试2：有debug可选参数
         Debug.Log("测试2：有debug可选参数");
-        var result2 = optionalTree.Run(new JObject
+        var result2 = optionalTree.Run(new JsonClass
         {
-            ["action"] = "create",
-            ["debug"] = true
+            { "action", "create" },
+            { "debug", true }
         });
         Debug.Log("结果2: " + result2);
 
         // 测试3：有verbose可选参数
         Debug.Log("测试3：有verbose可选参数");
-        var result3 = optionalTree.Run(new JObject
+        var result3 = optionalTree.Run(new JsonClass
         {
-            ["action"] = "update",
-            ["verbose"] = "yes"
+            { "action", "update" },
+            { "verbose", "yes" }
         });
         Debug.Log("结果3: " + result3);
 
         // 测试4：两个可选参数都有，应该匹配第一个
         Debug.Log("测试4：两个可选参数都有");
-        var result4 = optionalTree.Run(new JObject
+        var result4 = optionalTree.Run(new JsonClass
         {
-            ["action"] = "unknown", // 无效action，但有可选参数
-            ["debug"] = true,
-            ["verbose"] = "yes"
+            { "action", "unknown" }, // 无效action，但有可选参数
+            { "debug", true },
+            { "verbose", "yes" }
         });
         Debug.Log("结果4: " + result4);
     }
@@ -170,16 +170,16 @@ public class Demo : MonoBehaviour
 
         // 测试1：基本搜索
         Debug.Log("测试1：基本搜索");
-        var result1 = mixedTree.Run(new JObject
+        var result1 = mixedTree.Run(new JsonClass
         {
-            ["operation"] = "search",
-            ["type"] = "user"
+            { "operation", "search" },
+            { "type", "user" }
         });
         Debug.Log("结果1: " + result1);
 
         // 测试2：高级搜索 - 按名称
         Debug.Log("测试2：高级搜索 - 按名称");
-        var result2 = mixedTree.Run(new JObject
+        var result2 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["advanced"] = true, // 触发可选分支
@@ -189,7 +189,7 @@ public class Demo : MonoBehaviour
 
         // 测试3：高级搜索 - 默认
         Debug.Log("测试3：高级搜索 - 默认");
-        var result3 = mixedTree.Run(new JObject
+        var result3 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "search",
             ["advanced"] = true, // 触发可选分支
@@ -199,7 +199,7 @@ public class Demo : MonoBehaviour
 
         // 测试4：排序
         Debug.Log("测试4：排序");
-        var result4 = mixedTree.Run(new JObject
+        var result4 = mixedTree.Run(new StateTreeContext
         {
             ["operation"] = "unknown", // 无效操作
             ["sort"] = "asc" // 但有排序参数
@@ -208,90 +208,90 @@ public class Demo : MonoBehaviour
     }
 
     // 基本处理方法
-    private object AnimProd(JObject ctx)
+    private object AnimProd(StateTreeContext ctx)
     {
         return "AnimProd";
     }
 
-    private object AnimDev(JObject ctx)
+    private object AnimDev(StateTreeContext ctx)
     {
         return "AnimDev";
     }
 
-    private object AdminL2(JObject ctx)
+    private object AdminL2(StateTreeContext ctx)
     {
         return "AdminL2";
     }
 
-    private object User(JObject ctx)
+    private object User(StateTreeContext ctx)
     {
         return "User";
     }
 
-    private object Default(JObject ctx)
+    private object Default(StateTreeContext ctx)
     {
         return "Default";
     }
 
     // 可选参数处理方法
-    private object HandleCreate(JObject ctx)
+    private object HandleCreate(StateTreeContext ctx)
     {
         return "执行创建操作";
     }
 
-    private object HandleUpdate(JObject ctx)
+    private object HandleUpdate(StateTreeContext ctx)
     {
         return "执行更新操作";
     }
 
-    private object HandleDebug(JObject ctx)
+    private object HandleDebug(StateTreeContext ctx)
     {
         return "启用调试模式";
     }
 
-    private object HandleVerbose(JObject ctx)
+    private object HandleVerbose(StateTreeContext ctx)
     {
         return "启用详细输出模式";
     }
 
-    private object HandleUnknown(JObject ctx)
+    private object HandleUnknown(StateTreeContext ctx)
     {
         return "未知操作";
     }
 
     // 混合参数处理方法
-    private object HandleSearchUser(JObject ctx)
+    private object HandleSearchUser(StateTreeContext ctx)
     {
         return "搜索用户";
     }
 
-    private object HandleSearchProduct(JObject ctx)
+    private object HandleSearchProduct(StateTreeContext ctx)
     {
         return "搜索产品";
     }
 
-    private object HandleAdvancedNameSearch(JObject ctx)
+    private object HandleAdvancedNameSearch(StateTreeContext ctx)
     {
         return "高级名称搜索";
     }
 
-    private object HandleAdvancedIdSearch(JObject ctx)
+    private object HandleAdvancedIdSearch(StateTreeContext ctx)
     {
         return "高级ID搜索";
     }
 
-    private object HandleAdvancedSearch(JObject ctx)
+    private object HandleAdvancedSearch(StateTreeContext ctx)
     {
         return "默认高级搜索";
     }
 
-    private object HandleSort(JObject ctx)
+    private object HandleSort(StateTreeContext ctx)
     {
         string direction = ctx["sort"]?.ToString() ?? "asc";
         return $"按{direction}排序";
     }
 
-    private object HandleUnknownOperation(JObject ctx)
+    private object HandleUnknownOperation(StateTreeContext ctx)
     {
         return "未知操作类型";
     }

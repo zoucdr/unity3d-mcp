@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -325,9 +325,9 @@ namespace UnityMcp.Tools
             bool failed = false;
 
             // 默认等待请求完成模式
-            string packageName = ctx.JsonData["package_name"]?.ToString();
-            int timeout = ctx.JsonData["timeout"]?.ToObject<int>() ?? 60;
-            bool disableAutoRefresh = ctx.JsonData["disable_auto_refresh"]?.ToObject<bool>() ?? false;
+            string packageName = ctx.JsonData["package_name"]?.Value;
+            int timeout = ctx.JsonData["timeout"].AsIntDefault(60);
+            bool disableAutoRefresh = ctx.JsonData["disable_auto_refresh"].AsBoolDefault(false);
 
             // 控制程序集刷新
             bool wasAutoRefreshDisabled = false;
@@ -457,10 +457,10 @@ namespace UnityMcp.Tools
             bool failed = false;
 
             // 默认等待请求完成模式  
-            int timeout = ctx.JsonData["timeout"]?.ToObject<int>() ?? 60;
-            bool disableAutoRefresh = ctx.JsonData["disable_auto_refresh"]?.ToObject<bool>() ?? false;
+            int timeout = ctx.JsonData["timeout"].AsIntDefault(60);
+            bool disableAutoRefresh = ctx.JsonData["disable_auto_refresh"].AsBoolDefault(false);
 
-            string packageName = ctx.JsonData["package_name"]?.ToString() ?? ctx.JsonData["package_identifier"]?.ToString();
+            string packageName = ctx.JsonData["package_name"]?.Value ?? ctx.JsonData["package_identifier"]?.Value;
 
             // 控制程序集刷新
             bool wasAutoRefreshDisabled = false;
@@ -523,7 +523,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                bool includeIndirect = ctx.JsonData["include_dependencies"]?.ToObject<bool>() ?? false;
+                bool includeIndirect = ctx.JsonData["include_dependencies"].AsBoolDefault(false);
                 LogInfo($"[ManagePackage] 列出包 (包含间接依赖: {includeIndirect})");
 
                 request = Client.List(includeIndirect);
@@ -557,7 +557,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                string keywords = ctx.JsonData["search_keywords"]?.ToString();
+                string keywords = ctx.JsonData["search_keywords"]?.Value;
 
                 if (string.IsNullOrEmpty(keywords))
                 {
@@ -640,9 +640,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 异步版本的操作监控
         /// </summary>
-        private IEnumerator MonitorOperationAsync(Request request, string operationType, JObject args)
+        private IEnumerator MonitorOperationAsync(Request request, string operationType, JsonClass args)
         {
-            int timeout = args["timeout"]?.ToObject<int>() ?? 60; // 增加超时时间到60秒
+            int timeout = args["timeout"].AsIntDefault(60); // 增加超时时间到60秒
             float elapsedTime = 0f;
 
             LogInfo($"[ManagePackage] 开始监控 {operationType} 操作，超时时间: {timeout}秒");
@@ -809,15 +809,15 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从Unity Registry添加包
         /// </summary>
-        private AddRequest AddFromRegistry(JObject args)
+        private AddRequest AddFromRegistry(JsonClass args)
         {
-            string packageName = args["package_name"]?.ToString();
+            string packageName = args["package_name"]?.Value;
             if (string.IsNullOrEmpty(packageName))
             {
                 throw new ArgumentException("package_name 参数是必需的（registry源）");
             }
 
-            string version = args["version"]?.ToString();
+            string version = args["version"]?.Value;
             string packageIdentifier = packageName;
 
             if (!string.IsNullOrEmpty(version))
@@ -832,16 +832,16 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从GitHub添加包
         /// </summary>
-        private AddRequest AddFromGitHub(JObject args)
+        private AddRequest AddFromGitHub(JsonClass args)
         {
-            string repositoryUrl = args["repository_url"]?.ToString();
+            string repositoryUrl = args["repository_url"]?.Value;
             if (string.IsNullOrEmpty(repositoryUrl))
             {
                 throw new ArgumentException("repository_url 参数是必需的（github源）");
             }
 
-            string branch = args["branch"]?.ToString();
-            string path = args["path"]?.ToString();
+            string branch = args["branch"]?.Value;
+            string path = args["path"]?.Value;
 
             // 移除.git后缀
             if (repositoryUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
@@ -875,9 +875,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 从磁盘添加包
         /// </summary>
-        private AddRequest AddFromDisk(JObject args)
+        private AddRequest AddFromDisk(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException("path 参数是必需的（disk源）");

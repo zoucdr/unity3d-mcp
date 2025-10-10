@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -73,11 +73,11 @@ namespace UnityMcp.Tools
 
         // --- 状态树操作方法 ---
 
-        private object CreateAnimClip(JObject args)
+        private object CreateAnimClip(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            float length = args["length"]?.ToObject<float>() ?? 1.0f;
-            float frameRate = args["frame_rate"]?.ToObject<float>() ?? 30.0f;
+            string path = args["path"]?.Value;
+            float length = args["length"].AsFloatDefault(1.0f);
+            float frameRate = args["frame_rate"].AsFloatDefault(30.0f);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create.");
@@ -105,7 +105,7 @@ namespace UnityMcp.Tools
                 // 动画长度通常由动画数据本身决定
 
                 // 应用设置
-                JObject settings = args["settings"] as JObject;
+                JsonClass settings = args["settings"] as JsonClass;
                 if (settings != null)
                 {
                     ApplyAnimClipSettings(clip, settings);
@@ -123,12 +123,12 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyAnimClip(JObject args)
+        private object ModifyAnimClip(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject settings = args["settings"] as JObject;
-            JObject curves = args["curves"] as JObject;
-            JArray events = args["events"] as JArray;
+            string path = args["path"]?.Value;
+            JsonClass settings = args["settings"] as JsonClass;
+            JsonClass curves = args["curves"] as JsonClass;
+            JsonArray events = args["events"] as JsonArray;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
@@ -148,13 +148,13 @@ namespace UnityMcp.Tools
                 bool modified = false;
 
                 // 应用设置
-                if (settings != null && settings.HasValues)
+                if (settings != null && settings.Count > 0)
                 {
                     modified |= ApplyAnimClipSettings(clip, settings);
                 }
 
                 // 应用曲线
-                if (curves != null && curves.HasValues)
+                if (curves != null && curves.Count > 0)
                 {
                     modified |= ApplyAnimClipCurves(clip, curves);
                 }
@@ -183,10 +183,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicateAnimClip(JObject args)
+        private object DuplicateAnimClip(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -227,9 +227,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DeleteAnimClip(JObject args)
+        private object DeleteAnimClip(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for delete.");
@@ -257,9 +257,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GetAnimClipInfo(JObject args)
+        private object GetAnimClipInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -278,11 +278,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SearchAnimClips(JObject args)
+        private object SearchAnimClips(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
-            bool recursive = args["recursive"]?.ToObject<bool>() ?? true;
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
+            bool recursive = args["recursive"].AsBoolDefault(true);
 
             List<string> searchFilters = new List<string>();
             if (!string.IsNullOrEmpty(searchPattern))
@@ -323,14 +323,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SetAnimClipCurve(JObject args)
+        private object SetAnimClipCurve(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject curves = args["curves"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass curves = args["curves"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for set_curve.");
-            if (curves == null || !curves.HasValues)
+            if (curves == null || curves.Count == 0)
                 return Response.Error("'curves' are required for set_curve.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -365,10 +365,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SetAnimClipEvents(JObject args)
+        private object SetAnimClipEvents(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JArray events = args["events"] as JArray;
+            string path = args["path"]?.Value;
+            JsonArray events = args["events"] as JsonArray;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for set_events.");
@@ -407,14 +407,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SetAnimClipSettings(JObject args)
+        private object SetAnimClipSettings(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject settings = args["settings"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass settings = args["settings"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for set_settings.");
-            if (settings == null || !settings.HasValues)
+            if (settings == null || settings.Count == 0)
                 return Response.Error("'settings' are required for set_settings.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -449,11 +449,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object CopyAnimClipFromModel(JObject args)
+        private object CopyAnimClipFromModel(JsonClass args)
         {
-            string modelPath = args["model_path"]?.ToString();
-            string clipName = args["clip_name"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string modelPath = args["model_path"]?.Value;
+            string clipName = args["clip_name"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(modelPath))
                 return Response.Error("'model_path' is required for copy_from_model.");
@@ -548,7 +548,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用动画片段设置
         /// </summary>
-        private bool ApplyAnimClipSettings(AnimationClip clip, JObject settings)
+        private bool ApplyAnimClipSettings(AnimationClip clip, JsonClass settings)
         {
             if (clip == null || settings == null)
                 return false;
@@ -556,26 +556,26 @@ namespace UnityMcp.Tools
 
             foreach (var setting in settings.Properties())
             {
-                string settingName = setting.Name;
-                JToken settingValue = setting.Value;
+                string settingName = setting.Key;
+                JsonNode settingValue = setting.Value;
 
                 try
                 {
                     switch (settingName.ToLowerInvariant())
                     {
                         case "length":
-                            if (settingValue.Type == JTokenType.Float || settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
-                                float length = settingValue.ToObject<float>();
+                                float length = settingValue.AsFloat;
                                 // 注意：clip.length 是只读属性，不能直接设置
                                 // 动画长度通常由动画数据本身决定
                                 LogWarning($"[ApplyAnimClipSettings] Cannot set length property - it is read-only. Current length: {clip.length}");
                             }
                             break;
                         case "frame_rate":
-                            if (settingValue.Type == JTokenType.Float || settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
-                                float frameRate = settingValue.ToObject<float>();
+                                float frameRate = settingValue.AsFloat;
                                 if (Math.Abs(clip.frameRate - frameRate) > 0.001f)
                                 {
                                     clip.frameRate = frameRate;
@@ -584,26 +584,26 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "loop_time":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool loopTime = settingValue.ToObject<bool>();
+                                bool loopTime = settingValue.AsBool;
                                 // 注意：clip.isLooping 是只读属性，需要通过 AnimationClipSettings 设置
                                 LogWarning($"[ApplyAnimClipSettings] Cannot set isLooping property directly - it is read-only. Use AnimationClipSettings instead.");
                             }
                             break;
                         case "loop_pose":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool loopPose = settingValue.ToObject<bool>();
+                                bool loopPose = settingValue.AsBool;
                                 // 注意：loopPose 设置需要通过 AnimationClipSettings 来设置
                                 // 这里简化处理，实际可能需要更复杂的逻辑
                                 break;
                             }
                             break;
                         case "cycle_offset":
-                            if (settingValue.Type == JTokenType.Float || settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
-                                float cycleOffset = settingValue.ToObject<float>();
+                                float cycleOffset = settingValue.AsFloat;
                                 // 注意：cycleOffset 设置需要通过 AnimationClipSettings 来设置
                                 break;
                             }
@@ -622,7 +622,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用动画片段曲线
         /// </summary>
-        private bool ApplyAnimClipCurves(AnimationClip clip, JObject curves)
+        private bool ApplyAnimClipCurves(AnimationClip clip, JsonClass curves)
         {
             if (clip == null || curves == null)
                 return false;
@@ -630,12 +630,12 @@ namespace UnityMcp.Tools
 
             foreach (var curve in curves.Properties())
             {
-                string propertyPath = curve.Name;
-                JToken curveData = curve.Value;
+                string propertyPath = curve.Key;
+                JsonNode curveData = curve.Value;
 
                 try
                 {
-                    if (curveData is JObject curveObj)
+                    if (curveData is JsonClass curveObj)
                     {
                         // 这里需要根据具体的曲线数据格式来设置
                         // 简化实现，实际可能需要更复杂的曲线解析逻辑
@@ -654,7 +654,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用动画片段事件
         /// </summary>
-        private bool ApplyAnimClipEvents(AnimationClip clip, JArray events)
+        private bool ApplyAnimClipEvents(AnimationClip clip, JsonArray events)
         {
             if (clip == null || events == null)
                 return false;
@@ -669,28 +669,28 @@ namespace UnityMcp.Tools
 
                 foreach (var eventData in events)
                 {
-                    if (eventData is JObject eventObj)
+                    if (eventData is JsonClass eventObj)
                     {
                         AnimationEvent animEvent = new AnimationEvent();
 
                         if (eventObj["time"] != null)
-                            animEvent.time = eventObj["time"].ToObject<float>();
+                            animEvent.time = eventObj["time"].AsFloat;
 
                         if (eventObj["function_name"] != null)
-                            animEvent.functionName = eventObj["function_name"].ToString();
+                            animEvent.functionName = eventObj["function_name"].Value;
 
                         if (eventObj["string_parameter"] != null)
-                            animEvent.stringParameter = eventObj["string_parameter"].ToString();
+                            animEvent.stringParameter = eventObj["string_parameter"].Value;
 
                         if (eventObj["float_parameter"] != null)
-                            animEvent.floatParameter = eventObj["float_parameter"].ToObject<float>();
+                            animEvent.floatParameter = eventObj["float_parameter"].AsFloat;
 
                         if (eventObj["int_parameter"] != null)
-                            animEvent.intParameter = eventObj["int_parameter"].ToObject<int>();
+                            animEvent.intParameter = eventObj["int_parameter"].AsInt;
 
                         if (eventObj["object_reference_parameter"] != null)
                         {
-                            string objPath = eventObj["object_reference_parameter"].ToString();
+                            string objPath = eventObj["object_reference_parameter"].Value;
                             animEvent.objectReferenceParameter = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(SanitizeAssetPath(objPath));
                         }
 

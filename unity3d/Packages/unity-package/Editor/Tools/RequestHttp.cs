@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -29,7 +29,7 @@ namespace UnityMcp.Tools
             {
                 new MethodKey("action", "Operation type: get, post, put, delete, download, upload, ping, batch_download", false),
                 new MethodKey("url", "Request URL address", false),
-                new MethodKey("data", "Request data (used for POST/PUT, JSON format)", true),
+                new MethodKey("data", "Request data (used for POST/PUT, Json format)", true),
                 new MethodKey("headers", "Request headers dictionary", true),
                 new MethodKey("save_path", "Save path (used for download, relative to Assets or absolute path)", true),
                 new MethodKey("file_path", "File path (used for upload)", true),
@@ -202,7 +202,7 @@ namespace UnityMcp.Tools
             // 启动协程批量下载
             CoroutineRunner.StartCoroutine(BatchDownloadAsync(ctx, (result) =>
             {
-                ctx.Complete(result);
+                ctx.Complete(Json.FromObject(result));
             }));
 
             // 返回null，表示异步执行
@@ -235,7 +235,7 @@ namespace UnityMcp.Tools
                 float retryDelay = ctx.TryGetValue<float>("retry_delay", out var retryDelayValue) ? retryDelayValue : 1f;
 
                 // 构建完整URL（包含查询参数）
-                string fullUrl = BuildUrlWithQueryParams(url, ctx["query_params"] as JObject);
+                string fullUrl = BuildUrlWithQueryParams(url, ctx["query_params"] as JsonClass);
 
                 // 执行请求（带重试机制）
                 return ExecuteWithRetry(() => PerformHttpRequest(fullUrl, method, ctx, timeout, contentType, userAgent, acceptCertificates, followRedirects), retryCount, retryDelay);
@@ -320,13 +320,13 @@ namespace UnityMcp.Tools
             UnityWebRequest request;
 
             // 检查是否使用表单数据
-            var formData = ctx["form_data"] as JObject;
+            var formData = ctx["form_data"] as JsonClass;
             if (formData != null)
             {
                 var form = new WWWForm();
-                foreach (var pair in formData.Properties())
+                foreach (KeyValuePair<string, JsonNode> pair in formData.Properties())
                 {
-                    form.AddField(pair.Name, pair.Value.ToString());
+                    form.AddField(pair.Key, pair.Value.Value);
                 }
                 request = UnityWebRequest.Post(url, form);
             }
@@ -375,12 +375,12 @@ namespace UnityMcp.Tools
             request.redirectLimit = followRedirects ? 10 : 0;
 
             // 添加自定义请求头
-            var headers = ctx["headers"] as JObject;
+            var headers = ctx["headers"] as JsonClass;
             if (headers != null)
             {
-                foreach (var header in headers.Properties())
+                foreach (KeyValuePair<string, JsonNode> header in headers.Properties())
                 {
-                    request.SetRequestHeader(header.Name, header.Value.ToString());
+                    request.SetRequestHeader(header.Key, header.Value.Value);
                 }
             }
 
@@ -417,7 +417,7 @@ namespace UnityMcp.Tools
             var data = ctx["data"];
             if (data == null) return null;
 
-            if (data is JObject || data is JArray)
+            if (data is JsonClass || data is JsonArray)
             {
                 return data.ToString();
             }
@@ -430,20 +430,20 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 构建包含查询参数的URL
         /// </summary>
-        private string BuildUrlWithQueryParams(string baseUrl, JObject queryParams)
+        private string BuildUrlWithQueryParams(string baseUrl, JsonClass queryParams)
         {
-            if (queryParams == null || !queryParams.HasValues)
+            if (queryParams == null || queryParams.Count == 0)
                 return baseUrl;
 
             var sb = new StringBuilder(baseUrl);
             bool hasQuery = baseUrl.Contains("?");
 
-            foreach (var param in queryParams.Properties())
+            foreach (KeyValuePair<string, JsonNode> param in queryParams.Properties())
             {
                 sb.Append(hasQuery ? "&" : "?");
-                sb.Append(Uri.EscapeDataString(param.Name));
+                sb.Append(Uri.EscapeDataString(param.Key));
                 sb.Append("=");
-                sb.Append(Uri.EscapeDataString(param.Value.ToString()));
+                sb.Append(Uri.EscapeDataString(param.Value.Value));
                 hasQuery = true;
             }
 
@@ -453,7 +453,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理HTTP响应
         /// </summary>
-        private object ProcessHttpResponse(UnityWebRequest request, string filePath = null)
+        private JsonClass ProcessHttpResponse(UnityWebRequest request, string filePath = null)
         {
             bool isSuccess = request.result == UnityWebRequest.Result.Success;
             long responseCode = request.responseCode;
@@ -482,7 +482,7 @@ namespace UnityMcp.Tools
                 {
                     if (!string.IsNullOrEmpty(responseText) && (responseText.Trim().StartsWith("{") || responseText.Trim().StartsWith("[")))
                     {
-                        parsedData = JToken.Parse(responseText);
+                        parsedData = JsonNode.Parse(responseText);
                     }
                     else
                     {
@@ -608,7 +608,7 @@ namespace UnityMcp.Tools
         /// <param name="progressCallback">进度回调，可选</param>
         /// <param name="ctx">上下文，用于获取额外配置</param>
         /// <returns>协程枚举器</returns>
-        IEnumerator DownloadFileAsync(string url, string savePath, float timeout, Action<object> callback,
+        IEnumerator DownloadFileAsync(string url, string savePath, float timeout, Action<JsonClass> callback,
             Action<float> progressCallback = null, StateTreeContext ctx = null)
         {
             LogInfo($"[RequestHttp] 开始协程下载: {url}");
@@ -741,9 +741,9 @@ namespace UnityMcp.Tools
 
             // 解析URL数组
             string[] urls = null;
-            if (urlsToken is JArray urlArray)
+            if (urlsToken is JsonArray urlArray)
             {
-                urls = urlArray.ToObject<string[]>();
+                urls = urlArray.ToStringList().ToArray();
             }
             else if (urlsToken is string urlString)
             {
@@ -987,11 +987,11 @@ namespace UnityMcp.Tools
                 form.AddBinaryData("file", fileData, fileName);
 
                 // 添加额外的表单字段
-                if (ctx["form_data"] as JObject != null)
+                if (ctx["form_data"] as JsonClass != null)
                 {
-                    foreach (var pair in (ctx["form_data"] as JObject).Properties())
+                    foreach (KeyValuePair<string, JsonNode> pair in (ctx["form_data"] as JsonClass).Properties())
                     {
-                        form.AddField(pair.Name, pair.Value.ToString());
+                        form.AddField(pair.Key, pair.Value.Value);
                     }
                 }
 
@@ -1174,9 +1174,9 @@ namespace UnityMcp.Tools
 
                 // 解析URL数组
                 string[] urls;
-                if (urlsToken is JArray urlArray)
+                if (urlsToken is JsonArray urlArray)
                 {
-                    urls = urlArray.Select(token => token.ToString()).ToArray();
+                    urls = urlArray.ToStringList().ToArray();
                 }
                 else
                 {
@@ -1227,7 +1227,7 @@ namespace UnityMcp.Tools
                         string filePath = Path.Combine(fullSaveDirectory, fileName);
 
                         // 创建单个下载参数
-                        var downloadArgs = new JObject
+                        var downloadArgs = new JsonClass
                         {
                             ["url"] = url,
                             ["save_path"] = filePath,
@@ -1235,7 +1235,7 @@ namespace UnityMcp.Tools
                         };
 
                         // 复制认证和请求头参数
-                        if (ctx["headers"] as JObject != null) downloadArgs["headers"] = ctx.JsonData["headers"];
+                        if (ctx["headers"] as JsonClass != null) downloadArgs["headers"] = ctx.JsonData["headers"];
                         if (ctx["auth_token"]?.ToString() != null) downloadArgs["auth_token"] = ctx.JsonData["auth_token"];
                         if (ctx["basic_auth"]?.ToString() != null) downloadArgs["basic_auth"] = ctx.JsonData["basic_auth"];
                         if (ctx["user_agent"]?.ToString() != null) downloadArgs["user_agent"] = ctx.JsonData["user_agent"];

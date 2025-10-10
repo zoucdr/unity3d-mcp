@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -57,10 +57,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理创建场景的操作
         /// </summary>
-        private object HandleCreateAction(JObject args)
+        private object HandleCreateAction(JsonClass args)
         {
-            string name = args["name"]?.ToString();
-            string path = args["path"]?.ToString();
+            string name = args["name"]?.Value;
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(name))
             {
@@ -79,10 +79,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理通过路径加载场景的操作
         /// </summary>
-        private object HandleLoadByPath(JObject args)
+        private object HandleLoadByPath(JsonClass args)
         {
-            string name = args["name"]?.ToString();
-            string path = args["path"]?.ToString();
+            string name = args["name"]?.Value;
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(path))
             {
@@ -101,9 +101,11 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理通过构建索引加载场景的操作
         /// </summary>
-        private object HandleLoadByBuildIndex(JObject args)
+        private object HandleLoadByBuildIndex(JsonClass args)
         {
-            int? buildIndex = args["buildIndex"]?.ToObject<int?>();
+            int? buildIndex = args["buildIndex"] != null && !args["buildIndex"].IsNull()
+                ? (int?)args["buildIndex"].AsInt
+                : null;
 
             if (!buildIndex.HasValue)
             {
@@ -117,10 +119,10 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理保存场景的操作
         /// </summary>
-        private object HandleSaveAction(JObject args)
+        private object HandleSaveAction(JsonClass args)
         {
-            string name = args["name"]?.ToString();
-            string path = args["path"]?.ToString();
+            string name = args["name"]?.Value;
+            string path = args["path"]?.Value;
 
             // 对于保存操作，路径是可选的
             var pathInfo = PrepareScenePaths(name, path, "save");
@@ -134,7 +136,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取场景层次结构的操作
         /// </summary>
-        private object HandleGetHierarchyAction(JObject args)
+        private object HandleGetHierarchyAction(JsonClass args)
         {
             LogInfo("[ManageScene] Getting scene hierarchy");
             return GetSceneHierarchy();
@@ -143,7 +145,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取当前激活场景信息的操作
         /// </summary>
-        private object HandleGetActiveAction(JObject args)
+        private object HandleGetActiveAction(JsonClass args)
         {
             LogInfo("[ManageScene] Getting active scene info");
             return GetActiveSceneInfo();
@@ -152,7 +154,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理获取构建设置中场景列表的操作
         /// </summary>
-        private object HandleGetBuildSettingsAction(JObject args)
+        private object HandleGetBuildSettingsAction(JsonClass args)
         {
             LogInfo("[ManageScene] Getting build settings scenes");
             return GetBuildSettingsScenes();
@@ -451,18 +453,18 @@ namespace UnityMcp.Tools
                 }
 
                 GameObject[] rootObjects = activeScene.GetRootGameObjects();
-                
+
                 // 创建简化的场景摘要，大幅减少token使用量
                 var totalObjects = 0;
                 var rootSummary = new List<string>();
-                
+
                 foreach (var rootObj in rootObjects)
                 {
                     var childCount = CountAllChildren(rootObj.transform);
                     totalObjects += childCount + 1; // +1 for the root object itself
                     rootSummary.Add($"{rootObj.name}({childCount})");
                 }
-                
+
                 var sceneYaml = $@"scene: {activeScene.name}
 path: {activeScene.path}
 rootObjects: {rootObjects.Length}
@@ -496,15 +498,15 @@ hierarchy: |
 
             // 使用YAML格式减少token使用量
             var yamlData = GameObjectUtils.GetGameObjectDataYaml(go);
-            
+
             // 对于深层级结构，只返回直接子对象的名称，不递归获取完整数据
             var childrenNames = new List<string>();
             foreach (Transform child in go.transform)
             {
                 childrenNames.Add($"{child.gameObject.name}({child.childCount})");
             }
-            
-            return new 
+
+            return new
             {
                 yaml = yamlData,
                 childrenSummary = childrenNames.Count > 0 ? string.Join(", ", childrenNames) : null

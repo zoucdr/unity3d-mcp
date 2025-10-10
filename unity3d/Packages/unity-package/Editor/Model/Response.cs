@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityMcp;
 
 namespace UnityMcp.Models
 {
     /// <summary>
     /// Provides static methods for creating standardized success and error response objects.
-    /// Ensures consistent JSON structure for communication back to the Python server.
+    /// Ensures consistent Json structure for communication back to the Python server.
     /// </summary>
     public static class Response
     {
@@ -14,22 +15,34 @@ namespace UnityMcp.Models
         /// </summary>
         /// <param name="message">A message describing the successful operation.</param>
         /// <param name="data">Optional additional data to include in the response.</param>
-        /// <returns>An object representing the success response.</returns>
-        public static object Success(string message, object data = null)
+        /// <returns>A JsonClass representing the success response.</returns>
+        public static JsonClass Success(string message, JsonNode data)
+        {
+            var response = new JsonClass();
+            response.Add("success", new JsonData("true"));
+            response.Add("message", new JsonData(message));
+
+            if (data != null)
+            {
+                response.Add("data", data);
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Creates a standardized success response object with any data type.
+        /// </summary>
+        /// <param name="message">A message describing the successful operation.</param>
+        /// <param name="data">Optional additional data to include in the response.</param>
+        /// <returns>A JsonClass representing the success response.</returns>
+        public static JsonClass Success(string message, object data = null)
         {
             if (data != null)
             {
-                return new
-                {
-                    success = true,
-                    message = message,
-                    data = data,
-                };
+                return Success(message, Json.FromObject(data));
             }
-            else
-            {
-                return new { success = true, message = message };
-            }
+            return Success(message, null);
         }
 
         /// <summary>
@@ -37,23 +50,33 @@ namespace UnityMcp.Models
         /// </summary>
         /// <param name="errorMessage">A message describing the error.</param>
         /// <param name="data">Optional additional data (e.g., error details) to include.</param>
-        /// <returns>An object representing the error response.</returns>
-        public static object Error(string errorMessage, object data = null)
+        /// <returns>A JsonClass representing the error response.</returns>
+        public static JsonClass Error(string errorMessage, JsonNode data)
+        {
+            var response = new JsonClass();
+            response.Add("success", new JsonData("false"));
+            response.Add("error", new JsonData(errorMessage));
+
+            if (data != null)
+            {
+                response.Add("data", data);
+            }
+            return response;
+        }
+
+        /// <summary>
+        /// Creates a standardized error response object with any data type.
+        /// </summary>
+        /// <param name="errorMessage">A message describing the error.</param>
+        /// <param name="data">Optional additional data (e.g., error details) to include.</param>
+        /// <returns>A JsonClass representing the error response.</returns>
+        public static JsonClass Error(string errorMessage, object data = null)
         {
             if (data != null)
             {
-                // Note: The key is "error" for error messages, not "message"
-                return new
-                {
-                    success = false,
-                    error = errorMessage,
-                    data = data,
-                };
+                return Error(errorMessage, Json.FromObject(data));
             }
-            else
-            {
-                return new { success = false, error = errorMessage };
-            }
+            return Error(errorMessage, null);
         }
     }
 }

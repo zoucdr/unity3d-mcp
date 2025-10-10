@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -56,9 +56,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理链接预制体的操作
         /// </summary>
-        private object HandleapplyAction(JObject args)
+        private object HandleapplyAction(JsonClass args)
         {
-            string applyType = args["apply_type"]?.ToString()?.ToLower();
+            string applyType = args["apply_type"]?.Value?.ToLower();
             if (string.IsNullOrEmpty(applyType))
             {
                 applyType = "connect_to_prefab"; // 默认连接到预制体
@@ -82,7 +82,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 连接GameObject到预制体
         /// </summary>
-        private object HandleConnectToPrefab(JObject args)
+        private object HandleConnectToPrefab(JsonClass args)
         {
             LogInfo("[Hierarchyapply] Connecting GameObject to prefab");
             return ConnectGameObjectToPrefab(args);
@@ -91,7 +91,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用预制体更改
         /// </summary>
-        private object HandleApplyPrefabChanges(JObject args)
+        private object HandleApplyPrefabChanges(JsonClass args)
         {
             LogInfo("[Hierarchyapply] Applying prefab changes");
             return ApplyPrefabChanges(args);
@@ -100,7 +100,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 断开预制体连接
         /// </summary>
-        private object HandleBreakPrefabConnection(JObject args)
+        private object HandleBreakPrefabConnection(JsonClass args)
         {
             LogInfo("[Hierarchyapply] Breaking prefab connection");
             return BreakPrefabConnection(args);
@@ -111,12 +111,12 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 连接GameObject到指定的预制体
         /// </summary>
-        private object ConnectGameObjectToPrefab(JObject args)
+        private object ConnectGameObjectToPrefab(JsonClass args)
         {
             try
             {
                 // 获取目标GameObject
-                JToken targetToken = args["target_object"];
+                JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
                     return Response.Error("'target_object' parameter is required for apply operation.");
@@ -129,7 +129,7 @@ namespace UnityMcp.Tools
                 }
 
                 // 获取预制体路径
-                string prefabPath = args["prefab_path"]?.ToString();
+                string prefabPath = args["prefab_path"]?.Value;
                 if (string.IsNullOrEmpty(prefabPath))
                 {
                     return Response.Error("'prefab_path' parameter is required for connecting to prefab.");
@@ -150,7 +150,7 @@ namespace UnityMcp.Tools
                 }
 
                 // 检查是否强制链接
-                bool forceapply = args["force_apply"]?.ToObject<bool>() ?? false;
+                bool forceapply = args["force_apply"].AsBoolDefault(false);
 
                 // 检查现有连接
                 if (PrefabUtility.GetPrefabInstanceStatus(targetGo) != PrefabInstanceStatus.NotAPrefab && !forceapply)
@@ -222,12 +222,12 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用预制体实例的更改到预制体资源
         /// </summary>
-        private object ApplyPrefabChanges(JObject args)
+        private object ApplyPrefabChanges(JsonClass args)
         {
             try
             {
                 // 获取目标GameObject
-                JToken targetToken = args["target_object"];
+                JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
                     return Response.Error("'target_object' parameter is required for apply operation.");
@@ -274,12 +274,12 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 断开GameObject与预制体的连接
         /// </summary>
-        private object BreakPrefabConnection(JObject args)
+        private object BreakPrefabConnection(JsonClass args)
         {
             try
             {
                 // 获取目标GameObject
-                JToken targetToken = args["target_object"];
+                JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
                     return Response.Error("'target_object' parameter is required for break connection operation.");
@@ -487,9 +487,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 查找GameObject，用于链接操作
         /// </summary>
-        private GameObject FindObjectByIdOrNameOrPath(JToken targetToken)
+        private GameObject FindObjectByIdOrNameOrPath(JsonNode targetToken)
         {
-            string searchTerm = targetToken?.ToString();
+            string searchTerm = targetToken?.Value;
             if (string.IsNullOrEmpty(searchTerm))
                 return null;
 

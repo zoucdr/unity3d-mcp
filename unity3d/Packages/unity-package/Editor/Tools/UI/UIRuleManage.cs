@@ -1,17 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Tools;
 using UnityMcp.Models;
-using UnityMCP.Model;
-using Newtonsoft.Json.Linq;
 using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
 
-namespace UnityMCP.Tools
+namespace UnityMcp.Tools
 {
     /// <summary>
     /// UI规则管理工具，负责管理UI制作方案和修改记录
@@ -31,9 +28,9 @@ namespace UnityMCP.Tools
                 new MethodKey("name", "UI name, used for finding and recording", false),
                 new MethodKey("modify_desc", "Modification description", true),
                 new MethodKey("save_path", "Save path, used to create new FigmaUGUIRuleObject", true),
-                new MethodKey("properties", "Property data, JSON formatted string", true),
-                new MethodKey("names_data", "JSON object with node_id:{name,originName} pairs {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple node_id:node_name pairs {\"node_id1\":\"node_name1\"} - Required for record_names", true),
-                new MethodKey("sprites_data", "JSON object with node_id:fileName pairs {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"} - Required for record_sprites", true),
+                new MethodKey("properties", "Property data, Json formatted string", true),
+                new MethodKey("names_data", "Json object with node_id:{name,originName} pairs {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple node_id:node_name pairs {\"node_id1\":\"node_name1\"} - Required for record_names", true),
+                new MethodKey("sprites_data", "Json object with node_id:fileName pairs {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"} - Required for record_sprites", true),
                 new MethodKey("auto_load_sprites", "Automatically load sprites from Assets folder based on fileName (default: true)", true)
             };
         }
@@ -103,29 +100,29 @@ namespace UnityMCP.Tools
                 {
                     try
                     {
-                        JObject properties = JObject.Parse(propertiesJson);
+                        JsonClass properties = Json.Parse(propertiesJson) as JsonClass;
 
                         // 设置各种属性
                         if (properties["link_url"] != null)
-                            newRule.link_url = properties["link_url"].ToString();
+                            newRule.link_url = properties["link_url"].Value;
 
                         if (properties["picture_url"] != null)
-                            newRule.img_save_to = properties["picture_url"].ToString();
+                            newRule.img_save_to = properties["picture_url"].Value;
 
                         if (properties["prototype_pic"] != null)
-                            newRule.prototype_pic = properties["prototype_pic"].ToString();
+                            newRule.prototype_pic = properties["prototype_pic"].Value;
 
                         if (properties["image_scale"] != null)
-                            newRule.image_scale = properties["image_scale"].ToObject<int>();
+                            newRule.image_scale = properties["image_scale"].AsInt;
 
                         if (properties["descriptions"] != null)
-                            newRule.descriptions = properties["descriptions"].ToString();
+                            newRule.descriptions = properties["descriptions"].Value;
                         // 注意：descriptions和preferred_components现在从McpSettings中获取
                         // 不再从properties中解析这些字段
                     }
                     catch (Exception jsonEx)
                     {
-                        LogWarning($"[FigmaMakeUGUI] Failed to parse properties JSON: {jsonEx.Message}");
+                        LogWarning($"[FigmaMakeUGUI] Failed to parse properties Json: {jsonEx.Message}");
                     }
                 }
 
@@ -141,7 +138,7 @@ namespace UnityMCP.Tools
                     {
                         uiName = uiName,
                         assetPath = assetPath,
-                        rule = JObject.FromObject(BuildUIRule(newRule))
+                        rule = Json.FromObject(BuildUIRule(newRule))
                     });
             }
             catch (Exception e)
@@ -265,10 +262,10 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 添加UI修改记录
         /// </summary>
-        private object AddModifyRecord(JObject args)
+        private object AddModifyRecord(JsonClass args)
         {
-            string uiName = args["name"]?.ToString();
-            string modify_desc = args["modify_desc"]?.ToString() ?? "UI modification";
+            string uiName = args["name"]?.Value;
+            string modify_desc = args["modify_desc"]?.Value ?? "UI modification";
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for add_modify.");
@@ -323,16 +320,16 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 批量记录节点命名信息
         /// </summary>
-        private object RecordNodeNames(JObject args)
+        private object RecordNodeNames(JsonClass args)
         {
-            string uiName = args["name"]?.ToString();
-            string namesDataJson = args["names_data"]?.ToString();
+            string uiName = args["name"]?.Value;
+            string namesDataJson = args["names_data"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for record_names.");
 
             if (string.IsNullOrEmpty(namesDataJson))
-                return Response.Error("'names_data' is required for record_names. Provide JSON object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}");
+                return Response.Error("'names_data' is required for record_names. Provide Json object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}");
 
             try
             {
@@ -356,24 +353,24 @@ namespace UnityMCP.Tools
                 // 处理批量节点信息 - 支持两种格式
                 try
                 {
-                    JObject namesObject = JObject.Parse(namesDataJson);
-                    foreach (var kvp in namesObject)
+                    JsonClass namesObject = Json.Parse(namesDataJson) as JsonClass;
+                    foreach (KeyValuePair<string, JsonNode> kvp in namesObject.AsEnumerable())
                     {
                         string nodeId = kvp.Key;
                         string nodeName = null;
                         string originName = null;
 
                         // 检查值的类型：字符串（简单格式）或对象（详细格式）
-                        if (kvp.Value is JValue jValue && jValue.Type == JTokenType.String)
+                        if (kvp.Value is JsonData jsonData && jsonData.GetJSONNodeType() == JsonNodeType.String)
                         {
                             // 简单格式：{"node_id": "node_name"}
-                            nodeName = jValue.ToString();
+                            nodeName = jsonData.Value;
                         }
-                        else if (kvp.Value is JObject jObject)
+                        else if (kvp.Value is JsonClass jsonClass)
                         {
                             // 详细格式：{"node_id": {"name": "new_name", "originName": "orig_name"}}
-                            nodeName = jObject["name"]?.ToString();
-                            originName = jObject["originName"]?.ToString();
+                            nodeName = jsonClass["name"]?.Value;
+                            originName = jsonClass["originName"]?.Value;
                         }
 
                         if (!string.IsNullOrEmpty(nodeId) && !string.IsNullOrEmpty(nodeName))
@@ -403,7 +400,7 @@ namespace UnityMCP.Tools
                 }
                 catch (Exception jsonEx)
                 {
-                    return Response.Error($"Failed to parse names_data JSON: {jsonEx.Message}");
+                    return Response.Error($"Failed to parse names_data Json: {jsonEx.Message}");
                 }
 
                 if (addedCount == 0 && updatedCount == 0)
@@ -437,9 +434,9 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 获取节点命名信息
         /// </summary>
-        private object GetNodeNames(JObject args)
+        private object GetNodeNames(JsonClass args)
         {
-            string uiName = args["name"]?.ToString();
+            string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for get_names.");
@@ -480,17 +477,17 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 批量记录节点Sprite信息
         /// </summary>
-        private object RecordNodeSprites(JObject args)
+        private object RecordNodeSprites(JsonClass args)
         {
-            string uiName = args["name"]?.ToString();
-            string spritesDataJson = args["sprites_data"]?.ToString();
-            bool autoLoadSprites = args["auto_load_sprites"]?.ToObject<bool>() ?? true;
+            string uiName = args["name"]?.Value;
+            string spritesDataJson = args["sprites_data"]?.Value;
+            bool autoLoadSprites = args["auto_load_sprites"].AsBoolDefault(true);
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for record_sprites.");
 
             if (string.IsNullOrEmpty(spritesDataJson))
-                return Response.Error("'sprites_data' is required for record_sprites. Provide JSON object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}");
+                return Response.Error("'sprites_data' is required for record_sprites. Provide Json object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}");
 
             try
             {
@@ -515,11 +512,11 @@ namespace UnityMCP.Tools
                 // 处理批量Sprite信息 - 键值对格式
                 try
                 {
-                    JObject spritesObject = JObject.Parse(spritesDataJson);
-                    foreach (var kvp in spritesObject)
+                    JsonClass spritesObject = Json.Parse(spritesDataJson) as JsonClass;
+                    foreach (KeyValuePair<string, JsonNode> kvp in spritesObject.AsEnumerable())
                     {
                         string nodeId = kvp.Key;
-                        string fileName = kvp.Value?.ToString();
+                        string fileName = kvp.Value?.Value;
 
                         if (!string.IsNullOrEmpty(nodeId) && !string.IsNullOrEmpty(fileName))
                         {
@@ -564,7 +561,7 @@ namespace UnityMCP.Tools
                 }
                 catch (Exception jsonEx)
                 {
-                    return Response.Error($"Failed to parse sprites_data JSON: {jsonEx.Message}");
+                    return Response.Error($"Failed to parse sprites_data Json: {jsonEx.Message}");
                 }
 
                 if (addedCount == 0 && updatedCount == 0)
@@ -651,9 +648,9 @@ namespace UnityMCP.Tools
         /// <summary>
         /// 获取节点Sprite信息
         /// </summary>
-        private object GetNodeSprites(JObject args)
+        private object GetNodeSprites(JsonClass args)
         {
-            string uiName = args["name"]?.ToString();
+            string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for get_sprites.");
@@ -745,10 +742,10 @@ namespace UnityMCP.Tools
                 optimizeRuleContent = optimizeRuleContent,
                 optimizeRuleMessage = optimizeRuleMessage,
                 imageScale = figmaObj.image_scale,
-                descriptions = GenerateMarkdownDescription(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettingsProvider.GetDefaultBuildSteps(), mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettingsProvider.GetDefaultBuildEnvironments(), figmaObj.descriptions),
+                descriptions = GenerateMarkdownDescription(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps(), mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments(), figmaObj.descriptions),
                 assetPath = AssetDatabase.GetAssetPath(figmaObj),
                 rename_count = figmaObj.node_names.Count,
-                sprite_count = figmaObj.node_sprites.Count
+                sprite_count = figmaObj.node_sprites.Count > 0 ? figmaObj.node_sprites.Count : 0
             };
 
             LogInfo($"[UIRuleManage] UI规则构建完成: {uiName}");
@@ -1158,8 +1155,8 @@ namespace UnityMCP.Tools
                 imageScale = figmaObj.image_scale,
                 descriptions = figmaObj.descriptions,
                 // 使用McpUISettingsProvider中的配置替代原来的descriptions和preferred_components
-                buildSteps = JArray.FromObject(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettingsProvider.GetDefaultBuildSteps()),
-                buildEnvironments = JArray.FromObject(mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettingsProvider.GetDefaultBuildEnvironments()),
+                buildSteps = Json.FromObject(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps()),
+                buildEnvironments = Json.FromObject(mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments()),
                 assetPath = AssetDatabase.GetAssetPath(figmaObj)
             };
         }

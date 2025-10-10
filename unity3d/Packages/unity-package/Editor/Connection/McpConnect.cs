@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,12 +6,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
-using UnityMcp.Tools;
+using UnityMcp.Executer;
 
 namespace UnityMcp
 {
@@ -66,7 +65,7 @@ namespace UnityMcp
         // 缓存McpTool类型和实例，静态工具类型
         private static readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
         //通用函数执行
-        private static MethodsCall methodsCall = new MethodsCall();
+        private static ToolsCall methodsCall = new ToolsCall();
         // 在 UnityMcp 类中添加日志开关
         public static bool EnableLog = false;
 
@@ -268,12 +267,21 @@ namespace UnityMcp
                 int bytesRead = await stream.ReadAsync(buffer, totalBytesRead, count - totalBytesRead);
                 if (bytesRead == 0)
                 {
-                    throw new Exception($"Connection closed. Expected {count} bytes, received {totalBytesRead}");
+                    // 使用自定义异常来标识这是正常的连接关闭
+                    throw new ConnectionClosedException($"Connection closed gracefully. Expected {count} bytes, received {totalBytesRead}");
                 }
                 totalBytesRead += bytesRead;
             }
 
             return buffer;
+        }
+
+        /// <summary>
+        /// 连接关闭异常（正常关闭，不是错误）
+        /// </summary>
+        private class ConnectionClosedException : Exception
+        {
+            public ConnectionClosedException(string message) : base(message) { }
         }
 
         /// <summary>
@@ -292,8 +300,16 @@ namespace UnityMcp
 
             Log($"[UnityMcp] 发送消息: length={data.Length}, length_prefix={BitConverter.ToString(lengthBytes)}");
 
-            await stream.WriteAsync(lengthBytes, 0, 4);
-            await stream.WriteAsync(data, 0, data.Length);
+            try
+            {
+                await stream.WriteAsync(lengthBytes, 0, 4);
+                await stream.WriteAsync(data, 0, data.Length);
+            }
+            catch (System.IO.IOException ex)
+            {
+                // 网络写入错误，通常表示连接已断开
+                throw new ConnectionClosedException($"Connection closed during write: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -377,11 +393,11 @@ namespace UnityMcp
                         string commandId = Guid.NewGuid().ToString();
                         TaskCompletionSource<string> tcs = new();
 
-                        // Special handling for ping command to avoid JSON parsing
+                        // Special handling for ping command to avoid Json parsing
                         if (commandText.Trim() == "ping")
                         {
                             Log($"[UnityMcp] 处理ping命令 from {clientEndpoint}");
-                            // Direct response to ping without going through JSON parsing
+                            // Direct response to ping without going through Json parsing
                             byte[] pingResponseBytes = System.Text.Encoding.UTF8.GetBytes(
                                 /*lang=json,strict*/
                                 "{\"status\":\"success\",\"result\":{\"message\":\"pong\"}}"
@@ -402,9 +418,16 @@ namespace UnityMcp
                         await SendWithLengthAsync(stream, responseBytes);
                         Log($"[UnityMcp] 响应已发送 to {clientEndpoint}, ID: {commandId}, Response: {response}");
                     }
+                    catch (ConnectionClosedException ex)
+                    {
+                        // 正常的连接关闭，使用 Log 而不是 LogError
+                        Log($"[UnityMcp] 客户端主动断开连接 {clientEndpoint}: {ex.Message}");
+                        break;
+                    }
                     catch (Exception ex)
                     {
-                        LogError($"[UnityMcp] 客户端处理错误 {clientEndpoint}: {ex.Message}");
+                        // 真正的错误
+                        LogError($"[UnityMcp] 客户端处理异常 {clientEndpoint}: {ex.Message}");
                         break;
                     }
                 }
@@ -453,7 +476,7 @@ namespace UnityMcp
                                 status = "error",
                                 error = "Empty command received",
                             };
-                            tcs.SetResult(JsonConvert.SerializeObject(emptyResponse));
+                            tcs.SetResult(Json.FromObject(emptyResponse));
                             processedIds.Add(id);
                             continue;
                         }
@@ -461,7 +484,7 @@ namespace UnityMcp
                         // Trim the command text to remove any whitespace
                         commandText = commandText.Trim();
 
-                        // Non-JSON direct commands handling (like ping)
+                        // Non-Json direct commands handling (like ping)
                         if (commandText == "ping")
                         {
                             Log($"[UnityMcp] 处理ping命令 ID: {id}");
@@ -470,33 +493,33 @@ namespace UnityMcp
                                 status = "success",
                                 result = new { message = "pong" },
                             };
-                            string pingResponseJson = JsonConvert.SerializeObject(pingResponse);
+                            string pingResponseJson = Json.FromObject(pingResponse);
                             tcs.SetResult(pingResponseJson);
                             Log($"[UnityMcp] ping命令处理完成 ID: {id}");
                             processedIds.Add(id);
                             continue;
                         }
 
-                        // Check if the command is valid JSON before attempting to deserialize
+                        // Check if the command is valid Json before attempting to deserialize
                         if (!IsValidJson(commandText))
                         {
                             LogError($"[UnityMcp] 无效JSON格式 ID: {id}, Content: {commandText}");
                             var invalidJsonResponse = new
                             {
                                 status = "error",
-                                error = "Invalid JSON format",
+                                error = "Invalid Json format",
                                 receivedText = commandText.Length > 50
                                     ? commandText[..50] + "..."
                                     : commandText,
                             };
-                            tcs.SetResult(JsonConvert.SerializeObject(invalidJsonResponse));
+                            tcs.SetResult(Json.FromObject(invalidJsonResponse));
                             processedIds.Add(id);
                             continue;
                         }
 
-                        // Normal JSON command processing
+                        // Normal Json command processing
                         Log($"[UnityMcp] 开始解析JSON命令 ID: {id}");
-                        Command command = JsonConvert.DeserializeObject<Command>(commandText);
+                        Command command = DeserializeCommand(commandText);
                         if (command == null)
                         {
                             LogError($"[UnityMcp] 命令反序列化为null ID: {id}");
@@ -504,9 +527,9 @@ namespace UnityMcp
                             {
                                 status = "error",
                                 error = "Command deserialized to null",
-                                details = "The command was valid JSON but could not be deserialized to a Command object",
+                                details = "The command was valid Json but could not be deserialized to a Command object",
                             };
-                            tcs.SetResult(JsonConvert.SerializeObject(nullCommandResponse));
+                            tcs.SetResult(Json.FromObject(nullCommandResponse));
                         }
                         else
                         {
@@ -526,7 +549,7 @@ namespace UnityMcp
                                     commandType = command?.type ?? "Unknown",
                                     details = "Error occurred during async command execution"
                                 };
-                                string responseJson = JsonConvert.SerializeObject(response);
+                                string responseJson = Json.FromObject(response);
                                 tcs.SetResult(responseJson);
                             }
                         }
@@ -544,7 +567,7 @@ namespace UnityMcp
                                 ? commandText[..50] + "..."
                                 : commandText,
                         };
-                        string responseJson = JsonConvert.SerializeObject(response);
+                        string responseJson = Json.FromObject(response);
                         tcs.SetResult(responseJson);
                         Log($"[UnityMcp] 错误响应已设置 ID: {id}");
                     }
@@ -564,7 +587,7 @@ namespace UnityMcp
             }
         }
 
-        // Helper method to check if a string is valid JSON
+        // Helper method to check if a string is valid Json
         private static bool IsValidJson(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -581,7 +604,7 @@ namespace UnityMcp
             {
                 try
                 {
-                    JToken.Parse(text);
+                    Json.Parse(text);
                     return true;
                 }
                 catch
@@ -608,7 +631,7 @@ namespace UnityMcp
                         error = "Command type cannot be empty",
                         details = "A valid command type is required for processing",
                     };
-                    tcs.SetResult(JsonConvert.SerializeObject(errorResponse));
+                    tcs.SetResult(Json.FromObject(errorResponse));
                     return;
                 }
 
@@ -622,12 +645,12 @@ namespace UnityMcp
                         result = new { message = "pong" },
                     };
                     Log($"[UnityMcp] ping命令执行成功");
-                    tcs.SetResult(JsonConvert.SerializeObject(pingResponse));
+                    tcs.SetResult(Json.FromObject(pingResponse));
                     return;
                 }
 
-                // Use JObject for args as the new handlers likely expect this
-                JObject paramsObject = command.cmd ?? new JObject();
+                // Use JsonClass for args as the new handlers likely expect this
+                JsonNode paramsObject = command.cmd ?? new JsonData("null");
 
                 Log($"[UnityMcp] 命令参数: {paramsObject}");
 
@@ -656,21 +679,22 @@ namespace UnityMcp
                     string re;
                     try
                     {
-                        re = JsonConvert.SerializeObject(response);
+                        re = Json.FromObject((object)response);
                         Log($"[UnityMcp] 工具执行完成，结果: {re}");
                     }
                     catch (Exception serEx)
                     {
                         LogError($"[UnityMcp] 序列化响应失败: {serEx.Message}");
                         // 尝试序列化一个简化的错误响应
-                        re = JsonConvert.SerializeObject(new
+                        re = Json.FromObject((object)(new
                         {
                             status = "error",
                             error = $"Failed to serialize response: {serEx.Message}",
                             details = result?.GetType().ToString() ?? "null"
-                        });
+                        }));
                     }
-
+                    // 设置结果
+                    tcs.SetResult(re);
                     // 记录执行结果到McpExecuteRecordObject
                     try
                     {
@@ -682,23 +706,26 @@ namespace UnityMcp
                         if (command.type == "single_call")
                         {
                             // function_call: 记录具体的func和args
-                            cmdName = "single_call." + paramsObject["func"]?.ToString() ?? "Unknown";
+                            cmdName = "single_call." + paramsObject["func"]?.Value ?? "Unknown";
                             argsString = paramsObject.ToString();
                         }
-                        else if (command.type == "batch_call")
+                        else if (command.cmd is JsonArray funcsArray)
                         {
                             // functions_call: 记录command类型和funcs数组
                             // 解析funcs数组，拼接所有func字段
-                            var funcsArray = paramsObject["funcs"] as JArray;
                             if (funcsArray != null)
                             {
                                 var funcNames = new List<string>();
-                                foreach (var funcObj in funcsArray)
+                                foreach (JsonNode funcObj in funcsArray.Childs)
                                 {
-                                    var funcName = funcObj?["func"]?.ToString();
-                                    if (!string.IsNullOrEmpty(funcName))
+                                    var funcNode = funcObj as JsonClass;
+                                    if (funcNode != null)
                                     {
-                                        funcNames.Add(funcName);
+                                        var funcName = funcNode["func"]?.Value;
+                                        if (!string.IsNullOrEmpty(funcName))
+                                        {
+                                            funcNames.Add(funcName);
+                                        }
                                     }
                                 }
                                 if (funcNames.Count > 2)
@@ -721,7 +748,7 @@ namespace UnityMcp
                             // 其他命令类型: 使用默认方式
                             cmdName = command.type;
                             // 修正为标准JSON格式
-                            argsString = JsonConvert.SerializeObject(new { func = cmdName, args = paramsObject }, Formatting.Indented);
+                            argsString = Json.FromObject((object)(new { func = cmdName, args = paramsObject }));
                         }
 
                         recordObject.addRecord(
@@ -741,7 +768,6 @@ namespace UnityMcp
 
                     tcs.SetResult(re);
                 });
-
             }
             catch (Exception ex)
             {
@@ -759,11 +785,11 @@ namespace UnityMcp
                     command = command?.type ?? "Unknown", // Include the command type if available
                     stackTrace = ex.StackTrace, // Include stack trace for detailed debugging
                     paramsSummary = command?.cmd != null
-                        ? GetParamsSummary(command.cmd)
+                        ? command.cmd.Value
                         : "No args", // Summarize args for context
                 };
                 Log($"[UnityMcp] 错误响应已生成: Type={command?.type ?? "Unknown"}");
-                var errorResponse = JsonConvert.SerializeObject(response);
+                var errorResponse = Json.FromObject(response);
 
                 // 记录错误执行结果到McpExecuteRecordObject
                 try
@@ -778,21 +804,21 @@ namespace UnityMcp
                     {
                         // function_call: 记录具体的func和args
                         var cmd = command?.cmd;
-                        funcName = cmd?["func"]?.ToString() ?? "Unknown";
-                        argsString = cmd?["args"]?.ToString() ?? "{}";
+                        funcName = cmd?["func"]?.Value ?? "Unknown";
+                        argsString = cmd?["args"]?.Value ?? "{}";
                     }
                     else if (command?.type == "functions_call")
                     {
                         // functions_call: 记录command类型和funcs数组
                         funcName = "functions_call";
                         var cmd = command?.cmd;
-                        argsString = cmd?["funcs"]?.ToString() ?? "[]";
+                        argsString = cmd?["funcs"]?.Value ?? "[]";
                     }
                     else
                     {
                         // 其他命令类型: 使用默认方式
                         funcName = command?.type ?? "Unknown";
-                        argsString = command?.cmd != null ? JsonConvert.SerializeObject(command.cmd) : "{}";
+                        argsString = command?.cmd != null ? command.cmd.Value : "{}";
                     }
 
                     recordObject.addRecord(
@@ -858,25 +884,32 @@ namespace UnityMcp
             LogError($"[UnityMcp] 未找到工具: {toolName}，可用工具: [{string.Join(", ", mcpToolInstanceCache.Keys)}]");
             return null;
         }
-        // Helper method to get a summary of args for error reporting
-        private static string GetParamsSummary(JObject cmd)
+
+        /// <summary>
+        /// SimpleJson 反序列化 Command 辅助方法
+        /// </summary>
+        private static Command DeserializeCommand(string json)
         {
             try
             {
-                return cmd == null || !cmd.HasValues
-                    ? "No args"
-                    : string.Join(
-                        ", ",
-                       cmd
-                            .Properties()
-                            .Select(static p =>
-                                $"{p.Name}: {p.Value?.ToString()?[..Math.Min(20, p.Value?.ToString()?.Length ?? 0)]}"
-                            )
-                    );
+                var node = Json.Parse(json);
+                if (node == null) return null;
+
+                var jsonObj = node.ToObject();
+                if (jsonObj == null) return null;
+
+                var command = new Command
+                {
+                    type = jsonObj["type"]?.Value,
+                    cmd = jsonObj["args"].ToObject() ?? jsonObj["cmd"].ToObject()
+                };
+
+                return command;
             }
-            catch
+            catch (Exception ex)
             {
-                return "Could not summarize args";
+                Debug.LogError($"[UnityMcp] 反序列化 Command 失败: {ex.Message}");
+                return null;
             }
         }
     }

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
@@ -63,14 +63,14 @@ namespace UnityMcp.Tools
                 .Build();
         }
 
-        private object CreateMesh(JObject args)
+        private object CreateMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create.");
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return Response.Error("'properties' are required for create.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -90,7 +90,7 @@ namespace UnityMcp.Tools
             {
                 Mesh mesh = new Mesh();
 
-                // Apply properties from JObject
+                // Apply properties from JsonClass
                 bool meshModified = ApplyMeshProperties(mesh, properties);
                 if (meshModified)
                 {
@@ -111,14 +111,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyMesh(JObject args)
+        private object ModifyMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (properties == null || !properties.HasValues)
+            if (properties == null || properties.Count == 0)
                 return Response.Error("'properties' are required for modify.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -161,10 +161,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object OptimizeMesh(JObject args)
+        private object OptimizeMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string optimizationLevel = args["optimization_level"]?.ToString() ?? "medium";
+            string path = args["path"]?.Value;
+            string optimizationLevel = args["optimization_level"]?.Value ?? "medium";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for optimize.");
@@ -216,11 +216,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GeneratePrimitiveMesh(JObject args)
+        private object GeneratePrimitiveMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string meshType = args["mesh_type"]?.ToString() ?? "cube";
-            JObject properties = args["properties"] as JObject;
+            string path = args["path"]?.Value;
+            string meshType = args["mesh_type"]?.Value ?? "cube";
+            JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for generate_primitive.");
@@ -262,7 +262,7 @@ namespace UnityMcp.Tools
                 }
 
                 // Apply additional properties if provided
-                if (properties != null && properties.HasValues)
+                if (properties != null && properties.Count > 0)
                 {
                     ApplyMeshProperties(mesh, properties);
                 }
@@ -281,10 +281,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SubdivideMesh(JObject args)
+        private object SubdivideMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            int subdivisionLevel = args["subdivision_level"]?.ToObject<int>() ?? 1;
+            string path = args["path"]?.Value;
+            int subdivisionLevel = args["subdivision_level"].AsIntDefault(1);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for subdivide.");
@@ -327,10 +327,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SmoothMesh(JObject args)
+        private object SmoothMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            float smoothFactor = args["smooth_factor"]?.ToObject<float>() ?? 0.5f;
+            string path = args["path"]?.Value;
+            float smoothFactor = args["smooth_factor"].AsFloatDefault(0.5f);
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for smooth.");
@@ -396,10 +396,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ExportMeshToOBJ(JObject args)
+        private object ExportMeshToOBJ(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destination = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destination = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for export.");
@@ -448,10 +448,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ExportMeshToAsset(JObject args)
+        private object ExportMeshToAsset(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destination = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destination = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for export.");
@@ -504,10 +504,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ImportMesh(JObject args)
+        private object ImportMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string sourcePath = args["source_path"]?.ToString();
+            string path = args["path"]?.Value;
+            string sourcePath = args["source_path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for import.");
@@ -570,9 +570,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GetMeshInfo(JObject args)
+        private object GetMeshInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -593,10 +593,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicateMesh(JObject args)
+        private object DuplicateMesh(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -688,26 +688,26 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Applies properties from JObject to a Mesh.
+        /// Applies properties from JsonClass to a Mesh.
         /// </summary>
-        private bool ApplyMeshProperties(Mesh mesh, JObject properties)
+        private bool ApplyMeshProperties(Mesh mesh, JsonClass properties)
         {
             if (mesh == null || properties == null)
                 return false;
             bool modified = false;
 
             // Handle vertices
-            if (properties["vertices"] is JArray verticesArray)
+            if (properties["vertices"] is JsonArray verticesArray)
             {
                 Vector3[] vertices = new Vector3[verticesArray.Count];
                 for (int i = 0; i < verticesArray.Count; i++)
                 {
-                    if (verticesArray[i] is JArray vertexData && vertexData.Count >= 3)
+                    if (verticesArray[i] is JsonArray vertexData && vertexData.Count >= 3)
                     {
                         vertices[i] = new Vector3(
-                            vertexData[0].ToObject<float>(),
-                            vertexData[1].ToObject<float>(),
-                            vertexData[2].ToObject<float>()
+                            vertexData[0].AsFloat,
+                            vertexData[1].AsFloat,
+                            vertexData[2].AsFloat
                         );
                     }
                 }
@@ -716,29 +716,29 @@ namespace UnityMcp.Tools
             }
 
             // Handle triangles
-            if (properties["triangles"] is JArray trianglesArray)
+            if (properties["triangles"] is JsonArray trianglesArray)
             {
                 int[] triangles = new int[trianglesArray.Count];
                 for (int i = 0; i < trianglesArray.Count; i++)
                 {
-                    triangles[i] = trianglesArray[i].ToObject<int>();
+                    triangles[i] = trianglesArray[i].AsInt;
                 }
                 mesh.triangles = triangles;
                 modified = true;
             }
 
             // Handle normals
-            if (properties["normals"] is JArray normalsArray)
+            if (properties["normals"] is JsonArray normalsArray)
             {
                 Vector3[] normals = new Vector3[normalsArray.Count];
                 for (int i = 0; i < normalsArray.Count; i++)
                 {
-                    if (normalsArray[i] is JArray normalData && normalData.Count >= 3)
+                    if (normalsArray[i] is JsonArray normalData && normalData.Count >= 3)
                     {
                         normals[i] = new Vector3(
-                            normalData[0].ToObject<float>(),
-                            normalData[1].ToObject<float>(),
-                            normalData[2].ToObject<float>()
+                            normalData[0].AsFloat,
+                            normalData[1].AsFloat,
+                            normalData[2].AsFloat
                         );
                     }
                 }
@@ -747,16 +747,16 @@ namespace UnityMcp.Tools
             }
 
             // Handle UVs
-            if (properties["uv"] is JArray uvArray)
+            if (properties["uv"] is JsonArray uvArray)
             {
                 Vector2[] uvs = new Vector2[uvArray.Count];
                 for (int i = 0; i < uvArray.Count; i++)
                 {
-                    if (uvArray[i] is JArray uvData && uvData.Count >= 2)
+                    if (uvArray[i] is JsonArray uvData && uvData.Count >= 2)
                     {
                         uvs[i] = new Vector2(
-                            uvData[0].ToObject<float>(),
-                            uvData[1].ToObject<float>()
+                            uvData[0].AsFloat,
+                            uvData[1].AsFloat
                         );
                     }
                 }
@@ -765,18 +765,18 @@ namespace UnityMcp.Tools
             }
 
             // Handle tangents
-            if (properties["tangents"] is JArray tangentsArray)
+            if (properties["tangents"] is JsonArray tangentsArray)
             {
                 Vector4[] tangents = new Vector4[tangentsArray.Count];
                 for (int i = 0; i < tangentsArray.Count; i++)
                 {
-                    if (tangentsArray[i] is JArray tangentData && tangentData.Count >= 4)
+                    if (tangentsArray[i] is JsonArray tangentData && tangentData.Count >= 4)
                     {
                         tangents[i] = new Vector4(
-                            tangentData[0].ToObject<float>(),
-                            tangentData[1].ToObject<float>(),
-                            tangentData[2].ToObject<float>(),
-                            tangentData[3].ToObject<float>()
+                            tangentData[0].AsFloat,
+                            tangentData[1].AsFloat,
+                            tangentData[2].AsFloat,
+                            tangentData[3].AsFloat
                         );
                     }
                 }

@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -23,20 +23,20 @@ namespace UnityMcp.Tools
         private static MethodInfo repaintMethod;
         private static PropertyInfo targetSizeProperty;
         private static PropertyInfo selectedSizeIndexProperty;
-        
+
         // 输入模拟相关
         private static bool isInputSimulationActive = false;
         private static List<SimulatedInput> inputQueue = new List<SimulatedInput>();
-        
+
         // 截图相关
         private static RenderTexture screenshotRenderTexture;
         private static Camera screenshotCamera;
-        
+
         static GamePlay()
         {
             InitializeReflection();
         }
-        
+
         /// <summary>
         /// 初始化反射相关的类型和方法
         /// </summary>
@@ -114,25 +114,25 @@ namespace UnityMcp.Tools
                     // 截图功能
                     .Leaf("screenshot", HandleScreenshotAction)
                     .Leaf("screenshot_region", HandleScreenshotRegionAction)
-                    
+
                     // 输入模拟
                     .Leaf("simulate_click", HandleSimulateClickAction)
                     .Leaf("simulate_drag", HandleSimulateDragAction)
                     .Leaf("simulate_key", HandleSimulateKeyAction)
                     .Leaf("simulate_scroll", HandleSimulateScrollAction)
-                    
+
                     // 窗口管理
                     .Leaf("set_size", HandleSetSizeAction)
                     .Leaf("get_info", HandleGetInfoAction)
                     .Leaf("focus_window", HandleFocusWindowAction)
                     .Leaf("maximize", HandleMaximizeAction)
                     .Leaf("minimize", HandleMinimizeAction)
-                    
+
                     // 图像处理
                     .Leaf("compress_image", HandleCompressImageAction)
                     .Leaf("resize_image", HandleResizeImageAction)
                     .Leaf("convert_format", HandleConvertFormatAction)
-                    
+
                     // 高级功能
                     .Leaf("batch_screenshot", HandleBatchScreenshotAction)
                     .Leaf("start_recording", HandleStartRecordingAction)
@@ -150,11 +150,11 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var savePath = args["save_path"]?.ToString() ?? "Assets/Screenshots/screenshot.png";
-                var format = args["format"]?.ToString() ?? "PNG";
-                var quality = args["quality"]?.ToObject<int>() ?? 90;
-                var scale = args["scale"]?.ToObject<float>() ?? 1.0f;
-                var delay = args["delay"]?.ToObject<float>() ?? 0f;
+                var savePath = args["save_path"]?.Value ?? "Assets/Screenshots/screenshot.png";
+                var format = args["format"]?.Value ?? "PNG";
+                var quality = args["quality"].AsIntDefault(90);
+                var scale = args["scale"].AsFloatDefault(1.0f);
+                var delay = args["delay"].AsFloatDefault(0f);
 
                 if (delay > 0)
                 {
@@ -255,11 +255,11 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var x = args["region_x"]?.ToObject<int>() ?? 0;
-                var y = args["region_y"]?.ToObject<int>() ?? 0;
-                var width = args["region_width"]?.ToObject<int>() ?? 100;
-                var height = args["region_height"]?.ToObject<int>() ?? 100;
-                var savePath = args["save_path"]?.ToString() ?? "Assets/Screenshots/region_screenshot.png";
+                var x = args["region_x"].AsIntDefault(0);
+                var y = args["region_y"].AsIntDefault(0);
+                var width = args["region_width"].AsIntDefault(100);
+                var height = args["region_height"].AsIntDefault(100);
+                var savePath = args["save_path"]?.Value ?? "Assets/Screenshots/region_screenshot.png";
 
                 return ExecuteRegionScreenshot(x, y, width, height, savePath);
             }
@@ -279,10 +279,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var x = args["x"]?.ToObject<float>() ?? 0f;
-                var y = args["y"]?.ToObject<float>() ?? 0f;
-                var button = args["button"]?.ToObject<int>() ?? 0;
-                var delay = args["delay"]?.ToObject<float>() ?? 0f;
+                var x = args["x"].AsFloatDefault(0f);
+                var y = args["y"].AsFloatDefault(0f);
+                var button = args["button"].AsIntDefault(0);
+                var delay = args["delay"].AsFloatDefault(0f);
 
                 var input = new SimulatedInput
                 {
@@ -323,12 +323,12 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var x = args["x"]?.ToObject<float>() ?? 0f;
-                var y = args["y"]?.ToObject<float>() ?? 0f;
-                var targetX = args["target_x"]?.ToObject<float>() ?? 0f;
-                var targetY = args["target_y"]?.ToObject<float>() ?? 0f;
-                var duration = args["duration"]?.ToObject<float>() ?? 1f;
-                var delay = args["delay"]?.ToObject<float>() ?? 0f;
+                var x = args["x"].AsFloatDefault(0f);
+                var y = args["y"].AsFloatDefault(0f);
+                var targetX = args["target_x"].AsFloatDefault(0f);
+                var targetY = args["target_y"].AsFloatDefault(0f);
+                var duration = args["duration"].AsFloatDefault(1f);
+                var delay = args["delay"].AsFloatDefault(0f);
 
                 var input = new SimulatedInput
                 {
@@ -372,8 +372,8 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var keyCode = args["key_code"]?.ToString() ?? "";
-                var delay = args["delay"]?.ToObject<float>() ?? 0f;
+                var keyCode = args["key_code"]?.Value ?? "";
+                var delay = args["delay"].AsFloatDefault(0f);
 
                 var input = new SimulatedInput
                 {
@@ -411,10 +411,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var x = args["x"]?.ToObject<float>() ?? 0f;
-                var y = args["y"]?.ToObject<float>() ?? 0f;
-                var delta = args["delta"]?.ToObject<float>() ?? 1f;
-                var delay = args["delay"]?.ToObject<float>() ?? 0f;
+                var x = args["x"].AsFloatDefault(0f);
+                var y = args["y"].AsFloatDefault(0f);
+                var delta = args["delta"].AsFloatDefault(1f);
+                var delay = args["delay"].AsFloatDefault(0f);
 
                 var input = new SimulatedInput
                 {
@@ -457,9 +457,9 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var width = args["width"]?.ToObject<int>() ?? 1920;
-                var height = args["height"]?.ToObject<int>() ?? 1080;
-                var sizeName = args["size_name"]?.ToString();
+                var width = args["width"].AsIntDefault(1920);
+                var height = args["height"].AsIntDefault(1080);
+                var sizeName = args["size_name"]?.Value;
 
                 var gameView = GetGameView();
                 if (gameView == null)
@@ -601,10 +601,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var sourcePath = args["source_path"]?.ToString();
-                var savePath = args["save_path"]?.ToString();
-                var ratio = args["compress_ratio"]?.ToObject<float>() ?? 0.8f;
-                var quality = args["quality"]?.ToObject<int>() ?? 80;
+                var sourcePath = args["source_path"]?.Value;
+                var savePath = args["save_path"]?.Value;
+                var ratio = args["compress_ratio"].AsFloatDefault(0.8f);
+                var quality = args["quality"].AsIntDefault(80);
 
                 if (string.IsNullOrEmpty(sourcePath))
                 {
@@ -632,10 +632,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var sourcePath = args["source_path"]?.ToString();
-                var savePath = args["save_path"]?.ToString();
-                var width = args["width"]?.ToObject<int>() ?? 512;
-                var height = args["height"]?.ToObject<int>() ?? 512;
+                var sourcePath = args["source_path"]?.Value;
+                var savePath = args["save_path"]?.Value;
+                var width = args["width"].AsIntDefault(512);
+                var height = args["height"].AsIntDefault(512);
 
                 if (string.IsNullOrEmpty(sourcePath))
                 {
@@ -663,10 +663,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var sourcePath = args["source_path"]?.ToString();
-                var savePath = args["save_path"]?.ToString();
-                var format = args["format"]?.ToString() ?? "PNG";
-                var quality = args["quality"]?.ToObject<int>() ?? 90;
+                var sourcePath = args["source_path"]?.Value;
+                var savePath = args["save_path"]?.Value;
+                var format = args["format"]?.Value ?? "PNG";
+                var quality = args["quality"].AsIntDefault(90);
 
                 if (string.IsNullOrEmpty(sourcePath))
                 {
@@ -697,9 +697,9 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var count = args["count"]?.ToObject<int>() ?? 5;
-                var interval = args["interval"]?.ToObject<float>() ?? 1f;
-                var basePath = args["base_path"]?.ToString() ?? "Assets/Screenshots/batch";
+                var count = args["count"].AsIntDefault(5);
+                var interval = args["interval"].AsFloatDefault(1f);
+                var basePath = args["base_path"]?.Value ?? "Assets/Screenshots/batch";
 
                 StartBatchScreenshot(count, interval, basePath);
                 return Response.Success($"Batch screenshot started: {count} screenshots with {interval}s interval", new
@@ -800,7 +800,7 @@ namespace UnityMcp.Tools
         private object GetGameViewInfo(object gameView)
         {
             var info = new Dictionary<string, object>();
-            
+
             try
             {
                 if (targetSizeProperty != null)
@@ -875,7 +875,7 @@ namespace UnityMcp.Tools
                     mouseEvent.type = EventType.MouseDown;
                     mouseEvent.mousePosition = position;
                     mouseEvent.button = button;
-                    
+
                     // 发送鼠标按下和松开事件
                     EditorApplication.delayCall += () =>
                     {
@@ -883,7 +883,7 @@ namespace UnityMcp.Tools
                     };
                 }
             }
-            
+
             LogInfo($"[GamePlay] Simulated click at ({position.x}, {position.y}) with button {button}");
         }
 
@@ -895,12 +895,12 @@ namespace UnityMcp.Tools
             // 实现拖拽模拟逻辑
             var steps = Mathf.Max(10, Mathf.RoundToInt(duration * 60)); // 60fps
             var stepDuration = duration / steps;
-            
+
             for (int i = 0; i <= steps; i++)
             {
                 var t = (float)i / steps;
                 var currentPos = Vector2.Lerp(start, end, t);
-                
+
                 EditorApplication.delayCall += () =>
                 {
                     // 发送鼠标移动事件
@@ -911,7 +911,7 @@ namespace UnityMcp.Tools
                     }
                 };
             }
-            
+
             LogInfo($"[GamePlay] Simulated drag from ({start.x}, {start.y}) to ({end.x}, {end.y}) over {duration}s");
         }
 
@@ -937,7 +937,7 @@ namespace UnityMcp.Tools
                     }
                 }
             }
-            
+
             LogInfo($"[GamePlay] Simulated key: {keyCode}");
         }
 
@@ -952,7 +952,7 @@ namespace UnityMcp.Tools
                 Event.current.mousePosition = position;
                 Event.current.delta = new Vector2(0, delta);
             }
-            
+
             LogInfo($"[GamePlay] Simulated scroll at ({position.x}, {position.y}) with delta {delta}");
         }
 
@@ -1013,7 +1013,7 @@ namespace UnityMcp.Tools
         {
             var scaled = new Texture2D(newWidth, newHeight, source.format, false);
             var pixels = scaled.GetPixels();
-            
+
             for (int y = 0; y < newHeight; y++)
             {
                 for (int x = 0; x < newWidth; x++)
@@ -1023,7 +1023,7 @@ namespace UnityMcp.Tools
                     pixels[y * newWidth + x] = source.GetPixel(sourceX, sourceY);
                 }
             }
-            
+
             scaled.SetPixels(pixels);
             scaled.Apply();
             return scaled;
@@ -1066,7 +1066,7 @@ namespace UnityMcp.Tools
                 }
 
                 File.WriteAllBytes(savePath, compressedData);
-                
+
                 UnityEngine.Object.DestroyImmediate(texture);
                 UnityEngine.Object.DestroyImmediate(scaledTexture);
                 AssetDatabase.Refresh();

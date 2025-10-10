@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -118,10 +118,10 @@ namespace UnityMcp.Tools
 
         // --- 状态树操作方法 ---
 
-        private object ImportModel(JObject args)
+        private object ImportModel(JsonClass args)
         {
-            string sourceFile = args["source_file"]?.ToString();
-            string path = args["path"]?.ToString();
+            string sourceFile = args["source_file"]?.Value;
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(sourceFile))
                 return Response.Error("'source_file' is required for import.");
@@ -152,8 +152,8 @@ namespace UnityMcp.Tools
                 File.Copy(sourceFile, targetFilePath);
 
                 // 导入设置
-                JObject importSettings = args["import_settings"] as JObject;
-                if (importSettings != null && importSettings.HasValues)
+                JsonClass importSettings = args["import_settings"] as JsonClass;
+                if (importSettings != null && importSettings.Count > 0)
                 {
                     AssetDatabase.ImportAsset(fullPath);
                     ModelImporter importer = AssetImporter.GetAtPath(fullPath) as ModelImporter;
@@ -177,14 +177,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyModel(JObject args)
+        private object ModifyModel(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject importSettings = args["import_settings"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass importSettings = args["import_settings"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (importSettings == null || !importSettings.HasValues)
+            if (importSettings == null || importSettings.Count == 0)
                 return Response.Error("'import_settings' are required for modify.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -216,10 +216,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicateModel(JObject args)
+        private object DuplicateModel(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -260,9 +260,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DeleteModel(JObject args)
+        private object DeleteModel(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for delete.");
@@ -290,9 +290,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object GetModelInfo(JObject args)
+        private object GetModelInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -311,11 +311,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SearchModels(JObject args)
+        private object SearchModels(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
-            bool recursive = args["recursive"]?.ToObject<bool>() ?? true;
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
+            bool recursive = args["recursive"].AsBoolDefault(true);
 
             List<string> searchFilters = new List<string>();
             if (!string.IsNullOrEmpty(searchPattern))
@@ -360,14 +360,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SetModelImportSettings(JObject args)
+        private object SetModelImportSettings(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject importSettings = args["import_settings"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass importSettings = args["import_settings"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for set_import_settings.");
-            if (importSettings == null || !importSettings.HasValues)
+            if (importSettings == null || importSettings.Count == 0)
                 return Response.Error("'import_settings' are required for set_import_settings.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -399,10 +399,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ExtractModelMaterials(JObject args)
+        private object ExtractModelMaterials(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string extractPath = args["extract_path"]?.ToString();
+            string path = args["path"]?.Value;
+            string extractPath = args["extract_path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for extract_materials.");
@@ -440,9 +440,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object OptimizeModel(JObject args)
+        private object OptimizeModel(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for optimize.");
@@ -541,7 +541,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用模型导入设置
         /// </summary>
-        private bool ApplyModelImportSettings(ModelImporter importer, JObject settings)
+        private bool ApplyModelImportSettings(ModelImporter importer, JsonClass settings)
         {
             if (importer == null || settings == null)
                 return false;
@@ -549,17 +549,17 @@ namespace UnityMcp.Tools
 
             foreach (var setting in settings.Properties())
             {
-                string settingName = setting.Name;
-                JToken settingValue = setting.Value;
+                string settingName = setting.Key;
+                JsonNode settingValue = setting.Value;
 
                 try
                 {
                     switch (settingName.ToLowerInvariant())
                     {
                         case "scale_factor":
-                            if (settingValue.Type == JTokenType.Float || settingValue.Type == JTokenType.Integer)
+                            if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
-                                float scaleFactor = settingValue.ToObject<float>();
+                                float scaleFactor = settingValue.AsFloat;
                                 if (Math.Abs(importer.globalScale - scaleFactor) > 0.001f)
                                 {
                                     importer.globalScale = scaleFactor;
@@ -568,9 +568,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "use_file_scale":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool useFileScale = settingValue.ToObject<bool>();
+                                bool useFileScale = settingValue.AsBool;
                                 if (importer.useFileScale != useFileScale)
                                 {
                                     importer.useFileScale = useFileScale;
@@ -579,9 +579,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "use_file_units":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool useFileUnits = settingValue.ToObject<bool>();
+                                bool useFileUnits = settingValue.AsBool;
                                 if (importer.useFileUnits != useFileUnits)
                                 {
                                     importer.useFileUnits = useFileUnits;
@@ -590,9 +590,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "import_blend_shapes":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool importBlendShapes = settingValue.ToObject<bool>();
+                                bool importBlendShapes = settingValue.AsBool;
                                 if (importer.importBlendShapes != importBlendShapes)
                                 {
                                     importer.importBlendShapes = importBlendShapes;
@@ -601,9 +601,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "import_visibility":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool importVisibility = settingValue.ToObject<bool>();
+                                bool importVisibility = settingValue.AsBool;
                                 if (importer.importVisibility != importVisibility)
                                 {
                                     importer.importVisibility = importVisibility;
@@ -612,9 +612,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "import_cameras":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool importCameras = settingValue.ToObject<bool>();
+                                bool importCameras = settingValue.AsBool;
                                 if (importer.importCameras != importCameras)
                                 {
                                     importer.importCameras = importCameras;
@@ -623,9 +623,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "import_lights":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool importLights = settingValue.ToObject<bool>();
+                                bool importLights = settingValue.AsBool;
                                 if (importer.importLights != importLights)
                                 {
                                     importer.importLights = importLights;
@@ -634,9 +634,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "preserve_hierarchy":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool preserveHierarchy = settingValue.ToObject<bool>();
+                                bool preserveHierarchy = settingValue.AsBool;
                                 if (importer.preserveHierarchy != preserveHierarchy)
                                 {
                                     importer.preserveHierarchy = preserveHierarchy;
@@ -645,9 +645,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "animation_type":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.type == JsonNodeType.String)
                             {
-                                string animationType = settingValue.ToString();
+                                string animationType = settingValue.Value;
                                 ModelImporterAnimationType animType = ModelImporterAnimationType.None;
 
                                 switch (animationType.ToLowerInvariant())
@@ -677,9 +677,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "optimize_mesh":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool optimizeMesh = settingValue.ToObject<bool>();
+                                bool optimizeMesh = settingValue.AsBool;
                                 if (importer.optimizeMesh != optimizeMesh)
                                 {
                                     importer.optimizeMesh = optimizeMesh;
@@ -688,9 +688,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "generate_secondary_uv":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool generateSecondaryUV = settingValue.ToObject<bool>();
+                                bool generateSecondaryUV = settingValue.AsBool;
                                 if (importer.generateSecondaryUV != generateSecondaryUV)
                                 {
                                     importer.generateSecondaryUV = generateSecondaryUV;
@@ -699,9 +699,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "read_write_enabled":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool readWriteEnabled = settingValue.ToObject<bool>();
+                                bool readWriteEnabled = settingValue.AsBool;
                                 if (importer.isReadable != readWriteEnabled)
                                 {
                                     importer.isReadable = readWriteEnabled;
@@ -710,9 +710,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "optimize_game_objects":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool optimizeGameObjects = settingValue.ToObject<bool>();
+                                bool optimizeGameObjects = settingValue.AsBool;
                                 if (importer.optimizeGameObjects != optimizeGameObjects)
                                 {
                                     importer.optimizeGameObjects = optimizeGameObjects;
@@ -721,9 +721,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "import_materials":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool importMaterials = settingValue.ToObject<bool>();
+                                bool importMaterials = settingValue.AsBool;
                                 ModelImporterMaterialImportMode materialMode = importMaterials ?
                                     ModelImporterMaterialImportMode.ImportStandard :
                                     ModelImporterMaterialImportMode.None;
@@ -736,9 +736,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "mesh_compression":
-                            if (settingValue.Type == JTokenType.String)
+                            if (settingValue.type == JsonNodeType.String)
                             {
-                                string compression = settingValue.ToString();
+                                string compression = settingValue.Value;
                                 ModelImporterMeshCompression meshCompression = ModelImporterMeshCompression.Off;
 
                                 switch (compression.ToLowerInvariant())
@@ -766,9 +766,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "add_collider":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool addCollider = settingValue.ToObject<bool>();
+                                bool addCollider = settingValue.AsBool;
                                 if (importer.addCollider != addCollider)
                                 {
                                     importer.addCollider = addCollider;
@@ -777,9 +777,9 @@ namespace UnityMcp.Tools
                             }
                             break;
                         case "weld_vertices":
-                            if (settingValue.Type == JTokenType.Boolean)
+                            if (settingValue.type == JsonNodeType.Boolean)
                             {
-                                bool weldVertices = settingValue.ToObject<bool>();
+                                bool weldVertices = settingValue.AsBool;
                                 if (importer.weldVertices != weldVertices)
                                 {
                                     importer.weldVertices = weldVertices;

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -73,12 +73,12 @@ namespace UnityMcp.Tools
 
         // --- 状态树操作方法 ---
 
-        private object CreatePrefab(JObject args)
+        private object CreatePrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string sourceObject = args["source_object"]?.ToString();
-            bool isVariant = args["prefab_variant"]?.ToObject<bool>() ?? false;
-            string parentPrefab = args["parent_prefab"]?.ToString();
+            string path = args["path"]?.Value;
+            string sourceObject = args["source_object"]?.Value;
+            bool isVariant = args["prefab_variant"].AsBoolDefault(false);
+            string parentPrefab = args["parent_prefab"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create.");
@@ -158,14 +158,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ModifyPrefab(JObject args)
+        private object ModifyPrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            JObject modifications = args["modifications"] as JObject;
+            string path = args["path"]?.Value;
+            JsonClass modifications = args["modifications"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for modify.");
-            if (modifications == null || !modifications.HasValues)
+            if (modifications == null || modifications.Count == 0)
                 return Response.Error("'modifications' are required for modify.");
 
             string fullPath = SanitizeAssetPath(path);
@@ -188,8 +188,8 @@ namespace UnityMcp.Tools
                 // 应用修改
                 foreach (var modification in modifications.Properties())
                 {
-                    string propertyPath = modification.Name;
-                    JToken propertyValue = modification.Value;
+                    string propertyPath = modification.Key;
+                    JsonNode propertyValue = modification.Value;
 
                     // 这里需要根据具体的修改需求来实现
                     // 例如：修改组件属性、添加/删除组件、修改Transform等
@@ -214,10 +214,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object DuplicatePrefab(JObject args)
+        private object DuplicatePrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string destinationPath = args["destination"]?.ToString();
+            string path = args["path"]?.Value;
+            string destinationPath = args["destination"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for duplicate.");
@@ -260,9 +260,9 @@ namespace UnityMcp.Tools
 
 
 
-        private object GetPrefabInfo(JObject args)
+        private object GetPrefabInfo(JsonClass args)
         {
-            string path = args["path"]?.ToString();
+            string path = args["path"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for get_info.");
@@ -281,11 +281,11 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object SearchPrefabs(JObject args)
+        private object SearchPrefabs(JsonClass args)
         {
-            string searchPattern = args["query"]?.ToString();
-            string pathScope = args["path"]?.ToString();
-            bool recursive = args["recursive"]?.ToObject<bool>() ?? true;
+            string searchPattern = args["query"]?.Value;
+            string pathScope = args["path"]?.Value;
+            bool recursive = args["recursive"].AsBoolDefault(true);
 
             List<string> searchFilters = new List<string>();
             if (!string.IsNullOrEmpty(searchPattern))
@@ -330,14 +330,14 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object InstantiatePrefab(JObject args)
+        private object InstantiatePrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string scenePath = args["scene_path"]?.ToString();
-            JArray position = args["position"] as JArray;
-            JArray rotation = args["rotation"] as JArray;
-            JArray scale = args["scale"] as JArray;
-            string parent = args["parent"]?.ToString();
+            string path = args["path"]?.Value;
+            string scenePath = args["scene_path"]?.Value;
+            JsonArray position = args["position"] as JsonArray;
+            JsonArray rotation = args["rotation"] as JsonArray;
+            JsonArray scale = args["scale"] as JsonArray;
+            string parent = args["parent"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for instantiate.");
@@ -359,17 +359,17 @@ namespace UnityMcp.Tools
 
                 if (position != null && position.Count >= 3)
                 {
-                    pos = new Vector3(position[0].ToObject<float>(), position[1].ToObject<float>(), position[2].ToObject<float>());
+                    pos = new Vector3(position[0].AsFloat, position[1].AsFloat, position[2].AsFloat);
                 }
 
                 if (rotation != null && rotation.Count >= 3)
                 {
-                    rot = new Vector3(rotation[0].ToObject<float>(), rotation[1].ToObject<float>(), rotation[2].ToObject<float>());
+                    rot = new Vector3(rotation[0].AsFloat, rotation[1].AsFloat, rotation[2].AsFloat);
                 }
 
                 if (scale != null && scale.Count >= 3)
                 {
-                    scl = new Vector3(scale[0].ToObject<float>(), scale[1].ToObject<float>(), scale[2].ToObject<float>());
+                    scl = new Vector3(scale[0].AsFloat, scale[1].AsFloat, scale[2].AsFloat);
                 }
 
                 // 实例化预制体
@@ -408,10 +408,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object UnpackPrefab(JObject args)
+        private object UnpackPrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string unpackMode = args["unpack_mode"]?.ToString() ?? "Completely";
+            string path = args["path"]?.Value;
+            string unpackMode = args["unpack_mode"]?.Value ?? "Completely";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for unpack.");
@@ -450,10 +450,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object PackPrefab(JObject args)
+        private object PackPrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string packMode = args["pack_mode"]?.ToString() ?? "Default";
+            string path = args["path"]?.Value;
+            string packMode = args["pack_mode"]?.Value ?? "Default";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for pack.");
@@ -492,10 +492,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object CreatePrefabVariant(JObject args)
+        private object CreatePrefabVariant(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string parentPrefab = args["parent_prefab"]?.ToString();
+            string path = args["path"]?.Value;
+            string parentPrefab = args["parent_prefab"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for create_variant.");
@@ -528,10 +528,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ConnectToPrefab(JObject args)
+        private object ConnectToPrefab(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string targetObject = args["target_object"]?.ToString();
+            string path = args["path"]?.Value;
+            string targetObject = args["target_object"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for connect_to_prefab.");
@@ -563,10 +563,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object ApplyPrefabChanges(JObject args)
+        private object ApplyPrefabChanges(JsonClass args)
         {
-            string path = args["path"]?.ToString();
-            string targetObject = args["target_object"]?.ToString();
+            string path = args["path"]?.Value;
+            string targetObject = args["target_object"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for apply_changes.");
@@ -594,9 +594,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object RevertPrefabChanges(JObject args)
+        private object RevertPrefabChanges(JsonClass args)
         {
-            string targetObject = args["target_object"]?.ToString();
+            string targetObject = args["target_object"]?.Value;
 
             if (string.IsNullOrEmpty(targetObject))
                 return Response.Error("'target_object' is required for revert_changes.");
@@ -618,9 +618,9 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object BreakPrefabConnection(JObject args)
+        private object BreakPrefabConnection(JsonClass args)
         {
-            string targetObject = args["target_object"]?.ToString();
+            string targetObject = args["target_object"]?.Value;
 
             if (string.IsNullOrEmpty(targetObject))
                 return Response.Error("'target_object' is required for break_connection.");

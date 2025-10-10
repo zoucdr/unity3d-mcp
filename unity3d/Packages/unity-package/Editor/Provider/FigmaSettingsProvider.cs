@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Gui
 {
     /// <summary>
     /// Figma设置提供器，用于在Unity的ProjectSettings窗口中显示Figma相关设置

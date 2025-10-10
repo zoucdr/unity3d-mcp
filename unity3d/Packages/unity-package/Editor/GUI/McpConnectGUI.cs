@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEditor;
 using UnityEngine;
 using System.Threading.Tasks;
@@ -9,12 +9,10 @@ using System.Net;
 using System.Net.NetworkInformation;
 using Debug = UnityEngine.Debug;
 using System.Collections.Generic;
-using UnityMcp.Tools;
+using UnityMcp.Executer;
 using System.Linq;
-using UnityMcp;
-using Newtonsoft.Json;
 
-namespace UnityMcp.Tools
+namespace UnityMcp.Gui
 {
     /// <summary>
     /// MCP连接管理GUI类，提供所有绘制功能的静态方法
@@ -460,15 +458,15 @@ namespace UnityMcp.Tools
             EditorGUILayout.EndHorizontal();
 
             // 确保方法已注册
-            MethodsCall.EnsureMethodsRegisteredStatic();
-            var methodNames = MethodsCall.GetRegisteredMethodNames();
+            ToolsCall.EnsureMethodsRegisteredStatic();
+            var methodNames = ToolsCall.GetRegisteredMethodNames();
 
             // 按分组分类方法
             var methodsByGroup = new Dictionary<string, List<(string methodName, IToolMethod method, string assemblyName)>>();
 
             foreach (var methodName in methodNames)
             {
-                var method = MethodsCall.GetRegisteredMethod(methodName);
+                var method = ToolsCall.GetRegisteredMethod(methodName);
                 if (method == null) continue;
 
                 // 获取分组名称
@@ -933,7 +931,7 @@ namespace UnityMcp.Tools
                     args = GenerateExampleArgs(method)
                 };
 
-                return JsonConvert.SerializeObject(exampleCall, Formatting.Indented);
+                return Json.FromObject(exampleCall);
             }
             catch (Exception e)
             {
@@ -946,7 +944,7 @@ namespace UnityMcp.Tools
                     args = new { }
                 };
 
-                return JsonConvert.SerializeObject(basicCall, Formatting.Indented);
+                return Json.FromObject(basicCall);
             }
         }
 

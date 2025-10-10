@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+﻿using System.Collections.Generic;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     public class MenuUtils
     {
@@ -116,9 +116,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理菜单执行命令
         /// </summary>
-        public static object HandleExecuteMenu(JObject cmd)
+        public static object HandleExecuteMenu(JsonClass cmd)
         {
-            string menuPath = cmd["menu_path"]?.ToString();
+            string menuPath = cmd["menu_path"]?.Value;
 
             if (string.IsNullOrWhiteSpace(menuPath))
             {

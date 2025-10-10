@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -184,16 +184,16 @@ namespace UnityMcp.Tools
                 }
             }
 
-            if (context.TryGetJsonValue("_resolved_targets", out JToken targetToken))
+            if (context.TryGetJsonValue("_resolved_targets", out JsonNode targetToken))
             {
-                if (targetToken is JArray arr && arr.Count > 0)
+                if (targetToken is JsonArray arr && arr.Count > 0)
                 {
-                    int instanceId = arr[0].Value<int>();
+                    int instanceId = arr[0].AsInt;
                     return EditorUtility.InstanceIDToObject(instanceId) as GameObject;
                 }
-                else if (targetToken.Type == JTokenType.Integer)
+                else if (targetToken.type == JsonNodeType.Integer)
                 {
-                    int instanceId = targetToken.Value<int>();
+                    int instanceId = targetToken.AsInt;
                     return EditorUtility.InstanceIDToObject(instanceId) as GameObject;
                 }
             }
@@ -205,8 +205,8 @@ namespace UnityMcp.Tools
 
         private object HandleDefaultAction(StateTreeContext context)
         {
-            JObject args = context.JsonData;
-            if (args.ContainsKey("duration") || args.ContainsKey("start_lifetime") || 
+            JsonClass args = context.JsonData;
+            if (args.ContainsKey("duration") || args.ContainsKey("start_lifetime") ||
                 args.ContainsKey("emission_rate_over_time") || args.ContainsKey("start_color"))
             {
                 return HandleSetPropertiesAction(context);
@@ -224,7 +224,7 @@ namespace UnityMcp.Tools
             {
                 ParticleSystem ps = target.GetComponent<ParticleSystem>();
                 bool isNewComponent = false;
-                
+
                 // 如果不存在粒子系统组件，则添加
                 if (ps == null)
                 {
@@ -237,18 +237,18 @@ namespace UnityMcp.Tools
                     Undo.RecordObject(ps, "Initialize ParticleSystem");
                     LogInfo($"[EditParticleSystem] Found existing ParticleSystem on '{target.name}', initializing properties");
                 }
-                
+
                 // 应用初始属性
-                JObject args = context.JsonData;
-                if (args.HasValues)
+                JsonClass args = context.JsonData;
+                if (args.Count > 0)
                 {
                     ApplyParticleSystemProperties(ps, args);
                 }
-                
-                string message = isNewComponent 
-                    ? $"ParticleSystem added and initialized on '{target.name}'." 
+
+                string message = isNewComponent
+                    ? $"ParticleSystem added and initialized on '{target.name}'."
                     : $"ParticleSystem initialized on '{target.name}'.";
-                    
+
                 return Response.Success(message, GetParticleSystemData(ps));
             }
             catch (Exception e)
@@ -283,9 +283,9 @@ namespace UnityMcp.Tools
             try
             {
                 Undo.RecordObject(ps, "Set ParticleSystem Properties");
-                JObject args = context.JsonData;
+                JsonClass args = context.JsonData;
                 ApplyParticleSystemProperties(ps, args);
-                
+
                 LogInfo($"[EditParticleSystem] Set properties on '{target.name}'");
                 return Response.Success($"ParticleSystem properties updated on '{target.name}'.", GetParticleSystemData(ps));
             }
@@ -305,13 +305,13 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Play(withChildren);
             LogInfo($"[EditParticleSystem] Playing ParticleSystem on '{target.name}'");
-            
-            return Response.Success($"ParticleSystem playing on '{target.name}'.", new JObject
+
+            return Response.Success($"ParticleSystem playing on '{target.name}'.", new JsonClass
             {
                 ["isPlaying"] = ps.isPlaying,
                 ["isPaused"] = ps.isPaused,
@@ -329,13 +329,13 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Pause(withChildren);
             LogInfo($"[EditParticleSystem] Paused ParticleSystem on '{target.name}'");
-            
-            return Response.Success($"ParticleSystem paused on '{target.name}'.", new JObject
+
+            return Response.Success($"ParticleSystem paused on '{target.name}'.", new JsonClass
             {
                 ["isPlaying"] = ps.isPlaying,
                 ["isPaused"] = ps.isPaused
@@ -352,13 +352,13 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Stop(withChildren);
             LogInfo($"[EditParticleSystem] Stopped ParticleSystem on '{target.name}'");
-            
-            return Response.Success($"ParticleSystem stopped on '{target.name}'.", new JObject
+
+            return Response.Success($"ParticleSystem stopped on '{target.name}'.", new JsonClass
             {
                 ["isStopped"] = ps.isStopped
             });
@@ -374,12 +374,12 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Clear(withChildren);
             LogInfo($"[EditParticleSystem] Cleared ParticleSystem on '{target.name}'");
-            
+
             return Response.Success($"ParticleSystem cleared on '{target.name}'.");
         }
 
@@ -393,14 +393,14 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            float time = args["simulate_time"]?.ToObject<float>() ?? 1.0f;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            float time = args["simulate_time"].AsFloatDefault(1.0f);
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Simulate(time, withChildren, true);
             LogInfo($"[EditParticleSystem] Simulated {time}s on '{target.name}'");
-            
-            return Response.Success($"ParticleSystem simulated {time}s on '{target.name}'.", new JObject
+
+            return Response.Success($"ParticleSystem simulated {time}s on '{target.name}'.", new JsonClass
             {
                 ["time"] = ps.time,
                 ["particleCount"] = ps.particleCount
@@ -417,298 +417,298 @@ namespace UnityMcp.Tools
             if (ps == null)
                 return Response.Error($"No ParticleSystem found on '{target.name}'.");
 
-            JObject args = context.JsonData;
-            bool withChildren = args["with_children"]?.ToObject<bool>() ?? true;
+            JsonClass args = context.JsonData;
+            bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Stop(withChildren);
             ps.Clear(withChildren);
             ps.Play(withChildren);
-            
+
             LogInfo($"[EditParticleSystem] Restarted ParticleSystem on '{target.name}'");
             return Response.Success($"ParticleSystem restarted on '{target.name}'.");
         }
 
         // --- 属性应用和获取方法 ---
 
-        private void ApplyParticleSystemProperties(ParticleSystem ps, JObject args)
+        private void ApplyParticleSystemProperties(ParticleSystem ps, JsonClass args)
         {
             var main = ps.main;
-            
+
             // 主模块属性
-            if (args.TryGetValue("duration", out JToken durationToken))
-                main.duration = durationToken.ToObject<float>();
-            
-            if (args.TryGetValue("looping", out JToken loopingToken))
-                main.loop = loopingToken.ToObject<bool>();
-            
-            if (args.TryGetValue("prewarm", out JToken prewarmToken))
-                main.prewarm = prewarmToken.ToObject<bool>();
-            
-            if (args.TryGetValue("start_delay", out JToken delayToken))
-                main.startDelay = delayToken.ToObject<float>();
-            
-            if (args.TryGetValue("start_lifetime", out JToken lifetimeToken))
-                main.startLifetime = lifetimeToken.ToObject<float>();
-            
-            if (args.TryGetValue("start_speed", out JToken speedToken))
-                main.startSpeed = speedToken.ToObject<float>();
-            
-            if (args.TryGetValue("start_size", out JToken sizeToken))
-                main.startSize = sizeToken.ToObject<float>();
-            
-            if (args.TryGetValue("start_rotation", out JToken rotationToken))
-                main.startRotation = rotationToken.ToObject<float>() * Mathf.Deg2Rad;
-            
-            if (args.TryGetValue("start_color", out JToken colorToken))
+            if (args.TryGetValue("duration", out JsonNode durationToken))
+                main.duration = durationToken.AsFloat;
+
+            if (args.TryGetValue("looping", out JsonNode loopingToken))
+                main.loop = loopingToken.AsBool;
+
+            if (args.TryGetValue("prewarm", out JsonNode prewarmToken))
+                main.prewarm = prewarmToken.AsBool;
+
+            if (args.TryGetValue("start_delay", out JsonNode delayToken))
+                main.startDelay = delayToken.AsFloat;
+
+            if (args.TryGetValue("start_lifetime", out JsonNode lifetimeToken))
+                main.startLifetime = lifetimeToken.AsFloat;
+
+            if (args.TryGetValue("start_speed", out JsonNode speedToken))
+                main.startSpeed = speedToken.AsFloat;
+
+            if (args.TryGetValue("start_size", out JsonNode sizeToken))
+                main.startSize = sizeToken.AsFloat;
+
+            if (args.TryGetValue("start_rotation", out JsonNode rotationToken))
+                main.startRotation = rotationToken.AsFloat * Mathf.Deg2Rad;
+
+            if (args.TryGetValue("start_color", out JsonNode colorToken))
             {
-                var colorArray = colorToken.ToObject<float[]>();
-                if (colorArray != null && colorArray.Length >= 3)
+                JsonArray colorJsonArray = colorToken as JsonArray;
+                if (colorJsonArray != null && colorJsonArray.Count >= 3)
                 {
                     main.startColor = new Color(
-                        colorArray[0],
-                        colorArray[1],
-                        colorArray[2],
-                        colorArray.Length > 3 ? colorArray[3] : 1.0f
+                        colorJsonArray[0].AsFloat,
+                        colorJsonArray[1].AsFloat,
+                        colorJsonArray[2].AsFloat,
+                        colorJsonArray.Count > 3 ? colorJsonArray[3].AsFloat : 1.0f
                     );
                 }
             }
-            
-            if (args.TryGetValue("gravity_modifier", out JToken gravityToken))
-                main.gravityModifier = gravityToken.ToObject<float>();
-            
-            if (args.TryGetValue("simulation_space", out JToken simSpaceToken))
+
+            if (args.TryGetValue("gravity_modifier", out JsonNode gravityToken))
+                main.gravityModifier = gravityToken.AsFloat;
+
+            if (args.TryGetValue("simulation_space", out JsonNode simSpaceToken))
             {
-                if (Enum.TryParse(simSpaceToken.ToString(), out ParticleSystemSimulationSpace simSpace))
+                if (Enum.TryParse(simSpaceToken.Value, out ParticleSystemSimulationSpace simSpace))
                     main.simulationSpace = simSpace;
             }
-            
-            if (args.TryGetValue("simulation_speed", out JToken simSpeedToken))
-                main.simulationSpeed = simSpeedToken.ToObject<float>();
-            
-            if (args.TryGetValue("scaling_mode", out JToken scalingToken))
+
+            if (args.TryGetValue("simulation_speed", out JsonNode simSpeedToken))
+                main.simulationSpeed = simSpeedToken.AsFloat;
+
+            if (args.TryGetValue("scaling_mode", out JsonNode scalingToken))
             {
-                if (Enum.TryParse(scalingToken.ToString(), out ParticleSystemScalingMode scalingMode))
+                if (Enum.TryParse(scalingToken.Value, out ParticleSystemScalingMode scalingMode))
                     main.scalingMode = scalingMode;
             }
-            
-            if (args.TryGetValue("play_on_awake", out JToken playOnAwakeToken))
-                main.playOnAwake = playOnAwakeToken.ToObject<bool>();
-            
-            if (args.TryGetValue("max_particles", out JToken maxParticlesToken))
-                main.maxParticles = maxParticlesToken.ToObject<int>();
-            
+
+            if (args.TryGetValue("play_on_awake", out JsonNode playOnAwakeToken))
+                main.playOnAwake = playOnAwakeToken.AsBool;
+
+            if (args.TryGetValue("max_particles", out JsonNode maxParticlesToken))
+                main.maxParticles = maxParticlesToken.AsInt;
+
             // 发射模块
-            if (args.ContainsKey("emission_enabled") || args.ContainsKey("emission_rate_over_time") || 
+            if (args.ContainsKey("emission_enabled") || args.ContainsKey("emission_rate_over_time") ||
                 args.ContainsKey("emission_rate_over_distance"))
             {
                 var emission = ps.emission;
-                
-                if (args.TryGetValue("emission_enabled", out JToken emissionEnabledToken))
-                    emission.enabled = emissionEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("emission_rate_over_time", out JToken rateTimeToken))
-                    emission.rateOverTime = rateTimeToken.ToObject<float>();
-                
-                if (args.TryGetValue("emission_rate_over_distance", out JToken rateDistToken))
-                    emission.rateOverDistance = rateDistToken.ToObject<float>();
+
+                if (args.TryGetValue("emission_enabled", out JsonNode emissionEnabledToken))
+                    emission.enabled = emissionEnabledToken.AsBool;
+
+                if (args.TryGetValue("emission_rate_over_time", out JsonNode rateTimeToken))
+                    emission.rateOverTime = rateTimeToken.AsFloat;
+
+                if (args.TryGetValue("emission_rate_over_distance", out JsonNode rateDistToken))
+                    emission.rateOverDistance = rateDistToken.AsFloat;
             }
-            
+
             // 形状模块
-            if (args.ContainsKey("shape_enabled") || args.ContainsKey("shape_type") || 
+            if (args.ContainsKey("shape_enabled") || args.ContainsKey("shape_type") ||
                 args.ContainsKey("shape_radius") || args.ContainsKey("shape_angle"))
             {
                 var shape = ps.shape;
-                
-                if (args.TryGetValue("shape_enabled", out JToken shapeEnabledToken))
-                    shape.enabled = shapeEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("shape_type", out JToken shapeTypeToken))
+
+                if (args.TryGetValue("shape_enabled", out JsonNode shapeEnabledToken))
+                    shape.enabled = shapeEnabledToken.AsBool;
+
+                if (args.TryGetValue("shape_type", out JsonNode shapeTypeToken))
                 {
-                    if (Enum.TryParse(shapeTypeToken.ToString(), out ParticleSystemShapeType shapeType))
+                    if (Enum.TryParse(shapeTypeToken.Value, out ParticleSystemShapeType shapeType))
                         shape.shapeType = shapeType;
                 }
-                
-                if (args.TryGetValue("shape_angle", out JToken angleToken))
-                    shape.angle = angleToken.ToObject<float>();
-                
-                if (args.TryGetValue("shape_radius", out JToken radiusToken))
-                    shape.radius = radiusToken.ToObject<float>();
-                
-                if (args.TryGetValue("shape_arc", out JToken arcToken))
-                    shape.arc = arcToken.ToObject<float>();
-                
-                if (args.TryGetValue("shape_random_direction", out JToken randomDirToken))
-                    shape.randomDirectionAmount = randomDirToken.ToObject<float>();
+
+                if (args.TryGetValue("shape_angle", out JsonNode angleToken))
+                    shape.angle = angleToken.AsFloat;
+
+                if (args.TryGetValue("shape_radius", out JsonNode radiusToken))
+                    shape.radius = radiusToken.AsFloat;
+
+                if (args.TryGetValue("shape_arc", out JsonNode arcToken))
+                    shape.arc = arcToken.AsFloat;
+
+                if (args.TryGetValue("shape_random_direction", out JsonNode randomDirToken))
+                    shape.randomDirectionAmount = randomDirToken.AsFloat;
             }
-            
+
             // 速度模块
             if (args.ContainsKey("velocity_over_lifetime_enabled") || args.ContainsKey("velocity_linear"))
             {
                 var velocity = ps.velocityOverLifetime;
-                
-                if (args.TryGetValue("velocity_over_lifetime_enabled", out JToken velEnabledToken))
-                    velocity.enabled = velEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("velocity_linear", out JToken linearToken))
+
+                if (args.TryGetValue("velocity_over_lifetime_enabled", out JsonNode velEnabledToken))
+                    velocity.enabled = velEnabledToken.AsBool;
+
+                if (args.TryGetValue("velocity_linear", out JsonNode linearToken))
                 {
-                    var linear = linearToken.ToObject<float[]>();
-                    if (linear != null && linear.Length >= 3)
+                    JsonArray linearArray = linearToken as JsonArray;
+                    if (linearArray != null && linearArray.Count >= 3)
                     {
-                        velocity.x = linear[0];
-                        velocity.y = linear[1];
-                        velocity.z = linear[2];
+                        velocity.x = linearArray[0].AsFloat;
+                        velocity.y = linearArray[1].AsFloat;
+                        velocity.z = linearArray[2].AsFloat;
                     }
                 }
-                
-                if (args.TryGetValue("velocity_orbital", out JToken orbitalToken))
+
+                if (args.TryGetValue("velocity_orbital", out JsonNode orbitalToken))
                 {
-                    var orbital = orbitalToken.ToObject<float[]>();
-                    if (orbital != null && orbital.Length >= 3)
+                    JsonArray orbitalArray = orbitalToken as JsonArray;
+                    if (orbitalArray != null && orbitalArray.Count >= 3)
                     {
-                        velocity.orbitalX = orbital[0];
-                        velocity.orbitalY = orbital[1];
-                        velocity.orbitalZ = orbital[2];
+                        velocity.orbitalX = orbitalArray[0].AsFloat;
+                        velocity.orbitalY = orbitalArray[1].AsFloat;
+                        velocity.orbitalZ = orbitalArray[2].AsFloat;
                     }
                 }
             }
-            
+
             // 颜色模块
             if (args.ContainsKey("color_over_lifetime_enabled"))
             {
                 var colorOverLifetime = ps.colorOverLifetime;
-                
-                if (args.TryGetValue("color_over_lifetime_enabled", out JToken colorEnabledToken))
-                    colorOverLifetime.enabled = colorEnabledToken.ToObject<bool>();
+
+                if (args.TryGetValue("color_over_lifetime_enabled", out JsonNode colorEnabledToken))
+                    colorOverLifetime.enabled = colorEnabledToken.AsBool;
             }
-            
+
             // 大小模块
             if (args.ContainsKey("size_over_lifetime_enabled"))
             {
                 var sizeOverLifetime = ps.sizeOverLifetime;
-                
-                if (args.TryGetValue("size_over_lifetime_enabled", out JToken sizeEnabledToken))
-                    sizeOverLifetime.enabled = sizeEnabledToken.ToObject<bool>();
+
+                if (args.TryGetValue("size_over_lifetime_enabled", out JsonNode sizeEnabledToken))
+                    sizeOverLifetime.enabled = sizeEnabledToken.AsBool;
             }
-            
+
             // 旋转模块
             if (args.ContainsKey("rotation_over_lifetime_enabled") || args.ContainsKey("rotation_angular_velocity"))
             {
                 var rotationOverLifetime = ps.rotationOverLifetime;
-                
-                if (args.TryGetValue("rotation_over_lifetime_enabled", out JToken rotEnabledToken))
-                    rotationOverLifetime.enabled = rotEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("rotation_angular_velocity", out JToken angVelToken))
-                    rotationOverLifetime.z = angVelToken.ToObject<float>() * Mathf.Deg2Rad;
+
+                if (args.TryGetValue("rotation_over_lifetime_enabled", out JsonNode rotEnabledToken))
+                    rotationOverLifetime.enabled = rotEnabledToken.AsBool;
+
+                if (args.TryGetValue("rotation_angular_velocity", out JsonNode angVelToken))
+                    rotationOverLifetime.z = angVelToken.AsFloat * Mathf.Deg2Rad;
             }
-            
+
             // 碰撞模块
             if (args.ContainsKey("collision_enabled") || args.ContainsKey("collision_type"))
             {
                 var collision = ps.collision;
-                
-                if (args.TryGetValue("collision_enabled", out JToken collisionEnabledToken))
-                    collision.enabled = collisionEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("collision_type", out JToken collisionTypeToken))
+
+                if (args.TryGetValue("collision_enabled", out JsonNode collisionEnabledToken))
+                    collision.enabled = collisionEnabledToken.AsBool;
+
+                if (args.TryGetValue("collision_type", out JsonNode collisionTypeToken))
                 {
-                    if (Enum.TryParse(collisionTypeToken.ToString(), out ParticleSystemCollisionType collisionType))
+                    if (Enum.TryParse(collisionTypeToken.Value, out ParticleSystemCollisionType collisionType))
                         collision.type = collisionType;
                 }
-                
-                if (args.TryGetValue("collision_dampen", out JToken dampenToken))
-                    collision.dampen = dampenToken.ToObject<float>();
-                
-                if (args.TryGetValue("collision_bounce", out JToken bounceToken))
-                    collision.bounce = bounceToken.ToObject<float>();
+
+                if (args.TryGetValue("collision_dampen", out JsonNode dampenToken))
+                    collision.dampen = dampenToken.AsFloat;
+
+                if (args.TryGetValue("collision_bounce", out JsonNode bounceToken))
+                    collision.bounce = bounceToken.AsFloat;
             }
-            
+
             // 噪声模块
             if (args.ContainsKey("noise_enabled") || args.ContainsKey("noise_strength"))
             {
                 var noise = ps.noise;
-                
-                if (args.TryGetValue("noise_enabled", out JToken noiseEnabledToken))
-                    noise.enabled = noiseEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("noise_strength", out JToken strengthToken))
-                    noise.strength = strengthToken.ToObject<float>();
-                
-                if (args.TryGetValue("noise_frequency", out JToken freqToken))
-                    noise.frequency = freqToken.ToObject<float>();
+
+                if (args.TryGetValue("noise_enabled", out JsonNode noiseEnabledToken))
+                    noise.enabled = noiseEnabledToken.AsBool;
+
+                if (args.TryGetValue("noise_strength", out JsonNode strengthToken))
+                    noise.strength = strengthToken.AsFloat;
+
+                if (args.TryGetValue("noise_frequency", out JsonNode freqToken))
+                    noise.frequency = freqToken.AsFloat;
             }
-            
+
             // 渲染器属性
             ParticleSystemRenderer renderer = ps.GetComponent<ParticleSystemRenderer>();
             if (renderer != null)
             {
-                if (args.TryGetValue("render_mode", out JToken renderModeToken))
+                if (args.TryGetValue("render_mode", out JsonNode renderModeToken))
                 {
-                    if (Enum.TryParse(renderModeToken.ToString(), out ParticleSystemRenderMode renderMode))
+                    if (Enum.TryParse(renderModeToken.Value, out ParticleSystemRenderMode renderMode))
                         renderer.renderMode = renderMode;
                 }
-                
-                if (args.TryGetValue("material", out JToken materialToken))
+
+                if (args.TryGetValue("material", out JsonNode materialToken))
                 {
-                    string materialPath = materialToken.ToString();
+                    string materialPath = materialToken.Value;
                     Material mat = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
                     if (mat != null)
                         renderer.material = mat;
                 }
-                
-                if (args.TryGetValue("sorting_layer", out JToken sortingLayerToken))
-                    renderer.sortingLayerName = sortingLayerToken.ToString();
-                
-                if (args.TryGetValue("sorting_order", out JToken sortingOrderToken))
-                    renderer.sortingOrder = sortingOrderToken.ToObject<int>();
+
+                if (args.TryGetValue("sorting_layer", out JsonNode sortingLayerToken))
+                    renderer.sortingLayerName = sortingLayerToken.Value;
+
+                if (args.TryGetValue("sorting_order", out JsonNode sortingOrderToken))
+                    renderer.sortingOrder = sortingOrderToken.AsInt;
             }
-            
+
             // 纹理表动画
             if (args.ContainsKey("texture_sheet_animation_enabled") || args.ContainsKey("texture_sheet_tiles"))
             {
                 var textureSheet = ps.textureSheetAnimation;
-                
-                if (args.TryGetValue("texture_sheet_animation_enabled", out JToken texSheetEnabledToken))
-                    textureSheet.enabled = texSheetEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("texture_sheet_tiles", out JToken tilesToken))
+
+                if (args.TryGetValue("texture_sheet_animation_enabled", out JsonNode texSheetEnabledToken))
+                    textureSheet.enabled = texSheetEnabledToken.AsBool;
+
+                if (args.TryGetValue("texture_sheet_tiles", out JsonNode tilesToken))
                 {
-                    var tiles = tilesToken.ToObject<int[]>();
-                    if (tiles != null && tiles.Length >= 2)
+                    JsonArray tilesArray = tilesToken as JsonArray;
+                    if (tilesArray != null && tilesArray.Count >= 2)
                     {
-                        textureSheet.numTilesX = tiles[0];
-                        textureSheet.numTilesY = tiles[1];
+                        textureSheet.numTilesX = tilesArray[0].AsInt;
+                        textureSheet.numTilesY = tilesArray[1].AsInt;
                     }
                 }
-                
-                if (args.TryGetValue("texture_sheet_fps", out JToken fpsToken))
-                    textureSheet.fps = fpsToken.ToObject<float>();
+
+                if (args.TryGetValue("texture_sheet_fps", out JsonNode fpsToken))
+                    textureSheet.fps = fpsToken.AsFloat;
             }
-            
+
             // 拖尾模块
             if (args.ContainsKey("trails_enabled") || args.ContainsKey("trails_ratio"))
             {
                 var trails = ps.trails;
-                
-                if (args.TryGetValue("trails_enabled", out JToken trailsEnabledToken))
-                    trails.enabled = trailsEnabledToken.ToObject<bool>();
-                
-                if (args.TryGetValue("trails_ratio", out JToken ratioToken))
-                    trails.ratio = ratioToken.ToObject<float>();
-                
-                if (args.TryGetValue("trails_lifetime", out JToken trailLifetimeToken))
-                    trails.lifetime = trailLifetimeToken.ToObject<float>();
+
+                if (args.TryGetValue("trails_enabled", out JsonNode trailsEnabledToken))
+                    trails.enabled = trailsEnabledToken.AsBool;
+
+                if (args.TryGetValue("trails_ratio", out JsonNode ratioToken))
+                    trails.ratio = ratioToken.AsFloat;
+
+                if (args.TryGetValue("trails_lifetime", out JsonNode trailLifetimeToken))
+                    trails.lifetime = trailLifetimeToken.AsFloat;
             }
         }
 
-        private JObject GetParticleSystemData(ParticleSystem ps)
+        private JsonClass GetParticleSystemData(ParticleSystem ps)
         {
             var main = ps.main;
             var emission = ps.emission;
             var shape = ps.shape;
             var renderer = ps.GetComponent<ParticleSystemRenderer>();
-            
-            var data = new JObject
+
+            var data = new JsonClass
             {
                 ["name"] = ps.name,
                 ["isPlaying"] = ps.isPlaying,
@@ -716,9 +716,9 @@ namespace UnityMcp.Tools
                 ["isStopped"] = ps.isStopped,
                 ["time"] = ps.time,
                 ["particleCount"] = ps.particleCount,
-                
+
                 // 主模块
-                ["main"] = new JObject
+                ["main"] = new JsonClass
                 {
                     ["duration"] = main.duration,
                     ["looping"] = main.loop,
@@ -728,12 +728,12 @@ namespace UnityMcp.Tools
                     ["startSpeed"] = main.startSpeed.constant,
                     ["startSize"] = main.startSize.constant,
                     ["startRotation"] = main.startRotation.constant * Mathf.Rad2Deg,
-                    ["startColor"] = new JArray 
-                    { 
-                        main.startColor.color.r, 
-                        main.startColor.color.g, 
-                        main.startColor.color.b, 
-                        main.startColor.color.a 
+                    ["startColor"] = new JsonArray
+                    {
+                        main.startColor.color.r,
+                        main.startColor.color.g,
+                        main.startColor.color.b,
+                        main.startColor.color.a
                     },
                     ["gravityModifier"] = main.gravityModifier.constant,
                     ["simulationSpace"] = main.simulationSpace.ToString(),
@@ -742,17 +742,17 @@ namespace UnityMcp.Tools
                     ["playOnAwake"] = main.playOnAwake,
                     ["maxParticles"] = main.maxParticles
                 },
-                
+
                 // 发射模块
-                ["emission"] = new JObject
+                ["emission"] = new JsonClass
                 {
                     ["enabled"] = emission.enabled,
                     ["rateOverTime"] = emission.rateOverTime.constant,
                     ["rateOverDistance"] = emission.rateOverDistance.constant
                 },
-                
+
                 // 形状模块
-                ["shape"] = new JObject
+                ["shape"] = new JsonClass
                 {
                     ["enabled"] = shape.enabled,
                     ["shapeType"] = shape.shapeType.ToString(),
@@ -761,10 +761,10 @@ namespace UnityMcp.Tools
                     ["arc"] = shape.arc
                 }
             };
-            
+
             if (renderer != null)
             {
-                data["renderer"] = new JObject
+                data["renderer"] = new JsonClass
                 {
                     ["renderMode"] = renderer.renderMode.ToString(),
                     ["materialName"] = renderer.sharedMaterial?.name,
@@ -772,7 +772,7 @@ namespace UnityMcp.Tools
                     ["sortingOrder"] = renderer.sortingOrder
                 };
             }
-            
+
             return data;
         }
 
@@ -795,4 +795,4 @@ namespace UnityMcp.Tools
             return path;
         }
     }
-} 
+}

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityMcp;
 using UnityEngine.Networking;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// 主线程执行器，用于确保代码在Unity主线程上执行

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+// Migrated from Newtonsoft.Json to SimpleJson
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     public class StateTreeBuilder
     {
@@ -49,7 +49,7 @@ namespace UnityMcp.Tools
         {
             return Branch(StateTree.Default);
         }
-        public StateTreeBuilder Leaf(object edgeKey, Func<JObject, object> action)
+        public StateTreeBuilder Leaf(object edgeKey, Func<JsonClass, object> action)
         {
             // 防止null key导致异常
             if (edgeKey == null)
@@ -77,7 +77,7 @@ namespace UnityMcp.Tools
             return Leaf(StateTree.Default, action);
         }
 
-        public StateTreeBuilder DefaultLeaf(Func<JObject, object> action)
+        public StateTreeBuilder DefaultLeaf(Func<JsonClass, object> action)
         {
             return Leaf(StateTree.Default, action);
         }
@@ -87,7 +87,7 @@ namespace UnityMcp.Tools
         /// </summary>
         /// <param name="parameterName">要检查的参数名</param>
         /// <param name="action">参数存在时执行的动作</param>
-        public StateTreeBuilder OptionalLeaf(string parameterName, Func<JObject, object> action)
+        public StateTreeBuilder OptionalLeaf(string parameterName, Func<JsonClass, object> action)
         {
             // 直接使用参数名作为key，并添加到可选参数集合中
             Current.select[parameterName] = (StateTree)action;
@@ -162,7 +162,7 @@ namespace UnityMcp.Tools
             return Up().Leaf(edgeKey, action);
         }
 
-        public StateTreeBuilder ULeaf(object edgeKey, Func<JObject, object> action)
+        public StateTreeBuilder ULeaf(object edgeKey, Func<JsonClass, object> action)
         {
             return Up().Leaf(edgeKey, action);
         }

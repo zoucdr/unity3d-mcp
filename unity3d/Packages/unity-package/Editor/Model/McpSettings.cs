@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityMcp.Gui;
 
-namespace UnityMcp.Tools
+namespace UnityMcp
 {
     /// <summary>
     /// MCP设置管理器，用于管理MCP相关的配置和偏好设置
@@ -14,7 +15,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// UI设置
         /// </summary>
-        public McpUISettingsProvider uiSettings;
+        public McpUISettings uiSettings;
 
         /// <summary>
         /// Figma设置

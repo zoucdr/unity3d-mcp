@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿// Migrated from Newtonsoft.Json to SimpleJson
 
 namespace UnityMcp.Models
 {
@@ -13,9 +13,9 @@ namespace UnityMcp.Models
         public string type { get; set; }
 
         /// <summary>
-        /// The args for the command
+        /// The args for the command (migrated from JsonClass to JsonClass)
         /// </summary>
-        public JObject cmd { get; set; }
+        public JsonNode cmd { get; set; }
     }
 }
 
