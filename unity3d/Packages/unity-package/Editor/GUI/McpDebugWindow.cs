@@ -1334,7 +1334,7 @@ namespace UnityMcp.Gui
                 }
                 else
                 {
-                    formattedResult += result.ToString();
+                    formattedResult += result.ToPrettyString("  ");
                 }
             }
             else

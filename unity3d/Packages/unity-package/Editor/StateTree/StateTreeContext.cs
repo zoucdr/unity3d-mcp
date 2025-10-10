@@ -42,7 +42,6 @@ namespace UnityMcp
         /// <param name="completeAction"></param>
         public void RegistComplete(Action<JsonNode> completeAction)
         {
-            UnityEngine.Debug.LogError($"[StateTreeContext] RegistComplete: {completeAction}");
             CompleteAction = completeAction;
             if (Result != null)
             {
@@ -55,7 +54,6 @@ namespace UnityMcp
         /// <param name="result"></param>
         public void Complete(JsonNode result)
         {
-            UnityEngine.Debug.LogError($"[StateTreeContext] Complete: {result}");
             if (Result == null)
             {
                 Result = result;

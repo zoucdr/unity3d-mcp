@@ -671,7 +671,7 @@ namespace UnityMcp
                     var response = new
                     {
                         status = "success",
-                        result = result
+                        result = Json.FromObject(result)
                     };
                     // Standard success response format
                     Log($"[UnityMcp] 命令执行成功: Type={command.type}");
@@ -679,7 +679,7 @@ namespace UnityMcp
                     string re;
                     try
                     {
-                        re = Json.FromObject((object)response);
+                        re = Json.FromObject((object)response).ToString();
                         Log($"[UnityMcp] 工具执行完成，结果: {re}");
                     }
                     catch (Exception serEx)
@@ -693,8 +693,6 @@ namespace UnityMcp
                             details = result?.GetType().ToString() ?? "null"
                         }));
                     }
-                    // 设置结果
-                    tcs.SetResult(re);
                     // 记录执行结果到McpExecuteRecordObject
                     try
                     {
@@ -707,12 +705,10 @@ namespace UnityMcp
                         {
                             // function_call: 记录具体的func和args
                             cmdName = "single_call." + paramsObject["func"]?.Value ?? "Unknown";
-                            argsString = paramsObject.ToString();
+                            argsString = paramsObject.ToPrettyString();
                         }
-                        else if (command.cmd is JsonArray funcsArray)
+                        else if (command.type == "batch_call" && paramsObject is JsonArray funcsArray)
                         {
-                            // functions_call: 记录command类型和funcs数组
-                            // 解析funcs数组，拼接所有func字段
                             if (funcsArray != null)
                             {
                                 var funcNames = new List<string>();
@@ -741,14 +737,14 @@ namespace UnityMcp
                             {
                                 cmdName = "batch_call.[*]";
                             }
-                            argsString = paramsObject.ToString();
+                            argsString = paramsObject.ToPrettyString();
                         }
                         else
                         {
                             // 其他命令类型: 使用默认方式
                             cmdName = command.type;
                             // 修正为标准JSON格式
-                            argsString = Json.FromObject((object)(new { func = cmdName, args = paramsObject }));
+                            argsString = Json.FromObject((object)(new { func = cmdName, args = paramsObject })).ToPrettyString();
                         }
 
                         recordObject.addRecord(
@@ -796,33 +792,46 @@ namespace UnityMcp
                 {
                     var recordObject = McpExecuteRecordObject.instance;
 
-                    // 根据命令类型决定记录方式
-                    string funcName;
+                    string cmdName;
                     string argsString;
 
-                    if (command?.type == "function_call")
+                    if (command?.type == "single_call" && command.cmd is JsonClass singleCallParams)
                     {
-                        // function_call: 记录具体的func和args
-                        var cmd = command?.cmd;
-                        funcName = cmd?["func"]?.Value ?? "Unknown";
-                        argsString = cmd?["args"]?.Value ?? "{}";
+                        cmdName = "single_call." + (singleCallParams["func"]?.Value ?? "Unknown");
+                        argsString = singleCallParams.ToPrettyString();
                     }
-                    else if (command?.type == "functions_call")
+                    else if (command?.type == "batch_call" && command.cmd is JsonArray funcsArray)
                     {
-                        // functions_call: 记录command类型和funcs数组
-                        funcName = "functions_call";
-                        var cmd = command?.cmd;
-                        argsString = cmd?["funcs"]?.Value ?? "[]";
+                        // batch_call 记录func名拼接
+                        var funcNames = new List<string>();
+                        foreach (JsonNode funcObj in funcsArray.Childs)
+                        {
+                            var funcNode = funcObj as JsonClass;
+                            if (funcNode != null)
+                            {
+                                var funcName = funcNode["func"]?.Value;
+                                if (!string.IsNullOrEmpty(funcName))
+                                    funcNames.Add(funcName);
+                            }
+                        }
+                        if (funcNames.Count > 2)
+                        {
+                            cmdName = $"batch_call.[{string.Join(",", funcNames.Take(2))}...]";
+                        }
+                        else
+                        {
+                            cmdName = $"batch_call.[{string.Join(",", funcNames)}]";
+                        }
+                        argsString = funcsArray.ToPrettyString();
                     }
                     else
                     {
-                        // 其他命令类型: 使用默认方式
-                        funcName = command?.type ?? "Unknown";
-                        argsString = command?.cmd != null ? command.cmd.Value : "{}";
+                        cmdName = command?.type ?? "Unknown";
+                        argsString = command?.cmd != null ? command.cmd.ToPrettyString() : "{}";
                     }
 
                     recordObject.addRecord(
-                        funcName,
+                        cmdName,
                         argsString,
                         "",
                         ex.Message,
@@ -901,9 +910,8 @@ namespace UnityMcp
                 var command = new Command
                 {
                     type = jsonObj["type"]?.Value,
-                    cmd = jsonObj["args"].ToObject() ?? jsonObj["cmd"].ToObject()
+                    cmd = jsonObj["cmd"]
                 };
-
                 return command;
             }
             catch (Exception ex)

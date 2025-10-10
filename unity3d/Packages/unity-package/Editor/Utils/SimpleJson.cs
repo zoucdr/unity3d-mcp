@@ -61,6 +61,27 @@ namespace UnityMcp
             return "JsonNode";
         }
 
+        /// <summary>
+        /// 格式化输出 JSON，带有自动换行和缩进，方便阅读
+        /// </summary>
+        /// <param name="indent">缩进字符，默认为4个空格</param>
+        /// <returns>格式化后的 JSON 字符串</returns>
+        public string ToPrettyString(string indent = "    ")
+        {
+            return ToPrettyStringInternal(0, indent);
+        }
+
+        /// <summary>
+        /// 格式化输出 JSON 的内部递归方法
+        /// </summary>
+        /// <param name="level">当前缩进层级</param>
+        /// <param name="indent">缩进字符</param>
+        /// <returns>格式化后的 JSON 字符串</returns>
+        public virtual string ToPrettyStringInternal(int level, string indent)
+        {
+            return ToString();
+        }
+
         #endregion common interface
 
         #region typecasting properties
@@ -921,6 +942,33 @@ return LoadFromCompressedStream(stream);
             result += "\n" + aPrefix + "]";
             return result;
         }
+
+        public override string ToPrettyStringInternal(int level, string indent)
+        {
+            if (m_List.Count == 0)
+                return "[]";
+
+            var currentIndent = new string(' ', level * indent.Length);
+            var nextIndent = new string(' ', (level + 1) * indent.Length);
+            var result = new System.Text.StringBuilder("[\n");
+
+            bool first = true;
+            foreach (JsonNode node in m_List)
+            {
+                if (!first)
+                    result.Append(",\n");
+                first = false;
+
+                result.Append(nextIndent);
+                result.Append(node.ToPrettyStringInternal(level + 1, indent));
+            }
+
+            result.Append("\n");
+            result.Append(currentIndent);
+            result.Append("]");
+            return result.ToString();
+        }
+
         public override void Serialize(System.IO.BinaryWriter aWriter)
         {
             aWriter.Write((byte)JsonBinaryTag.Array);
@@ -1078,6 +1126,35 @@ return LoadFromCompressedStream(stream);
             result += "\n" + aPrefix + "}";
             return result;
         }
+
+        public override string ToPrettyStringInternal(int level, string indent)
+        {
+            if (m_Dict.Count == 0)
+                return "{}";
+
+            var currentIndent = new string(' ', level * indent.Length);
+            var nextIndent = new string(' ', (level + 1) * indent.Length);
+            var result = new System.Text.StringBuilder("{\n");
+
+            bool first = true;
+            foreach (KeyValuePair<string, JsonNode> kvp in m_Dict)
+            {
+                if (!first)
+                    result.Append(",\n");
+                first = false;
+
+                result.Append(nextIndent);
+                result.Append("\"");
+                result.Append(Escape(kvp.Key));
+                result.Append("\": ");
+                result.Append(kvp.Value.ToPrettyStringInternal(level + 1, indent));
+            }
+
+            result.Append("\n");
+            result.Append(currentIndent);
+            result.Append("}");
+            return result.ToString();
+        }
         public override void Serialize(System.IO.BinaryWriter aWriter)
         {
             aWriter.Write((byte)JsonBinaryTag.Class);
@@ -1187,6 +1264,11 @@ return LoadFromCompressedStream(stream);
         public override string ToString(string aPrefix)
         {
             return "\"" + Escape(m_Data) + "\"";
+        }
+
+        public override string ToPrettyStringInternal(int level, string indent)
+        {
+            return ToString();
         }
 
         // 隐式转换操作符，支持从基本类型转换为 JsonData
@@ -1540,24 +1622,46 @@ return LoadFromCompressedStream(stream);
             // 特殊处理匿名类型和具有属性的对象
             if (obj.GetType().IsClass && !(obj is string))
             {
-                var fields = obj.GetType().GetFields();
-                if (fields.Length > 0)
+                var type = obj.GetType();
+
+                var jsonObj = new JsonClass();
+
+                // 处理字段
+                var fields = type.GetFields();
+                foreach (var field in fields)
                 {
-                    var jsonObj = new JsonClass();
-                    foreach (var field in fields)
+                    try
                     {
-                        try
-                        {
-                            var value = field.GetValue(obj);
-                            jsonObj.Add(field.Name, FromObject(value));
-                        }
-                        catch (Exception ex)
-                        {
-                            // 处理字段访问异常，确保序列化过程不会中断
-                            UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问字段 {field.Name}: {ex.Message}");
-                            jsonObj.Add(field.Name, new JsonData("null"));
-                        }
+                        var value = field.GetValue(obj);
+                        jsonObj.Add(field.Name, FromObject(value));
                     }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问字段 {field.Name}: {ex.Message}");
+                        jsonObj.Add(field.Name, new JsonData("null"));
+                    }
+                }
+
+                // 处理属性
+                var properties = type.GetProperties();
+                foreach (var prop in properties)
+                {
+                    // 只处理可读且不是索引器的属性
+                    if (!prop.CanRead || prop.GetIndexParameters().Length > 0) continue;
+                    try
+                    {
+                        var value = prop.GetValue(obj, null);
+                        jsonObj.Add(prop.Name, FromObject(value));
+                    }
+                    catch (Exception ex)
+                    {
+                        UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问属性 {prop.Name}: {ex.Message}");
+                        jsonObj.Add(prop.Name, new JsonData("null"));
+                    }
+                }
+
+                if (jsonObj.Count > 0)
+                {
                     return jsonObj;
                 }
             }
