@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Unity3d MCP - AI驱动的Unity开发工作流，通过自然语言控制Unity编辑器">
+    <meta name="keywords" content="Unity, MCP, AI, Game Development, Automation">
+    <title>Unity3d MCP - AI驱动的Unity开发工作流</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 背景动画 -->
+    <div class="background-animation">
+        <div class="gradient-bg"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <span class="logo-icon">🎮</span>
+                    <span class="logo-text">Unity3d MCP</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#features">特性</a></li>
+                    <li><a href="#architecture">架构</a></li>
+                    <li><a href="#scenarios">应用场景</a></li>
+                    <li><a href="#quickstart">快速开始</a></li>
+                    <li><a href="https://github.com/yourusername/unity3d-mcp" target="_blank" class="github-link">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                        </svg>
+                        GitHub
+                    </a></li>
+                </ul>
+                <button class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    <span>AI驱动 · 模块化 · 高性能</span>
+                </div>
+                <h1 class="hero-title">
+                    <span class="gradient-text">Unity3d MCP</span>
+                    <br>
+                    AI驱动的Unity开发工作流
+                </h1>
+                <p class="hero-description">
+                    通过MCP协议将AI助手与Unity编辑器无缝连接，<br>
+                    使用自然语言控制Unity，提供30+专业工具，覆盖完整开发流程
+                </p>
+                <div class="hero-cta">
+                    <a href="#quickstart" class="btn btn-primary">
+                        <span>快速开始</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/yourusername/unity3d-mcp" class="btn btn-secondary">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                        </svg>
+                        <span>View on GitHub</span>
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">30+</div>
+                        <div class="stat-label">专业工具</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">应用场景</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">开源免费</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="code-window">
+                    <div class="code-header">
+                        <div class="code-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="code-title">AI → Unity</div>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="comment"># 通过自然语言控制Unity</span>
+<span class="string">"创建一个名为Player的Cube对象"</span>
+
+<span class="comment"># 批量生成游戏纹理</span>
+<span class="keyword">from</span> diffusers <span class="keyword">import</span> StableDiffusion
+pipe.generate(<span class="string">"fantasy ground texture"</span>)
+
+<span class="comment"># 性能分析</span>
+<span class="keyword">code_runner</span>: PerformanceAnalyzer.Analyze()
+
+<span class="output">✓ GameObject创建成功</span>
+<span class="output">✓ 10张纹理已生成</span>
+<span class="output">✓ 场景性能报告已生成</span></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">核心特性</h2>
+                <p class="section-subtitle">强大的功能，简单的使用</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI驱动开发</h3>
+                    <p>通过自然语言指令控制Unity编辑器，无需记忆复杂的API和命令</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>高性能通信</h3>
+                    <p>基于TCP Socket的高效通信机制，支持批量操作，低延迟高吞吐</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3>模块化架构</h3>
+                    <p>30+专业工具，覆盖层级管理、资源编辑、性能分析等全流程</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔌</div>
+                    <h3>无缝集成</h3>
+                    <p>支持Cursor、Claude等主流AI客户端，无需修改现有工作流</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>状态树引擎</h3>
+                    <p>基于状态模式的路由系统，灵活的参数验证和类型转换</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛠️</div>
+                    <h3>易于扩展</h3>
+                    <p>插件化设计，支持自定义工具开发，动态方法调用</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="architecture">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">系统架构</h2>
+                <p class="section-subtitle">分层设计，清晰高效</p>
+            </div>
+            <div class="architecture-content">
+                <div class="arch-diagram">
+                    <div class="arch-layer">
+                        <div class="layer-title">AI客户端层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">Cursor</span>
+                            <span class="layer-item">Claude</span>
+                            <span class="layer-item">Trae</span>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-title">MCP协议层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">FastMCP Server</span>
+                            <span class="layer-item">Unity Package</span>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-title">通信层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">TCP Socket (6400-6405)</span>
+                            <span class="layer-item">JSON-RPC</span>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-title">Unity编辑器层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">Unity Editor</span>
+                            <span class="layer-item">Unity API</span>
+                        </div>
+                    </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-layer highlight">
+                        <div class="layer-title">工具层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">30+专业工具</span>
+                            <span class="layer-item">状态树引擎</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="arch-features">
+                    <div class="arch-feature">
+                        <h4>双层调用架构</h4>
+                        <p>FacadeTools（single_call、batch_call）+ MethodTools（30+专业方法）</p>
+                    </div>
+                    <div class="arch-feature">
+                        <h4>智能连接管理</h4>
+                        <p>多端口自动发现、连接健康检查、失败端口记录和智能切换</p>
+                    </div>
+                    <div class="arch-feature">
+                        <h4>协程支持</h4>
+                        <p>支持Unity协程的异步操作，不阻塞主线程，适用于长时间运行任务</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scenarios Section -->
+    <section id="scenarios" class="scenarios">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">扩展应用场景</h2>
+                <p class="section-subtitle">覆盖游戏开发完整工作流</p>
+            </div>
+            <div class="scenarios-grid">
+                <div class="scenario-card">
+                    <div class="scenario-number">01</div>
+                    <div class="scenario-icon">🎨</div>
+                    <h3>AI图片生成</h3>
+                    <p>集成Stable Diffusion批量生成游戏纹理，自动创建Material并应用</p>
+                    <div class="scenario-tags">
+                        <span>Python Runner</span>
+                        <span>AI生成</span>
+                    </div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-number">02</div>
+                    <div class="scenario-icon">📦</div>
+                    <h3>批量爬取资源</h3>
+                    <p>从Poly Haven等平台批量下载PBR材质，自动创建完整配置</p>
+                    <div class="scenario-tags">
+                        <span>资源管理</span>
+                        <span>自动化</span>
+                    </div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-number">03</div>
+                    <div class="scenario-icon">📊</div>
+                    <h3>架构图生成</h3>
+                    <p>分析Unity项目结构，生成可视化架构图和依赖关系</p>
+                    <div class="scenario-tags">
+                        <span>文档自动化</span>
+                        <span>代码分析</span>
+                    </div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-number">04</div>
+                    <div class="scenario-icon">⚡</div>
+                    <h3>性能分析</h3>
+                    <p>自动检测Draw Call、高多边形模型，提供优化建议</p>
+                    <div class="scenario-tags">
+                        <span>Code Runner</span>
+                        <span>性能优化</span>
+                    </div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-number">05</div>
+                    <div class="scenario-icon">🧪</div>
+                    <h3>测试数据生成</h3>
+                    <p>使用Faker批量生成游戏配置数据，用于压力测试</p>
+                    <div class="scenario-tags">
+                        <span>测试</span>
+                        <span>数据生成</span>
+                    </div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-number">06</div>
+                    <div class="scenario-icon">🌍</div>
+                    <h3>本地化翻译</h3>
+                    <p>集成GPT-4批量翻译游戏文本，支持多语言版本生成</p>
+                    <div class="scenario-tags">
+                        <span>AI翻译</span>
+                        <span>国际化</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section id="quickstart" class="quickstart">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">快速开始</h2>
+                <p class="section-subtitle">三步完成配置，开始AI驱动开发</p>
+            </div>
+            <div class="quickstart-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>安装依赖</h3>
+                        <div class="code-block">
+                            <pre><code><span class="comment"># Python依赖</span>
+cd server
+pip install -r requirements.txt
+
+<span class="comment"># Unity Package</span>
+<span class="comment"># 将unity-package导入Unity项目</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>配置MCP客户端</h3>
+                        <div class="code-block">
+                            <pre><code><span class="comment">// Cursor配置 (~/.cursor/mcp.json)</span>
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"unityMCP"</span>: {
+      <span class="key">"command"</span>: <span class="string">"uv"</span>,
+      <span class="key">"args"</span>: [
+        <span class="string">"--directory"</span>,
+        <span class="string">"path/to/server"</span>,
+        <span class="string">"run"</span>,
+        <span class="string">"server.py"</span>
+      ]
+    }
+  }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>启动并测试</h3>
+                        <div class="code-block">
+                            <pre><code><span class="comment"># 启动Unity编辑器</span>
+<span class="comment"># Unity Package会自动启动TCP服务器</span>
+
+<span class="comment"># 启动MCP服务器</span>
+cd server
+python server.py
+
+<span class="comment"># 在AI客户端中测试</span>
+<span class="string">"请帮我创建一个Cube对象"</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="quickstart-cta">
+                <a href="https://github.com/yourusername/unity3d-mcp#readme" class="btn btn-primary">
+                    <span>查看完整文档</span>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section class="tools">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">工具生态</h2>
+                <p class="section-subtitle">30+专业工具，覆盖Unity开发全流程</p>
+            </div>
+            <div class="tools-categories">
+                <div class="tool-category">
+                    <h4>层级管理</h4>
+                    <ul>
+                        <li>hierarchy_create</li>
+                        <li>hierarchy_search</li>
+                        <li>hierarchy_apply</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>资源编辑</h4>
+                    <ul>
+                        <li>edit_gameobject</li>
+                        <li>edit_component</li>
+                        <li>edit_material</li>
+                        <li>edit_texture</li>
+                        <li>edit_mesh</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>项目管理</h4>
+                    <ul>
+                        <li>project_search</li>
+                        <li>project_operate</li>
+                        <li>manage_package</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>UI工具</h4>
+                    <ul>
+                        <li>ugui_layout</li>
+                        <li>ui_rule_manage</li>
+                        <li>figma_manage</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>代码运行</h4>
+                    <ul>
+                        <li>code_runner (C#)</li>
+                        <li>python_runner</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>其他工具</h4>
+                    <ul>
+                        <li>console_read/write</li>
+                        <li>request_http</li>
+                        <li>gameplay</li>
+                        <li>manage_editor</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Unity3d MCP</h4>
+                    <p>AI驱动的Unity开发工作流</p>
+                    <div class="footer-social">
+                        <a href="https://github.com/yourusername/unity3d-mcp" target="_blank">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>资源</h4>
+                    <ul>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp#readme">文档</a></li>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp/issues">Issues</a></li>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp/blob/master/README.md">README</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>社区</h4>
+                    <ul>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp/discussions">讨论区</a></li>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp/pulls">贡献代码</a></li>
+                        <li><a href="https://github.com/yourusername/unity3d-mcp/releases">更新日志</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>技术栈</h4>
+                    <ul>
+                        <li>Python + FastMCP</li>
+                        <li>Unity C#</li>
+                        <li>TCP Socket</li>
+                        <li>JSON-RPC</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Unity3d MCP. Released under the MIT License.</p>
+                <p>Built with ❤️ for Unity Developers</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
