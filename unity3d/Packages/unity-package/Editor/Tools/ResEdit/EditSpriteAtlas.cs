@@ -38,7 +38,12 @@ namespace UnityMcp.Tools
                 new MethodKey("readable", "是否可读", true),
                 new MethodKey("generate_mip_maps", "是否生成Mip贴图", true),
                 new MethodKey("filter_mode", "过滤模式：Point, Bilinear, Trilinear", true),
-                new MethodKey("compression", "压缩格式：None, LowQuality, NormalQuality, HighQuality", true)
+                new MethodKey("compression", "压缩格式：None, LowQuality, NormalQuality, HighQuality", true),
+                new MethodKey("platform", "平台名称：Android, iOS, Standalone, WebGL等", true),
+                new MethodKey("max_texture_size", "平台最大纹理尺寸：32, 64, 128, 256, 512, 1024, 2048, 4096, 8192", true),
+                new MethodKey("format", "平台纹理格式：Automatic, RGBA32, RGB24, ASTC_4x4, ASTC_6x6, ASTC_8x8, ETC2_RGBA8, etc", true),
+                new MethodKey("compression_quality", "压缩质量：0-100，仅对某些格式有效", true),
+                new MethodKey("override_for_platform", "是否覆盖平台默认设置", true)
             };
         }
 
@@ -474,6 +479,30 @@ namespace UnityMcp.Tools
                 }
                 settings.Add("packedSprites", packedSprites);
 
+                // 获取常用平台的设置
+                var platformsToCheck = new[] { "Android", "iOS", "Standalone", "WebGL" };
+                var platformSettings = new Dictionary<string, object>();
+
+                foreach (var platform in platformsToCheck)
+                {
+                    var platformSetting = atlas.GetPlatformSettings(platform);
+                    if (platformSetting != null && platformSetting.overridden)
+                    {
+                        platformSettings[platform] = new Dictionary<string, object>
+                        {
+                            { "maxTextureSize", platformSetting.maxTextureSize },
+                            { "format", platformSetting.format.ToString() },
+                            { "compressionQuality", platformSetting.compressionQuality },
+                            { "overridden", platformSetting.overridden }
+                        };
+                    }
+                }
+
+                if (platformSettings.Count > 0)
+                {
+                    settings.Add("platformSettings", platformSettings);
+                }
+
                 LogInfo($"[EditSpriteAtlas] Successfully retrieved settings for sprite atlas '{atlasPath}'");
                 return Response.Success($"Retrieved settings for sprite atlas '{atlasPath}'.", settings);
             }
@@ -560,11 +589,126 @@ namespace UnityMcp.Tools
 
                 // 应用纹理设置
                 atlas.SetTextureSettings(textureSettings);
+
+                // 处理平台特定设置
+                string platform = args["platform"]?.Value;
+                if (!string.IsNullOrEmpty(platform))
+                {
+                    ApplyPlatformSettings(atlas, args, platform);
+                }
             }
             catch (Exception e)
             {
                 LogError($"[EditSpriteAtlas] Error applying atlas settings: {e.Message}");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// 应用平台特定设置
+        /// </summary>
+        private void ApplyPlatformSettings(SpriteAtlas atlas, JsonClass args, string platform)
+        {
+            try
+            {
+                // 获取当前平台设置
+                TextureImporterPlatformSettings platformSettings = atlas.GetPlatformSettings(platform);
+
+                // 如果平台设置不存在，创建新的
+                if (platformSettings == null || string.IsNullOrEmpty(platformSettings.name))
+                {
+                    platformSettings = new TextureImporterPlatformSettings();
+                    platformSettings.name = platform;
+                }
+
+                // 设置是否覆盖默认设置
+                bool overrideSettings = args["override_for_platform"].AsBoolDefault(true);
+                platformSettings.overridden = overrideSettings;
+
+                // 设置最大纹理尺寸
+                int maxTextureSize = args["max_texture_size"].AsIntDefault(-1);
+                if (maxTextureSize > 0)
+                {
+                    platformSettings.maxTextureSize = maxTextureSize;
+                }
+
+                // 设置纹理格式（如果未指定，使用平台推荐格式）
+                string formatStr = args["format"]?.Value;
+                if (!string.IsNullOrEmpty(formatStr))
+                {
+                    if (Enum.TryParse<TextureImporterFormat>(formatStr, true, out TextureImporterFormat format))
+                    {
+                        platformSettings.format = format;
+                        LogInfo($"[EditSpriteAtlas] Set format to {format} for platform '{platform}'");
+                    }
+                    else
+                    {
+                        LogWarning($"[EditSpriteAtlas] Invalid format '{formatStr}', using platform default");
+                    }
+                }
+                else
+                {
+                    // 如果没有指定格式，使用平台推荐的默认格式
+                    TextureImporterFormat defaultFormat = GetDefaultFormatForPlatform(platform);
+                    platformSettings.format = defaultFormat;
+                    LogInfo($"[EditSpriteAtlas] Using default format {defaultFormat} for platform '{platform}'");
+                }
+
+                // 设置压缩质量（默认50）
+                int compressionQuality = args["compression_quality"].AsIntDefault(-1);
+                if (compressionQuality >= 0 && compressionQuality <= 100)
+                {
+                    platformSettings.compressionQuality = compressionQuality;
+                    LogInfo($"[EditSpriteAtlas] Set compression quality to {compressionQuality} for platform '{platform}'");
+                }
+                else
+                {
+                    // 如果没有指定，使用默认值50
+                    platformSettings.compressionQuality = 50;
+                    LogInfo($"[EditSpriteAtlas] Using default compression quality 50 for platform '{platform}'");
+                }
+
+                // 应用平台设置
+                atlas.SetPlatformSettings(platformSettings);
+
+                LogInfo($"[EditSpriteAtlas] Applied platform settings for '{platform}': maxSize={platformSettings.maxTextureSize}, format={platformSettings.format}, quality={platformSettings.compressionQuality}, override={platformSettings.overridden}");
+            }
+            catch (Exception e)
+            {
+                LogError($"[EditSpriteAtlas] Error applying platform settings for '{platform}': {e.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 获取平台推荐的默认纹理格式
+        /// </summary>
+        private TextureImporterFormat GetDefaultFormatForPlatform(string platform)
+        {
+            switch (platform.ToLower())
+            {
+                case "android":
+                    // Android推荐使用ETC2_RGBA8，支持透明度，兼容Android 4.3+
+                    return TextureImporterFormat.ETC2_RGBA8;
+
+                case "ios":
+                    // iOS推荐使用ASTC_6x6，平衡质量和大小
+                    return TextureImporterFormat.ASTC_6x6;
+
+                case "standalone":
+                case "windows":
+                case "macos":
+                case "linux":
+                    // PC平台使用DXT5/BC7，质量优先
+                    return TextureImporterFormat.DXT5;
+
+                case "webgl":
+                    // WebGL使用DXT5或ETC2
+                    return TextureImporterFormat.DXT5;
+
+                default:
+                    // 其他平台使用自动格式
+                    return TextureImporterFormat.Automatic;
             }
         }
     }

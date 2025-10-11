@@ -97,6 +97,35 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
             title="压缩格式",
             description="压缩格式：None, LowQuality, NormalQuality, HighQuality",
             examples=["None", "LowQuality", "NormalQuality", "HighQuality"]
+        ),
+        platform: Optional[str] = Field(
+            None,
+            title="平台名称",
+            description="平台名称：Android, iOS, Standalone, WebGL等",
+            examples=["Android", "iOS", "Standalone", "WebGL"]
+        ),
+        max_texture_size: Optional[int] = Field(
+            None,
+            title="平台最大纹理尺寸",
+            description="平台最大纹理尺寸：32, 64, 128, 256, 512, 1024, 2048, 4096, 8192",
+            examples=[1024, 2048, 4096]
+        ),
+        format: Optional[str] = Field(
+            None,
+            title="平台纹理格式",
+            description="平台纹理格式：Automatic, RGBA32, RGB24, ASTC_4x4, ASTC_6x6, ASTC_8x8, ETC2_RGBA8, DXT5等。如果未指定，将使用平台推荐的默认格式（Android=ETC2_RGBA8, iOS=ASTC_6x6, PC=DXT5）",
+            examples=["ETC2_RGBA8", "ASTC_6x6", "ASTC_8x8", "DXT5", "RGBA32"]
+        ),
+        compression_quality: Optional[int] = Field(
+            None,
+            title="压缩质量",
+            description="压缩质量：0-100，仅对某些格式有效。如果未指定，默认使用50（平衡质量和大小）",
+            examples=[50, 80, 100]
+        ),
+        override_for_platform: Optional[bool] = Field(
+            None,
+            title="覆盖平台默认设置",
+            description="是否覆盖平台默认设置，默认为true"
         )
     ) -> Dict[str, Any]:
         """
@@ -106,9 +135,27 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
         - create: 创建新的精灵图集
         - add_sprites: 向图集添加精灵或文件夹
         - remove_sprites: 从图集移除精灵或文件夹
-        - set_settings: 设置图集参数
+        - set_settings: 设置图集参数（包括平台特定设置）
         - get_settings: 获取图集参数
         - pack: 打包图集
+        
+        平台特定设置:
+        当提供platform参数时，可以设置平台特定的纹理配置：
+        - platform: 目标平台名称（Android, iOS, Standalone, WebGL等）
+        - max_texture_size: 该平台的最大纹理尺寸
+        - format: 纹理格式（如果未指定，自动使用平台推荐格式）
+          * Android推荐: ETC2_RGBA8
+          * iOS推荐: ASTC_6x6
+          * PC推荐: DXT5
+        - compression_quality: 压缩质量0-100（默认50）
+        - override_for_platform: 是否覆盖平台默认设置（默认true）
+        
+        示例 - 仅设置Android最大尺寸（format和quality使用默认值）:
+          platform="Android", max_texture_size=1024
+        
+        示例 - 完整设置Android平台配置:
+          platform="Android", max_texture_size=1024, 
+          format="ETC2_RGBA8", compression_quality=50
         """
         return get_common_call_response("edit_sprite_atlas")
 
