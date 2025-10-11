@@ -50,6 +50,8 @@ namespace UnityMcp.Tools
                      .Leaf("shader", HandleShaderSearch)
                      .Leaf("animation", HandleAnimationSearch)
                      .Leaf("general", HandleGeneralSearch)
+                     .Leaf("dependencies", HandleDependenciesSearch)
+                     .Leaf("references", HandleReferencesSearch)
                 .Build();
         }
 
@@ -335,6 +337,158 @@ namespace UnityMcp.Tools
             }
 
             return results;
+        }
+
+        /// <summary>
+        /// 查找指定资源的所有依赖项
+        /// </summary>
+        private object HandleDependenciesSearch(JsonClass args)
+        {
+            string assetPath = args["query"]?.Value;
+            bool recursive = args["recursive"].AsBoolDefault(true);
+            int maxResults = args["max_results"].AsIntDefault(1000);
+
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return Response.Error("'query' parameter is required and must be a valid asset path");
+            }
+
+            // 规范化资产路径
+            if (!assetPath.StartsWith("Assets/") && !assetPath.StartsWith("Packages/"))
+            {
+                assetPath = "Assets/" + assetPath.TrimStart('/');
+            }
+
+            try
+            {
+                // 检查资产是否存在
+                if (!System.IO.File.Exists(assetPath) && !System.IO.Directory.Exists(assetPath))
+                {
+                    return Response.Error($"Asset not found: {assetPath}");
+                }
+
+                // 获取依赖项
+                string[] dependencies = AssetDatabase.GetDependencies(assetPath, recursive);
+
+                List<JsonClass> results = new List<JsonClass>();
+
+                foreach (string depPath in dependencies)
+                {
+                    if (results.Count >= maxResults)
+                        break;
+
+                    // 跳过自身
+                    if (depPath == assetPath)
+                        continue;
+
+                    // 加载资产
+                    UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(depPath);
+                    if (asset != null)
+                    {
+                        string guid = AssetDatabase.AssetPathToGUID(depPath);
+                        var depInfo = GetAssetInfo(asset, depPath, guid);
+                        results.Add(depInfo);
+                    }
+                }
+
+                string message = recursive
+                    ? $"Found {results.Count} dependencies (recursive) for '{assetPath}'"
+                    : $"Found {results.Count} direct dependencies for '{assetPath}'";
+
+                var resultObj = new JsonClass
+                {
+                    ["asset_path"] = assetPath,
+                    ["recursive"] = recursive,
+                    ["total_dependencies"] = results.Count,
+                    ["dependencies"] = Json.FromObject(results)
+                };
+
+                return Response.Success(message, resultObj);
+            }
+            catch (Exception ex)
+            {
+                return Response.Error($"Failed to get dependencies: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 查找引用指定资源的所有资源
+        /// </summary>
+        private object HandleReferencesSearch(JsonClass args)
+        {
+            string assetPath = args["query"]?.Value;
+            string searchPath = args["directory"]?.Value ?? "Assets";
+            int maxResults = args["max_results"].AsIntDefault(1000);
+
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                return Response.Error("'query' parameter is required and must be a valid asset path");
+            }
+
+            // 规范化资产路径
+            if (!assetPath.StartsWith("Assets/") && !assetPath.StartsWith("Packages/"))
+            {
+                assetPath = "Assets/" + assetPath.TrimStart('/');
+            }
+
+            try
+            {
+                // 检查资产是否存在
+                if (!System.IO.File.Exists(assetPath) && !System.IO.Directory.Exists(assetPath))
+                {
+                    return Response.Error($"Asset not found: {assetPath}");
+                }
+
+                // 获取目标资产的 GUID
+                string targetGuid = AssetDatabase.AssetPathToGUID(assetPath);
+
+                List<JsonClass> results = new List<JsonClass>();
+
+                // 搜索所有资产
+                string[] allAssetGuids = AssetDatabase.FindAssets("", new[] { searchPath });
+
+                foreach (string guid in allAssetGuids)
+                {
+                    if (results.Count >= maxResults)
+                        break;
+
+                    string checkedPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                    // 跳过自身
+                    if (checkedPath == assetPath)
+                        continue;
+
+                    // 获取该资产的依赖项
+                    string[] dependencies = AssetDatabase.GetDependencies(checkedPath, false);
+
+                    // 检查是否依赖目标资产
+                    if (dependencies.Contains(assetPath))
+                    {
+                        UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(checkedPath);
+                        if (asset != null)
+                        {
+                            var refInfo = GetAssetInfo(asset, checkedPath, guid);
+                            results.Add(refInfo);
+                        }
+                    }
+                }
+
+                string message = $"Found {results.Count} assets referencing '{assetPath}' in '{searchPath}'";
+
+                var resultObj = new JsonClass
+                {
+                    ["asset_path"] = assetPath,
+                    ["search_directory"] = searchPath,
+                    ["total_references"] = results.Count,
+                    ["references"] = Json.FromObject(results)
+                };
+
+                return Response.Success(message, resultObj);
+            }
+            catch (Exception ex)
+            {
+                return Response.Error($"Failed to find references: {ex.Message}");
+            }
         }
 
 
