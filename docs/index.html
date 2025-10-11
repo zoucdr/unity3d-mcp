@@ -29,6 +29,7 @@
                 <ul class="nav-links">
                     <li><a href="#features">特性</a></li>
                     <li><a href="#architecture">架构</a></li>
+                    <li><a href="#examples">示例用法</a></li>
                     <li><a href="#scenarios">应用场景</a></li>
                     <li><a href="#quickstart">快速开始</a></li>
                     <li><a href="https://github.com/zouhunter/unity3d-mcp" target="_blank" class="github-link">
@@ -62,7 +63,7 @@
                 </h1>
                 <p class="hero-description">
                     通过MCP协议将AI助手与Unity编辑器无缝连接，<br>
-                    使用自然语言控制Unity，提供30+专业工具，覆盖完整开发流程
+                    使用自然语言控制Unity，提供32+专业工具，覆盖完整开发流程
                 </p>
                 <div class="hero-cta">
                     <a href="#quickstart" class="btn btn-primary">
@@ -80,7 +81,7 @@
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <div class="stat-number">30+</div>
+                        <div class="stat-number">32+</div>
                         <div class="stat-label">专业工具</div>
                     </div>
                     <div class="stat-item">
@@ -206,7 +207,7 @@
                 <div class="arch-features">
                     <div class="arch-feature">
                         <h4>双层调用架构</h4>
-                        <p>FacadeTools（single_call、batch_call）+ MethodTools（30+专业方法）</p>
+                        <p>FacadeTools（single_call、batch_call）+ MethodTools（32+专业方法）</p>
                     </div>
                     <div class="arch-feature">
                         <h4>智能连接管理</h4>
@@ -215,6 +216,89 @@
                     <div class="arch-feature">
                         <h4>协程支持</h4>
                         <p>支持Unity协程的异步操作，不阻塞主线程，适用于长时间运行任务</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Section -->
+    <section id="examples" class="examples">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">实际应用示例</h2>
+                <p class="section-subtitle">通过自然语言指令完成复杂的Unity开发任务</p>
+            </div>
+            <div class="examples-grid">
+                <div class="example-item">
+                    <div class="example-icon">🔧</div>
+                    <h4>智能问题修复</h4>
+                    <p class="example-command">"修复控制台中的所有警告和报错"</p>
+                    <p class="example-desc">AI自动分析控制台日志，识别问题类型，提供修复建议并执行修复操作</p>
+                    <div class="example-tools">
+                        <span>console_read</span>
+                        <span>code_runner</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">🎨</div>
+                    <h4>程序化网格生成</h4>
+                    <p class="example-command">"创建一个60顶点的圆形雨伞网格，保存到Meshes目录"</p>
+                    <p class="example-desc">使用Python脚本生成复杂3D网格，自动导入Unity并保存为资源文件</p>
+                    <div class="example-tools">
+                        <span>python_runner</span>
+                        <span>edit_mesh</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">📦</div>
+                    <h4>自动化插件管理</h4>
+                    <p class="example-command">"安装android-logcat插件到Unity"</p>
+                    <p class="example-desc">通过Package Manager自动搜索、下载并安装Unity插件包，无需手动操作</p>
+                    <div class="example-tools">
+                        <span>manage_package</span>
+                        <span>request_http</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">📊</div>
+                    <h4>代码架构可视化</h4>
+                    <p class="example-command">"分析Scripts目录下的代码，用Matplotlib绘制架构图"</p>
+                    <p class="example-desc">扫描项目代码结构，分析类依赖关系，生成专业的UML架构图</p>
+                    <div class="example-tools">
+                        <span>project_search</span>
+                        <span>python_runner</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">🏠</div>
+                    <h4>智能场景布置</h4>
+                    <p class="example-command">"基于Prefabs下的美术资源及文档，在场景中布置一个房间"</p>
+                    <p class="example-desc">AI理解资源说明文档，自动选择合适的预制体，按照设计规范摆放场景物体</p>
+                    <div class="example-tools">
+                        <span>project_search</span>
+                        <span>hierarchy_create</span>
+                        <span>edit_gameobject</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">🎯</div>
+                    <h4>规则驱动UI构建</h4>
+                    <p class="example-command">"使用规则文件，在场景中构建UGUI界面"</p>
+                    <p class="example-desc">根据JSON/YAML规则文件自动创建UI层级结构，设置布局和样式</p>
+                    <div class="example-tools">
+                        <span>ui_rule_manage</span>
+                        <span>ugui_layout</span>
+                    </div>
+                </div>
+                <div class="example-item">
+                    <div class="example-icon">🖼️</div>
+                    <h4>自动图集生成</h4>
+                    <p class="example-command">"将LoginView界面引用的图片打包为LoginViewAtlas，保存到Atlas文件夹"</p>
+                    <p class="example-desc">自动收集UI引用的所有Sprite，创建Sprite Atlas并优化纹理打包</p>
+                    <div class="example-tools">
+                        <span>hierarchy_search</span>
+                        <span>edit_sprite_atlas</span>
                     </div>
                 </div>
             </div>
@@ -371,7 +455,7 @@ python server.py
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">工具生态</h2>
-                <p class="section-subtitle">30+专业工具，覆盖Unity开发全流程</p>
+                <p class="section-subtitle">32+专业工具，覆盖Unity开发全流程</p>
             </div>
             <div class="tools-categories">
                 <div class="tool-category">
@@ -413,6 +497,13 @@ python server.py
                     <ul>
                         <li>code_runner (C#)</li>
                         <li>python_runner</li>
+                    </ul>
+                </div>
+                <div class="tool-category">
+                    <h4>存储管理</h4>
+                    <ul>
+                        <li>prefers (偏好设置)</li>
+                        <li>source_location (资源定位)</li>
                     </ul>
                 </div>
                 <div class="tool-category">

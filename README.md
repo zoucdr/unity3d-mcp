@@ -19,14 +19,14 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 ### 核心价值
 - **AI驱动开发**：通过自然语言指令控制Unity编辑器
 - **无缝集成**：支持主流AI客户端，无需修改现有工作流
-- **功能丰富**：提供30+专业工具，覆盖Unity开发全流程
+- **功能丰富**：提供32+专业工具，覆盖Unity开发全流程
 - **高性能**：基于TCP Socket的高效通信机制
 - **可扩展**：模块化设计，易于添加新功能
 
 ### 系统组成
 - **MCP Server** (Python)：基于FastMCP的服务器端
 - **Unity Package** (C#)：Unity编辑器插件
-- **工具生态**：30+专业Unity开发工具
+- **工具生态**：32+专业Unity开发工具
 - **通信协议**：基于TCP Socket的JSON-RPC通信
 
 ---
@@ -41,7 +41,7 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 2. **MCP协议层**：Python MCP Server + Unity Package
 3. **通信层**：TCP Socket (6400-6405端口) + JSON-RPC
 4. **Unity编辑器层**：Unity Editor + Unity API
-5. **工具层**：30+专业工具 + 状态树执行引擎
+5. **工具层**：32+专业工具 + 状态树执行引擎
 
 #### 系统架构图
 
@@ -63,7 +63,7 @@ AI客户端 → FacadeTools → MethodTools → Unity API
 ```
 
 - **FacadeTools**：`single_call` 和 `batch_call` 两个门面工具
-- **MethodTools**：30+专业功能方法，仅通过FacadeTools调用
+- **MethodTools**：32+专业功能方法，仅通过FacadeTools调用
 
 #### 2. 状态树执行引擎
 - 基于状态模式的路由系统
@@ -93,6 +93,8 @@ server/
 │   ├── console.py        # 控制台工具
 │   ├── hierarchy_*.py    # 层级管理工具
 │   ├── edit_*.py         # 资源编辑工具
+│   ├── storage_prefers.py     # 偏好设置管理
+│   ├── storage_source_location.py # 资源定位
 │   └── ...
 └── requirements.txt       # 依赖管理
 ```
@@ -134,7 +136,9 @@ def register_all_tools(mcp):
     register_call_tools(mcp)      # 门面工具
     register_console_tools(mcp)   # 控制台工具
     register_hierarchy_*.py       # 层级工具
-    # ... 30+工具注册
+    register_storage_prefers_tools(mcp)  # 偏好设置
+    register_storage_source_location_tools(mcp)  # 资源定位
+    # ... 32+工具注册
 ```
 
 ### 2. Unity端架构 (C#)
@@ -212,7 +216,10 @@ unity-package/
 │   │   ├── ManageEditor.cs   # 编辑器管理
 │   │   ├── ManagePackage.cs  # 包管理
 │   │   ├── ObjectDelete.cs   # 对象删除
-│   │   └── RequestHttp.cs    # HTTP请求
+│   │   ├── RequestHttp.cs    # HTTP请求
+│   │   └── Storage/          # 存储管理
+│   │       ├── Prefers.cs    # 偏好设置
+│   │       └── SourceLocation.cs # 资源定位
 │   ├── Utils/                # 工具类库
 │   │   ├── ConsoleUtils.cs   # 控制台工具
 │   │   ├── GameObjectUtils.cs # GameObject工具
@@ -360,7 +367,11 @@ public class ProjectSelector : IObjectSelector { }
    - `gameplay`：游戏玩法控制
    - `object_delete`：对象删除
 
-8. **网络工具** (Tools/)
+8. **存储管理工具** (Tools/Storage/)
+   - `prefers`：偏好设置管理（EditorPrefs/PlayerPrefs）
+   - `source_location`：资源定位（文件浏览器、项目定位）
+
+9. **网络工具** (Tools/)
    - `request_http`：HTTP请求
 
 #### 工具实现模式
@@ -967,7 +978,7 @@ def batch_translate_localization(source_file, target_langs=["en", "ja", "ko"]):
 ### 1. 双层调用架构
 **创新描述**：设计了FacadeTools + MethodTools的双层架构
 - **FacadeTools**：`single_call`和`batch_call`两个门面工具
-- **MethodTools**：30+专业功能方法，仅通过门面工具调用
+- **MethodTools**：32+专业功能方法，仅通过门面工具调用
 
 **技术优势**：
 - 统一的调用接口，简化AI客户端使用
@@ -1239,11 +1250,11 @@ McpConnect.EnableLog = true;
 
 ## 总结
 
-Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议实现了AI助手与Unity编辑器的无缝连接。系统采用双层调用架构、状态树执行引擎、智能连接管理等创新技术，提供了30+专业工具，覆盖Unity开发全流程。
+Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议实现了AI助手与Unity编辑器的无缝连接。系统采用双层调用架构、状态树执行引擎、智能连接管理等创新技术，提供了32+专业工具，覆盖Unity开发全流程。
 
 ### 核心优势
 1. **AI驱动**：通过自然语言控制Unity编辑器
-2. **功能丰富**：30+专业工具，覆盖开发全流程
+2. **功能丰富**：32+专业工具，覆盖开发全流程
 3. **高性能**：基于TCP Socket的高效通信
 4. **可扩展**：模块化设计，易于扩展
 5. **易用性**：支持主流AI客户端，无需修改工作流

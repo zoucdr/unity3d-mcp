@@ -27,6 +27,7 @@ from .edit_scriptableobject import register_edit_scriptableobject_tools
 from .edit_shader import register_edit_shader_tools
 from .edit_sprite_atlas import register_edit_sprite_atlas_tools
 from .edit_terrain import register_edit_terrain_tools
+from .edit_particle_system import register_edit_particle_system_tools
 from .storage_prefers import register_storage_prefers_tools
 from .storage_source_location import register_storage_source_location_tools
 
@@ -62,6 +63,7 @@ def register_all_tools(mcp):
     register_edit_shader_tools(mcp)
     register_edit_sprite_atlas_tools(mcp)
     register_edit_terrain_tools(mcp)
+    register_edit_particle_system_tools(mcp)
     register_storage_prefers_tools(mcp)
     register_storage_source_location_tools(mcp)
     print("Unity MCP Server tool registration complete.")
