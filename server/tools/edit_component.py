@@ -1,5 +1,6 @@
 """
-Unity组件编辑工具，包含组件的获取、设置属性等功能。
+Unity组件编辑工具
+专门用于获取和设置GameObject组件的属性，支持所有Unity组件类型的反射访问和修改
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -48,23 +49,36 @@ def register_edit_component_tools(mcp: FastMCP):
     ) -> Dict[str, Any]:
         """Unity组件编辑工具，用于获取和设置GameObject组件的属性。（二级工具）
 
-        支持多种组件操作，适用于：
-        - 属性获取：获取组件的所有属性值
-        - 属性设置：设置组件的特定属性值
-        - 组件查询：查找特定类型的组件
-        - 批量操作：同时设置多个属性
+        使用C#反射机制访问Unity组件的所有可序列化字段和属性，支持读取和修改组件状态。
+        这是Unity编辑器Inspector面板功能的编程接口，所有修改支持Undo撤销。
+
+        主要操作：
+        - get_component_propertys: 获取组件属性，返回YAML格式数据
+        - set_component_propertys: 批量设置组件属性，自动类型转换
+
+        支持组件类型：
+        - 物理：Rigidbody, Collider, CharacterController等
+        - 渲染：MeshRenderer, SpriteRenderer, ParticleSystem等
+        - 光照：Light, LightProbeGroup, ReflectionProbe等
+        - 音频：AudioSource, AudioListener等
+        - UI：RectTransform, Canvas, Image, Button等
+        - 动画：Animator, Animation等
+        - 以及所有自定义MonoBehaviour脚本
+
+        数据类型支持：
+        - 基本类型：int, float, bool, string
+        - Unity类型：Vector2/3/4, Color, Quaternion, Rect, Bounds
+        - 引用类型：GameObject, Transform, Material, Texture等
+        - 集合类型：Array, List<T>, Dictionary
+
+        属性访问规则：
+        - 包含：public字段、[SerializeField]私有字段、可读写的public属性
+        - 排除：hideFlags、快捷访问器(rigidbody/camera等)、会创建实例的属性(material/mesh等)
+
+        注意事项：
+        - 反射操作有性能开销，避免在每帧调用
+        - 确保值类型匹配，Vector3需要3个元素
+        - 先使用get查看可用属性作为设置模板
         """
-        
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
 
-        
-        # 实际调用请使用 single_call 函数
-
-        
-        # 示例：single_call(func="edit_component", args={...})
-
-        
-        
-
-        
         return get_common_call_response("edit_component")

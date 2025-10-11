@@ -1325,21 +1325,37 @@ namespace UnityMcp.Gui
         {
             string formattedResult = $"执行时间: {duration.TotalMilliseconds:F2}ms\n\n";
 
+            // 判断结果的 status
+            string status = "success";
+            if (result != null && result is JsonClass resultObj)
+            {
+                var successNode = resultObj["success"];
+                if (successNode != null && successNode.Value == "false")
+                {
+                    status = "error";
+                }
+            }
+
+            // 创建包装后的结果对象
+            JsonClass wrappedResult = new JsonClass();
+            wrappedResult["status"] = status;
+            wrappedResult["result"] = result;
+
             if (result != null)
             {
                 // 不再反射判断类型，直接使用 JsonNode 的结构判断是否为批量调用结果
                 if (IsBatchCallResult(result))
                 {
-                    formattedResult += FormatBatchCallResult(result);
+                    formattedResult += FormatBatchCallResult(wrappedResult);
                 }
                 else
                 {
-                    formattedResult += result.ToPrettyString("  ");
+                    formattedResult += wrappedResult.ToPrettyString("  ");
                 }
             }
             else
             {
-                formattedResult += "null";
+                formattedResult += wrappedResult.ToPrettyString("  ");
             }
 
             return formattedResult;
@@ -1376,7 +1392,12 @@ namespace UnityMcp.Gui
             try
             {
                 var resultJson = Json.FromObject(result);
-                var resultObj = Json.Parse(resultJson) as JsonClass;
+                var wrappedObj = Json.Parse(resultJson) as JsonClass;
+
+                // 从包装对象中提取实际的结果
+                var actualResult = wrappedObj["result"];
+                var actualResultJson = Json.FromObject(actualResult);
+                var resultObj = Json.Parse(actualResultJson) as JsonClass;
 
                 var results = resultObj["results"] as JsonArray;
                 var errors = resultObj["errors"] as JsonArray;
@@ -1403,7 +1424,25 @@ namespace UnityMcp.Gui
                         output.AppendLine($"--- 调用 #{i + 1} ---");
 
                         var singleResult = results[i];
+
+                        // 判断单个结果的成功状态：检查 success 字段
+                        bool isSuccess = false;
                         if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
+                        {
+                            // 如果结果是 JsonClass，检查其 success 字段
+                            if (singleResult is JsonClass resultObj2)
+                            {
+                                var successNode = resultObj2["success"];
+                                isSuccess = successNode != null && successNode.Value == "true";
+                            }
+                            else
+                            {
+                                // 如果不是 JsonClass，默认为成功（非 null 且非空结果）
+                                isSuccess = true;
+                            }
+                        }
+
+                        if (isSuccess)
                         {
                             output.AppendLine("✅ 成功");
                             try
@@ -1419,7 +1458,24 @@ namespace UnityMcp.Gui
                         else
                         {
                             output.AppendLine("❌ 失败");
-                            if (errors != null && i < errors.Count)
+
+                            // 显示结果（如果有）
+                            if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
+                            {
+                                try
+                                {
+                                    string formattedSingleResult = Json.FromObject(singleResult);
+                                    output.AppendLine("结果详情:");
+                                    output.AppendLine(formattedSingleResult);
+                                }
+                                catch
+                                {
+                                    output.AppendLine(singleResult.Value);
+                                }
+                            }
+
+                            // 显示错误信息
+                            if (errors != null && i < errors.Count && errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                             {
                                 output.AppendLine($"错误信息: {errors[i]}");
                             }

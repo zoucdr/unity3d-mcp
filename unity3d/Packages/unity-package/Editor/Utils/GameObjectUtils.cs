@@ -205,9 +205,8 @@ namespace UnityMcp
         /// <summary>
         /// 简单查找GameObject，用于父对象查找等场景
         /// </summary>
-        public static GameObject FindObjectByIdOrPath(JsonNode targetToken)
+        public static GameObject FindObjectByIdOrPath(string searchTerm)
         {
-            string searchTerm = targetToken?.Value;
             if (string.IsNullOrEmpty(searchTerm))
                 return null;
 
@@ -635,8 +634,12 @@ scene: {go.scene.name}";
         /// </summary>
         public static void ApplyParentSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            JsonNode parentToken = args["parent_id"] ?? args["parent_path"] ?? args["parent"];
-            if (parentToken != null)
+            string parentToken = args["parent_id"].Value;
+            if (string.IsNullOrEmpty(parentToken))
+                parentToken = args["parent_path"].Value;
+            if (string.IsNullOrEmpty(parentToken))
+                parentToken = args["parent"].Value;
+            if (!string.IsNullOrEmpty(parentToken))
             {
                 GameObject parentGo = FindObjectByIdOrPath(parentToken);
                 if (parentGo == null)

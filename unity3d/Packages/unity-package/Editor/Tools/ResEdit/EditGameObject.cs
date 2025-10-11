@@ -245,10 +245,7 @@ namespace UnityMcp.Tools
             modified |= ApplyActiveStateModification(targetGo, args);
 
             // 应用标签修改
-            object tagResult = ApplyTagModification(targetGo, args);
-            if (tagResult != null)
-                return tagResult;
-            modified |= tagResult != null;
+            modified |= ApplyTagModification(targetGo, args);
 
             // 应用层级修改
             modified |= ApplyLayerModification(targetGo, args);
@@ -433,7 +430,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用标签修改
         /// </summary>
-        private object ApplyTagModification(GameObject targetGo, StateTreeContext args)
+        private bool ApplyTagModification(GameObject targetGo, StateTreeContext args)
         {
             if (args.TryGetValue("tag", out object tagObj) && tagObj != null)
             {
@@ -475,15 +472,13 @@ namespace UnityMcp.Tools
                                 Debug.LogError(
                                     $"[GameObjectModify] Failed to create or assign tag '{tagToSet}' after attempting creation: {innerEx.Message}"
                                 );
-                                return Response.Error(
-                                    $"Failed to create or assign tag '{tagToSet}': {innerEx.Message}. Check Tag Manager and permissions."
-                                );
+                                return false;
                             }
                         }
                         else
                         {
                             // If the exception was for a different reason, return the original error
-                            return Response.Error($"Failed to set tag to '{tagToSet}': {ex.Message}.");
+                            return false;
                         }
                     }
                 }

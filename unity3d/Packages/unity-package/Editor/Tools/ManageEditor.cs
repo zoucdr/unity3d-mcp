@@ -24,12 +24,15 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "Operation type: play, pause, stop, get_state, set_active_tool, add_tag, add_layer, execute_menu, set_resolution", false),
+                new MethodKey("action", "Operation type: play, pause, stop, get_state, set_active_tool, add_tag, add_layer, execute_menu, get_menu_items, set_resolution", false),
                 new MethodKey("wait_for_completion", "Whether to wait for operation completion", true),
                 new MethodKey("tool_name", "Tool name (used when setting active tool)", true),
                 new MethodKey("tag_name", "Tag name (used when adding tag)", true),
                 new MethodKey("layer_name", "Layer name (used when adding layer)", true),
                 new MethodKey("menu_path", "Menu path (used when executing menu)", true),
+                new MethodKey("root_path", "Root menu path (used when getting menu items)", true),
+                new MethodKey("include_submenus", "Include submenus (used when getting menu items)", true),
+                new MethodKey("verify_exists", "Verify menu items exist (used when getting menu items)", true),
                 new MethodKey("width", "Game window width (used when setting resolution)", true),
                 new MethodKey("height", "Game window height (used when setting resolution)", true)
             };
@@ -70,6 +73,7 @@ namespace UnityMcp.Tools
 
                     // Menu Management
                     .Leaf("execute_menu", MenuUtils.HandleExecuteMenu)
+                    .Leaf("get_menu_items", MenuUtils.HandleGetMenuItems)
 
                     // Resolution Management
                     .Leaf("set_resolution", HandleSetResolutionAction)

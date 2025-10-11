@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
@@ -104,9 +106,16 @@ namespace UnityMcp
             // 依次尝试执行
             foreach (string path in tryPaths)
             {
-                if (EditorApplication.ExecuteMenuItem(path))
+                try
                 {
-                    return Response.Success($"Successfully executed menu item: '{path}' (Unity {Application.unityVersion})");
+                    if (EditorApplication.ExecuteMenuItem(path))
+                    {
+                        return Response.Success($"Successfully executed menu item: '{path}' (Unity {Application.unityVersion})");
+                    }
+                }
+                catch
+                {
+
                 }
             }
 
@@ -126,6 +135,176 @@ namespace UnityMcp
             }
 
             return TryExecuteMenuItem(menuPath);
+        }
+
+        /// <summary>
+        /// 获取指定根路径下的所有菜单项（使用反射）
+        /// </summary>
+        /// <param name="rootPath">根路径，如 "GameObject/UI"</param>
+        /// <param name="includeSubmenus">是否包含子菜单</param>
+        /// <returns>菜单列表</returns>
+        public static List<string> GetMenuItems(string rootPath, bool includeSubmenus = true)
+        {
+            var menuItems = new List<string>();
+
+            try
+            {
+                // 使用反射访问 Unity 内部的菜单系统
+                var menuType = typeof(Menu);
+
+                // 尝试获取 GetMenuItems 方法（不同版本可能有不同签名）
+                MethodInfo getMenuItemsMethod = null;
+
+                // 尝试签名1: GetMenuItems(string, bool, bool)
+                getMenuItemsMethod = menuType.GetMethod("GetMenuItems",
+                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+                    null,
+                    new[] { typeof(string), typeof(bool), typeof(bool) },
+                    null);
+
+                // 如果没找到，尝试签名2: GetMenuItems(string)
+                if (getMenuItemsMethod == null)
+                {
+                    getMenuItemsMethod = menuType.GetMethod("GetMenuItems",
+                        BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+                        null,
+                        new[] { typeof(string) },
+                        null);
+                }
+
+                if (getMenuItemsMethod != null)
+                {
+                    object result = null;
+                    var parameters = getMenuItemsMethod.GetParameters();
+
+                    // 根据参数数量调用
+                    if (parameters.Length == 3)
+                    {
+                        result = getMenuItemsMethod.Invoke(null, new object[] { rootPath, false, false });
+                    }
+                    else if (parameters.Length == 1)
+                    {
+                        result = getMenuItemsMethod.Invoke(null, new object[] { rootPath });
+                    }
+
+                    // 处理返回结果
+                    if (result != null)
+                    {
+                        if (result is System.Collections.IEnumerable enumerable)
+                        {
+                            foreach (var item in enumerable)
+                            {
+                                if (item != null)
+                                {
+                                    // 尝试多种方式获取路径
+                                    string path = null;
+
+                                    // 方式1: 通过 path 属性
+                                    var pathProperty = item.GetType().GetProperty("path", BindingFlags.Public | BindingFlags.Instance);
+                                    if (pathProperty != null)
+                                    {
+                                        path = pathProperty.GetValue(item) as string;
+                                    }
+
+                                    // 方式2: 通过 menuPath 字段
+                                    if (string.IsNullOrEmpty(path))
+                                    {
+                                        var menuPathField = item.GetType().GetField("menuPath", BindingFlags.Public | BindingFlags.Instance);
+                                        if (menuPathField != null)
+                                        {
+                                            path = menuPathField.GetValue(item) as string;
+                                        }
+                                    }
+
+                                    // 方式3: 直接转换为字符串
+                                    if (string.IsNullOrEmpty(path))
+                                    {
+                                        path = item.ToString();
+                                    }
+
+                                    if (!string.IsNullOrEmpty(path) && path.StartsWith(rootPath))
+                                    {
+                                        menuItems.Add(path);
+                                    }
+                                }
+                            }
+                        }
+                        else if (result is string[] stringArray)
+                        {
+                            menuItems.AddRange(stringArray.Where(s => !string.IsNullOrEmpty(s) && s.StartsWith(rootPath)));
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"GetMenuItems method not found in Menu type. Available methods: {string.Join(", ", menuType.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Select(m => m.Name))}");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to get menu items via reflection: {e.Message}\nStackTrace: {e.StackTrace}");
+            }
+
+            // 过滤子菜单
+            if (!includeSubmenus && !string.IsNullOrEmpty(rootPath))
+            {
+                string prefix = rootPath.EndsWith("/") ? rootPath : rootPath + "/";
+                menuItems = menuItems.Where(m =>
+                {
+                    if (m.StartsWith(prefix))
+                    {
+                        string subPath = m.Substring(prefix.Length);
+                        return !subPath.Contains("/");
+                    }
+                    return false;
+                }).ToList();
+            }
+
+            return menuItems;
+        }
+
+        /// <summary>
+        /// 验证菜单项是否存在
+        /// </summary>
+        /// <param name="menuPath">菜单路径</param>
+        /// <returns>菜单是否存在</returns>
+        public static bool MenuItemExists(string menuPath)
+        {
+            try
+            {
+                // 尝试执行菜单（不实际创建对象）
+                return EditorApplication.ExecuteMenuItem(menuPath);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 处理获取菜单列表命令
+        /// </summary>
+        public static object HandleGetMenuItems(JsonClass cmd)
+        {
+            string rootPath = cmd["root_path"]?.Value ?? "GameObject/UI";
+            bool includeSubmenus = cmd["include_submenus"]?.AsBool ?? true;
+
+            var menuItems = GetMenuItems(rootPath, includeSubmenus);
+
+            var data = new JsonClass();
+            data["root_path"] = rootPath;
+            data["unity_version"] = Application.unityVersion;
+            data["is_legacy_version"] = IsLegacyVersion().ToString().ToLower();
+            data["total_count"] = menuItems.Count;
+
+            var menusArray = new JsonArray();
+            foreach (var menu in menuItems)
+            {
+                menusArray.Add(menu);
+            }
+            data["menus"] = menusArray;
+
+            return Response.Success($"Retrieved {menuItems.Count} menu items under '{rootPath}'.", data);
         }
     }
 }

@@ -16,6 +16,7 @@ namespace UnityMcp.Tools
     /// <summary>
     /// Handles GameObject creation operations in the scene hierarchy.
     /// 对应方法名: hierarchy_create
+    /// 支持: menu, primitive, prefab, empty, copy
     /// </summary>
     [ToolName("hierarchy_create", "层级管理")]
     public class HierarchyCreate : StateMethodBase
@@ -28,9 +29,10 @@ namespace UnityMcp.Tools
             return new[]
             {
                 new MethodKey("name", "GameObject名称", false),
-                new MethodKey("source", "操作类型：menu, primitive, prefab", false),
+                new MethodKey("source", "操作类型：menu, primitive, prefab, empty, copy", false),
                 new MethodKey("tag", "GameObject标签", true),
                 new MethodKey("layer", "GameObject所在层", true),
+                new MethodKey("parent", "父对象名称或路径", true),
                 new MethodKey("parent_id", "父对象唯一id", true),
                 new MethodKey("position", "位置坐标 [x, y, z]", true),
                 new MethodKey("rotation", "旋转角度 [x, y, z]", true),
@@ -38,6 +40,7 @@ namespace UnityMcp.Tools
                 new MethodKey("primitive_type", "基元类型：Cube, Sphere, Cylinder, Capsule, Plane, Quad", true),
                 new MethodKey("prefab_path", "预制体路径", true),
                 new MethodKey("menu_path", "菜单路径", true),
+                new MethodKey("copy_source", "要复制的GameObject名称", true),
                 new MethodKey("save_as_prefab", "是否保存为预制体", true),
                 new MethodKey("set_active", "设置激活状态", true),
             };
@@ -62,6 +65,8 @@ namespace UnityMcp.Tools
                         .DefaultLeaf(HandleCreateFromPrimitive)
                     .Up()
                     .Leaf("prefab", HandleCreateFromPrefab)
+                    .Leaf("empty", HandleCreateEmpty)
+                    .Leaf("copy", HandleCreateFromCopy)
                 .Build();
         }
 
@@ -264,6 +269,37 @@ namespace UnityMcp.Tools
             return CreateGameObjectFromPrimitive(args, "Quad");
         }
 
+        /// <summary>
+        /// 处理创建空GameObject的操作
+        /// </summary>
+        private object HandleCreateEmpty(JsonClass args)
+        {
+            string name = args["name"]?.Value;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "GameObject";
+                LogInfo("[HierarchyCreate] No name specified for empty GameObject, using default: 'GameObject'");
+            }
+
+            LogInfo($"[HierarchyCreate] Creating empty GameObject: '{name}'");
+            return CreateEmptyGameObject(args, name);
+        }
+
+        /// <summary>
+        /// 处理从现有对象复制的操作
+        /// </summary>
+        private object HandleCreateFromCopy(JsonClass args)
+        {
+            string copySource = args["copy_source"]?.Value;
+            if (string.IsNullOrEmpty(copySource))
+            {
+                return Response.Error("'copy_source' parameter is required for copy creation.");
+            }
+
+            LogInfo($"[HierarchyCreate] Copying GameObject from source: '{copySource}'");
+            return CreateGameObjectFromCopy(args, copySource);
+        }
+
         // --- Core Creation Methods ---
 
         /// <summary>
@@ -368,9 +404,6 @@ namespace UnityMcp.Tools
             {
                 GameObject newGo = new GameObject(name);
 
-                // 等待Unity完成对象初始化
-                //Thread.Sleep(10);
-
                 Undo.RegisterCreatedObjectUndo(newGo, $"Create GameObject '{newGo.name}'");
 
                 return FinalizeGameObjectCreation(args, newGo, true);
@@ -379,6 +412,69 @@ namespace UnityMcp.Tools
             {
                 LogInfo($"[HierarchyCreate] Failed to create empty GameObject '{name}': {e.Message}");
                 return Response.Error($"Failed to create empty GameObject '{name}': {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 从现有GameObject复制创建新对象
+        /// </summary>
+        private object CreateGameObjectFromCopy(JsonClass args, string copySource)
+        {
+            try
+            {
+                // 查找源对象
+                GameObject sourceObject = GameObject.Find(copySource);
+                if (sourceObject == null)
+                {
+                    // 如果直接查找失败，尝试在场景中搜索
+                    GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+                    sourceObject = allObjects.FirstOrDefault(go =>
+                        go.name.Equals(copySource, StringComparison.OrdinalIgnoreCase));
+
+                    if (sourceObject == null)
+                    {
+                        LogInfo($"[HierarchyCreate] Source GameObject '{copySource}' not found in scene");
+                        return Response.Error($"Source GameObject '{copySource}' not found in scene");
+                    }
+                }
+
+                LogInfo($"[HierarchyCreate] Found source object: '{sourceObject.name}' (ID: {sourceObject.GetInstanceID()})");
+
+                // 复制对象
+                GameObject newGo = UnityEngine.Object.Instantiate(sourceObject);
+
+                if (newGo == null)
+                {
+                    LogInfo($"[HierarchyCreate] Failed to instantiate copy of '{copySource}'");
+                    return Response.Error($"Failed to instantiate copy of '{copySource}'");
+                }
+
+                // 等待Unity完成对象初始化
+                //Thread.Sleep(10);
+
+                // 设置名称
+                string name = args["name"]?.Value;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    newGo.name = name;
+                }
+                else
+                {
+                    // 默认使用源对象名称（Unity会自动添加(Clone)后缀）
+                    LogInfo($"[HierarchyCreate] No name specified, copied object named: '{newGo.name}'");
+                }
+
+                // 注册撤销操作
+                Undo.RegisterCreatedObjectUndo(newGo, $"Copy GameObject '{sourceObject.name}' as '{newGo.name}'");
+
+                LogInfo($"[HierarchyCreate] Successfully copied '{sourceObject.name}' to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+
+                return FinalizeGameObjectCreation(args, newGo, true);
+            }
+            catch (Exception e)
+            {
+                LogInfo($"[HierarchyCreate] Error copying GameObject '{copySource}': {e.Message}");
+                return Response.Error($"Error copying GameObject '{copySource}': {e.Message}");
             }
         }
 

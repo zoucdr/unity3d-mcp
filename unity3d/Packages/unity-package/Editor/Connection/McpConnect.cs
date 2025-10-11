@@ -668,13 +668,35 @@ namespace UnityMcp
                 {
                     var endTime = System.DateTime.Now;
                     var duration = (endTime - startTime).TotalMilliseconds;
+
+                    // 动态判断 status：根据 result 中的 success 字段
+                    string status = "success";
+                    string error = "";
+                    if (result is JsonClass jsonResult)
+                    {
+                        var successNode = jsonResult["success"];
+                        if (successNode != null && successNode.Value == "false")
+                        {
+                            status = "error";
+                            error = jsonResult["error"].Value;
+                        }
+                    }
+
                     var response = new
                     {
-                        status = "success",
+                        status = status,
                         result = Json.FromObject(result)
                     };
-                    // Standard success response format
-                    Log($"[UnityMcp] 命令执行成功: Type={command.type}");
+
+                    // 根据 status 记录不同的日志
+                    if (status == "success")
+                    {
+                        Log($"[UnityMcp] 命令执行成功: Type={command.type} {command.cmd}");
+                    }
+                    else
+                    {
+                        Log($"[UnityMcp] 命令执行失败: Type={command.type} {command.cmd}");
+                    }
 
                     string re;
                     try
@@ -751,7 +773,7 @@ namespace UnityMcp
                             cmdName,
                             argsString,
                             re,
-                            "", // 成功时error为空
+                            error, // 成功时error为空
                             duration,
                             "MCP Client"
                         );
@@ -833,7 +855,7 @@ namespace UnityMcp
                     recordObject.addRecord(
                         cmdName,
                         argsString,
-                        "",
+                        ex.Message,
                         ex.Message,
                         0,
                         "MCP Client"

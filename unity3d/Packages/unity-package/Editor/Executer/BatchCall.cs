@@ -93,14 +93,50 @@ namespace UnityMcp.Executer
             // 如果所有函数都执行完毕，返回最终结果
             if (currentIndex >= totalCalls)
             {
-                int successfulCalls = totalCalls;
+                // 统计成功和失败的调用数
+                int successfulCalls = 0;
                 int failedCalls = 0;
 
-                var finalResponse = CreateBatchResponse(true, results, totalCalls, successfulCalls, failedCalls);
+                foreach (var result in results)
+                {
+                    if (result != null && result is JsonClass jsonResult)
+                    {
+                        // 检查结果中的success字段
+                        var successNode = jsonResult["success"];
+
+                        if (McpConnect.EnableLog)
+                        {
+                            Debug.Log($"[BatchCall] Result success node: {successNode?.Value ?? "null"}, type: {successNode?.GetType().Name ?? "null"}");
+                        }
+
+                        if (successNode != null && successNode.Value == "true")
+                        {
+                            successfulCalls++;
+                        }
+                        else
+                        {
+                            failedCalls++;
+                        }
+                    }
+                    else
+                    {
+                        // null 或无效结果视为失败
+                        failedCalls++;
+
+                        if (McpConnect.EnableLog)
+                        {
+                            Debug.Log($"[BatchCall] Result is null or not JsonClass: {result?.GetType().Name ?? "null"}");
+                        }
+                    }
+                }
+
+                // 只有所有调用都成功时才返回 Success
+                bool allSuccess = failedCalls == 0;
+                var finalResponse = CreateBatchResponse(allSuccess, results, totalCalls, successfulCalls, failedCalls);
                 finalCallback(finalResponse);
 
                 if (McpConnect.EnableLog)
-                    Debug.Log($"[FunctionsCall] Batch execution completed: {successfulCalls}/{totalCalls} successful");
+                    Debug.Log($"[FunctionsCall] Batch execution completed: {successfulCalls}/{totalCalls} successful, {failedCalls} failed");
                 return;
             }
 
@@ -190,7 +226,8 @@ namespace UnityMcp.Executer
                 if (method == null)
                 {
                     var availableMethods = string.Join(", ", ToolsCall.GetRegisteredMethodNames());
-                    if (McpConnect.EnableLog) Debug.LogWarning($"BatchCall Unknown method: '{functionName}'. Available methods: {availableMethods}");
+                    if (McpConnect.EnableLog)
+                        Debug.LogWarning($"BatchCall Unknown method: '{functionName}'. Available methods: {availableMethods}");
                     callback(null);
                     return;
                 }
@@ -230,7 +267,6 @@ namespace UnityMcp.Executer
             int totalCalls, int successfulCalls, int failedCalls, string globalError = null)
         {
             var responseData = new JsonClass();
-            responseData.Add("success", new JsonData(success ? "true" : "false"));
             responseData.Add("results", Json.FromObject(results));
             responseData.Add("total_calls", new JsonData(totalCalls.ToString()));
             responseData.Add("successful_calls", new JsonData(successfulCalls.ToString()));
@@ -241,8 +277,14 @@ namespace UnityMcp.Executer
                 responseData.Add("error", new JsonData(globalError));
             }
 
-            // 返回包含data字段的Response格式，以便Python层可以提取data部分
-            return Response.Success("Batch function calls completed", responseData);
+            if (success)
+            {
+                return Response.Success("Batch function calls completed", responseData);
+            }
+            else
+            {
+                return Response.Error("Batch function calls completed", responseData);
+            }
         }
     }
 }

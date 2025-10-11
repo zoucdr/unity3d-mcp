@@ -332,14 +332,15 @@ namespace UnityMcp.Tools
                     else
                     {
                         results[propName] = "Failed";
-                        Debug.LogError($"[SetComponentPropertysOnTarget] Failed to set property '{propName}': {error}");
-                        errors.Add($"Property '{propName}': Failed to set {error}");
+                        // Error already logged in SetComponentProperty
+                        errors.Add($"Property '{propName}': {error}");
                     }
                 }
                 catch (Exception e)
                 {
                     results[propName] = $"Error: {e.Message}";
                     errors.Add($"Property '{propName}': {e.Message}");
+                    Debug.LogError($"[SetComponentPropertysOnTarget] Unexpected exception for property '{propName}': {e.Message}");
                 }
             }
 
@@ -684,6 +685,8 @@ namespace UnityMcp.Tools
             BindingFlags flags =
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
+            string targetName = GetSafeObjectName(target);
+
             try
             {
                 // Handle special case for materials with dot notation (material.property)
@@ -693,25 +696,55 @@ namespace UnityMcp.Tools
                     return SetNestedProperty(target, memberName, value, out error);
                 }
 
+                // Try to find and set a field first
                 FieldInfo fieldInfo = type.GetField(memberName, flags);
                 if (fieldInfo != null)
                 {
                     object convertedValue = ConvertJTokenToType(value, fieldInfo.FieldType);
-                    if (convertedValue != null)
+                    if (convertedValue != null || fieldInfo.FieldType.IsClass)
                     {
                         fieldInfo.SetValue(target, convertedValue);
                         error = null;
                         return true;
                     }
+                    else
+                    {
+                        error = $"Failed to convert value for '{memberName}' on {targetName} ({type.Name})";
+                        return false;
+                    }
                 }
-                error = $"{target} ,Failed to set '{memberName}' on {type.Name}";
-                Debug.LogError(error);
+
+                // If field not found, try to find and set a property
+                PropertyInfo propertyInfo = type.GetProperty(memberName, flags);
+                if (propertyInfo != null)
+                {
+                    if (!propertyInfo.CanWrite)
+                    {
+                        error = $"Property '{memberName}' on {targetName} ({type.Name}) is read-only";
+                        return false;
+                    }
+
+                    object convertedValue = ConvertJTokenToType(value, propertyInfo.PropertyType);
+                    if (convertedValue != null || propertyInfo.PropertyType.IsClass)
+                    {
+                        propertyInfo.SetValue(target, convertedValue);
+                        error = null;
+                        return true;
+                    }
+                    else
+                    {
+                        error = $"Failed to convert value for '{memberName}' on {targetName} ({type.Name})";
+                        return false;
+                    }
+                }
+
+                error = $"Field or Property '{memberName}' not found on {targetName} ({type.Name})";
                 return false;
             }
             catch (Exception ex)
             {
-                error = $"{target} ,Failed to set '{memberName}' on {type.Name}: {ex.Message}";
-                Debug.LogError(error);
+                error = $"Failed to set '{memberName}' on {targetName} ({type.Name}): {ex.Message}";
+                Debug.LogError($"[SetComponentProperty] {error}");
             }
             return false;
         }
@@ -721,6 +754,8 @@ namespace UnityMcp.Tools
         /// </summary>
         private bool SetNestedProperty(object target, string path, JsonNode value, out string error)
         {
+            string targetName = GetSafeObjectName(target);
+
             try
             {
                 // Split the path into parts (handling both dot notation and array indexing)
@@ -763,22 +798,15 @@ namespace UnityMcp.Tools
                     }
 
                     // Get the property/field
-                    FieldInfo fieldInfo = currentType.GetField(part, flags);
-                    if (fieldInfo == null)
+                    if (!TryGetMemberValue(currentObject, part, flags, out currentObject, out Type memberType, out error))
                     {
-                        error = $"{currentObject} ,Could not find property or field '{part}' on type '{currentType.Name}'";
-                        Debug.LogWarning(error);
                         return false;
                     }
-
-                    // Get the value
-                    currentObject = fieldInfo.GetValue(currentObject);
 
                     // If the current property is null, we need to stop
                     if (currentObject == null)
                     {
-                        error = $"{currentObject} ,Property '{part}' is null, cannot access nested properties.";
-                        Debug.LogWarning(error);
+                        error = $"Member '{part}' is null on {targetName}, cannot access nested properties";
                         return false;
                     }
 
@@ -790,8 +818,7 @@ namespace UnityMcp.Tools
                             var materials = currentObject as Material[];
                             if (arrayIndex < 0 || arrayIndex >= materials.Length)
                             {
-                                error = $"{currentObject} ,Material index {arrayIndex} out of range (0-{materials.Length - 1})";
-                                Debug.LogWarning(error);
+                                error = $"Material index {arrayIndex} out of range (0-{materials.Length - 1}) on {targetName}";
                                 return false;
                             }
                             currentObject = materials[arrayIndex];
@@ -801,16 +828,14 @@ namespace UnityMcp.Tools
                             var list = currentObject as System.Collections.IList;
                             if (arrayIndex < 0 || arrayIndex >= list.Count)
                             {
-                                error = $"{currentObject} ,Index {arrayIndex} out of range (0-{list.Count - 1})";
-                                Debug.LogWarning(error);
+                                error = $"Index {arrayIndex} out of range (0-{list.Count - 1}) on {targetName}";
                                 return false;
                             }
                             currentObject = list[arrayIndex];
                         }
                         else
                         {
-                            error = $"{currentObject} ,Property '{part}' is not an array or list, cannot access by index.";
-                            Debug.LogWarning(error);
+                            error = $"Field '{part}' is not an array or list on {targetName}, cannot access by index";
                             return false;
                         }
                     }
@@ -819,19 +844,21 @@ namespace UnityMcp.Tools
                     currentType = currentObject.GetType();
                 }
 
-                LogInfo($"{currentObject} ,Current type: {currentType}");
+                // Validate Unity Object asset path
                 if (typeof(UnityEngine.Object).IsAssignableFrom(currentType))
                 {
-                    var assetPath = AssetDatabase.GetAssetPath(currentObject as UnityEngine.Object);
-                    if (string.IsNullOrEmpty(assetPath))
+                    var unityObj = currentObject as UnityEngine.Object;
+                    if (unityObj != null)
                     {
-                        error = $"{currentObject} ,Asset path is null";
-                        return false;
-                    }
-                    if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith(Application.dataPath) && !assetPath.StartsWith("Assets/"))
-                    {
-                        error = $"{currentObject} ,Asset path is not in the assets path";
-                        return false;
+                        var assetPath = AssetDatabase.GetAssetPath(unityObj);
+                        if (!string.IsNullOrEmpty(assetPath))
+                        {
+                            // Only validate if it's an asset (not a scene object)
+                            if (!assetPath.StartsWith("Assets/") && !assetPath.StartsWith("Packages/"))
+                            {
+                                Debug.LogWarning($"[SetNestedProperty] Asset path '{assetPath}' is not in Assets or Packages folder");
+                            }
+                        }
                     }
                 }
 
@@ -844,32 +871,13 @@ namespace UnityMcp.Tools
                     return SetMaterialShaderProperty(material, finalPart, value, out error);
                 }
 
-                FieldInfo finalFieldInfo = currentType.GetField(finalPart, flags);
-                if (finalFieldInfo != null)
-                {
-                    object convertedValue = ConvertJTokenToType(
-                        value,
-                        finalFieldInfo.FieldType
-                    );
-                    if (convertedValue != null)
-                    {
-                        finalFieldInfo.SetValue(currentObject, convertedValue);
-                        error = null;
-                        return true;
-                    }
-                }
-                else
-                {
-                    error = $"{currentObject} ,Could not find final property or field '{finalPart}' on type '{currentType.Name}'";
-                    Debug.LogWarning(error);
-                }
-                error = null;
-                return true;
+                // Use helper method to set field or property
+                return TrySetMemberValue(currentObject, finalPart, value, flags, out error);
             }
             catch (Exception ex)
             {
-                error = $"Error setting nested property '{path}': {ex.Message}";
-                Debug.LogError(error);
+                error = $"Error setting nested property '{path}' on {targetName}: {ex.Message}";
+                Debug.LogError($"[SetNestedProperty] {error}\n{ex.StackTrace}");
                 return false;
             }
         }
@@ -879,6 +887,8 @@ namespace UnityMcp.Tools
         /// </summary>
         private bool SetMaterialShaderProperty(Material material, string propertyName, JsonNode value, out string error)
         {
+            string materialName = material != null ? material.name : "<null>";
+
             try
             {
                 // Handle various material property types
@@ -959,19 +969,152 @@ namespace UnityMcp.Tools
                             error = null;
                             return true;
                         }
+                        else
+                        {
+                            error = $"Texture not found at path '{texturePath}' for material '{materialName}'";
+                            return false;
+                        }
                     }
                 }
 
-                error = $"{material} ,Unsupported material property value type: {value.type} for {propertyName}";
-                Debug.LogWarning(error);
+                error = $"Unsupported material property value type: {value.type} for property '{propertyName}' on material '{materialName}'";
                 return false;
             }
             catch (Exception ex)
             {
-                error = $"{material} ,Error setting material property '{propertyName}': {ex.Message}";
-                Debug.LogError(error);
+                error = $"Error setting material property '{propertyName}' on '{materialName}': {ex.Message}";
+                Debug.LogError($"[SetMaterialShaderProperty] {error}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Safely gets an object's name for error messages
+        /// </summary>
+        private string GetSafeObjectName(object obj)
+        {
+            if (obj == null) return "<null>";
+
+            try
+            {
+                // Check if it's a Unity Object
+                if (obj is UnityEngine.Object unityObj)
+                {
+                    // Unity's fake null check
+                    if (unityObj == null || !unityObj)
+                        return "<destroyed Unity Object>";
+
+                    return unityObj.name ?? obj.GetType().Name;
+                }
+
+                // Check if object has a name property
+                var nameProperty = obj.GetType().GetProperty("name", BindingFlags.Public | BindingFlags.Instance);
+                if (nameProperty != null && nameProperty.CanRead && nameProperty.PropertyType == typeof(string))
+                {
+                    try
+                    {
+                        var nameValue = nameProperty.GetValue(obj) as string;
+                        if (!string.IsNullOrEmpty(nameValue))
+                            return nameValue;
+                    }
+                    catch { }
+                }
+
+                // Fall back to type name
+                return obj.GetType().Name;
+            }
+            catch
+            {
+                return "<error getting name>";
+            }
+        }
+
+        /// <summary>
+        /// Helper to get a field or property value
+        /// </summary>
+        private bool TryGetMemberValue(object obj, string memberName, BindingFlags flags, out object value, out Type memberType, out string error)
+        {
+            Type type = obj.GetType();
+            string targetName = GetSafeObjectName(obj);
+
+            // Try field first
+            FieldInfo fieldInfo = type.GetField(memberName, flags);
+            if (fieldInfo != null)
+            {
+                value = fieldInfo.GetValue(obj);
+                memberType = fieldInfo.FieldType;
+                error = null;
+                return true;
+            }
+
+            // Try property
+            PropertyInfo propertyInfo = type.GetProperty(memberName, flags);
+            if (propertyInfo != null && propertyInfo.CanRead)
+            {
+                value = propertyInfo.GetValue(obj);
+                memberType = propertyInfo.PropertyType;
+                error = null;
+                return true;
+            }
+
+            value = null;
+            memberType = null;
+            error = $"Could not find field or property '{memberName}' on type '{type.Name}' (from {targetName})";
+            return false;
+        }
+
+        /// <summary>
+        /// Helper to set a field or property value
+        /// </summary>
+        private bool TrySetMemberValue(object obj, string memberName, JsonNode jsonValue, BindingFlags flags, out string error)
+        {
+            Type type = obj.GetType();
+            string targetName = GetSafeObjectName(obj);
+
+            // Try field first
+            FieldInfo fieldInfo = type.GetField(memberName, flags);
+            if (fieldInfo != null)
+            {
+                object convertedValue = ConvertJTokenToType(jsonValue, fieldInfo.FieldType);
+                if (convertedValue != null || fieldInfo.FieldType.IsClass)
+                {
+                    fieldInfo.SetValue(obj, convertedValue);
+                    error = null;
+                    return true;
+                }
+                else
+                {
+                    error = $"Failed to convert value for field '{memberName}' on {targetName} ({type.Name})";
+                    return false;
+                }
+            }
+
+            // Try property
+            PropertyInfo propertyInfo = type.GetProperty(memberName, flags);
+            if (propertyInfo != null)
+            {
+                if (!propertyInfo.CanWrite)
+                {
+                    error = $"Property '{memberName}' on {targetName} ({type.Name}) is read-only";
+                    return false;
+                }
+
+                object convertedValue = ConvertJTokenToType(jsonValue, propertyInfo.PropertyType);
+                if (convertedValue != null || propertyInfo.PropertyType.IsClass)
+                {
+                    propertyInfo.SetValue(obj, convertedValue);
+                    error = null;
+                    return true;
+                }
+                else
+                {
+                    error = $"Failed to convert value for property '{memberName}' on {targetName} ({type.Name})";
+                    return false;
+                }
+            }
+
+            error = $"Could not find field or property '{memberName}' on type '{type.Name}' (from {targetName})";
+            return false;
         }
 
         /// <summary>
