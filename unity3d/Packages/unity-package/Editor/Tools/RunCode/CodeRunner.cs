@@ -125,9 +125,15 @@ namespace UnityMcp.Tools
                     yield break;
                 }
 
-                string className = args["class_name"]?.Value ?? "CodeClass";
-                string methodName = args["entry_method"]?.Value ?? "Run";
-                string namespaceName = args["namespace"]?.Value ?? "CodeNamespace";
+                // 获取参数，确保有默认值
+                var classNameNode = args["class_name"];
+                var methodNameNode = args["entry_method"];
+                var namespaceNode = args["namespace"];
+
+                string className = (!string.IsNullOrEmpty(classNameNode?.Value)) ? classNameNode.Value : "CodeClass";
+                string methodName = (!string.IsNullOrEmpty(methodNameNode?.Value)) ? methodNameNode.Value : "Run";
+                string namespaceName = (!string.IsNullOrEmpty(namespaceNode?.Value)) ? namespaceNode.Value : "CodeNamespace";
+
                 var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? GetDefaultIncludes();
                 var parameters = new object[0]; // 暂时简化处理
                 int timeout = args["timeout"].AsIntDefault(30);
@@ -169,9 +175,15 @@ namespace UnityMcp.Tools
                     yield break;
                 }
 
-                string className = args["class_name"]?.Value ?? "CodeClass";
-                string methodName = args["entry_method"]?.Value ?? "Run";
-                string namespaceName = args["namespace"]?.Value ?? "CodeNamespace";
+                // 获取参数，确保有默认值
+                var classNameNode = args["class_name"];
+                var methodNameNode = args["entry_method"];
+                var namespaceNode = args["namespace"];
+
+                string className = (!string.IsNullOrEmpty(classNameNode?.Value)) ? classNameNode.Value : "CodeClass";
+                string methodName = (!string.IsNullOrEmpty(methodNameNode?.Value)) ? methodNameNode.Value : "Run";
+                string namespaceName = (!string.IsNullOrEmpty(namespaceNode?.Value)) ? namespaceNode.Value : "CodeNamespace";
+
                 var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? GetDefaultIncludes();
 
                 LogInfo($"[CodeRunner] Validating code class: {namespaceName}.{className}");
@@ -413,8 +425,11 @@ namespace UnityMcp.Tools
             sb.AppendLine($"    public class {className}");
             sb.AppendLine("    {");
 
-            // 检查用户代码是否已经包含方法定义
-            bool hasMethodDefinition = code.Contains("public") && (code.Contains("static") || code.Contains("void") || code.Contains("string") || code.Contains("int") || code.Contains("bool"));
+            // 改进的方法定义检测：检查是否包含完整的方法签名
+            bool hasMethodDefinition =
+                System.Text.RegularExpressions.Regex.IsMatch(code, @"\b(public|private|protected|internal)\s+(static\s+)?\w+\s+\w+\s*\([^\)]*\)\s*\{") ||
+                System.Text.RegularExpressions.Regex.IsMatch(code, @"\b(public|private|protected|internal)\s+class\s+\w+") ||
+                System.Text.RegularExpressions.Regex.IsMatch(code, @"\b(public|private|protected|internal)\s+struct\s+\w+");
 
             if (hasMethodDefinition)
             {
@@ -427,37 +442,48 @@ namespace UnityMcp.Tools
             }
             else
             {
-                // 如果用户代码只是代码片段，包装在指定的方法中
+                // 顶层语句代码 - 包装在方法中
+                LogInfo("[CodeRunner] 检测到顶层语句，包装为方法");
+
                 sb.AppendLine($"        public static object {methodName}()");
                 sb.AppendLine("        {");
-                sb.AppendLine("            try");
-                sb.AppendLine("            {");
 
-                var lines = code.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                // 不需要 try-catch，让异常自然传播
+                var lines = code.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
                 foreach (var line in lines)
                 {
-                    sb.AppendLine($"                {line}");
+                    // 保留空行和缩进
+                    if (string.IsNullOrWhiteSpace(line))
+                    {
+                        sb.AppendLine();
+                    }
+                    else
+                    {
+                        sb.AppendLine($"            {line}");
+                    }
                 }
 
                 // 如果代码不包含return语句，添加默认返回值
                 if (!code.ToLower().Contains("return"))
                 {
-                    sb.AppendLine("                return \"Execution completed\";");
+                    sb.AppendLine("            return \"Execution completed\";");
                 }
 
-                sb.AppendLine("            }");
-                sb.AppendLine("            catch (System.Exception ex)");
-                sb.AppendLine("            {");
-                sb.AppendLine("                UnityEngine.Debug.LogException(ex);");
-                sb.AppendLine("                throw;");
-                sb.AppendLine("            }");
                 sb.AppendLine("        }");
             }
 
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            return sb.ToString();
+            var generatedCode = sb.ToString();
+
+            // 输出生成的完整代码用于调试
+            LogInfo($"[CodeRunner] Generated code ({generatedCode.Length} chars):");
+            LogInfo($"[CodeRunner] ===== Generated Code Start =====");
+            LogInfo(generatedCode);
+            LogInfo($"[CodeRunner] ===== Generated Code End =====");
+
+            return generatedCode;
         }
 
         /// <summary>
@@ -515,6 +541,15 @@ namespace UnityMcp.Tools
                 File.WriteAllText(tempFilePath, code);
                 LogInfo($"[CodeRunner] 临时文件路径: {tempFilePath}");
                 LogInfo($"[CodeRunner] 目标程序集路径: {tempAssemblyPath}");
+
+                // 打印最终参与编译的完整代码
+                LogInfo($"[CodeRunner] ========================================");
+                LogInfo($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
+                LogInfo($"[CodeRunner] ========================================");
+                LogInfo(code);
+                LogInfo($"[CodeRunner] ========================================");
+                LogInfo($"[CodeRunner] 代码打印完成");
+                LogInfo($"[CodeRunner] ========================================");
             }
             catch (Exception e)
             {
@@ -979,6 +1014,15 @@ namespace UnityMcp.Tools
                     LogInfo($"[CodeRunner] 临时文件路径: {tempFilePath}");
                     LogInfo($"[CodeRunner] 目标程序集路径: {tempAssemblyPath}");
                     LogInfo($"[CodeRunner] 代码长度: {code.Length} 字符");
+
+                    // 打印最终参与编译的完整代码
+                    LogInfo($"[CodeRunner] ========================================");
+                    LogInfo($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
+                    LogInfo($"[CodeRunner] ========================================");
+                    LogInfo(code);
+                    LogInfo($"[CodeRunner] ========================================");
+                    LogInfo($"[CodeRunner] 代码打印完成");
+                    LogInfo($"[CodeRunner] ========================================");
 
                     // 使用Unity编译流水线编译
                     var assemblyBuilder = new AssemblyBuilder(tempAssemblyPath, new[] { tempFilePath });

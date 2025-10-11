@@ -1613,16 +1613,7 @@ return LoadFromCompressedStream(stream);
             }
 #endif
 
-            if (obj is System.Collections.IEnumerable enumerable && !(obj is string))
-            {
-                var arr = new JsonArray();
-                foreach (var item in enumerable)
-                {
-                    arr.Add(FromObject(item));
-                }
-                return arr;
-            }
-
+            // 先检查 IDictionary，因为 Dictionary 同时实现了 IDictionary 和 IEnumerable
             if (obj is System.Collections.IDictionary dict)
             {
                 var jsonObj = new JsonClass();
@@ -1631,6 +1622,16 @@ return LoadFromCompressedStream(stream);
                     jsonObj.Add(entry.Key.ToString(), FromObject(entry.Value));
                 }
                 return jsonObj;
+            }
+
+            if (obj is System.Collections.IEnumerable enumerable && !(obj is string))
+            {
+                var arr = new JsonArray();
+                foreach (var item in enumerable)
+                {
+                    arr.Add(FromObject(item));
+                }
+                return arr;
             }
 
             // 特殊处理匿名类型和具有属性的对象

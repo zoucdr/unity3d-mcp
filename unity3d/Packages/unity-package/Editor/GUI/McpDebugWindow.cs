@@ -1007,7 +1007,7 @@ namespace UnityMcp.Gui
                 try
                 {
                     JsonClass jsonObj = Json.Parse(text) as JsonClass;
-                    string formatted = Json.FromObject(jsonObj);
+                    string formatted = Json.FromObject(jsonObj).ToPrettyString();
 
                     // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
@@ -1016,7 +1016,7 @@ namespace UnityMcp.Gui
                 {
                     // 尝试作为JArray解析
                     JsonArray jsonArray = Json.Parse(text) as JsonArray;
-                    string formatted = Json.FromObject(jsonArray);
+                    string formatted = Json.FromObject(jsonArray).ToPrettyString();
 
                     // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
@@ -1030,43 +1030,43 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 在格式化后的 Json 文本中展开 yaml 字段的换行符
+        /// 在格式化后的 Json 文本中展开所有字符串字段的换行符
         /// </summary>
         private string ExpandYamlInFormattedJson(string formattedJson)
         {
             if (string.IsNullOrEmpty(formattedJson))
                 return formattedJson;
 
-            // 使用正则表达式查找 "yaml": "..." 模式
-            // 匹配 "yaml": "内容"（包括多行的情况）
-            string pattern = @"""yaml"":\s*""([^""\\]*(\\.[^""\\]*)*)""";
+            // 匹配所有的 "fieldName": "value" 模式，不限定字段名
+            // 匹配任意字段名和其字符串值
+            string pattern = @"""([^""]+)"":\s*""([^""\\]*(\\.[^""\\]*)*)""";
 
             return System.Text.RegularExpressions.Regex.Replace(formattedJson, pattern, match =>
             {
-                string fullMatch = match.Value;
-                string yamlContent = match.Groups[1].Value;
+                string fieldName = match.Groups[1].Value;
+                string fieldValue = match.Groups[2].Value;
 
-                // 只有包含 \n 才处理
-                if (!yamlContent.Contains("\\n"))
-                    return fullMatch;
+                // 只有包含 \r\n 或 \n 才处理
+                if (!fieldValue.Contains("\\r\\n") && !fieldValue.Contains("\\n"))
+                    return match.Value;
 
-                // 展开 \n 为实际换行，并保持 Json 的缩进
-                string expandedYaml = yamlContent.Replace("\\n", "\n");
+                // 展开 \r\n 和 \n 为实际换行，并保持 Json 的缩进
+                string expandedValue = fieldValue.Replace("\\r\\n", "\n").Replace("\\n", "\n");
 
                 // 获取当前的缩进级别
                 int indentLevel = GetIndentLevel(formattedJson, match.Index);
                 string indent = new string(' ', indentLevel + 2); // +2 是因为字符串内容需要额外缩进
 
-                // 为 yaml 内容的每一行添加适当的缩进（除了第一行）
-                string[] lines = expandedYaml.Split('\n');
+                // 为内容的每一行添加适当的缩进（除了第一行）
+                string[] lines = expandedValue.Split('\n');
                 for (int i = 1; i < lines.Length; i++)
                 {
                     lines[i] = indent + lines[i];
                 }
-                expandedYaml = string.Join("\n", lines);
+                expandedValue = string.Join("\n", lines);
 
                 // 返回格式化后的结果
-                return $"\"yaml\": \"{expandedYaml}\"";
+                return $"\"{fieldName}\": \"{expandedValue}\"";
             });
         }
 

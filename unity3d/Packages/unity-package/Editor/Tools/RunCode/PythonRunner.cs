@@ -600,6 +600,72 @@ builtins.print = unity_print
         }
 
         /// <summary>
+        /// 自动检测系统Python路径
+        /// </summary>
+        private string FindPythonExecutable()
+        {
+            // Windows常见Python路径
+            string[] windowsPaths = new[]
+            {
+                @"C:\Python312\python.exe",
+                @"C:\Python311\python.exe",
+                @"C:\Python310\python.exe",
+                @"C:\Python39\python.exe",
+                @"C:\Python38\python.exe",
+                Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), @"Programs\Python\Python312\python.exe"),
+                Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), @"Programs\Python\Python311\python.exe"),
+                Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), @"Programs\Python\Python310\python.exe"),
+            };
+
+            // 首先尝试常见路径
+            foreach (var path in windowsPaths)
+            {
+                if (File.Exists(path))
+                {
+                    LogInfo($"[PythonRunner] Found Python at: {path}");
+                    return path;
+                }
+            }
+
+            // 尝试通过where命令查找（Windows）
+            try
+            {
+                var whereProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "where",
+                        Arguments = "python",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true
+                    }
+                };
+                whereProcess.Start();
+                string output = whereProcess.StandardOutput.ReadToEnd().Trim();
+                whereProcess.WaitForExit();
+
+                if (whereProcess.ExitCode == 0 && !string.IsNullOrEmpty(output))
+                {
+                    string firstPath = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+                    if (File.Exists(firstPath))
+                    {
+                        LogInfo($"[PythonRunner] Found Python via 'where': {firstPath}");
+                        return firstPath;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogWarning($"[PythonRunner] Failed to run 'where python': {ex.Message}");
+            }
+
+            // 默认返回python，让系统尝试从PATH查找
+            LogWarning("[PythonRunner] Could not find Python executable, using 'python' as default");
+            return "python";
+        }
+
+        /// <summary>
         /// 执行Python脚本
         /// </summary>
         private IEnumerator ExecutePythonScript(string scriptPath, string pythonPath, string workingDirectory,
@@ -614,6 +680,14 @@ builtins.print = unity_print
 
             // 构建Python命令
             string pythonExecutable = pythonPath;
+
+            // 如果pythonPath为空或为默认值，尝试自动检测
+            if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
+            {
+                pythonExecutable = FindPythonExecutable();
+                LogInfo($"[PythonRunner] Auto-detected Python: {pythonExecutable}");
+            }
+
             if (!string.IsNullOrEmpty(virtualEnv))
             {
                 // 如果指定了虚拟环境，使用虚拟环境中的Python
@@ -622,6 +696,17 @@ builtins.print = unity_print
                 {
                     pythonExecutable = Path.Combine(virtualEnv, "bin", "python"); // Linux/Mac
                 }
+            }
+
+            // 验证Python路径
+            if (string.IsNullOrEmpty(pythonExecutable))
+            {
+                result.Success = false;
+                result.Error = "Failed to start Python process: Cannot start process because a file name has not been provided.";
+                result.ExitCode = -1;
+                result.Duration = (DateTime.Now - startTime).TotalSeconds;
+                callback?.Invoke(result);
+                yield break;
             }
 
             var processStartInfo = new ProcessStartInfo
@@ -805,6 +890,14 @@ builtins.print = unity_print
             System.Action<bool, string, string> callback)
         {
             string pythonExecutable = pythonPath;
+
+            // 如果pythonPath为空或为默认值，尝试自动检测
+            if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
+            {
+                pythonExecutable = FindPythonExecutable();
+                LogInfo($"[PythonRunner] Auto-detected Python for validation: {pythonExecutable}");
+            }
+
             if (!string.IsNullOrEmpty(virtualEnv))
             {
                 pythonExecutable = Path.Combine(virtualEnv, "Scripts", "python.exe");
@@ -959,6 +1052,14 @@ builtins.print = unity_print
             System.Action<object> callback)
         {
             string pythonExecutable = pythonPath;
+
+            // 如果pythonPath为空或为默认值，尝试自动检测
+            if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
+            {
+                pythonExecutable = FindPythonExecutable();
+                LogInfo($"[PythonRunner] Auto-detected Python for package install: {pythonExecutable}");
+            }
+
             if (!string.IsNullOrEmpty(virtualEnv))
             {
                 pythonExecutable = Path.Combine(virtualEnv, "Scripts", "python.exe");
@@ -1145,6 +1246,14 @@ builtins.print = unity_print
             }
 
             string pythonExecutable = pythonPath;
+
+            // 如果pythonPath为空或为默认值，尝试自动检测
+            if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
+            {
+                pythonExecutable = FindPythonExecutable();
+                LogInfo($"[PythonRunner] Auto-detected Python for requirements install: {pythonExecutable}");
+            }
+
             if (!string.IsNullOrEmpty(virtualEnv))
             {
                 pythonExecutable = Path.Combine(virtualEnv, "Scripts", "python.exe");

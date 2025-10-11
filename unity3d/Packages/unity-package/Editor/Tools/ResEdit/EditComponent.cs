@@ -158,57 +158,100 @@ namespace UnityMcp.Tools
                     return Response.Error($"Component '{compName}' not found on '{targetGo.name}'.");
                 }
 
-                // 获取组件的所有字段（包括public和non-public）
+                // 获取组件的所有字段和属性
                 Type componentType = targetComponent.GetType();
-                BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
 
                 var propertiesDict = new Dictionary<string, object>();
 
-                // 获取所有字段
-                FieldInfo[] fields = componentType.GetFields(flags);
-                if (fields == null || fields.Length == 0)
+                // 定义要跳过的属性名称（Unity组件快捷访问器和不常用属性）
+                var skipProperties = new HashSet<string>
                 {
-                    return Response.Success(
-                        $"Component '{compName}' has no serializable fields.",
-                        new Dictionary<string, object>
-                        {
-                        { "component_type", compName },
-                        { "gameobject_name", targetGo.name },
-                        { "properties", propertiesDict }
-                        }
-                    );
-                }
+                    "hideFlags", "rigidbody", "rigidbody2D", "camera", "light", "animation",
+                    "constantForce", "renderer", "audio", "networkView", "collider", "collider2D",
+                    "hingeJoint", "particleSystem", "gameObject", "transform", "tag", "name",
+                    "worldToLocalMatrix", "localToWorldMatrix", "isPartOfStaticBatch",
+                    // 跳过会导致实例化的属性（避免副作用）
+                    "material", "materials", "mesh"  // 使用 sharedMaterial, sharedMaterials, sharedMesh 代替
+                };
 
-                foreach (FieldInfo field in fields)
+                // 1. 获取所有公共属性 (Properties)
+                PropertyInfo[] properties = componentType.GetProperties(flags);
+                if (properties != null)
                 {
-                    // 检查字段是否在Inspector中可见
-                    // 条件1: public字段
-                    // 条件2: 带有SerializeField特性的非public字段
-                    bool isSerializable = field.IsPublic ||
-                                         field.GetCustomAttributes(typeof(SerializeField), true).Length > 0;
-
-                    if (isSerializable)
+                    foreach (PropertyInfo prop in properties)
                     {
-                        try
+                        // 跳过黑名单中的属性
+                        if (skipProperties.Contains(prop.Name)) continue;
+
+                        // 只获取可读的、可写的属性（排除只读属性和索引器）
+                        if (prop.CanRead && prop.CanWrite && !prop.GetIndexParameters().Any())
                         {
-                            object value = field.GetValue(targetComponent);
-                            propertiesDict[field.Name] = ConvertToSerializableValue(value);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogWarning($"[GetComponentPropertysFromTarget] Failed to get field '{field.Name}': {ex.Message}");
-                            propertiesDict[field.Name] = $"<Error: {ex.Message}>";
+                            try
+                            {
+                                object value = prop.GetValue(targetComponent, null);
+                                propertiesDict[prop.Name] = ConvertToSerializableValue(value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogWarning($"[GetComponentPropertysFromTarget] Failed to get property '{prop.Name}': {ex.Message}");
+                                // 不添加错误信息到结果中
+                            }
                         }
                     }
                 }
 
+                // 2. 获取所有字段 (Fields) - 包括 SerializeField
+                FieldInfo[] fields = componentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (fields != null)
+                {
+                    foreach (FieldInfo field in fields)
+                    {
+                        // 检查字段是否可序列化
+                        // 条件1: public字段
+                        // 条件2: 带有SerializeField特性的非public字段
+                        bool isSerializable = field.IsPublic ||
+                                             field.GetCustomAttributes(typeof(SerializeField), true).Length > 0;
+
+                        if (isSerializable && !propertiesDict.ContainsKey(field.Name)) // 避免重复
+                        {
+                            try
+                            {
+                                object value = field.GetValue(targetComponent);
+                                propertiesDict[field.Name] = ConvertToSerializableValue(value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogWarning($"[GetComponentPropertysFromTarget] Failed to get field '{field.Name}': {ex.Message}");
+                                // 不添加错误信息到结果中
+                            }
+                        }
+                    }
+                }
+
+                // 如果没有任何可访问的属性或字段
+                if (propertiesDict.Count == 0)
+                {
+                    return Response.Success(
+                        $"Component '{compName}' has no accessible properties or fields.",
+                        new Dictionary<string, object>
+                        {
+                            { "component_type", compName },
+                            { "gameobject_name", targetGo.name },
+                            { "properties", "" }  // 空YAML
+                        }
+                    );
+                }
+
+                // 转换为YAML格式
+                string propertiesYaml = ConvertDictionaryToYaml(propertiesDict);
                 return Response.Success(
                     $"Retrieved {propertiesDict.Count} serializable fields from component '{compName}' on '{targetGo.name}'.",
                     new Dictionary<string, object>
                     {
                         { "component_type", compName },
                         { "gameobject_name", targetGo.name },
-                        { "properties", propertiesDict }
+                        { "properties", propertiesYaml }  // 直接用YAML格式
                     }
                 );
             }
@@ -445,6 +488,86 @@ namespace UnityMcp.Tools
             {
                 return $"<{valueType.Name}>";
             }
+        }
+
+        /// <summary>
+        /// 将Dictionary转换为YAML格式字符串
+        /// </summary>
+        private string ConvertDictionaryToYaml(Dictionary<string, object> dict, int indent = 0)
+        {
+            if (dict == null || dict.Count == 0)
+                return "";
+
+            var sb = new System.Text.StringBuilder();
+            string indentStr = new string(' ', indent);
+
+            foreach (var kvp in dict)
+            {
+                sb.Append(indentStr);
+                sb.Append(kvp.Key);
+                sb.Append(": ");
+
+                if (kvp.Value == null)
+                {
+                    sb.AppendLine("null");
+                }
+                else if (kvp.Value is string str)
+                {
+                    // 多行字符串
+                    if (str.Contains("\n"))
+                    {
+                        sb.AppendLine("|");
+                        foreach (var line in str.Split('\n'))
+                        {
+                            sb.Append(indentStr);
+                            sb.Append("  ");
+                            sb.AppendLine(line.TrimEnd());
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine(str);
+                    }
+                }
+                else if (kvp.Value is Dictionary<string, object> nestedDict)
+                {
+                    // 嵌套字典
+                    sb.AppendLine();
+                    sb.Append(ConvertDictionaryToYaml(nestedDict, indent + 2));
+                }
+                else if (kvp.Value is System.Collections.IList list)
+                {
+                    // 数组
+                    if (list.Count == 0)
+                    {
+                        sb.AppendLine("[]");
+                    }
+                    else
+                    {
+                        sb.AppendLine();
+                        foreach (var item in list)
+                        {
+                            sb.Append(indentStr);
+                            sb.Append("  - ");
+                            if (item is Dictionary<string, object> itemDict)
+                            {
+                                sb.AppendLine();
+                                sb.Append(ConvertDictionaryToYaml(itemDict, indent + 4));
+                            }
+                            else
+                            {
+                                sb.AppendLine(item?.ToString() ?? "null");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // 其他类型转字符串
+                    sb.AppendLine(kvp.Value.ToString());
+                }
+            }
+            return sb.ToString();
         }
 
         /// <summary>
