@@ -1059,20 +1059,22 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 解析Vector2
+        /// 解析Vector2，支持多种格式：JsonArray、Vector2、字符串
+        /// 支持格式: [1, 2], ["1", "2"], "[1, 2]", "(1, 2)", "1, 2"
         /// </summary>
         private Vector2? ParseVector2(object obj)
         {
             if (obj == null) return null;
 
+            // 处理 JsonArray 类型
             if (obj is JsonArray JsonArray && JsonArray.Count >= 2)
             {
                 try
                 {
-                    return new Vector2(
-                        JsonArray[0].AsFloat,
-                        JsonArray[1].AsFloat
-                    );
+                    // 尝试直接作为float解析
+                    float x = ParseFloatValue(JsonArray[0]);
+                    float y = ParseFloatValue(JsonArray[1]);
+                    return new Vector2(x, y);
                 }
                 catch
                 {
@@ -1080,30 +1082,53 @@ namespace UnityMcp.Tools
                 }
             }
 
+            // 处理 Vector2 类型
             if (obj is Vector2 vector2)
             {
                 return vector2;
+            }
+
+            // 处理字符串格式
+            if (obj is string str)
+            {
+                float[] values = ParseNumberArrayFromString(str, 2);
+                if (values != null && values.Length == 2)
+                {
+                    return new Vector2(values[0], values[1]);
+                }
+            }
+
+            // 处理 JsonNode 类型
+            if (obj is JsonNode node && node.type == JsonNodeType.String)
+            {
+                float[] values = ParseNumberArrayFromString(node.Value, 2);
+                if (values != null && values.Length == 2)
+                {
+                    return new Vector2(values[0], values[1]);
+                }
             }
 
             return null;
         }
 
         /// <summary>
-        /// 解析Vector3
+        /// 解析Vector3，支持多种格式：JsonArray、Vector3、字符串
+        /// 支持格式: [1, 2, 3], ["1", "2", "3"], "[1, 2, 3]", "(1, 2, 3)", "1, 2, 3"
         /// </summary>
         private Vector3? ParseVector3(object obj)
         {
             if (obj == null) return null;
 
+            // 处理 JsonArray 类型
             if (obj is JsonArray JsonArray && JsonArray.Count >= 3)
             {
                 try
                 {
-                    return new Vector3(
-                        JsonArray[0].AsFloat,
-                        JsonArray[1].AsFloat,
-                        JsonArray[2].AsFloat
-                    );
+                    // 尝试直接作为float解析
+                    float x = ParseFloatValue(JsonArray[0]);
+                    float y = ParseFloatValue(JsonArray[1]);
+                    float z = ParseFloatValue(JsonArray[2]);
+                    return new Vector3(x, y, z);
                 }
                 catch
                 {
@@ -1111,9 +1136,30 @@ namespace UnityMcp.Tools
                 }
             }
 
+            // 处理 Vector3 类型
             if (obj is Vector3 vector3)
             {
                 return vector3;
+            }
+
+            // 处理字符串格式
+            if (obj is string str)
+            {
+                float[] values = ParseNumberArrayFromString(str, 3);
+                if (values != null && values.Length == 3)
+                {
+                    return new Vector3(values[0], values[1], values[2]);
+                }
+            }
+
+            // 处理 JsonNode 类型
+            if (obj is JsonNode node && node.type == JsonNodeType.String)
+            {
+                float[] values = ParseNumberArrayFromString(node.Value, 3);
+                if (values != null && values.Length == 3)
+                {
+                    return new Vector3(values[0], values[1], values[2]);
+                }
             }
 
             return null;
@@ -1343,6 +1389,86 @@ localScale: [{rectTransform.localScale.x:F2}, {rectTransform.localScale.y:F2}, {
 rect: [x:{rectTransform.rect.x:F1}, y:{rectTransform.rect.y:F1}, w:{rectTransform.rect.width:F1}, h:{rectTransform.rect.height:F1}]";
 
             return yaml;
+        }
+
+        /// <summary>
+        /// 从 JsonNode 解析 float 值，支持数字和字符串
+        /// </summary>
+        private float ParseFloatValue(JsonNode node)
+        {
+            if (node == null)
+                return 0f;
+
+            // 处理数字类型
+            if (node.type == JsonNodeType.Integer || node.type == JsonNodeType.Float)
+            {
+                return node.AsFloat;
+            }
+
+            // 处理字符串类型
+            if (node.type == JsonNodeType.String)
+            {
+                if (float.TryParse(node.Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float result))
+                {
+                    return result;
+                }
+            }
+
+            return 0f;
+        }
+
+        /// <summary>
+        /// 从字符串解析数字数组，支持多种格式：
+        /// "[0.1, 0.2, 0.3]", "(0.1, 0.2, 0.3)", "0.1, 0.2, 0.3"
+        /// </summary>
+        /// <param name="str">输入字符串</param>
+        /// <param name="expectedCount">期望的数字数量</param>
+        /// <returns>解析后的 float 数组，失败返回 null</returns>
+        private float[] ParseNumberArrayFromString(string str, int expectedCount)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+                return null;
+
+            try
+            {
+                // 去除首尾空格
+                str = str.Trim();
+
+                // 移除外层括号（支持方括号和圆括号）
+                if ((str.StartsWith("[") && str.EndsWith("]")) ||
+                    (str.StartsWith("(") && str.EndsWith(")")))
+                {
+                    str = str.Substring(1, str.Length - 2);
+                }
+
+                // 按逗号分割
+                string[] parts = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // 检查数量
+                if (parts.Length != expectedCount)
+                {
+                    Debug.LogWarning($"[ParseNumberArrayFromString] Expected {expectedCount} values, but got {parts.Length} in string: '{str}'");
+                    return null;
+                }
+
+                // 解析每个数字
+                float[] result = new float[parts.Length];
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (!float.TryParse(parts[i].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result[i]))
+                    {
+                        Debug.LogWarning($"[ParseNumberArrayFromString] Failed to parse '{parts[i].Trim()}' as float in string: '{str}'");
+                        return null;
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[ParseNumberArrayFromString] Failed to parse string '{str}': {ex.Message}");
+                return null;
+            }
         }
 
         #endregion

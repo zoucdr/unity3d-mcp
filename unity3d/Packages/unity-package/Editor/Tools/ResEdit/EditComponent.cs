@@ -1174,35 +1174,70 @@ namespace UnityMcp.Tools
                     return token.AsBool;
 
                 // Vector/Quaternion/Color types
-                if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
-                    return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
-                if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
-                    return new Vector3(
-                        arrV3[0].AsFloat,
-                        arrV3[1].AsFloat,
-                        arrV3[2].AsFloat
-                    );
-                if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
-                    return new Vector4(
-                        arrV4[0].AsFloat,
-                        arrV4[1].AsFloat,
-                        arrV4[2].AsFloat,
-                        arrV4[3].AsFloat
-                    );
-                if (targetType == typeof(Quaternion) && token is JsonArray arrQ && arrQ.Count == 4)
-                    return new Quaternion(
-                        arrQ[0].AsFloat,
-                        arrQ[1].AsFloat,
-                        arrQ[2].AsFloat,
-                        arrQ[3].AsFloat
-                    );
-                if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3)
-                    return new Color(
-                        arrC[0].AsFloat,
-                        arrC[1].AsFloat,
-                        arrC[2].AsFloat,
-                        arrC.Count > 3 ? arrC[3].AsFloat : 1.0f
-                    );
+                // 处理 Vector2
+                if (targetType == typeof(Vector2))
+                {
+                    if (token is JsonArray arrV2 && arrV2.Count == 2)
+                        return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
+                    if (token.type == JsonNodeType.String)
+                    {
+                        float[] values = ParseNumberArrayFromString(token.Value, 2);
+                        if (values != null)
+                            return new Vector2(values[0], values[1]);
+                    }
+                }
+
+                // 处理 Vector3
+                if (targetType == typeof(Vector3))
+                {
+                    if (token is JsonArray arrV3 && arrV3.Count == 3)
+                        return new Vector3(arrV3[0].AsFloat, arrV3[1].AsFloat, arrV3[2].AsFloat);
+                    if (token.type == JsonNodeType.String)
+                    {
+                        float[] values = ParseNumberArrayFromString(token.Value, 3);
+                        if (values != null)
+                            return new Vector3(values[0], values[1], values[2]);
+                    }
+                }
+
+                // 处理 Vector4
+                if (targetType == typeof(Vector4))
+                {
+                    if (token is JsonArray arrV4 && arrV4.Count == 4)
+                        return new Vector4(arrV4[0].AsFloat, arrV4[1].AsFloat, arrV4[2].AsFloat, arrV4[3].AsFloat);
+                    if (token.type == JsonNodeType.String)
+                    {
+                        float[] values = ParseNumberArrayFromString(token.Value, 4);
+                        if (values != null)
+                            return new Vector4(values[0], values[1], values[2], values[3]);
+                    }
+                }
+
+                // 处理 Quaternion
+                if (targetType == typeof(Quaternion))
+                {
+                    if (token is JsonArray arrQ && arrQ.Count == 4)
+                        return new Quaternion(arrQ[0].AsFloat, arrQ[1].AsFloat, arrQ[2].AsFloat, arrQ[3].AsFloat);
+                    if (token.type == JsonNodeType.String)
+                    {
+                        float[] values = ParseNumberArrayFromString(token.Value, 4);
+                        if (values != null)
+                            return new Quaternion(values[0], values[1], values[2], values[3]);
+                    }
+                }
+
+                // 处理 Color
+                if (targetType == typeof(Color))
+                {
+                    if (token is JsonArray arrC && arrC.Count >= 3)
+                        return new Color(arrC[0].AsFloat, arrC[1].AsFloat, arrC[2].AsFloat, arrC.Count > 3 ? arrC[3].AsFloat : 1.0f);
+                    if (token.type == JsonNodeType.String)
+                    {
+                        float[] values = ParseNumberArrayFromString(token.Value, -1); // -1 表示接受 3 或 4 个值
+                        if (values != null && values.Length >= 3)
+                            return new Color(values[0], values[1], values[2], values.Length > 3 ? values[3] : 1.0f);
+                    }
+                }
 
                 // Enum types
                 if (targetType.IsEnum)
@@ -1375,6 +1410,66 @@ namespace UnityMcp.Tools
             // 使用统一的YAML格式，大幅减少token使用量
             var yamlData = GameObjectUtils.GetGameObjectDataYaml(go);
             return new { yaml = yamlData };
+        }
+
+        /// <summary>
+        /// 从字符串解析数字数组，支持多种格式：
+        /// "[0.1, 0.2, 0.3]", "(0.1, 0.2, 0.3)", "0.1, 0.2, 0.3"
+        /// </summary>
+        /// <param name="str">输入字符串</param>
+        /// <param name="expectedCount">期望的数字数量，-1 表示不限制</param>
+        /// <returns>解析后的 float 数组，失败返回 null</returns>
+        private float[] ParseNumberArrayFromString(string str, int expectedCount)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+                return null;
+
+            try
+            {
+                // 去除首尾空格
+                str = str.Trim();
+
+                // 移除外层括号（支持方括号和圆括号）
+                if ((str.StartsWith("[") && str.EndsWith("]")) ||
+                    (str.StartsWith("(") && str.EndsWith(")")))
+                {
+                    str = str.Substring(1, str.Length - 2);
+                }
+
+                // 按逗号分割
+                string[] parts = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // 检查数量
+                if (expectedCount > 0 && parts.Length != expectedCount)
+                {
+                    Debug.LogWarning($"[ParseNumberArrayFromString] Expected {expectedCount} values, but got {parts.Length} in string: '{str}'");
+                    return null;
+                }
+
+                if (expectedCount == -1 && (parts.Length < 3 || parts.Length > 4))
+                {
+                    Debug.LogWarning($"[ParseNumberArrayFromString] Expected 3-4 values, but got {parts.Length} in string: '{str}'");
+                    return null;
+                }
+
+                // 解析每个数字
+                float[] result = new float[parts.Length];
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    if (!float.TryParse(parts[i].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out result[i]))
+                    {
+                        Debug.LogWarning($"[ParseNumberArrayFromString] Failed to parse '{parts[i].Trim()}' as float in string: '{str}'");
+                        return null;
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[ParseNumberArrayFromString] Failed to parse string '{str}': {ex.Message}");
+                return null;
+            }
         }
 
 
