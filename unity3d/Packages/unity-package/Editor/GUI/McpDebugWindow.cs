@@ -826,7 +826,7 @@ namespace UnityMcp.Gui
             try
             {
                 JsonClass jsonObj = Json.Parse(inputJson) as JsonClass;
-                inputJson = Json.FromObject(jsonObj);
+                inputJson = Json.FromObject(jsonObj).ToPrettyString();
             }
             catch (System.Exception e)
             {

@@ -134,7 +134,7 @@ namespace UnityMcp.Tools
                 string methodName = (!string.IsNullOrEmpty(methodNameNode?.Value)) ? methodNameNode.Value : "Run";
                 string namespaceName = (!string.IsNullOrEmpty(namespaceNode?.Value)) ? namespaceNode.Value : "CodeNamespace";
 
-                var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? GetDefaultIncludes();
+                var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? new string[0];
                 var parameters = new object[0]; // 暂时简化处理
                 int timeout = args["timeout"].AsIntDefault(30);
                 bool cleanup = args["cleanup"].AsBoolDefault(true);
@@ -184,7 +184,7 @@ namespace UnityMcp.Tools
                 string methodName = (!string.IsNullOrEmpty(methodNameNode?.Value)) ? methodNameNode.Value : "Run";
                 string namespaceName = (!string.IsNullOrEmpty(namespaceNode?.Value)) ? namespaceNode.Value : "CodeNamespace";
 
-                var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? GetDefaultIncludes();
+                var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? new string[0];
 
                 LogInfo($"[CodeRunner] Validating code class: {namespaceName}.{className}");
 
@@ -213,7 +213,7 @@ namespace UnityMcp.Tools
                 // 使用协程编译验证
                 yield return CompileCodeCoroutine(fullCode,
                     (tFilePath, tAssemblyPath) => { tempFilePath = tFilePath; tempAssemblyPath = tAssemblyPath; },
-                    (success, assembly, errors) =>
+                    (success, assembly, errors, compilerMessages) =>
                     {
                         if (success)
                         {
@@ -224,7 +224,8 @@ namespace UnityMcp.Tools
                                     class_name = className,
                                     entry_method = methodName,
                                     namespace_name = namespaceName,
-                                    generated_code = fullCode
+                                    generated_code = fullCode,
+                                    compilation_messages = FormatCompilerMessages(compilerMessages)
                                 });
                         }
                         else
@@ -232,7 +233,8 @@ namespace UnityMcp.Tools
                             validationResult = Response.Error("Code syntax validation failed", new
                             {
                                 operation = "validate",
-                                errors = string.Join("\n", errors ?? new string[] { "Unknown validation error" })
+                                errors = string.Join("\n", errors ?? new string[] { "Unknown validation error" }),
+                                compilation_messages = FormatCompilerMessages(compilerMessages)
                             });
                         }
                     });
@@ -282,7 +284,7 @@ namespace UnityMcp.Tools
             // 使用协程编译代码
             yield return CompileCodeCoroutine(fullCode,
                 onTempFilesCreated,
-                (success, assembly, errors) =>
+                (success, assembly, errors, compilerMessages) =>
                 {
                     if (success)
                     {
@@ -326,7 +328,8 @@ namespace UnityMcp.Tools
                                     output = result.Output,
                                     return_value = result.ReturnValue?.ToString() ?? "null",
                                     duration = result.Duration,
-                                    stack_trace = result.StackTrace
+                                    stack_trace = result.StackTrace,
+                                    compilation_messages = FormatCompilerMessages(compilerMessages)
                                 }
                             );
                         }
@@ -341,7 +344,8 @@ namespace UnityMcp.Tools
                         executionResult = Response.Error("Code compilation failed", new
                         {
                             operation = "execute",
-                            errors = string.Join("\n", errors ?? new string[] { "Unknown compilation error" })
+                            errors = string.Join("\n", errors ?? new string[] { "Unknown compilation error" }),
+                            compilation_messages = FormatCompilerMessages(compilerMessages)
                         });
                     }
                 });
@@ -389,6 +393,10 @@ namespace UnityMcp.Tools
                 }
             }
 
+            // 使用清理后的代码（不包含using语句）
+            // 清理多余的空行（但保留代码中的空行结构）
+            var codeWithoutUsingsStr = string.Join("\n", codeWithoutUsings);
+
             // 合并提取的using和默认的includes
             var allIncludes = new List<string>(includes);
             foreach (var extracted in extractedUsings)
@@ -396,12 +404,23 @@ namespace UnityMcp.Tools
                 if (!allIncludes.Contains(extracted))
                 {
                     allIncludes.Add(extracted);
+                    LogInfo($"[CodeRunner] 从代码中提取using语句: {extracted}");
                 }
             }
 
-            // 使用清理后的代码（不包含using语句）
-            // 清理多余的空行（但保留代码中的空行结构）
-            code = string.Join("\n", codeWithoutUsings);
+            // 分析代码（移除using后的），自动添加需要的命名空间
+            var analyzedIncludes = AnalyzeCodeIncludes(codeWithoutUsingsStr);
+            foreach (var analyzed in analyzedIncludes)
+            {
+                if (!allIncludes.Contains(analyzed))
+                {
+                    allIncludes.Add(analyzed);
+                    LogInfo($"[CodeRunner] 自动添加命名空间: {analyzed}");
+                }
+            }
+
+            // 继续使用清理后的代码
+            code = codeWithoutUsingsStr;
             // 去掉开头和结尾的空行
             while (code.StartsWith("\n") || code.StartsWith("\r"))
             {
@@ -489,8 +508,17 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 协程版本的代码编译
         /// </summary>
-        private IEnumerator CompileCodeCoroutine(string code, System.Action<string, string> onTempFilesCreated, System.Action<bool, ReflectionAssembly, string[]> callback)
+        private IEnumerator CompileCodeCoroutine(string code, System.Action<string, string> onTempFilesCreated, System.Action<bool, ReflectionAssembly, string[], CompilerMessage[]> callback)
         {
+            // 打印最终参与编译的完整代码
+            LogInfo($"[CodeRunner] ========================================");
+            LogInfo($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
+            LogInfo($"[CodeRunner] ========================================");
+            LogInfo(code);
+            LogInfo($"[CodeRunner] ========================================");
+            LogInfo($"[CodeRunner] 代码打印完成");
+            LogInfo($"[CodeRunner] ========================================");
+
             // 创建基于代码内容的临时目录
             var baseDir = Path.Combine(Application.temporaryCachePath, "CodeRunner");
             var codeHash = GetCodeHash(code);
@@ -525,7 +553,7 @@ namespace UnityMcp.Tools
                         {
                             var loadedAssembly = ReflectionAssembly.Load(assemblyBytes);
                             LogInfo($"[CodeRunner] 程序集重用成功: {assemblyBytes.Length} bytes");
-                            callback(true, loadedAssembly, null);
+                            callback(true, loadedAssembly, null, null);
                             yield break;
                         }
                     }
@@ -542,19 +570,11 @@ namespace UnityMcp.Tools
                 LogInfo($"[CodeRunner] 临时文件路径: {tempFilePath}");
                 LogInfo($"[CodeRunner] 目标程序集路径: {tempAssemblyPath}");
 
-                // 打印最终参与编译的完整代码
-                LogInfo($"[CodeRunner] ========================================");
-                LogInfo($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
-                LogInfo($"[CodeRunner] ========================================");
-                LogInfo(code);
-                LogInfo($"[CodeRunner] ========================================");
-                LogInfo($"[CodeRunner] 代码打印完成");
-                LogInfo($"[CodeRunner] ========================================");
             }
             catch (Exception e)
             {
                 LogError($"[CodeRunner] 初始化失败: {e.Message}");
-                callback(false, null, new[] { $"Initialization failed: {e.Message}" });
+                callback(false, null, new[] { $"Initialization failed: {e.Message}" }, null);
                 yield break;
             }
 
@@ -611,7 +631,7 @@ namespace UnityMcp.Tools
             catch (Exception e)
             {
                 LogError($"[CodeRunner] 编译器设置失败: {e.Message}");
-                callback(false, null, new[] { $"Compiler setup failed: {e.Message}" });
+                callback(false, null, new[] { $"Compiler setup failed: {e.Message}" }, null);
                 yield break;
             }
 
@@ -677,7 +697,7 @@ namespace UnityMcp.Tools
             {
                 LogError($"[CodeRunner] 编译启动异常: {e.Message}");
                 LogError($"[CodeRunner] 异常堆栈: {e.StackTrace}");
-                callback(false, null, new[] { $"Failed to start compilation: {e.Message}", $"Stack trace: {e.StackTrace}" });
+                callback(false, null, new[] { $"Failed to start compilation: {e.Message}", $"Stack trace: {e.StackTrace}" }, null);
                 yield break;
             }
             finally
@@ -690,7 +710,7 @@ namespace UnityMcp.Tools
             if (!started)
             {
                 LogError("[CodeRunner] 无法启动编译");
-                callback(false, null, new[] { "Failed to start compilation" });
+                callback(false, null, new[] { "Failed to start compilation" }, null);
                 yield break;
             }
 
@@ -747,12 +767,12 @@ namespace UnityMcp.Tools
                     LogInfo($"[CodeRunner] 文件大小: {fileInfo.Length} bytes, 修改时间: {fileInfo.LastWriteTime}");
                 }
 
-                yield return HandleCompilationSuccess(assemblyBuilder, callback);
+                yield return HandleCompilationSuccess(assemblyBuilder, compilationMessages, callback);
             }
             else if (elapsedTime >= timeout)
             {
                 LogError("[CodeRunner] 编译超时");
-                callback(false, null, new[] { "Compilation timeout" });
+                callback(false, null, new[] { "Compilation timeout" }, compilationMessages);
             }
             else
             {
@@ -760,7 +780,6 @@ namespace UnityMcp.Tools
 
                 // 收集详细的错误信息
                 var errorMessages = new List<string>();
-                errorMessages.Add($"Compilation failed with status: {assemblyBuilder.status}");
 
                 // 首先检查是否有编译消息
                 if (compilationMessages != null && compilationMessages.Length > 0)
@@ -786,19 +805,39 @@ namespace UnityMcp.Tools
 
                     if (errorMsgs.Count > 0)
                     {
-                        errorMessages.Add($"Compilation errors ({errorMsgs.Count}):");
-                        errorMessages.AddRange(errorMsgs);
+                        errorMessages.Add($"=== C# 编译失败 ({errorMsgs.Count} 个错误) ===");
+                        errorMessages.Add("");
+                        foreach (var err in errorMsgs)
+                        {
+                            errorMessages.Add($"❌ {err}");
+                        }
+                        errorMessages.Add("");
+                    }
+                    else
+                    {
+                        // 没有具体错误但编译失败
+                        errorMessages.Add($"编译失败: {assemblyBuilder.status}");
+                        errorMessages.Add("未收到具体的错误消息，可能是编译器内部错误");
                     }
 
                     if (warningMsgs.Count > 0)
                     {
-                        errorMessages.Add($"Compilation warnings ({warningMsgs.Count}):");
-                        errorMessages.AddRange(warningMsgs);
+                        errorMessages.Add($"⚠️  编译警告 ({warningMsgs.Count} 个):");
+                        foreach (var warn in warningMsgs)
+                        {
+                            errorMessages.Add($"  • {warn}");
+                        }
                     }
                 }
                 else
                 {
                     LogWarning("[CodeRunner] 没有收到编译消息，尝试其他方法获取错误信息");
+
+                    errorMessages.Add("=== C# 编译失败 ===");
+                    errorMessages.Add("");
+                    errorMessages.Add($"编译状态: {assemblyBuilder.status}");
+                    errorMessages.Add("⚠️  编译器未返回具体的错误消息");
+                    errorMessages.Add("");
 
                     // 尝试获取编译错误信息（保留原有逻辑作为后备）
                     try
@@ -811,6 +850,7 @@ namespace UnityMcp.Tools
                             tempAssemblyPath + ".log"
                         };
 
+                        bool foundLog = false;
                         foreach (var logFile in logFiles)
                         {
                             if (File.Exists(logFile))
@@ -818,8 +858,11 @@ namespace UnityMcp.Tools
                                 var logContent = File.ReadAllText(logFile);
                                 if (!string.IsNullOrEmpty(logContent))
                                 {
-                                    errorMessages.Add($"Log from {Path.GetFileName(logFile)}: {logContent}");
+                                    errorMessages.Add($"📄 编译日志 ({Path.GetFileName(logFile)}):");
+                                    errorMessages.Add(logContent);
+                                    errorMessages.Add("");
                                     LogError($"[CodeRunner] 编译日志: {logContent}");
+                                    foundLog = true;
                                 }
                             }
                         }
@@ -829,17 +872,42 @@ namespace UnityMcp.Tools
                         {
                             var allFiles = Directory.GetFiles(tempDirPath);
                             LogInfo($"[CodeRunner] 临时目录文件: {string.Join(", ", allFiles.Select(Path.GetFileName))}");
-                            errorMessages.Add($"Files in temp directory: {string.Join(", ", allFiles.Select(Path.GetFileName))}");
+
+                            if (!foundLog)
+                            {
+                                errorMessages.Add("📁 临时目录文件:");
+                                errorMessages.Add($"  {string.Join(", ", allFiles.Select(Path.GetFileName))}");
+
+                                // 如果没有找到 .dll 文件，说明编译根本没有生成输出
+                                var dllFiles = allFiles.Where(f => f.EndsWith(".dll")).ToArray();
+                                if (dllFiles.Length == 0)
+                                {
+                                    errorMessages.Add("");
+                                    errorMessages.Add("⚠️  未生成程序集文件，可能是编译器启动失败或代码存在语法错误");
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
                         LogError($"[CodeRunner] 获取编译错误信息失败: {ex.Message}");
-                        errorMessages.Add($"Failed to get compilation error details: {ex.Message}");
+                        errorMessages.Add($"❌ 获取详细错误信息失败: {ex.Message}");
                     }
                 }
 
-                callback(false, null, errorMessages.ToArray());
+                // 添加生成的代码到错误信息中，便于调试
+                errorMessages.Add("");
+                errorMessages.Add("=== 生成的完整代码 ===");
+                errorMessages.Add("");
+
+                // 添加行号以便于定位错误
+                var codeLines = code.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
+                for (int i = 0; i < codeLines.Length; i++)
+                {
+                    errorMessages.Add($"{i + 1,4} | {codeLines[i]}");
+                }
+
+                callback(false, null, errorMessages.ToArray(), compilationMessages);
             }
 
             // 清理由上层函数负责
@@ -848,7 +916,7 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 处理编译成功后的程序集加载
         /// </summary>
-        private IEnumerator HandleCompilationSuccess(AssemblyBuilder assemblyBuilder, System.Action<bool, ReflectionAssembly, string[]> callback)
+        private IEnumerator HandleCompilationSuccess(AssemblyBuilder assemblyBuilder, CompilerMessage[] compilationMessages, System.Action<bool, ReflectionAssembly, string[], CompilerMessage[]> callback)
         {
             var assemblyPath = assemblyBuilder.assemblyPath;
             var tempDir = Path.GetDirectoryName(assemblyPath);
@@ -895,18 +963,18 @@ namespace UnityMcp.Tools
                     {
                         var loadedAssembly = ReflectionAssembly.Load(assemblyBytes);
                         LogInfo($"[CodeRunner] 程序集加载成功: {assemblyBytes.Length} bytes");
-                        callback(true, loadedAssembly, null);
+                        callback(true, loadedAssembly, null, compilationMessages);
                     }
                     else
                     {
                         LogError("[CodeRunner] 程序集文件为空");
-                        callback(false, null, new[] { "Assembly file is empty" });
+                        callback(false, null, new[] { "Assembly file is empty" }, compilationMessages);
                     }
                 }
                 catch (Exception ex)
                 {
                     LogError($"[CodeRunner] 无法加载程序集: {ex.Message}");
-                    callback(false, null, new[] { $"Failed to load assembly: {ex.Message}" });
+                    callback(false, null, new[] { $"Failed to load assembly: {ex.Message}" }, compilationMessages);
                 }
             }
             else
@@ -959,7 +1027,7 @@ namespace UnityMcp.Tools
                     errorMessages.Add($"Failed to collect debug info: {ex.Message}");
                 }
 
-                callback(false, null, errorMessages.ToArray());
+                callback(false, null, errorMessages.ToArray(), compilationMessages);
             }
         }
 
@@ -1596,24 +1664,201 @@ namespace UnityMcp.Tools
             return results;
         }
 
-
         /// <summary>
-        /// 获取默认的using语句
+        /// 分析代码中使用的类型，自动添加所需的命名空间
         /// </summary>
-        private string[] GetDefaultIncludes()
+        private string[] AnalyzeCodeIncludes(string code)
         {
-            return new[]
+            var additionalIncludes = new HashSet<string>();
+
+            // 定义类型到命名空间的映射
+            var typeToNamespace = new Dictionary<string, string>
             {
-                "System",
-                "System.Collections",
-                "System.Collections.Generic",
-                "System.Linq",
-                "System.Text",
-                "System.IO",
-                "UnityEngine",
-                "UnityEditor",
-                "System.Reflection"
+                // Terrain 相关
+                { "Terrain", "UnityEngine" },
+                { "TerrainData", "UnityEngine" },
+                { "TerrainLayer", "UnityEngine" },
+                { "TerrainCollider", "UnityEngine" },
+                
+                // UI 相关
+                { "Canvas", "UnityEngine.UI" },
+                { "Button", "UnityEngine.UI" },
+                { "Text", "UnityEngine.UI" },
+                { "Image", "UnityEngine.UI" },
+                { "RawImage", "UnityEngine.UI" },
+                { "Slider", "UnityEngine.UI" },
+                { "ScrollRect", "UnityEngine.UI" },
+                { "Dropdown", "UnityEngine.UI" },
+                { "InputField", "UnityEngine.UI" },
+                { "Toggle", "UnityEngine.UI" },
+                { "ToggleGroup", "UnityEngine.UI" },
+                { "LayoutElement", "UnityEngine.UI" },
+                { "LayoutGroup", "UnityEngine.UI" },
+                { "HorizontalLayoutGroup", "UnityEngine.UI" },
+                { "VerticalLayoutGroup", "UnityEngine.UI" },
+                { "GridLayoutGroup", "UnityEngine.UI" },
+                { "ContentSizeFitter", "UnityEngine.UI" },
+                { "AspectRatioFitter", "UnityEngine.UI" },
+                { "RectMask2D", "UnityEngine.UI" },
+                { "Mask", "UnityEngine.UI" },
+                { "Selectable", "UnityEngine.UI" },
+                { "GraphicRaycaster", "UnityEngine.UI" },
+                
+                // TextMeshPro
+                { "TextMeshPro", "TMPro" },
+                { "TextMeshProUGUI", "TMPro" },
+                { "TMP_Text", "TMPro" },
+                { "TMP_InputField", "TMPro" },
+                { "TMP_Dropdown", "TMPro" },
+                
+                // Physics
+                { "Rigidbody", "UnityEngine" },
+                { "Rigidbody2D", "UnityEngine" },
+                { "Collider", "UnityEngine" },
+                { "Collider2D", "UnityEngine" },
+                { "BoxCollider", "UnityEngine" },
+                { "SphereCollider", "UnityEngine" },
+                { "CapsuleCollider", "UnityEngine" },
+                { "MeshCollider", "UnityEngine" },
+                { "BoxCollider2D", "UnityEngine" },
+                { "CircleCollider2D", "UnityEngine" },
+                { "PolygonCollider2D", "UnityEngine" },
+                { "EdgeCollider2D", "UnityEngine" },
+                { "Joint", "UnityEngine" },
+                { "FixedJoint", "UnityEngine" },
+                { "HingeJoint", "UnityEngine" },
+                { "SpringJoint", "UnityEngine" },
+                { "CharacterJoint", "UnityEngine" },
+                { "ConfigurableJoint", "UnityEngine" },
+                
+                // Rendering
+                { "Camera", "UnityEngine" },
+                { "Light", "UnityEngine" },
+                { "Material", "UnityEngine" },
+                { "Shader", "UnityEngine" },
+                { "Texture", "UnityEngine" },
+                { "Texture2D", "UnityEngine" },
+                { "RenderTexture", "UnityEngine" },
+                { "Mesh", "UnityEngine" },
+                { "MeshFilter", "UnityEngine" },
+                { "MeshRenderer", "UnityEngine" },
+                { "SkinnedMeshRenderer", "UnityEngine" },
+                { "SpriteRenderer", "UnityEngine" },
+                { "LineRenderer", "UnityEngine" },
+                { "TrailRenderer", "UnityEngine" },
+                { "ParticleSystem", "UnityEngine" },
+                { "Skybox", "UnityEngine" },
+                { "ReflectionProbe", "UnityEngine.Rendering" },
+                { "LightProbeGroup", "UnityEngine.Rendering" },
+                
+                // Animation
+                { "Animation", "UnityEngine" },
+                { "Animator", "UnityEngine" },
+                { "AnimationClip", "UnityEngine" },
+                { "AnimatorController", "UnityEngine.Animations" },
+                { "AnimatorOverrideController", "UnityEngine" },
+                
+                // Audio
+                { "AudioSource", "UnityEngine" },
+                { "AudioClip", "UnityEngine" },
+                { "AudioListener", "UnityEngine" },
+                { "AudioMixer", "UnityEngine.Audio" },
+                
+                // Navigation
+                { "NavMeshAgent", "UnityEngine.AI" },
+                { "NavMeshObstacle", "UnityEngine.AI" },
+                { "NavMesh", "UnityEngine.AI" },
+                { "NavMeshSurface", "UnityEngine.AI" },
+                { "OffMeshLink", "UnityEngine.AI" },
+                
+                // Scene Management
+                { "Scene", "UnityEngine.SceneManagement" },
+                { "SceneManager", "UnityEngine.SceneManagement" },
+                
+                // Editor
+                { "EditorWindow", "UnityEditor" },
+                { "EditorGUILayout", "UnityEditor" },
+                { "EditorGUI", "UnityEditor" },
+                { "SerializedObject", "UnityEditor" },
+                { "SerializedProperty", "UnityEditor" },
+                { "Handles", "UnityEditor" },
+                { "Gizmos", "UnityEngine" },
+                { "Selection", "UnityEditor" },
+                { "Undo", "UnityEditor" },
+                { "PrefabUtility", "UnityEditor" },
+                { "AssetDatabase", "UnityEditor" },
+                { "BuildPipeline", "UnityEditor" },
+                { "EditorUtility", "UnityEditor" },
+                
+                // EventSystem
+                { "EventSystem", "UnityEngine.EventSystems" },
+                { "PointerEventData", "UnityEngine.EventSystems" },
+                { "BaseEventData", "UnityEngine.EventSystems" },
+                { "IPointerClickHandler", "UnityEngine.EventSystems" },
+                { "IPointerDownHandler", "UnityEngine.EventSystems" },
+                { "IPointerUpHandler", "UnityEngine.EventSystems" },
+                { "IDragHandler", "UnityEngine.EventSystems" },
+                { "IBeginDragHandler", "UnityEngine.EventSystems" },
+                { "IEndDragHandler", "UnityEngine.EventSystems" },
+                
+                // Other
+                { "ScriptableObject", "UnityEngine" },
+                { "MonoBehaviour", "UnityEngine" },
+                { "Behaviour", "UnityEngine" },
+                { "Component", "UnityEngine" },
+                { "Transform", "UnityEngine" },
+                { "RectTransform", "UnityEngine" },
+                { "GameObject", "UnityEngine" },
+                { "Object", "UnityEngine" },
+                { "Random", "UnityEngine" },
+                { "Mathf", "UnityEngine" },
+                { "Vector2", "UnityEngine" },
+                { "Vector3", "UnityEngine" },
+                { "Vector4", "UnityEngine" },
+                { "Quaternion", "UnityEngine" },
+                { "Matrix4x4", "UnityEngine" },
+                { "Color", "UnityEngine" },
+                { "Color32", "UnityEngine" },
+                { "Rect", "UnityEngine" },
+                { "Bounds", "UnityEngine" },
+                { "Ray", "UnityEngine" },
+                { "RaycastHit", "UnityEngine" },
+                { "Physics", "UnityEngine" },
+                { "Physics2D", "UnityEngine" },
+                { "Time", "UnityEngine" },
+                { "Input", "UnityEngine" },
+                { "Application", "UnityEngine" },
+                { "Screen", "UnityEngine" },
+                { "Resources", "UnityEngine" },
+                { "PlayerPrefs", "UnityEngine" },
+                { "WWW", "UnityEngine" },
+                { "Coroutine", "UnityEngine" },
+                { "WaitForSeconds", "UnityEngine" },
+                { "WaitForEndOfFrame", "UnityEngine" },
+                { "YieldInstruction", "UnityEngine" },
             };
+
+            // 分析代码，查找使用的类型
+            foreach (var kvp in typeToNamespace)
+            {
+                var typeName = kvp.Key;
+                var namespaceName = kvp.Value;
+
+                // 检查类型是否在代码中使用（使用正则表达式匹配单词边界）
+                var pattern = $@"\b{System.Text.RegularExpressions.Regex.Escape(typeName)}\b";
+                if (System.Text.RegularExpressions.Regex.IsMatch(code, pattern))
+                {
+                    additionalIncludes.Add(namespaceName);
+                }
+            }
+
+            var result = additionalIncludes.ToArray();
+            if (result.Length > 0)
+            {
+                LogInfo($"[CodeRunner] 代码分析发现额外需要的命名空间: {string.Join(", ", result)}");
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -1722,6 +1967,29 @@ namespace UnityMcp.Tools
                 var tempDir = Path.GetDirectoryName(tempFilePath);
                 CleanupTempDirectory(tempDir);
             }
+        }
+
+        /// <summary>
+        /// 格式化编译消息为可序列化的对象数组
+        /// </summary>
+        private object[] FormatCompilerMessages(CompilerMessage[] messages)
+        {
+            if (messages == null || messages.Length == 0)
+                return new object[0];
+
+            var formattedMessages = new List<object>();
+            foreach (var msg in messages)
+            {
+                formattedMessages.Add(new
+                {
+                    type = msg.type.ToString(),
+                    message = msg.message,
+                    file = msg.file,
+                    line = msg.line,
+                    column = msg.column
+                });
+            }
+            return formattedMessages.ToArray();
         }
 
         /// <summary>
