@@ -25,6 +25,7 @@ from .edit_texture import register_edit_texture_tools
 from .ui_rule_manage import register_ui_rule_manage_tools
 from .edit_scriptableobject import register_edit_scriptableobject_tools
 from .edit_shader import register_edit_shader_tools
+from .edit_sprite_atlas import register_edit_sprite_atlas_tools
 
 def register_all_tools(mcp):
     """Register all refactored tools with the MCP server."""
@@ -56,4 +57,5 @@ def register_all_tools(mcp):
     register_ui_rule_manage_tools(mcp)
     register_edit_scriptableobject_tools(mcp)
     register_edit_shader_tools(mcp)
+    register_edit_sprite_atlas_tools(mcp)
     print("Unity MCP Server tool registration complete.")

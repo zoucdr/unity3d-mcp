@@ -45,13 +45,13 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 
 #### 系统架构图
 
-![Unity3d MCP 系统架构图](doc/architecture.png)
+![Unity3d MCP 系统架构图](docs/architecture.png)
 
 *图1：Unity3d MCP系统整体架构图，展示了从AI客户端到Unity编辑器的完整数据流和组件关系*
 
 #### 数据流图
 
-![Unity3d MCP 数据流图](doc/data_flow_graph.png)
+![Unity3d MCP 数据流图](docs/data_flow_graph.png)
 
 *图2：Unity3d MCP数据流图，详细展示了从AI指令到Unity执行的完整数据流转过程*
 
@@ -455,7 +455,7 @@ pip install -r requirements.txt
 
 **1. MCP设置窗口** (`Edit → Project Settings → MCP`)
 
-![MCP设置窗口](doc/mcp_settings.png)
+![MCP设置窗口](docs/mcp_settings.png)
 
 *图：MCP设置窗口 - 配置MCP连接开关、查看已注册的工具列表、管理工具分类等*
 
@@ -469,7 +469,7 @@ MCP设置窗口提供以下功能：
 
 **2. MCP调试窗口** (`Window → MCP → Debug Window`)
 
-![MCP调试窗口](doc/mcp_debug.png)
+![MCP调试窗口](docs/mcp_debug.png)
 
 *图：MCP调试窗口 - 记录和查看所有MCP调用历史，支持重新执行历史命令*
 
@@ -734,7 +734,7 @@ def generate_project_architecture(project_path="Assets/Scripts"):
         dot.edge(src, dst)
     
     # 保存图
-    output_path = 'doc/unity_architecture'
+    output_path = 'docs/unity_architecture'
     dot.render(output_path, format='png', cleanup=True)
     
     # 生成JSON报告
@@ -1272,7 +1272,6 @@ Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议�
 
 ---
 
-*文档版本：v1.1*  
-*引包："https://gitee.com/zouhunter/unity3d-mcp.git?path=unity3d/Packages/unity-package#v1.0.0"
-*最后更新：2025年10月*  
+*文档版本：v2.0*  
+*最后更新：2025年09月*  
 *维护团队：Unity3d MCP Development Team*

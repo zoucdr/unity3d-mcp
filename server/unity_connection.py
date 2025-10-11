@@ -3,7 +3,7 @@ import json
 import logging
 import struct
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Union, List
 from config import config
 
 # Import JSONDecodeError for older Python versions compatibility
@@ -252,7 +252,7 @@ class UnityConnection:
         except:
             return False
     
-    def send_command_with_retry(self, command_type: str, cmd: Dict[str, Any] = None, max_retries: int = 2) -> Dict[str, Any]:
+    def send_command_with_retry(self, command_type: str, cmd: Union[Dict[str, Any], List, None] = None, max_retries: int = 2) -> Dict[str, Any]:
         """Send command with retry mechanism and smart port switching."""
         last_error = None
         
@@ -312,7 +312,7 @@ class UnityConnection:
         
         self.last_cleanup_time = current_time
     
-    def send_command(self, command_type: str, cmd: Dict[str, Any] = None) -> Dict[str, Any]:
+    def send_command(self, command_type: str, cmd: Union[Dict[str, Any], List, None] = None) -> Dict[str, Any]:
         """Send a command to Unity and return its response."""
         if not self.sock and not self.connect():
             failed_ports_summary = {k: f"{(time.time() - v):.1f}s ago" for k, v in list(self.failed_ports.items())[:5]}
@@ -355,7 +355,8 @@ class UnityConnection:
                 raise ConnectionError(f"Connection verification failed: {str(e)}")
         
         # Normal command handling
-        command = {"type": command_type, "cmd": cmd or {}}
+        # 支持字典和列表类型的cmd参数
+        command = {"type": command_type, "cmd": cmd if cmd is not None else {}}
         try:
             # Ensure we have a valid JSON string before sending
             command_json = json.dumps(command, ensure_ascii=False)

@@ -862,6 +862,13 @@ return LoadFromCompressedStream(stream);
     public class JsonArray : JsonNode, IEnumerable
     {
         private List<JsonNode> m_List = new List<JsonNode>();
+
+        public override string Value
+        {
+            get { return ToString(); }
+            set { /* JsonArray 不支持直接设置 Value */ }
+        }
+
         public override JsonNode this[int aIndex]
         {
             get
@@ -1005,6 +1012,13 @@ return LoadFromCompressedStream(stream);
     public class JsonClass : JsonNode, IEnumerable
     {
         private Dictionary<string, JsonNode> m_Dict = new Dictionary<string, JsonNode>();
+
+        public override string Value
+        {
+            get { return ToString(); }
+            set { /* JsonClass 不支持直接设置 Value */ }
+        }
+
         public override JsonNode this[string aKey]
         {
             get

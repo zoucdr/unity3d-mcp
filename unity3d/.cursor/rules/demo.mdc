@@ -5,7 +5,7 @@ alwaysApply: true
 ---
 
 # Unity工程环境
-- Unity版本：2022.3.61f1c1
+- Unity版本：2021.3.23f1c1
 - 脚本语言：C#
 - 发布平台：Android/IOS
 - 编辑器环境：Windows/MacOS
