@@ -164,7 +164,8 @@ namespace UnityMcp.Tools
         private object OptimizeMesh(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string optimizationLevel = args["optimization_level"]?.Value ?? "medium";
+            string optimizationLevel = args["optimization_level"]?.Value;
+            if (string.IsNullOrEmpty(optimizationLevel)) optimizationLevel = "medium";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for optimize.");
@@ -219,7 +220,8 @@ namespace UnityMcp.Tools
         private object GeneratePrimitiveMesh(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string meshType = args["mesh_type"]?.Value ?? "cube";
+            string meshType = args["mesh_type"]?.Value;
+            if (string.IsNullOrEmpty(meshType)) meshType = "cube";
             JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))

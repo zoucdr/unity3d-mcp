@@ -13,14 +13,20 @@ def register_project_operate_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="项目操作类型",
-            description="要执行的项目操作: refresh(刷新项目), import_asset(导入资源), export_package(导出包), create_folder(创建文件夹), delete_asset(删除资源)",
-            examples=["refresh", "import_asset", "export_package", "create_folder", "delete_asset"]
+            description="要执行的项目操作: refresh(刷新项目), import_asset(导入资源), export_package(导出包), create_folder(创建文件夹), delete_asset(删除资源), tree(获取文件夹结构)",
+            examples=["refresh", "import_asset", "export_package", "create_folder", "delete_asset", "tree"]
         )],
+        path: Annotated[Optional[str], Field(
+            title="资产路径",
+            description="资产路径，Unity标准格式：Assets/Folder/File.extension，tree操作时为根目录路径（默认Assets）",
+            default=None,
+            examples=["Assets/NewFolder", "Assets/Scripts", "Assets/Prefabs"]
+        )] = None,
         target_path: Annotated[Optional[str], Field(
             title="目标路径",
-            description="操作的目标路径，根据action类型而定",
+            description="目标路径（移动/复制时使用）",
             default=None,
-            examples=["Assets/NewFolder", "Assets/Models/model.fbx", "Assets/Scripts"]
+            examples=["Assets/NewFolder", "Assets/Models/model.fbx"]
         )] = None,
         source_path: Annotated[Optional[str], Field(
             title="源路径",
@@ -47,6 +53,7 @@ def register_project_operate_tools(mcp: FastMCP):
         - 项目组织：创建文件夹结构，删除不需要的资源
         - 包管理：导出资源包用于分享或备份
         - 项目维护：刷新项目状态，清理无效引用
+        - 文件夹结构：查看Assets目录下的文件夹层次结构和文件数量（YAML格式）
 
         """
         

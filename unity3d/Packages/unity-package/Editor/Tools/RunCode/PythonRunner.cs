@@ -145,9 +145,12 @@ namespace UnityMcp.Tools
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
-                string scriptName = args["script_name"]?.Value ?? "script.py";
-                string pythonPath = args["python_path"]?.Value ?? "python";
-                string workingDirectory = args["working_directory"]?.Value ?? System.Environment.CurrentDirectory;
+                string scriptName = args["script_name"]?.Value;
+                if (string.IsNullOrEmpty(scriptName)) scriptName = "script.py";
+                string pythonPath = args["python_path"]?.Value;
+                if (string.IsNullOrEmpty(pythonPath)) pythonPath = "python";
+                string workingDirectory = args["working_directory"]?.Value;
+                if (string.IsNullOrEmpty(workingDirectory)) workingDirectory = System.Environment.CurrentDirectory;
                 int timeout = args["timeout"].AsIntDefault(300);
                 bool cleanup = args["cleanup"].AsBoolDefault(true);
                 bool refreshProject = args["refresh_project"].AsBoolDefault(false);
@@ -248,8 +251,10 @@ namespace UnityMcp.Tools
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
-                string scriptName = args["script_name"]?.Value ?? "script.py";
-                string pythonPath = args["python_path"]?.Value ?? "python";
+                string scriptName = args["script_name"]?.Value;
+                if (string.IsNullOrEmpty(scriptName)) scriptName = "script.py";
+                string pythonPath = args["python_path"]?.Value;
+                if (string.IsNullOrEmpty(pythonPath)) pythonPath = "python";
                 string virtualEnv = args["virtual_env"]?.Value;
 
                 string targetScriptPath;
@@ -334,7 +339,8 @@ namespace UnityMcp.Tools
         {
             var packages = args["packages"];
             string requirementsFile = args["requirements_file"]?.Value;
-            string pythonPath = args["python_path"]?.Value ?? "python";
+            string pythonPath = args["python_path"]?.Value;
+            if (string.IsNullOrEmpty(pythonPath)) pythonPath = "python";
             string virtualEnv = args["virtual_env"]?.Value;
             int timeout = args["timeout"].AsIntDefault(60);
 
@@ -391,7 +397,8 @@ namespace UnityMcp.Tools
 
             string pythonCode = args["code"]?.Value;
             string scriptPath = args["script_path"]?.Value;
-            string scriptName = args["script_name"]?.Value ?? "script.py";
+            string scriptName = args["script_name"]?.Value;
+            if (string.IsNullOrEmpty(scriptName)) scriptName = "script.py";
 
             // 检查参数：必须提供 code
             if (string.IsNullOrEmpty(pythonCode))

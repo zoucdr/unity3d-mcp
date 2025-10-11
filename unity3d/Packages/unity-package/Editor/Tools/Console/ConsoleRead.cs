@@ -239,7 +239,9 @@ namespace UnityMcp.Tools
         /// </summary>
         private string ExtractFormat(JsonClass args)
         {
-            return (args["format"]?.Value ?? "detailed").ToLower();
+            string format = args["format"]?.Value;
+            if (string.IsNullOrEmpty(format)) format = "detailed";
+            return format.ToLower();
         }
 
         /// <summary>
@@ -247,7 +249,8 @@ namespace UnityMcp.Tools
         /// </summary>
         private object HandleUnknownAction(JsonClass args)
         {
-            string action = args["action"]?.Value ?? "null";
+            string action = args["action"]?.Value;
+            if (string.IsNullOrEmpty(action)) action = "null";
             return Response.Error($"Unknown action: '{action}' for read_console. Valid actions are 'get', 'get_full', or 'clear'.");
         }
 

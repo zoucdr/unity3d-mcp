@@ -221,7 +221,8 @@ namespace UnityMcp.Tools
         /// </summary>
         private object HandleUnknownAction(JsonClass args)
         {
-            string action = args["action"]?.Value ?? "null";
+            string action = args["action"]?.Value;
+            if (string.IsNullOrEmpty(action)) action = "null";
             return Response.Error($"Unknown action: '{action}' for console_write. Valid actions are 'error', 'warning', 'log', 'assert', or 'exception'.");
         }
 

@@ -50,8 +50,10 @@ namespace UnityMcp.Tools.Storage
         {
             string key = args["key"]?.Value;
             string value = args["value"]?.Value;
-            string prefType = args["prefType"]?.Value ?? "editor";
-            string valueType = args["valueType"]?.Value ?? "string";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
+            string valueType = args["valueType"]?.Value;
+            if (string.IsNullOrEmpty(valueType)) valueType = "string";
 
             if (string.IsNullOrEmpty(key))
             {
@@ -129,8 +131,10 @@ namespace UnityMcp.Tools.Storage
         private object HandleGetAction(JsonClass args)
         {
             string key = args["key"]?.Value;
-            string prefType = args["prefType"]?.Value ?? "editor";
-            string valueType = args["valueType"]?.Value ?? "string";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
+            string valueType = args["valueType"]?.Value;
+            if (string.IsNullOrEmpty(valueType)) valueType = "string";
             string defaultValue = args["defaultValue"]?.Value;
 
             if (string.IsNullOrEmpty(key))
@@ -183,7 +187,8 @@ namespace UnityMcp.Tools.Storage
         private object HandleDeleteAction(JsonClass args)
         {
             string key = args["key"]?.Value;
-            string prefType = args["prefType"]?.Value ?? "editor";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
 
             if (string.IsNullOrEmpty(key))
             {
@@ -217,7 +222,8 @@ namespace UnityMcp.Tools.Storage
         private object HandleHasAction(JsonClass args)
         {
             string key = args["key"]?.Value;
-            string prefType = args["prefType"]?.Value ?? "editor";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
 
             if (string.IsNullOrEmpty(key))
             {
@@ -241,7 +247,8 @@ namespace UnityMcp.Tools.Storage
 
         private object HandleDeleteAllAction(JsonClass args)
         {
-            string prefType = args["prefType"]?.Value ?? "editor";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
 
             try
             {
@@ -270,7 +277,8 @@ namespace UnityMcp.Tools.Storage
 
         private object HandleGetAllAction(JsonClass args)
         {
-            string prefType = args["prefType"]?.Value ?? "editor";
+            string prefType = args["prefType"]?.Value;
+            if (string.IsNullOrEmpty(prefType)) prefType = "editor";
 
             try
             {

@@ -25,8 +25,8 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：import, modify, move, duplicate, rename, get_info, create_folder, reload, select, ping, select_depends, select_usage等", false),
-                new MethodKey("path", "资产路径，Unity标准格式：Assets/Folder/File.extension", false),
+                new MethodKey("action", "操作类型：import, modify, move, duplicate, rename, get_info, create_folder, reload, select, ping, select_depends, select_usage, tree等", false),
+                new MethodKey("path", "资产路径，Unity标准格式：Assets/Folder/File.extension，tree时为根目录路径", false),
                 new MethodKey("properties", "资产属性字典，用于设置资产的各种属性", true),
                 new MethodKey("destination", "目标路径（移动/复制时使用）", true),
                 new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
@@ -58,6 +58,7 @@ namespace UnityMcp.Tools
                     .Leaf("ping", PingAsset)
                     .Leaf("select_depends", SelectDependencies)
                     .Leaf("select_usage", SelectUsages)
+                    .Leaf("tree", GetFolderStructure)
                 .Build();
         }
 
@@ -725,7 +726,9 @@ namespace UnityMcp.Tools
         {
             try
             {
-                string refreshType = args["refresh_type"]?.Value?.ToLower() ?? "all";
+                string refreshType = args["refresh_type"]?.Value;
+                if (string.IsNullOrEmpty(refreshType)) refreshType = "all";
+                else refreshType = refreshType.ToLower();
                 bool saveBeforeRefresh = args["save_before_refresh"].AsBoolDefault(true);
                 string specificPath = args["path"]?.Value;
 
@@ -878,6 +881,169 @@ namespace UnityMcp.Tools
             }
         }
 
+        /// <summary>
+        /// 获取文件夹结构（YAML格式）
+        /// </summary>
+        private object GetFolderStructure(JsonClass args)
+        {
+            try
+            {
+                string rootPath = args["path"]?.Value;
+                if (string.IsNullOrEmpty(rootPath))
+                    rootPath = "Assets";
+
+                const int maxDepth = 10; // 固定最大深度为10
+
+                rootPath = SanitizeAssetPath(rootPath);
+
+                if (!AssetDatabase.IsValidFolder(rootPath))
+                {
+                    return Response.Error($"Path '{rootPath}' is not a valid folder.");
+                }
+
+                LogInfo($"[ProjectOperate] Getting folder structure for: {rootPath}");
+
+                var startTime = System.DateTime.Now;
+
+                // 构建文件夹结构
+                var structure = BuildFolderStructure(rootPath, 0, maxDepth);
+
+                // 生成YAML格式字符串
+                var yamlBuilder = new System.Text.StringBuilder();
+                GenerateYamlStructure(structure, yamlBuilder, 0);
+
+                var duration = System.DateTime.Now - startTime;
+
+                return Response.Success(
+                    $"Folder structure retrieved successfully in {duration.TotalMilliseconds:F0}ms.",
+                    new
+                    {
+                        rootPath = rootPath,
+                        yaml = yamlBuilder.ToString(),
+                        durationMs = duration.TotalMilliseconds,
+                        timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                LogError($"[ProjectOperate] Failed to get folder structure: {e.Message}");
+                return Response.Error($"Failed to get folder structure: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 递归构建文件夹结构
+        /// </summary>
+        private FolderNode BuildFolderStructure(string folderPath, int currentDepth, int maxDepth)
+        {
+            var node = new FolderNode
+            {
+                Name = Path.GetFileName(folderPath),
+                Path = folderPath,
+                FileCount = 0,
+                SubFolders = new List<FolderNode>()
+            };
+
+            // 如果达到最大深度，不再递归
+            if (currentDepth >= maxDepth)
+            {
+                return node;
+            }
+
+            try
+            {
+                // 获取当前文件夹下的所有资产
+                string[] allGuids = AssetDatabase.FindAssets("", new[] { folderPath });
+
+                foreach (string guid in allGuids)
+                {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                    // 检查是否是当前文件夹的直接子项
+                    string parentDir = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+                    if (parentDir != folderPath)
+                    {
+                        continue;
+                    }
+
+                    if (AssetDatabase.IsValidFolder(assetPath))
+                    {
+                        // 递归处理子文件夹
+                        var subFolder = BuildFolderStructure(assetPath, currentDepth + 1, maxDepth);
+                        node.SubFolders.Add(subFolder);
+                    }
+                    else
+                    {
+                        // 统计文件数量（排除.meta文件）
+                        if (!assetPath.EndsWith(".meta"))
+                        {
+                            node.FileCount++;
+                        }
+                    }
+                }
+
+                // 按名称排序子文件夹
+                node.SubFolders = node.SubFolders.OrderBy(f => f.Name).ToList();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[BuildFolderStructure] Error processing folder '{folderPath}': {ex.Message}");
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// 生成YAML格式的文件夹结构字符串
+        /// </summary>
+        private void GenerateYamlStructure(FolderNode node, System.Text.StringBuilder builder, int indentLevel)
+        {
+            string indent = new string(' ', indentLevel * 2);
+
+            // 输出当前文件夹及其文件数量
+            if (indentLevel == 0)
+            {
+                // 根节点
+                builder.AppendLine($"{node.Name}:");
+            }
+            else
+            {
+                if (node.SubFolders.Count > 0)
+                {
+                    // 有子文件夹，单独一行
+                    builder.AppendLine($"{indent}{node.Name}:");
+                    if (node.FileCount > 0)
+                    {
+                        builder.AppendLine($"{indent}  files: {node.FileCount}");
+                    }
+                }
+                else
+                {
+                    // 无子文件夹，直接输出文件数量
+                    builder.AppendLine($"{indent}{node.Name}: {node.FileCount}");
+                    return; // 无子文件夹，结束
+                }
+            }
+
+            // 递归输出子文件夹
+            foreach (var subFolder in node.SubFolders)
+            {
+                GenerateYamlStructure(subFolder, builder, indentLevel + 1);
+            }
+        }
+
+        /// <summary>
+        /// 文件夹节点类，用于表示文件夹结构
+        /// </summary>
+        private class FolderNode
+        {
+            public string Name { get; set; }
+            public string Path { get; set; }
+            public int FileCount { get; set; }
+            public List<FolderNode> SubFolders { get; set; }
+        }
+
         // --- Internal Helpers ---
 
         /// <summary>
@@ -888,7 +1054,7 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(path))
                 return path;
             path = path.Replace('\\', '/'); // Normalize separators
-            if (!path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+            if (!path.StartsWith("Assets", StringComparison.OrdinalIgnoreCase))
             {
                 return "Assets/" + path.TrimStart('/');
             }
@@ -960,7 +1126,8 @@ namespace UnityMcp.Tools
             // Example: Set color property
             if (properties["color"] is JsonClass colorProps)
             {
-                string propName = colorProps["name"]?.Value ?? "_Color"; // Default main color
+                string propName = colorProps["name"]?.Value;
+                if (string.IsNullOrEmpty(propName)) propName = "_Color"; // Default main color
                 if (colorProps["value"] is JsonArray colArr && colArr.Count >= 3)
                 {
                     try
@@ -1014,7 +1181,8 @@ namespace UnityMcp.Tools
             // Example: Set texture property
             if (properties["texture"] is JsonClass texProps)
             {
-                string propName = texProps["name"]?.Value ?? "_MainTex"; // Default main texture
+                string propName = texProps["name"]?.Value;
+                if (string.IsNullOrEmpty(propName)) propName = "_MainTex"; // Default main texture
                 string texPath = texProps["path"]?.Value;
                 if (!string.IsNullOrEmpty(texPath))
                 {

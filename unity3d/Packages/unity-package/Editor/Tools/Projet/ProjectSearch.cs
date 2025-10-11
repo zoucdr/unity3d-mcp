@@ -157,7 +157,8 @@ namespace UnityMcp.Tools
         private object PerformSearch(JsonClass args, string searchType, string[] extensions = null)
         {
             string searchTerm = args["query"]?.Value;
-            string searchPath = args["directory"]?.Value ?? "Assets";
+            string searchPath = args["directory"]?.Value;
+            if (string.IsNullOrEmpty(searchPath)) searchPath = "Assets";
             bool recursive = args["recursive"].AsBoolDefault(true);
             bool caseSensitive = args["case_sensitive"].AsBoolDefault(false);
             int maxResults = args["max_results"].AsIntDefault(100);
@@ -417,7 +418,8 @@ namespace UnityMcp.Tools
         private object HandleReferencesSearch(JsonClass args)
         {
             string assetPath = args["query"]?.Value;
-            string searchPath = args["directory"]?.Value ?? "Assets";
+            string searchPath = args["directory"]?.Value;
+            if (string.IsNullOrEmpty(searchPath)) searchPath = "Assets";
             int maxResults = args["max_results"].AsIntDefault(1000);
 
             if (string.IsNullOrEmpty(assetPath))

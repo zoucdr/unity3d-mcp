@@ -150,8 +150,10 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var savePath = args["save_path"]?.Value ?? "Assets/Screenshots/screenshot.png";
-                var format = args["format"]?.Value ?? "PNG";
+                var savePath = args["save_path"]?.Value;
+                if (string.IsNullOrEmpty(savePath)) savePath = "Assets/Screenshots/screenshot.png";
+                var format = args["format"]?.Value;
+                if (string.IsNullOrEmpty(format)) format = "PNG";
                 var quality = args["quality"].AsIntDefault(90);
                 var scale = args["scale"].AsFloatDefault(1.0f);
                 var delay = args["delay"].AsFloatDefault(0f);
@@ -259,7 +261,8 @@ namespace UnityMcp.Tools
                 var y = args["region_y"].AsIntDefault(0);
                 var width = args["region_width"].AsIntDefault(100);
                 var height = args["region_height"].AsIntDefault(100);
-                var savePath = args["save_path"]?.Value ?? "Assets/Screenshots/region_screenshot.png";
+                var savePath = args["save_path"]?.Value;
+                if (string.IsNullOrEmpty(savePath)) savePath = "Assets/Screenshots/region_screenshot.png";
 
                 return ExecuteRegionScreenshot(x, y, width, height, savePath);
             }
@@ -372,7 +375,8 @@ namespace UnityMcp.Tools
             try
             {
                 var args = ctx.JsonData;
-                var keyCode = args["key_code"]?.Value ?? "";
+                var keyCode = args["key_code"]?.Value;
+                if (string.IsNullOrEmpty(keyCode)) keyCode = "";
                 var delay = args["delay"].AsFloatDefault(0f);
 
                 var input = new SimulatedInput
@@ -665,7 +669,8 @@ namespace UnityMcp.Tools
                 var args = ctx.JsonData;
                 var sourcePath = args["source_path"]?.Value;
                 var savePath = args["save_path"]?.Value;
-                var format = args["format"]?.Value ?? "PNG";
+                var format = args["format"]?.Value;
+                if (string.IsNullOrEmpty(format)) format = "PNG";
                 var quality = args["quality"].AsIntDefault(90);
 
                 if (string.IsNullOrEmpty(sourcePath))
@@ -699,7 +704,8 @@ namespace UnityMcp.Tools
                 var args = ctx.JsonData;
                 var count = args["count"].AsIntDefault(5);
                 var interval = args["interval"].AsFloatDefault(1f);
-                var basePath = args["base_path"]?.Value ?? "Assets/Screenshots/batch";
+                var basePath = args["base_path"]?.Value;
+                if (string.IsNullOrEmpty(basePath)) basePath = "Assets/Screenshots/batch";
 
                 StartBatchScreenshot(count, interval, basePath);
                 return Response.Success($"Batch screenshot started: {count} screenshots with {interval}s interval", new

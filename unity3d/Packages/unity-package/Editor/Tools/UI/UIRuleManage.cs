@@ -265,7 +265,8 @@ namespace UnityMcp.Tools
         private object AddModifyRecord(JsonClass args)
         {
             string uiName = args["name"]?.Value;
-            string modify_desc = args["modify_desc"]?.Value ?? "UI modification";
+            string modify_desc = args["modify_desc"]?.Value;
+            if (string.IsNullOrEmpty(modify_desc)) modify_desc = "UI modification";
 
             if (string.IsNullOrEmpty(uiName))
                 return Response.Error("'name' is required for add_modify.");

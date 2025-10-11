@@ -542,7 +542,8 @@ namespace UnityMcp.Tools
                 if (string.IsNullOrEmpty(heightmapFile))
                     return Response.Error("'heightmap_file' is required for export.");
 
-                string exportFormat = args["export_format"]?.Value ?? "raw";
+                string exportFormat = args["export_format"]?.Value;
+                if (string.IsNullOrEmpty(exportFormat)) exportFormat = "raw";
 
                 if (!Path.IsPathRooted(heightmapFile))
                 {

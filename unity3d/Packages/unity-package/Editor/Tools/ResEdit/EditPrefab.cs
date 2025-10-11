@@ -411,7 +411,8 @@ namespace UnityMcp.Tools
         private object UnpackPrefab(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string unpackMode = args["unpack_mode"]?.Value ?? "Completely";
+            string unpackMode = args["unpack_mode"]?.Value;
+            if (string.IsNullOrEmpty(unpackMode)) unpackMode = "Completely";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for unpack.");
@@ -453,7 +454,8 @@ namespace UnityMcp.Tools
         private object PackPrefab(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string packMode = args["pack_mode"]?.Value ?? "Default";
+            string packMode = args["pack_mode"]?.Value;
+            if (string.IsNullOrEmpty(packMode)) packMode = "Default";
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for pack.");
