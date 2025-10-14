@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-// Migrated from Newtonsoft.Json to SimpleJson
-// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -18,9 +14,10 @@ namespace UnityMcp.Gui
     /// </summary>
     public class McpDebugWindow : EditorWindow
     {
+        [MenuItem("Window/MCP/Debug Window")]
         public static void ShowWindow()
         {
-            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Client");
+            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");
             window.minSize = new Vector2(500, 300);
             window.Show();
         }
@@ -31,7 +28,7 @@ namespace UnityMcp.Gui
         /// <param name="jsonContent">要预填充的JSON内容</param>
         public static void ShowWindowWithContent(string jsonContent)
         {
-            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Client");
+            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");
             window.minSize = new Vector2(500, 300);
             window.SetInputJson(jsonContent);
             window.Show();
@@ -346,13 +343,14 @@ namespace UnityMcp.Gui
                 Repaint();
             }
 
-            if (GUILayout.Button("清空", GUILayout.Width(60)))
+            if (GUILayout.Button("清空当前分组", GUILayout.Width(100)))
             {
-                string confirmMessage = $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？";
+                string confirmMessage = $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。";
 
                 if (EditorUtility.DisplayDialog("确认清空", confirmMessage, "确定", "取消"))
                 {
-                    McpExecuteRecordObject.instance.clearRecords();
+                    // 仅清空当前分组，禁止清空全部
+                    McpExecuteRecordObject.instance.ClearCurrentGroupRecords();
                     McpExecuteRecordObject.instance.saveRecords();
                     selectedRecordIndex = -1;
                     recordList = null;

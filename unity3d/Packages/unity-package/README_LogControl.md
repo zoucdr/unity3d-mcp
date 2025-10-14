@@ -48,7 +48,7 @@ EditorPrefs.SetBool("mcp_enable_log", true);
 - `UnityMcpBridge.cs` - 主要的 MCP 桥接服务
 - `FunctionCall.cs` - 函数调用处理
 - `ReadConsole.cs` - 控制台读取功能
-- `ManageEditor.cs` - 编辑器管理功能
+- `BaseEditor.cs` - 编辑器管理功能
 - `ExecuteMenuItem.cs` - 菜单项执行功能
 - `ManageScript.cs` - 脚本管理功能
 

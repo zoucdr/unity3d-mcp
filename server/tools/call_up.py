@@ -3,7 +3,7 @@ Unity MCP 核心调用工具，包含单个和批量Unity函数调用功能。
 
 ⚠️ 重要说明：
 - 所有MCP函数调用（除single_call和batch_call外）都必须通过此文件中的函数调用
-- 不能直接调用hierarchy_create、edit_gameobject、manage_editor等函数
+- 不能直接调用hierarchy_create、edit_gameobject、base_editor等函数
 - 必须使用single_call进行单个函数调用，或使用batch_call进行批量调用
 - 这是Unity MCP系统的核心调用入口，所有其他工具函数都通过这里转发到Unity
 """
@@ -37,7 +37,7 @@ def register_call_tools(mcp: FastMCP):
         func: Annotated[str, Field(
             title="Unity函数名称",
             description="要调用的Unity函数名称。⚠️ 重要：所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用",
-            examples=["hierarchy_create", "edit_gameobject", "manage_editor", "gameplay", "console_write"]
+            examples=["hierarchy_create", "edit_gameobject", "base_editor", "gameplay", "console_write"]
         )],
         args: Annotated[Dict[str, Any], Field(
             title="函数参数",
@@ -60,7 +60,7 @@ def register_call_tools(mcp: FastMCP):
         支持的函数包括但不限于：
         - hierarchy_create: 创建GameObject
         - edit_gameobject: 编辑GameObject
-        - manage_editor: 编辑器管理
+        - base_editor: 编辑器管理
         - gameplay: 游戏玩法控制
         - console_write: 控制台输出
         - 以及其他所有MCP工具函数
@@ -145,9 +145,9 @@ def register_call_tools(mcp: FastMCP):
                     {"func": "edit_gameobject", "args": {"path": "Enemy", "action": "add_component", "component_type": "Rigidbody"}}
                 ],
                 [
-                    {"func": "manage_editor", "args": {"action": "play"}},
+                    {"func": "base_editor", "args": {"action": "play"}},
                     {"func": "gameplay", "args": {"action": "screenshot", "format": "PNG"}},
-                    {"func": "manage_editor", "args": {"action": "stop"}}
+                    {"func": "base_editor", "args": {"action": "stop"}}
                 ]
             ]
         )]

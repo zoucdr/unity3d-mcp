@@ -161,10 +161,6 @@ namespace UnityMcp.Gui
             // 操作按钮
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("📤 Send UI Rule to Cursor", GUILayout.Height(35)))
-            {
-                SendUIRuleToCursor();
-            }
             if (GUILayout.Button("📋 Copy UI Rule to Clipboard", GUILayout.Height(35)))
             {
                 CopyUIRuleToClipboard();
@@ -398,34 +394,6 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 发送UI规则到Cursor
-        /// </summary>
-        private void SendUIRuleToCursor()
-        {
-            string uiName = ValidateAndGetUIName();
-            if (string.IsNullOrEmpty(uiName))
-                return;
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Starting to send UI rule '{uiName}' to Cursor...");
-
-            try
-            {
-                GetUIRule(uiName, (result) =>
-                {
-                    if (result != null)
-                    {
-                        SendToCursor(result, uiName);
-                    }
-                });
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[UIDefineRuleObjectEditor] Error sending UI rule to Cursor: {e.Message}");
-                EditorUtility.DisplayDialog("Error", $"Error sending UI rule to Cursor: {e.Message}", "OK");
-            }
-        }
-
-        /// <summary>
         /// 验证并获取UI名称
         /// </summary>
         private string ValidateAndGetUIName()
@@ -505,37 +473,6 @@ namespace UnityMcp.Gui
                 onComplete?.Invoke(null);
             }
         }
-
-        /// <summary>
-        /// 发送UI规则到Cursor
-        /// </summary>
-        private void SendToCursor(string result, string uiName)
-        {
-            if (result == null)
-            {
-                Debug.LogError("[UIDefineRuleObjectEditor] Failed to get UI rule result");
-                EditorUtility.DisplayDialog("Error", "Failed to get UI rule result", "OK");
-                return;
-            }
-
-            // 解析结果并构建发送到Cursor的消息
-            string message = BuildCursorMessage(result, uiName);
-
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.LogError("[UIDefineRuleObjectEditor] Failed to build Cursor message");
-                EditorUtility.DisplayDialog("Error", "Failed to build message for Cursor", "OK");
-                return;
-            }
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Sending UI rule to Cursor: {message.Length} characters");
-
-            // 发送到Cursor（自动发送）
-            CursorChatIntegration.SendToCursor(message, true);
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Successfully sent UI rule '{uiName}' to Cursor");
-        }
-
         /// <summary>
         /// 构建发送到Cursor的消息
         /// </summary>

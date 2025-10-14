@@ -17,7 +17,7 @@ namespace UnityMcp.Tools
     /// 对应方法名: manage_package
     /// </summary>
     [ToolName("manage_package", "包管理")]
-    public class ManagePackage : StateMethodBase
+    public class Package : StateMethodBase
     {
         // Results storage for async operations
         private object operationResult;
@@ -36,7 +36,7 @@ namespace UnityMcp.Tools
             public string Status { get; set; } = "pending";
         }
 
-        static ManagePackage()
+        static Package()
         {
             RegisterCompilationEvents();
         }

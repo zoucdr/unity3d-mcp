@@ -270,7 +270,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理创建空GameObject的操作
+        /// 处理创建空GameObject的操作（直接代码创建，智能处理UI/非UI对象）
         /// </summary>
         private object HandleCreateEmpty(JsonClass args)
         {
@@ -282,7 +282,62 @@ namespace UnityMcp.Tools
             }
 
             LogInfo($"[HierarchyCreate] Creating empty GameObject: '{name}'");
-            return CreateEmptyGameObject(args, name);
+
+            try
+            {
+                // 预先选中父对象（如果指定了）
+                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+
+                // 获取父对象
+                GameObject parentObject = Selection.activeGameObject;
+
+                // 检查父对象是否有RectTransform（UI元素）
+                bool parentIsUI = parentObject != null && parentObject.GetComponent<RectTransform>() != null;
+
+                LogInfo($"[HierarchyCreate] Parent is UI: {parentIsUI}, creating appropriate empty object");
+
+                GameObject newGo = null;
+
+                if (parentIsUI)
+                {
+                    // 在UI父对象下创建，需要添加RectTransform
+                    newGo = new GameObject(name, typeof(RectTransform));
+
+                    // 设置父对象（第二个参数false表示保持本地坐标）
+                    if (parentObject != null)
+                    {
+                        newGo.transform.SetParent(parentObject.transform, false);
+                    }
+
+                    LogInfo($"[HierarchyCreate] Created UI GameObject with RectTransform: '{newGo.name}'");
+                }
+                else
+                {
+                    // 普通对象，直接创建
+                    newGo = new GameObject(name);
+
+                    // 设置父对象（如果有）
+                    if (parentObject != null)
+                    {
+                        newGo.transform.SetParent(parentObject.transform, true);
+                    }
+
+                    LogInfo($"[HierarchyCreate] Created standard GameObject: '{newGo.name}'");
+                }
+
+                // 注册撤销操作
+                Undo.RegisterCreatedObjectUndo(newGo, $"Create Empty GameObject '{newGo.name}'");
+
+                LogInfo($"[HierarchyCreate] Finalizing empty object: '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+
+                // 应用其他设置（名称、位置等）
+                return FinalizeGameObjectCreation(args, newGo, true);
+            }
+            catch (Exception e)
+            {
+                LogInfo($"[HierarchyCreate] Failed to create empty GameObject '{name}': {e.Message}");
+                return Response.Error($"Failed to create empty GameObject '{name}': {e.Message}");
+            }
         }
 
         /// <summary>
@@ -309,6 +364,9 @@ namespace UnityMcp.Tools
         {
             try
             {
+                // 预先选中父对象（如果指定了）
+                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+
                 // 处理预制体路径查找逻辑
                 string resolvedPath = ResolvePrefabPath(prefabPath);
                 if (string.IsNullOrEmpty(resolvedPath))
@@ -362,6 +420,9 @@ namespace UnityMcp.Tools
         {
             try
             {
+                // 预先选中父对象（如果指定了）
+                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+
                 PrimitiveType type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), primitiveType, true);
                 GameObject newGo = GameObject.CreatePrimitive(type);
 
@@ -395,25 +456,6 @@ namespace UnityMcp.Tools
             }
         }
 
-        /// <summary>
-        /// 创建空GameObject
-        /// </summary>
-        private object CreateEmptyGameObject(JsonClass args, string name)
-        {
-            try
-            {
-                GameObject newGo = new GameObject(name);
-
-                Undo.RegisterCreatedObjectUndo(newGo, $"Create GameObject '{newGo.name}'");
-
-                return FinalizeGameObjectCreation(args, newGo, true);
-            }
-            catch (Exception e)
-            {
-                LogInfo($"[HierarchyCreate] Failed to create empty GameObject '{name}': {e.Message}");
-                return Response.Error($"Failed to create empty GameObject '{name}': {e.Message}");
-            }
-        }
 
         /// <summary>
         /// 从现有GameObject复制创建新对象
@@ -422,6 +464,9 @@ namespace UnityMcp.Tools
         {
             try
             {
+                // 预先选中父对象（如果指定了）
+                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+
                 // 查找源对象
                 GameObject sourceObject = GameObject.Find(copySource);
                 if (sourceObject == null)

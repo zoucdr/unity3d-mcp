@@ -66,7 +66,7 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "Operation type: screenshot, simulate_click, simulate_drag, set_size, get_info, compress_image", false),
+                new MethodKey("action", "Operation type: play, pause, stop, screenshot, simulate_click, simulate_drag, set_size, get_info, compress_image", false),
                 
                 // 输入模拟相关
                 new MethodKey("x", "X coordinate for input simulation", true),
@@ -111,6 +111,11 @@ namespace UnityMcp.Tools
             return StateTreeBuilder
                 .Create()
                 .Key("action")
+                    // 播放控制
+                    .Leaf("play", HandlePlayAction)
+                    .Leaf("pause", HandlePauseAction)
+                    .Leaf("stop", HandleStopAction)
+
                     // 截图功能
                     .Leaf("screenshot", HandleScreenshotAction)
                     .Leaf("screenshot_region", HandleScreenshotRegionAction)
@@ -138,6 +143,75 @@ namespace UnityMcp.Tools
                     .Leaf("start_recording", HandleStartRecordingAction)
                     .Leaf("stop_recording", HandleStopRecordingAction)
                 .Build();
+        }
+
+        // --- 播放控制功能 ---
+
+        /// <summary>
+        /// 处理进入播放模式的操作
+        /// </summary>
+        private object HandlePlayAction(StateTreeContext ctx)
+        {
+            try
+            {
+                if (!EditorApplication.isPlaying)
+                {
+                    LogInfo("[GamePlay] Entering play mode");
+                    EditorApplication.isPlaying = true;
+                    return Response.Success("Entered play mode.");
+                }
+                return Response.Success("Already in play mode.");
+            }
+            catch (Exception e)
+            {
+                LogInfo($"[GamePlay] Error entering play mode: {e.Message}");
+                return Response.Error($"Error entering play mode: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 处理暂停/恢复播放模式的操作
+        /// </summary>
+        private object HandlePauseAction(StateTreeContext ctx)
+        {
+            try
+            {
+                if (EditorApplication.isPlaying)
+                {
+                    EditorApplication.isPaused = !EditorApplication.isPaused;
+                    string statusMessage = EditorApplication.isPaused ? "Game paused." : "Game resumed.";
+                    LogInfo($"[GamePlay] {statusMessage}");
+                    return Response.Success(statusMessage);
+                }
+                return Response.Error("Cannot pause/resume: Not in play mode.");
+            }
+            catch (Exception e)
+            {
+                LogInfo($"[GamePlay] Error pausing/resuming game: {e.Message}");
+                return Response.Error($"Error pausing/resuming game: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 处理停止播放模式的操作
+        /// </summary>
+        private object HandleStopAction(StateTreeContext ctx)
+        {
+            try
+            {
+                if (EditorApplication.isPlaying)
+                {
+                    LogInfo("[GamePlay] Exiting play mode");
+                    EditorApplication.isPlaying = false;
+                    return Response.Success("Exited play mode.");
+                }
+                return Response.Success("Already stopped (not in play mode).");
+            }
+            catch (Exception e)
+            {
+                LogInfo($"[GamePlay] Error stopping play mode: {e.Message}");
+                return Response.Error($"Error stopping play mode: {e.Message}");
+            }
         }
 
         // --- 截图功能 ---

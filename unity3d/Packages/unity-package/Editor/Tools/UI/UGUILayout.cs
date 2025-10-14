@@ -30,7 +30,9 @@ namespace UnityMcp.Tools
     /// action="do_layout", anchor_preset="top_center", anchor_self=true   // 钉在元素顶部中心
     /// action="get_layout"
     /// 
-    /// 对应方法名: edit_recttransform
+    /// 注意：Game窗口分辨率设置功能已迁移到 game_view 工具
+    /// 
+    /// 对应方法名: ugui_layout
     /// </summary>
     [ToolName("ugui_layout", "UI管理")]
     public class UGUILayout : DualStateMethodBase
@@ -66,7 +68,7 @@ namespace UnityMcp.Tools
                 new MethodKey("local_scale", "Local scale [x, y, z]", true),
                 
                 // 层级控制
-                new MethodKey("sibling_index", "Sibling index in parent hierarchy", true),
+                new MethodKey("sibling_index", "Sibling index in parent hierarchy", true)
             };
         }
 
@@ -134,8 +136,6 @@ namespace UnityMcp.Tools
                 return GetAllRectTransformPropertiesFromMultiple(targets);
             }
         }
-
-
 
         /// <summary>
         /// 默认操作处理（不指定 action 时默认为 do_layout）
@@ -482,13 +482,7 @@ namespace UnityMcp.Tools
                 (elementTopRight.y - parentBottomLeft.y) / (parentTopRight.y - parentBottomLeft.y)
             );
 
-            // 限制在0-1范围内
-            elementCenterRel.x = Mathf.Clamp01(elementCenterRel.x);
-            elementCenterRel.y = Mathf.Clamp01(elementCenterRel.y);
-            elementBottomLeftRel.x = Mathf.Clamp01(elementBottomLeftRel.x);
-            elementBottomLeftRel.y = Mathf.Clamp01(elementBottomLeftRel.y);
-            elementTopRightRel.x = Mathf.Clamp01(elementTopRightRel.x);
-            elementTopRightRel.y = Mathf.Clamp01(elementTopRightRel.y);
+            // 不进行0-1范围钳制，避免超出父级时被压回父级内部
 
             Vector2 newAnchorMin, newAnchorMax, newPivot;
 
@@ -569,9 +563,7 @@ namespace UnityMcp.Tools
             // 检查是否需要修改（避免不必要的更新）
             if (Vector2.Distance(rectTransform.anchorMin, newAnchorMin) < 0.001f &&
                 Vector2.Distance(rectTransform.anchorMax, newAnchorMax) < 0.001f &&
-                Vector2.Distance(rectTransform.pivot, newPivot) < 0.001f &&
-                Vector2.Distance(rectTransform.offsetMin, Vector2.zero) < 0.001f &&
-                Vector2.Distance(rectTransform.offsetMax, Vector2.zero) < 0.001f)
+                Vector2.Distance(rectTransform.pivot, newPivot) < 0.001f)
             {
                 return false; // 已经是目标状态，无需修改
             }
@@ -581,9 +573,23 @@ namespace UnityMcp.Tools
             rectTransform.anchorMax = newAnchorMax;
             rectTransform.pivot = newPivot;
 
-            // 重置偏移量为零（anchor_self的核心特征）
-            rectTransform.offsetMin = Vector2.zero;
-            rectTransform.offsetMax = Vector2.zero;
+            // 读取Unity实际应用的锚点（避免Unity内部钳制导致误差）
+            Vector2 appliedAnchorMin = rectTransform.anchorMin;
+            Vector2 appliedAnchorMax = rectTransform.anchorMax;
+
+            // 基于元素四角相对坐标计算新的offset，保持视觉位置与尺寸不变
+            float pw = parentRect.rect.width;
+            float ph = parentRect.rect.height;
+            Vector2 newOffsetMin = new Vector2(
+                (elementBottomLeftRel.x - appliedAnchorMin.x) * pw,
+                (elementBottomLeftRel.y - appliedAnchorMin.y) * ph
+            );
+            Vector2 newOffsetMax = new Vector2(
+                (elementTopRightRel.x - appliedAnchorMax.x) * pw,
+                (elementTopRightRel.y - appliedAnchorMax.y) * ph
+            );
+            rectTransform.offsetMin = newOffsetMin;
+            rectTransform.offsetMax = newOffsetMax;
 
             Debug.Log($"[UGUILayout] Applied anchor_self preset '{preset}' to '{rectTransform.name}': anchors [{newAnchorMin.x:F3},{newAnchorMin.y:F3}] to [{newAnchorMax.x:F3},{newAnchorMax.y:F3}]");
             return true;
@@ -673,11 +679,6 @@ namespace UnityMcp.Tools
             }
             return false;
         }
-
-
-
-
-
 
 
         /// <summary>

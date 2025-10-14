@@ -8,7 +8,8 @@ from .project_operate import register_project_operate_tools
 from .edit_material import register_edit_material_tools
 from .edit_mesh import register_edit_mesh_tools
 from .gameplay import register_gameplay_tools
-from .manage_editor import register_manage_editor_tools
+from .base_editor import register_base_editor_tools
+from .tag_layer import register_tag_layer_tools
 from .manage_package import register_manage_package_tools
 from .object_delete import register_object_delete_tools
 from .request_http import register_request_http_tools
@@ -30,6 +31,7 @@ from .edit_terrain import register_edit_terrain_tools
 from .edit_particle_system import register_edit_particle_system_tools
 from .storage_prefers import register_storage_prefers_tools
 from .storage_source_location import register_storage_source_location_tools
+from .game_view import register_game_view_tools
 
 def register_all_tools(mcp):
     """Register all refactored tools with the MCP server."""
@@ -44,7 +46,8 @@ def register_all_tools(mcp):
     register_edit_material_tools(mcp)
     register_edit_mesh_tools(mcp)
     register_gameplay_tools(mcp)
-    register_manage_editor_tools(mcp)
+    register_base_editor_tools(mcp)
+    register_tag_layer_tools(mcp)
     register_manage_package_tools(mcp)
     register_object_delete_tools(mcp)
     register_request_http_tools(mcp)
@@ -66,4 +69,5 @@ def register_all_tools(mcp):
     register_edit_particle_system_tools(mcp)
     register_storage_prefers_tools(mcp)
     register_storage_source_location_tools(mcp)
+    register_game_view_tools(mcp)
     print("Unity MCP Server tool registration complete.")

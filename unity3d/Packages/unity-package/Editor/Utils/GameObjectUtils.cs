@@ -583,6 +583,63 @@ scene: {go.scene.name}";
         // --- GameObject Configuration Methods ---
 
         /// <summary>
+        /// 预先选中父对象（如果指定了父对象参数）
+        /// 用于创建对象前选中父对象，确保Unity创建操作能正确识别父子关系
+        /// </summary>
+        public static void PreselectParentIfSpecified(JsonClass args, Action<string> logAction = null)
+        {
+            // 检查是否指定了父对象
+            string parentPath = args["parent"]?.Value;
+            string parentIdStr = args["parent_id"]?.Value;
+            string parentPathParam = args["parent_path"]?.Value;
+
+            if (string.IsNullOrEmpty(parentPath) &&
+                string.IsNullOrEmpty(parentIdStr) &&
+                string.IsNullOrEmpty(parentPathParam))
+            {
+                // 没有指定父对象，不需要预选中
+                return;
+            }
+
+            GameObject parentObject = null;
+
+            // 优先使用 parent_id
+            if (!string.IsNullOrEmpty(parentIdStr) && int.TryParse(parentIdStr, out int parentId))
+            {
+                parentObject = EditorUtility.InstanceIDToObject(parentId) as GameObject;
+                if (parentObject != null)
+                {
+                    logAction?.Invoke($"[GameObjectUtils] Found parent by ID: '{parentObject.name}' (ID: {parentId})");
+                }
+            }
+
+            // 如果通过 ID 未找到，尝试使用 parent 或 parent_path
+            if (parentObject == null)
+            {
+                string searchPath = !string.IsNullOrEmpty(parentPath) ? parentPath : parentPathParam;
+                if (!string.IsNullOrEmpty(searchPath))
+                {
+                    parentObject = FindObjectByIdOrPath(searchPath);
+                    if (parentObject != null)
+                    {
+                        logAction?.Invoke($"[GameObjectUtils] Found parent by path: '{parentObject.name}' at '{searchPath}'");
+                    }
+                }
+            }
+
+            // 如果找到父对象，选中它
+            if (parentObject != null)
+            {
+                Selection.activeGameObject = parentObject;
+                logAction?.Invoke($"[GameObjectUtils] Pre-selected parent GameObject: '{parentObject.name}' (ID: {parentObject.GetInstanceID()})");
+            }
+            else
+            {
+                logAction?.Invoke($"[GameObjectUtils] Parent object specified but not found. Parent will be set during finalization.");
+            }
+        }
+
+        /// <summary>
         /// 应用通用GameObject设置
         /// </summary>
         public static void ApplyCommonGameObjectSettings(JsonClass args, GameObject newGo, Action<string> logAction = null)

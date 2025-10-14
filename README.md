@@ -213,7 +213,7 @@ unity-package/
 │   │   ├── GameWindow/       # 游戏窗口
 │   │   ├── Setting/          # 设置工具
 │   │   ├── GamePlay.cs       # 游戏玩法
-│   │   ├── ManageEditor.cs   # 编辑器管理
+│   │   ├── BaseEditor.cs   # 编辑器管理
 │   │   ├── ManagePackage.cs  # 包管理
 │   │   ├── ObjectDelete.cs   # 对象删除
 │   │   ├── RequestHttp.cs    # HTTP请求
@@ -362,7 +362,7 @@ public class ProjectSelector : IObjectSelector { }
    - `python_runner`：运行Python脚本
 
 7. **编辑器工具** (Tools/)
-   - `manage_editor`：编辑器管理
+   - `base_editor`：编辑器管理
    - `manage_package`：包管理
    - `gameplay`：游戏玩法控制
    - `object_delete`：对象删除

@@ -82,14 +82,10 @@ namespace UnityMcp.Models
         }
         public void clearRecords()
         {
-            if (useGrouping)
-            {
-                ClearCurrentGroupRecords();
-            }
-            else
-            {
-                records.Clear();
-            }
+            // 禁止清空全部，仅清空当前分组
+            EnsureGroupingEnabled();
+            ClearCurrentGroupRecords();
+            Debug.Log("[McpExecuteRecordObject] 已清空当前分组记录（禁止清空全部）");
         }
         public void saveRecords()
         {
