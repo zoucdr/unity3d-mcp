@@ -18,16 +18,20 @@ namespace UnityMcp.Tools
     /// 支持的操作：
     /// - download_image: 智能下载单张图片
     /// - fetch_nodes: 拉取节点数据并保存为JSON文件
-    /// - download_images: 按需下载指定节点图片（必须提供nodes参数）
+    /// - download_images: 按需下载指定节点图片
     /// 
-    /// 统一的nodes参数：
-    /// 所有操作都使用nodes参数，支持两种格式：
-    /// 1. 逗号分隔的节点ID字符串：如"1:4,1:5,1:6"
-    /// 2. JSON格式的节点名称映射：如{"1:4":"image1","1:5":"image2","1:6":"image3"}
+    /// 节点参数说明：
+    /// - node_ids: 逗号分隔的节点ID字符串，如"1:4,1:5,1:6"
+    /// - node_imgs: JSON格式的节点名称映射，如{"1:4":"image1","1:5":"image2","1:6":"image3"}
+    /// 
+    /// 使用方式：
+    /// 1. 仅提供node_ids: 自动调用Figma API获取节点名称，然后下载
+    /// 2. 仅提供node_imgs: 直接使用指定的文件名下载，无需额外API调用，效率最高
+    /// 3. 同时提供: node_imgs优先，使用其中的节点ID和文件名映射
     /// 
     /// 优化的下载流程：
-    /// 当使用JSON格式的nodes参数时，将直接使用节点名称作为文件名，无需调用FetchNodes API获取节点数据，显著提高下载效率。
-    /// 当使用逗号分隔格式时，会自动调用FetchNodes获取节点名称（传统方式）。
+    /// 当使用node_imgs参数时，将直接使用指定的文件名，无需调用FetchNodes API获取节点数据，显著提高下载效率。
+    /// 当使用node_ids参数时，会自动调用FetchNodes获取节点名称（传统方式）。
     /// 
     /// 本地JSON文件支持：
     /// download_images操作支持通过local_json_path参数从FetchNodes保存的JSON文件中读取节点数据，
@@ -55,7 +59,8 @@ namespace UnityMcp.Tools
             {
                 new MethodKey("action", "操作类型: download_image(智能下载单张图片), fetch_nodes(拉取节点数据), download_images(按需下载指定节点图片)", false),
                 new MethodKey("file_key", "Figma文件Key", true),
-                new MethodKey("nodes", "节点信息，支持两种格式：1) 逗号分隔的节点ID字符串，如\"1:4,1:5,1:6\" 2) JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1\\\",\\\"1:5\\\":\\\"image2\\\"}\"", true),
+                new MethodKey("node_ids", "节点ID列表：逗号分隔的节点ID字符串，如\"1:4,1:5,1:6\"", true),
+                new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1\\\",\\\"1:5\\\":\\\"image2\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
                 new MethodKey("save_path", "保存路径，默认为由ProjectSettings → MCP → Figma中的img_save_to配置", true),
                 new MethodKey("image_format", "图片格式: png, jpg, svg, pdf，默认为png", true),
                 new MethodKey("image_scale", "图片缩放比例，默认为1", true),
@@ -84,7 +89,8 @@ namespace UnityMcp.Tools
         private object DownloadImages(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodesParam = ctx["nodes"]?.ToString();
+            string nodeIdsParam = ctx["node_ids"]?.ToString();
+            string nodeImgsParam = ctx["node_imgs"]?.ToString();
             string token = GetFigmaToken();
             string savePath = ctx["save_path"]?.ToString() ?? GetFigmaAssetsPath();
             string imageFormat = ctx["image_format"]?.ToString() ?? "png";
@@ -93,16 +99,16 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            if (string.IsNullOrEmpty(nodesParam))
-                return Response.Error("nodes是必需的参数");
+            if (string.IsNullOrEmpty(nodeIdsParam) && string.IsNullOrEmpty(nodeImgsParam))
+                return Response.Error("node_ids或node_imgs是必需的参数");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
-            // 解析nodes参数
-            if (!ParseNodesParameter(nodesParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
+            // 解析节点参数
+            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("nodes参数格式无效，请提供逗号分隔的节点ID或JSON格式的节点映射");
+                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
             }
 
             try
@@ -148,23 +154,24 @@ namespace UnityMcp.Tools
         private object FetchNodes(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodesParam = ctx["nodes"]?.ToString();
+            string nodeIdsParam = ctx["node_ids"]?.ToString();
+            string nodeImgsParam = ctx["node_imgs"]?.ToString();
             string token = GetFigmaToken();
             bool includeChildren = bool.Parse(ctx["include_children"]?.ToString() ?? "true");
 
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            if (string.IsNullOrEmpty(nodesParam))
-                return Response.Error("nodes是必需的参数");
+            if (string.IsNullOrEmpty(nodeIdsParam) && string.IsNullOrEmpty(nodeImgsParam))
+                return Response.Error("node_ids或node_imgs是必需的参数");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
-            // 解析nodes参数
-            if (!ParseNodesParameter(nodesParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
+            // 解析节点参数
+            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("nodes参数格式无效，请提供逗号分隔的节点ID或JSON格式的节点映射");
+                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
             }
 
             try
@@ -194,7 +201,8 @@ namespace UnityMcp.Tools
         private object DownloadNodeImages(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodesParam = ctx["nodes"]?.ToString(); // 必需参数
+            string nodeIdsParam = ctx["node_ids"]?.ToString();
+            string nodeImgsParam = ctx["node_imgs"]?.ToString();
             string localJsonPath = ctx["local_json_path"]?.ToString(); // 本地JSON文件路径
             string token = GetFigmaToken();
             string savePath = ctx["save_path"]?.ToString() ?? GetFigmaAssetsPath();
@@ -204,16 +212,16 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            if (string.IsNullOrEmpty(nodesParam))
-                return Response.Error("nodes是必需的参数");
+            if (string.IsNullOrEmpty(nodeIdsParam) && string.IsNullOrEmpty(nodeImgsParam))
+                return Response.Error("node_ids或node_imgs是必需的参数");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
-            // 解析nodes参数
-            if (!ParseNodesParameter(nodesParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
+            // 解析节点参数
+            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("nodes参数格式无效，请提供逗号分隔的节点ID或JSON格式的节点映射");
+                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
             }
 
             try
@@ -950,55 +958,61 @@ namespace UnityMcp.Tools
         #region 辅助方法
 
         /// <summary>
-        /// 解析nodes参数，支持两种格式：逗号分隔的ID字符串或JSON格式的名称映射
+        /// 解析节点参数，支持node_ids（逗号分隔的ID）和node_imgs（JSON格式的名称映射）
         /// </summary>
-        /// <param name="nodesParam">nodes参数值</param>
+        /// <param name="nodeIdsParam">node_ids参数值（逗号分隔的ID）</param>
+        /// <param name="nodeImgsParam">node_imgs参数值（JSON格式的名称映射）</param>
         /// <param name="nodeIds">输出：节点ID列表</param>
-        /// <param name="nodeNames">输出：节点名称映射（如果是JSON格式）</param>
+        /// <param name="nodeNames">输出：节点名称映射（如果提供了node_imgs）</param>
         /// <returns>是否解析成功</returns>
-        private bool ParseNodesParameter(string nodesParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames)
+        private bool ParseNodeParameters(string nodeIdsParam, string nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames)
         {
             nodeIds = new List<string>();
             nodeNames = null;
 
-            if (string.IsNullOrEmpty(nodesParam))
-                return false;
-
-            // 尝试解析为JSON格式
-            if (nodesParam.Trim().StartsWith("{") && nodesParam.Trim().EndsWith("}"))
+            // 优先解析node_imgs（JSON格式）
+            if (!string.IsNullOrEmpty(nodeImgsParam))
             {
-                try
+                if (nodeImgsParam.Trim().StartsWith("{") && nodeImgsParam.Trim().EndsWith("}"))
                 {
-                    var jsonObj = Json.Parse(nodesParam) as JsonClass;
-                    if (jsonObj != null)
+                    try
                     {
-                        nodeNames = new Dictionary<string, string>();
-                        foreach (KeyValuePair<string, JsonNode> kvp in jsonObj.AsEnumerable())
+                        var jsonObj = Json.Parse(nodeImgsParam) as JsonClass;
+                        if (jsonObj != null)
                         {
-                            nodeNames[kvp.Key] = kvp.Value.Value;
+                            nodeNames = new Dictionary<string, string>();
+                            foreach (KeyValuePair<string, JsonNode> kvp in jsonObj.AsEnumerable())
+                            {
+                                nodeNames[kvp.Key] = kvp.Value.Value;
+                            }
+                        }
+                        if (nodeNames != null && nodeNames.Count > 0)
+                        {
+                            nodeIds = nodeNames.Keys.ToList();
+                            Debug.Log($"[FigmaManage] 解析node_imgs为JSON格式，包含 {nodeNames.Count} 个节点映射");
+                            return true;
                         }
                     }
-                    if (nodeNames != null && nodeNames.Count > 0)
+                    catch (Exception ex)
                     {
-                        nodeIds = nodeNames.Keys.ToList();
-                        Debug.Log($"[FigmaManage] 解析为JSON格式，包含 {nodeNames.Count} 个节点映射");
-                        return true;
+                        Debug.LogWarning($"[FigmaManage] node_imgs JSON格式解析失败: {ex.Message}");
+                        // 继续尝试解析node_ids
                     }
                 }
-                catch (Exception ex)
+            }
+
+            // 解析node_ids（逗号分隔的ID字符串）
+            if (!string.IsNullOrEmpty(nodeIdsParam))
+            {
+                nodeIds = nodeIdsParam.Split(',').Select(id => id.Trim()).Where(id => !string.IsNullOrEmpty(id)).ToList();
+                if (nodeIds.Count > 0)
                 {
-                    Debug.LogWarning($"[FigmaManage] JSON格式解析失败: {ex.Message}，尝试作为逗号分隔的ID字符串处理");
+                    Debug.Log($"[FigmaManage] 解析node_ids为ID字符串格式，包含 {nodeIds.Count} 个节点ID");
+                    return true;
                 }
             }
 
-            // 解析为逗号分隔的ID字符串
-            nodeIds = nodesParam.Split(',').Select(id => id.Trim()).Where(id => !string.IsNullOrEmpty(id)).ToList();
-            if (nodeIds.Count > 0)
-            {
-                Debug.Log($"[FigmaManage] 解析为ID字符串格式，包含 {nodeIds.Count} 个节点ID");
-                return true;
-            }
-
+            // 如果两个参数都未能解析出有效数据
             return false;
         }
 

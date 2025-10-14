@@ -4,9 +4,9 @@
   "displayName": "MCP",
   "description": "unity3d mcp system!",
   "unity": "2021.3",
-  "documentationUrl": "https://zouhunter.github.io/unity3d-mcp",
+  "documentationUrl": "https://zoucdr.github.io/unity3d-mcp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zouhunter/unity3d-mcp"
+    "url": "https://github.com/zoucdr/unity3d-mcp"
   }
 }

@@ -158,12 +158,18 @@ namespace UnityMcp.Gui
         {
             serializedObject.Update();
 
-            // 发送到Cursor按钮
+            // 操作按钮
             EditorGUILayout.Space();
+            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("📤 Send UI Rule to Cursor", GUILayout.Height(35)))
             {
                 SendUIRuleToCursor();
             }
+            if (GUILayout.Button("📋 Copy UI Rule to Clipboard", GUILayout.Height(35)))
+            {
+                CopyUIRuleToClipboard();
+            }
+            EditorGUILayout.EndHorizontal();
 
             // 绘制基本属性
             EditorGUILayout.Space();
@@ -396,26 +402,21 @@ namespace UnityMcp.Gui
         /// </summary>
         private void SendUIRuleToCursor()
         {
-            var targetObject = target as UIDefineRuleObject;
-            if (targetObject == null)
-            {
-                EditorUtility.DisplayDialog("Error", "Cannot find UIDefineRuleObject.", "OK");
-                return;
-            }
-
-            string uiName = targetObject.name;
+            string uiName = ValidateAndGetUIName();
             if (string.IsNullOrEmpty(uiName))
-            {
-                EditorUtility.DisplayDialog("Error", "UI name is empty. Please set a name for this rule object.", "OK");
                 return;
-            }
 
             Debug.Log($"[UIDefineRuleObjectEditor] Starting to send UI rule '{uiName}' to Cursor...");
 
-            // 直接调用获取UI规则并发送
             try
             {
-                GetUIRuleAndSendToCursorSync(uiName);
+                GetUIRule(uiName, (result) =>
+                {
+                    if (result != null)
+                    {
+                        SendToCursor(result, uiName);
+                    }
+                });
             }
             catch (System.Exception e)
             {
@@ -425,9 +426,31 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 获取UI规则并发送到Cursor（同步方法）
+        /// 验证并获取UI名称
         /// </summary>
-        private void GetUIRuleAndSendToCursorSync(string uiName)
+        private string ValidateAndGetUIName()
+        {
+            var targetObject = target as UIDefineRuleObject;
+            if (targetObject == null)
+            {
+                EditorUtility.DisplayDialog("Error", "Cannot find UIDefineRuleObject.", "OK");
+                return null;
+            }
+
+            string uiName = targetObject.name;
+            if (string.IsNullOrEmpty(uiName))
+            {
+                EditorUtility.DisplayDialog("Error", "UI name is empty. Please set a name for this rule object.", "OK");
+                return null;
+            }
+
+            return uiName;
+        }
+
+        /// <summary>
+        /// 获取UI规则（公共方法）
+        /// </summary>
+        private void GetUIRule(string uiName, System.Action<string> onComplete)
         {
             Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{uiName}'...");
 
@@ -439,14 +462,10 @@ namespace UnityMcp.Gui
             args["action"] = "get_rule";
             args["name"] = uiName;
 
-            // 调用get_rule方法
-            JsonNode result = null;
-            bool completed = false;
-            System.Exception error = null;
-
             // 使用StateTreeContext调用ExecuteMethod
             var context = new UnityMcp.StateTreeContext(args);
             bool resultReceived = false;
+            JsonNode result = null;
 
             // 注册完成回调
             context.RegistComplete((res) =>
@@ -464,8 +483,8 @@ namespace UnityMcp.Gui
                     if (x != null)
                     {
                         result = x;
-                        completed = true;
-                        SendToCursor((string)Json.FromObject(result).Value, uiName);
+                        string resultJson = (string)Json.FromObject(result).Value;
+                        onComplete?.Invoke(resultJson);
                     }
                     else
                     {
@@ -473,30 +492,25 @@ namespace UnityMcp.Gui
                         {
                             Debug.LogError("[UIDefineRuleObjectEditor] ExecuteMethod timeout");
                             EditorUtility.DisplayDialog("Error", "ExecuteMethod timeout", "OK");
+                            onComplete?.Invoke(null);
                             return;
                         }
-
-                        completed = true;
                     }
                 }));
-
             }
             catch (System.Exception e)
             {
-                error = e;
-            }
-            Debug.Log($"[UIDefineRuleObjectEditor] completed: {completed}");
-            if (error != null)
-            {
-                Debug.LogError($"[UIDefineRuleObjectEditor] Error getting UI rule: {error.Message}");
-                EditorUtility.DisplayDialog("Error", $"Error getting UI rule: {error.Message}", "OK");
-                return;
+                Debug.LogError($"[UIDefineRuleObjectEditor] Error getting UI rule: {e.Message}");
+                EditorUtility.DisplayDialog("Error", $"Error getting UI rule: {e.Message}", "OK");
+                onComplete?.Invoke(null);
             }
         }
 
+        /// <summary>
+        /// 发送UI规则到Cursor
+        /// </summary>
         private void SendToCursor(string result, string uiName)
         {
-            // 对于同步调用，我们不处理协程结果，直接使用返回值
             if (result == null)
             {
                 Debug.LogError("[UIDefineRuleObjectEditor] Failed to get UI rule result");
@@ -547,6 +561,65 @@ namespace UnityMcp.Gui
                 Debug.LogError($"[UIDefineRuleObjectEditor] Error building Cursor message: {e.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 拷贝UI规则到剪贴板
+        /// </summary>
+        private void CopyUIRuleToClipboard()
+        {
+            string uiName = ValidateAndGetUIName();
+            if (string.IsNullOrEmpty(uiName))
+                return;
+
+            Debug.Log($"[UIDefineRuleObjectEditor] Starting to copy UI rule '{uiName}' to clipboard...");
+
+            try
+            {
+                GetUIRule(uiName, (result) =>
+                {
+                    if (result != null)
+                    {
+                        CopyToClipboard(result, uiName);
+                    }
+                });
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[UIDefineRuleObjectEditor] Error copying UI rule to clipboard: {e.Message}");
+                EditorUtility.DisplayDialog("Error", $"Error copying UI rule to clipboard: {e.Message}", "OK");
+            }
+        }
+
+        /// <summary>
+        /// 拷贝内容到剪贴板
+        /// </summary>
+        private void CopyToClipboard(string result, string uiName)
+        {
+            if (result == null)
+            {
+                Debug.LogError("[UIDefineRuleObjectEditor] Failed to get UI rule result");
+                EditorUtility.DisplayDialog("Error", "Failed to get UI rule result", "OK");
+                return;
+            }
+
+            // 解析结果并构建消息
+            string message = BuildCursorMessage(result, uiName);
+
+            if (string.IsNullOrEmpty(message))
+            {
+                Debug.LogError("[UIDefineRuleObjectEditor] Failed to build message");
+                EditorUtility.DisplayDialog("Error", "Failed to build message for clipboard", "OK");
+                return;
+            }
+
+            Debug.Log($"[UIDefineRuleObjectEditor] Copying UI rule to clipboard: {message.Length} characters");
+
+            // 拷贝到剪贴板
+            GUIUtility.systemCopyBuffer = message;
+
+            Debug.Log($"[UIDefineRuleObjectEditor] Successfully copied UI rule '{uiName}' to clipboard");
+            EditorUtility.DisplayDialog("Success", $"UI rule '{uiName}' has been copied to clipboard.\n\nMessage length: {message.Length} characters", "OK");
         }
     }
 }

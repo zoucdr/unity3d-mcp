@@ -11,7 +11,10 @@ namespace UnityMcp.Models
         public List<McpExecuteRecord> records = new List<McpExecuteRecord>();
         public List<McpExecuteRecordGroup> recordGroups = new List<McpExecuteRecordGroup>();
         public string currentGroupId = "default"; // 当前选中的分组ID
-        public bool useGrouping = false; // 是否启用分组功能
+        public bool useGrouping = true; // 是否启用分组功能（默认启用）
+
+        // 初始化标记，确保只初始化一次
+        private bool isInitialized = false;
         [System.Serializable]
         public class McpExecuteRecord
         {
@@ -51,6 +54,9 @@ namespace UnityMcp.Models
 
         public void addRecord(string name, string cmd, string result, string error, double duration, string source)
         {
+            // 确保分组功能已初始化
+            EnsureGroupingEnabled();
+
             var record = new McpExecuteRecord()
             {
                 name = name,
@@ -96,6 +102,42 @@ namespace UnityMcp.Models
         }
 
         #region 分组管理功能
+
+        /// <summary>
+        /// 确保分组功能已启用并初始化
+        /// 这个方法会在任何记录操作前被调用，确保即使 Debug Window 未开启，记录也能正确保存
+        /// </summary>
+        private void EnsureGroupingEnabled()
+        {
+            // 如果已经初始化过，直接返回
+            if (isInitialized)
+                return;
+
+            // 启用分组功能
+            if (!useGrouping)
+            {
+                useGrouping = true;
+            }
+
+            // 初始化默认分组
+            InitializeDefaultGroup();
+
+            // 如果全局 records 列表中有旧数据，迁移到默认分组
+            if (records.Count > 0)
+            {
+                var defaultGroup = GetGroup("default");
+                if (defaultGroup != null)
+                {
+                    // 迁移旧记录到默认分组
+                    defaultGroup.records.AddRange(records);
+                    records.Clear();
+                    Debug.Log($"[McpExecuteRecordObject] 已将 {defaultGroup.records.Count} 条旧记录迁移到默认分组");
+                }
+            }
+
+            isInitialized = true;
+            saveRecords();
+        }
 
         /// <summary>
         /// 初始化默认分组
@@ -261,12 +303,14 @@ namespace UnityMcp.Models
         /// </summary>
         public List<McpExecuteRecord> GetCurrentGroupRecords()
         {
+            // 确保分组功能已初始化
+            EnsureGroupingEnabled();
+
             if (!useGrouping)
             {
                 return records; // 不使用分组时返回全局记录
             }
 
-            InitializeDefaultGroup();
             var currentGroup = GetCurrentGroup();
             return currentGroup?.records ?? new List<McpExecuteRecord>();
         }

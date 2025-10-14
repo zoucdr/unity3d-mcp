@@ -22,17 +22,17 @@ def register_figma_manage_tools(mcp: FastMCP):
             default=None,
             examples=["abc123def456", "xyz789uvw012"]
         )] = None,
-        node_id: Annotated[Optional[str], Field(
-            title="节点ID",
-            description="要下载的节点ID（用于download_image操作）",
+        node_ids: Annotated[Optional[str], Field(
+            title="节点ID列表",
+            description="逗号分隔的节点ID字符串",
             default=None,
-            examples=["1:4", "1:5", "1:6"]
+            examples=["1:4,1:5,1:6", "1:4", "123:456,789:012"]
         )] = None,
-        nodes: Annotated[Optional[str], Field(
-            title="节点列表",
-            description="节点列表，支持逗号分隔的节点ID字符串或JSON格式的节点名称映射",
+        node_imgs: Annotated[Optional[str], Field(
+            title="节点图片映射",
+            description="JSON格式的节点名称映射，格式为{节点ID: 文件名}。当提供此参数时，将直接使用指定的文件名，无需调用Figma API获取节点数据，提高下载效率",
             default=None,
-            examples=["1:4,1:5,1:6", '{"1:4":"image1","1:5":"image2","1:6":"image3"}']
+            examples=['{"1:4":"image1","1:5":"image2","1:6":"image3"}', '{"123:456":"login_button","789:012":"app_icon"}']
         )] = None,
         save_path: Annotated[Optional[str], Field(
             title="保存路径",
@@ -84,5 +84,20 @@ def register_figma_manage_tools(mcp: FastMCP):
         - 节点数据：拉取Figma文件的节点结构数据
         - 资源管理：自动转换和管理下载的资源
         - 批量处理：高效处理多个节点
+        
+        节点参数说明：
+        - node_ids: 逗号分隔的节点ID字符串（如"1:4,1:5,1:6"）
+        - node_imgs: JSON格式的节点映射（如'{"1:4":"image1","1:5":"image2"}'）
+        
+        使用方式：
+        1. 仅提供node_ids: 自动调用Figma API获取节点名称，然后下载
+        2. 提供node_imgs: 直接使用指定的文件名下载，无需额外API调用，效率更高
+        3. 同时提供: node_imgs优先，node_ids作为补充
+        
+        示例 - 基础下载（自动获取节点名称）:
+          node_ids="1:4,1:5,1:6"
+        
+        示例 - 高效下载（直接指定文件名）:
+          node_imgs='{"1:4":"login_button","1:5":"app_icon","1:6":"background"}'
         """
         return get_common_call_response("figma_manage")

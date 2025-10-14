@@ -221,7 +221,7 @@ public class MCPWaterPlantWindow : EditorWindow
         GUILayout.Label("✓ 泵站和电力设施");
         GUILayout.Label("✓ 管道网络系统");
         GUILayout.Label("✓ 办公和控制建筑");
-        GUILayout.Label("✓ 围墙道路和绿化景观");
+        GUILayout.Label("✓ 围墙道路和绿化景观 ");
     }
 }
 

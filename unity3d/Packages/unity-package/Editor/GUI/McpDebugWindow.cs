@@ -164,15 +164,7 @@ namespace UnityMcp.Gui
         {
             if (recordList == null)
             {
-                // 确保默认启用分组
-                if (!McpExecuteRecordObject.instance.useGrouping)
-                {
-                    McpExecuteRecordObject.instance.useGrouping = true;
-                    McpExecuteRecordObject.instance.InitializeDefaultGroup();
-                    McpExecuteRecordObject.instance.saveRecords();
-                }
-
-                // 根据分组模式获取记录
+                // 获取当前分组的记录（分组功能会自动初始化）
                 var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                 recordList = new ReorderableList(records, typeof(McpExecuteRecordObject.McpExecuteRecord), false, true, false, true);
 
