@@ -284,6 +284,9 @@ namespace UnityMcp.Tools
                 texture.Apply();
                 RenderTexture.active = activeRT;
 
+                // 修正上下反转的问题
+                texture = FlipTextureVertically(texture);
+
                 // 如果需要缩放
                 if (Math.Abs(scale - 1.0f) > 0.001f)
                 {
@@ -1063,6 +1066,9 @@ namespace UnityMcp.Tools
                 regionTexture.Apply();
                 RenderTexture.active = activeRT;
 
+                // 修正上下反转的问题
+                regionTexture = FlipTextureVertically(regionTexture);
+
                 // 保存图像
                 var imageData = regionTexture.EncodeToPNG();
                 File.WriteAllBytes(savePath, imageData);
@@ -1084,6 +1090,26 @@ namespace UnityMcp.Tools
             {
                 return Response.Error($"Region screenshot failed: {e.Message}");
             }
+        }
+
+        /// <summary>
+        /// 垂直翻转纹理（修正截图上下颠倒的问题）
+        /// </summary>
+        private Texture2D FlipTextureVertically(Texture2D original)
+        {
+            var flipped = new Texture2D(original.width, original.height, original.format, false);
+
+            for (int x = 0; x < original.width; x++)
+            {
+                for (int y = 0; y < original.height; y++)
+                {
+                    flipped.SetPixel(x, y, original.GetPixel(x, original.height - y - 1));
+                }
+            }
+
+            flipped.Apply();
+            UnityEngine.Object.DestroyImmediate(original); // 清理原始纹理
+            return flipped;
         }
 
         /// <summary>
