@@ -50,6 +50,7 @@ namespace UnityMcp.Models
                 duration = 0,
                 source = "Legacy"
             });
+            saveRecords(); // 确保保存
         }
 
         public void addRecord(string name, string cmd, string result, string error, double duration, string source)
@@ -78,6 +79,7 @@ namespace UnityMcp.Models
             {
                 // 传统模式，添加到全局记录列表
                 records.Add(record);
+                saveRecords(); // 传统模式下也需要保存
             }
         }
         public void clearRecords()
@@ -89,8 +91,8 @@ namespace UnityMcp.Models
         }
         public void saveRecords()
         {
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+            // ScriptableSingleton 使用 Save() 方法来持久化数据
+            Save(true);
         }
         public void loadRecords()
         {

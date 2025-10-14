@@ -20,7 +20,7 @@ namespace UnityMcp
         /// <summary>
         /// Figma设置
         /// </summary>
-        public FigmaSettingsProvider figmaSettings;
+        public FigmaSettings figmaSettings;
 
         /// <summary>
         /// 获取MCP设置实例

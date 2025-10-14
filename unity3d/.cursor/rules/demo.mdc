@@ -13,3 +13,8 @@ alwaysApply: true
 # 代码文件生成
 - python生成到根目录的Python文件夹下
 - c#生成到Assets/Scripts文件夹下
+
+
+# 注意事项
+- try catch内禁止写yield
+- 类的父级不是MonoBehaviour的类,禁止直接使用Destroy等内置函数

@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using UnityMcp;
 
 namespace UnityMcp.Gui
 {
     /// <summary>
     /// Figma设置提供器，用于在Unity的ProjectSettings窗口中显示Figma相关设置
     /// </summary>
-    [System.Serializable]
     public class FigmaSettingsProvider
     {
         private static Vector2 scrollPosition;
@@ -16,81 +16,6 @@ namespace UnityMcp.Gui
         private static bool downloadSettingsFoldout = true;
         private static bool engineEffectsFoldout = true;
         private static bool helpInfoFoldout = false;
-
-        /// <summary>
-        /// Figma访问令牌（保存在EditorPrefs中，不会被提交到版本控制）
-        /// </summary>
-        public string figma_access_token
-        {
-            get
-            {
-                return EditorPrefs.GetString("UnityMcp.Figma.AccessToken", "");
-            }
-            set
-            {
-                EditorPrefs.SetString("UnityMcp.Figma.AccessToken", value);
-            }
-        }
-
-        /// <summary>
-        /// 默认下载路径
-        /// </summary>
-        public string default_download_path
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_default_download_path))
-                    _default_download_path = "Assets/UI/Figma";
-                return _default_download_path;
-            }
-            set { _default_download_path = value; }
-        }
-        [SerializeField] private string _default_download_path;
-
-        /// <summary>
-        /// Figma资产数据路径
-        /// </summary>
-        public string figma_assets_path
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_figma_assets_path))
-                    _figma_assets_path = "Assets/FigmaAssets";
-                return _figma_assets_path;
-            }
-            set { _figma_assets_path = value; }
-        }
-        [SerializeField] private string _figma_assets_path;
-
-        /// <summary>
-        /// 自动下载图片
-        /// </summary>
-        public bool auto_download_images = true;
-
-        /// <summary>
-        /// 图片缩放倍数
-        /// </summary>
-        public float image_scale = 2.0f;
-
-        /// <summary>
-        /// 自动转换图片为Sprite格式
-        /// </summary>
-        public bool auto_convert_to_sprite = true;
-
-        /// <summary>
-        /// 引擎支持效果
-        /// </summary>
-        public EngineSupportEffect engineSupportEffect;
-
-        /// <summary>
-        /// 引擎支持效果
-        /// </summary>
-        public class EngineSupportEffect
-        {
-            public bool roundCorner;
-            public bool outLineImg;
-            public bool gradientImg;
-        }
 
         [SettingsProvider]
         public static SettingsProvider CreateFigmaSettingsProvider()
@@ -112,7 +37,7 @@ namespace UnityMcp.Gui
         {
             var settings = McpSettings.Instance;
             if (settings.figmaSettings == null)
-                settings.figmaSettings = new FigmaSettingsProvider();
+                settings.figmaSettings = new FigmaSettings();
 
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
@@ -133,9 +58,11 @@ namespace UnityMcp.Gui
                 EditorGUI.indentLevel++;
 
                 EditorGUILayout.BeginHorizontal();
-                settings.figmaSettings.figma_access_token = EditorGUILayout.PasswordField(
+                string token = settings.figmaSettings.figma_access_token;
+                token = EditorGUILayout.PasswordField(
                     "Figma访问令牌",
-                    settings.figmaSettings.figma_access_token);
+                    token);
+                settings.figmaSettings.figma_access_token = token;
                 EditorGUILayout.LabelField("💾", GUILayout.Width(20));
                 EditorGUILayout.EndHorizontal();
 
@@ -163,6 +90,10 @@ namespace UnityMcp.Gui
                     "Figma数据资产路径",
                     settings.figmaSettings.figma_assets_path);
 
+                settings.figmaSettings.figma_preview_path = EditorGUILayout.TextField(
+                    "Figma预览图保存路径",
+                    settings.figmaSettings.figma_preview_path);
+
                 settings.figmaSettings.auto_download_images = EditorGUILayout.Toggle(
                     "自动下载图片",
                     settings.figmaSettings.auto_download_images);
@@ -170,6 +101,11 @@ namespace UnityMcp.Gui
                 settings.figmaSettings.image_scale = EditorGUILayout.FloatField(
                     "图片缩放倍数",
                     settings.figmaSettings.image_scale);
+
+                settings.figmaSettings.preview_max_size = EditorGUILayout.IntSlider(
+                    "预览图最大尺寸",
+                    settings.figmaSettings.preview_max_size,
+                    50, 600);
 
                 settings.figmaSettings.auto_convert_to_sprite = EditorGUILayout.Toggle(
                     "自动转换为Sprite",
@@ -193,7 +129,7 @@ namespace UnityMcp.Gui
 
                 // 初始化engineSupportEffect如果为null
                 if (settings.figmaSettings.engineSupportEffect == null)
-                    settings.figmaSettings.engineSupportEffect = new EngineSupportEffect();
+                    settings.figmaSettings.engineSupportEffect = new FigmaSettings.EngineSupportEffect();
 
                 settings.figmaSettings.engineSupportEffect.roundCorner = EditorGUILayout.Toggle(
                     "圆角支持 (ProceduralUIImage)",
@@ -234,7 +170,9 @@ namespace UnityMcp.Gui
                 EditorGUILayout.HelpBox(
                     "• 下载路径：图片和资源的本地保存位置\n" +
                     "• 数据资产路径：Figma节点数据和简化数据的保存位置\n" +
+                    "• 预览图保存路径：使用preview功能时保存预览图的位置\n" +
                     "• 缩放倍数：控制下载图片的分辨率（建议2.0用于高清显示）\n" +
+                    "• 预览图最大尺寸：控制预览图的最大尺寸（像素）\n" +
                     "• 自动转换为Sprite：下载图片后自动设置为Sprite格式（推荐开启）",
                     MessageType.Info);
 

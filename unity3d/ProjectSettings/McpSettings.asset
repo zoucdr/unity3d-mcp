@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiSettings:
     _selectedUIType: 0
+    _commonSpriteFolders: []
+    _commonTextureFolders: []
+    _commonFontFolders: []
     _serializedUITypeData:
     - uiType: 0
       typeName: UGUI
@@ -21,7 +24,7 @@ MonoBehaviour:
       - "\u56DE\u987Eunity-mcp\u5DE5\u5177\u4F7F\u7528\u65B9\u6CD5"
       - "\u5229\u7528figma_manage\u4E0B\u8F7D\u5E76\u5206\u6790\u8BBE\u8BA1\u7A3F\u7ED3\u6784"
       - "\u521B\u5EFACanvas\u548C\u6839\u5BB9\u5668\u5E76\u8BBE\u7F6E\u597D\u5C3A\u5BF8"
-      - "\u5C06Game\u5C3A\u5BF8\u548CUI\u5C3A\u5BF8\u5339\u914D"
+      - "\u5C06Game\u7A97\u53E3\u5C3A\u5BF8\u548CUI\u5C3A\u5BF8\u5339\u914D"
       - "\u6309\u7167\u8BBE\u8BA1\u7A3F\u521B\u5EFA\u5FC5\u8981\u7684UI\u7EC4\u4EF6"
       - "\u6309\u7406\u60F3\u7684UI\u5C42\u7EA7\u8FDB\u884C\u7EC4\u4EF6\u8C03\u6574"
       - "\u8BB0\u5F55\u521B\u5EFA\u7684UI\u7EC4\u4EF6\u540D\u79F0\u548C\u539F\u6765\u7684\u8282\u70B9id\u5230\u89C4\u5219\u6587\u4EF6"
@@ -37,7 +40,7 @@ MonoBehaviour:
       - "\u652F\u6301TMP\u5B57\u4F53"
       - "\u6587\u672C\u76F8\u5173\u7EC4\u4EF6\u5FC5\u987B\u4F7F\u7528TMP"
       - "Figma\u7684\u5750\u6807\u7CFB\u539F\u70B9\u5728\u5DE6\u4E0A\uFF0C\u800CUGUI\u7684\u5750\u6807\u7CFB\u7EDF\u4E3A\u5DE6\u4E0B\uFF0C\u539F\u70B9\u5728\u4E2D\u5FC3"
-      - "\u4EC5\u5706\u89D2\u7684\u56FE\u7247\uFF0C\u53EF\u4EE5\u4E0D\u4E0B\u8F7D\uFF0C\u76F4\u63A5\u5C06Image\u66FF\u6362\u4E3AProceduralUIImage"
+      - "\u4EC5\u5706\u89D2\u7684\u56FE\u7247\uFF0C\u53EF\u4EE5\u4E0D\u4E0B\u8F7D\uFF0C\u76F4\u63A5\u5C06Image\u66FF\u6362\u4E3AUnityEngine.UI.ProceduralImage"
     - uiType: 1
       typeName: UIToolkit
       buildSteps:
@@ -116,6 +119,12 @@ MonoBehaviour:
   figmaSettings:
     _default_download_path: Assets/UI/Figma
     _figma_assets_path: Assets/FigmaCache
+    _figma_preview_path: Assets/FigmaAssets/Previews
     auto_download_images: 1
     image_scale: 1
     auto_convert_to_sprite: 1
+    preview_max_size: 303
+    engineSupportEffect:
+      roundCorner: 0
+      outLineImg: 0
+      gradientImg: 0

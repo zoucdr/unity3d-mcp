@@ -15,7 +15,43 @@ namespace UnityMcp
             set { _selectedUIType = value; }
         }
         [SerializeField] private UIType _selectedUIType = UIType.UGUI;
+        /// <summary>
+        /// 通用精灵文件夹
+        /// </summary>  
+        [SerializeField] private List<string> _commonSpriteFolders = new List<string>();
+        /// <summary>
+        /// 通用纹理文件夹
+        /// </summary>
+        [SerializeField] private List<string> _commonTextureFolders = new List<string>();
+        /// <summary>
+        /// 通用字体文件夹
+        /// </summary>
+        [SerializeField] private List<string> _commonFontFolders = new List<string>();
 
+        /// <summary>
+        /// 通用精灵文件夹
+        /// </summary>
+        public List<string> commonSpriteFolders
+        {
+            get { return _commonSpriteFolders; }
+            set { _commonSpriteFolders = value; }
+        }
+        /// <summary>
+        /// 通用纹理文件夹
+        /// </summary>
+        public List<string> commonTextureFolders
+        {
+            get { return _commonTextureFolders; }
+            set { _commonTextureFolders = value; }
+        }
+        /// <summary>
+        /// 通用字体文件夹
+        /// </summary>
+        public List<string> commonFontFolders
+        {
+            get { return _commonFontFolders; }
+            set { _commonFontFolders = value; }
+        }
         /// <summary>
         /// 所有UI类型的数据
         /// </summary>
@@ -289,7 +325,6 @@ namespace UnityMcp
                     };
             }
         }
-
     }
 
 

@@ -477,7 +477,7 @@ namespace UnityMcp.Tools
         {
             try
             {
-                var gameViewType = Type.GetType("UnityEditor.GameView,UnityEditor");
+                var gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
                 if (gameViewType == null)
                 {
                     return Response.Error("Could not find GameView type.");
@@ -489,20 +489,172 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get GameView window.");
                 }
 
-                var position = gameView.position;
+                // 获取选中的分辨率索引
+                var selectedSizeIndexProperty = gameViewType.GetProperty("selectedSizeIndex",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (selectedSizeIndexProperty == null)
+                {
+                    Debug.Log("[GameView] Could not find 'selectedSizeIndex' property, falling back to window size");
+                    var position = gameView.position;
+                    return Response.Success("Retrieved Game view window size (fallback).", new
+                    {
+                        width = (int)position.width,
+                        height = (int)position.height,
+                        x = (int)position.x,
+                        y = (int)position.y,
+                        note = "This is the window size, not the selected resolution"
+                    });
+                }
+
+                int selectedIndex = (int)selectedSizeIndexProperty.GetValue(gameView);
+
+                // 获取GameViewSizes实例
+                var gameViewSizesType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameViewSizes");
+                if (gameViewSizesType == null)
+                {
+                    return Response.Error("Could not find GameViewSizes type.");
+                }
+
+                object gameViewSizes = null;
+
+                // 尝试通过ScriptableSingleton获取实例
+                try
+                {
+                    var scriptableSingletonType = typeof(ScriptableObject).Assembly.GetType("UnityEditor.ScriptableSingleton`1");
+                    if (scriptableSingletonType != null)
+                    {
+                        var genericType = scriptableSingletonType.MakeGenericType(gameViewSizesType);
+                        var instanceProperty = genericType.GetProperty("instance", BindingFlags.Static | BindingFlags.Public);
+                        if (instanceProperty != null)
+                        {
+                            gameViewSizes = instanceProperty.GetValue(null);
+                        }
+                    }
+                }
+                catch { }
+
+                // 备用方法：通过属性获取
+                if (gameViewSizes == null)
+                {
+                    var instanceProperty = gameViewSizesType.GetProperty("instance",
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (instanceProperty != null)
+                    {
+                        try
+                        {
+                            gameViewSizes = instanceProperty.GetValue(null);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Log($"[GameView] Instance property exception: {ex.Message}");
+                        }
+                    }
+                }
+
+                // 备用方法3：使用Activator.CreateInstance（可能产生警告但能工作）
+                if (gameViewSizes == null)
+                {
+                    Debug.Log("[GameView] Trying Activator.CreateInstance as fallback");
+                    try
+                    {
+                        gameViewSizes = Activator.CreateInstance(gameViewSizesType, true);
+                        if (gameViewSizes != null)
+                        {
+                            Debug.Log("[GameView] Successfully got instance through Activator.CreateInstance");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log($"[GameView] Activator approach exception: {ex.Message}");
+                    }
+                }
+
+                if (gameViewSizes == null)
+                {
+                    Debug.LogError("[GameView] All methods to get GameViewSizes instance failed");
+                    return Response.Error("Could not get GameViewSizes instance. Tried ScriptableSingleton, instance property, and Activator.CreateInstance.");
+                }
+
+                // 获取当前平台组
+                int currentGroup = 0;
+                var currentGroupMethod = gameViewSizes.GetType().GetMethod("GetCurrentGroupType",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (currentGroupMethod != null)
+                {
+                    currentGroup = (int)currentGroupMethod.Invoke(gameViewSizes, null);
+                }
+                else
+                {
+                    var currentGroupProp = gameViewSizes.GetType().GetProperty("currentGroupType",
+                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    if (currentGroupProp != null)
+                    {
+                        currentGroup = (int)currentGroupProp.GetValue(gameViewSizes);
+                    }
+                }
+
+                // 获取该组
+                var getGroupMethod = gameViewSizes.GetType().GetMethod("GetGroup");
+                if (getGroupMethod == null)
+                {
+                    return Response.Error("Could not find GetGroup method.");
+                }
+
+                var group = getGroupMethod.Invoke(gameViewSizes, new object[] { currentGroup });
+                if (group == null)
+                {
+                    return Response.Error("Failed to get GameView size group.");
+                }
+
+                // 获取选中的尺寸
+                var getGameViewSizeMethod = group.GetType().GetMethod("GetGameViewSize");
+                if (getGameViewSizeMethod == null)
+                {
+                    return Response.Error("Could not find GetGameViewSize method.");
+                }
+
+                var selectedSize = getGameViewSizeMethod.Invoke(group, new object[] { selectedIndex });
+                if (selectedSize == null)
+                {
+                    return Response.Error("Could not get selected GameViewSize.");
+                }
+
+                // 获取尺寸属性
+                var widthProp = selectedSize.GetType().GetProperty("width");
+                var heightProp = selectedSize.GetType().GetProperty("height");
+                var displayTextProp = selectedSize.GetType().GetProperty("displayText");
+                var baseTextProp = selectedSize.GetType().GetProperty("baseText");
+                var sizeTypeProp = selectedSize.GetType().GetProperty("sizeType");
+
+                if (widthProp == null || heightProp == null)
+                {
+                    return Response.Error("Could not access size properties.");
+                }
+
+                int width = (int)widthProp.GetValue(selectedSize);
+                int height = (int)heightProp.GetValue(selectedSize);
+                string displayText = displayTextProp?.GetValue(selectedSize)?.ToString() ?? "Unknown";
+                string baseText = baseTextProp?.GetValue(selectedSize)?.ToString() ?? "";
+                string sizeType = sizeTypeProp?.GetValue(selectedSize)?.ToString() ?? "Unknown";
 
                 var resolutionInfo = new
                 {
-                    width = (int)position.width,
-                    height = (int)position.height,
-                    x = (int)position.x,
-                    y = (int)position.y
+                    width = width,
+                    height = height,
+                    selectedIndex = selectedIndex,
+                    displayText = displayText,
+                    baseText = baseText,
+                    sizeType = sizeType,
+                    currentGroup = currentGroup
                 };
 
-                return Response.Success("Retrieved Game view resolution.", resolutionInfo);
+                return Response.Success($"Retrieved Game view resolution: {displayText}", resolutionInfo);
             }
             catch (Exception e)
             {
+                Debug.LogError($"[GameView] Exception in GetGameViewResolution: {e.Message}\n{e.StackTrace}");
                 return Response.Error($"Failed to get Game view resolution: {e.Message}");
             }
         }
