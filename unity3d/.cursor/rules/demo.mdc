@@ -18,3 +18,4 @@ alwaysApply: true
 # 注意事项
 - try catch内禁止写yield
 - 类的父级不是MonoBehaviour的类,禁止直接使用Destroy等内置函数
+- GameObject/UI/Input Field - TextMeshPro 注意菜单路径

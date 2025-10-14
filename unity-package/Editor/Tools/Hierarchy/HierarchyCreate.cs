@@ -97,18 +97,15 @@ namespace UnityMcp.Tools
             int previousSelectionID = previousSelection != null ? previousSelection.GetInstanceID() : 0;
 
             // 执行菜单项
-            var menuResult = MenuUtils.TryExecuteMenuItem(menuPath);
+            JsonClass menuResult = MenuUtils.TryExecuteMenuItem(menuPath);
 
             // 检查菜单执行结果
-            string menuResultStr = menuResult?.ToString() ?? "";
-            if (menuResultStr.Contains("Failed") || menuResultStr.Contains("Error"))
+            if (!menuResult["success"].AsBoolDefault(false))
             {
-                LogInfo($"[HierarchyCreate] Menu execution failed: {menuResultStr}");
+                LogInfo($"[HierarchyCreate] Menu execution failed: {menuResult}");
                 yield return menuResult;
                 yield break;
             }
-
-            LogInfo($"[HierarchyCreate] Menu executed successfully: {menuResultStr}");
 
             // 多次尝试检测新创建的对象，因为菜单创建可能需要时间
             GameObject newObject = null;

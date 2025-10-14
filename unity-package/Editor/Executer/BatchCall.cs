@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
 using UnityMcp.Models;
 using UnityMcp;
@@ -86,6 +85,7 @@ namespace UnityMcp.Executer
 
         /// <summary>
         /// 异步顺序执行指定索引的函数，完成后递归执行下一个.
+        /// 如果遇到执行错误，将中断执行并返回错误信息
         /// </summary>
         private void ExecuteFunctionAtIndex(JsonArray funcsArray, int currentIndex, List<object> results,
             int totalCalls, Action<JsonClass> finalCallback)
@@ -152,8 +152,9 @@ namespace UnityMcp.Executer
 
                     if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
-                    // 继续执行下一个函数
-                    ExecuteFunctionAtIndex(funcsArray, currentIndex + 1, results, totalCalls, finalCallback);
+                    // 中断执行并返回错误
+                    var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
+                    finalCallback(abortResponse);
                     return;
                 }
 
@@ -169,8 +170,9 @@ namespace UnityMcp.Executer
 
                     if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
-                    // 继续执行下一个函数
-                    ExecuteFunctionAtIndex(funcsArray, currentIndex + 1, results, totalCalls, finalCallback);
+                    // 中断执行并返回错误
+                    var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
+                    finalCallback(abortResponse);
                     return;
                 }
 
@@ -182,8 +184,9 @@ namespace UnityMcp.Executer
 
                     if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
-                    // 继续执行下一个函数
-                    ExecuteFunctionAtIndex(funcsArray, currentIndex + 1, results, totalCalls, finalCallback);
+                    // 中断执行并返回错误
+                    var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
+                    finalCallback(abortResponse);
                     return;
                 }
 
@@ -198,6 +201,29 @@ namespace UnityMcp.Executer
                         Debug.Log($"[FunctionsCall] Function {currentIndex + 1}/{totalCalls} ({funcName}) executed");
                     }
 
+                    // 检查执行结果是否成功
+                    bool isSuccess = false;
+                    if (singleResult != null && singleResult is JsonClass jsonResult)
+                    {
+                        var successNode = jsonResult["success"];
+                        isSuccess = successNode != null && successNode.Value == "true";
+                    }
+
+                    // 如果执行失败，中断后续执行
+                    if (!isSuccess)
+                    {
+                        if (McpConnect.EnableLog)
+                        {
+                            Debug.LogError($"[FunctionsCall] Function {currentIndex + 1}/{totalCalls} ({funcName}) failed, aborting batch execution");
+                        }
+
+                        // 创建中断执行的响应
+                        string errorMsg = $"批量执行中断：执行到第{currentIndex + 1}个函数时遇到错误，中断执行";
+                        var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
+                        finalCallback(abortResponse);
+                        return;
+                    }
+
                     // 继续执行下一个函数
                     ExecuteFunctionAtIndex(funcsArray, currentIndex + 1, results, totalCalls, finalCallback);
                 });
@@ -209,8 +235,9 @@ namespace UnityMcp.Executer
 
                 if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
-                // 继续执行下一个函数
-                ExecuteFunctionAtIndex(funcsArray, currentIndex + 1, results, totalCalls, finalCallback);
+                // 中断执行并返回错误
+                var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
+                finalCallback(abortResponse);
             }
         }
 
@@ -283,7 +310,7 @@ namespace UnityMcp.Executer
             }
             else
             {
-                return Response.Error("Batch function calls completed", responseData);
+                return Response.Error("Batch function calls Failed", responseData);
             }
         }
     }

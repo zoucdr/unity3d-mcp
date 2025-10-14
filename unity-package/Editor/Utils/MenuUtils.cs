@@ -62,8 +62,21 @@ namespace UnityMcp
 
         /// <summary>
         /// 尝试执行菜单项，自动处理兼容性
+        /// 
+        /// 功能增强：
+        /// 1. 自动处理Unity不同版本的菜单路径差异（Legacy支持）
+        /// 2. 执行失败时自动返回父级菜单的所有可用菜单列表
+        /// 3. 提供详细的错误信息和建议，帮助用户找到正确的菜单路径
+        /// 
+        /// 返回数据结构（失败时）：
+        /// - failed_menu_path: 失败的菜单路径
+        /// - tried_paths: 尝试过的所有路径
+        /// - unity_version: Unity版本
+        /// - parent_path: 父级菜单路径
+        /// - available_menus_count: 可用菜单数量
+        /// - available_menus: 可用菜单列表
         /// </summary>
-        public static object TryExecuteMenuItem(string menuPath)
+        public static JsonClass TryExecuteMenuItem(string menuPath)
         {
             if (string.IsNullOrWhiteSpace(menuPath))
             {
@@ -106,26 +119,93 @@ namespace UnityMcp
             // 依次尝试执行
             foreach (string path in tryPaths)
             {
+                bool success = false;
                 try
                 {
-                    if (EditorApplication.ExecuteMenuItem(path))
+                    // 捕获执行结果
+                    success = EditorApplication.ExecuteMenuItem(path);
+                    if (success)
                     {
+                        Debug.Log($"[MenuUtils] Successfully executed menu item: '{path}'");
                         return Response.Success($"Successfully executed menu item: '{path}' (Unity {Application.unityVersion})");
                     }
+                    else
+                    {
+                        Debug.LogWarning($"[MenuUtils] Menu item not found or execution returned false: '{path}'");
+                    }
                 }
-                catch
+                catch (System.Exception ex)
                 {
-
+                    // 详细记录异常信息
+                    Debug.LogError($"[MenuUtils] Exception when executing menu item '{path}': {ex.Message}\nStackTrace: {ex.StackTrace}");
                 }
             }
 
-            return Response.Error($"Failed to execute menu item. Unity {Application.unityVersion}. Tried: [{string.Join(", ", tryPaths)}]");
+            // 执行失败，获取同级菜单列表作为建议
+            string parentPath = GetParentMenuPath(menuPath);
+            List<string> availableMenus = new List<string>();
+
+            if (!string.IsNullOrEmpty(parentPath))
+            {
+                availableMenus = GetMenuItems(parentPath, true);
+            }
+
+            // 构建错误消息和数据
+            var errorData = new JsonClass();
+            errorData["failed_menu_path"] = menuPath;
+            errorData["tried_paths"] = new JsonArray();
+            foreach (var path in tryPaths)
+            {
+                ((JsonArray)errorData["tried_paths"]).Add(path);
+            }
+            errorData["unity_version"] = Application.unityVersion;
+            errorData["parent_path"] = parentPath ?? "";
+            errorData["available_menus_count"] = availableMenus.Count;
+
+            var menusArray = new JsonArray();
+            foreach (var menu in availableMenus)
+            {
+                menusArray.Add(menu);
+            }
+            errorData["available_menus"] = menusArray;
+
+            string errorMsg = $"ExecuteMenuItem failed because there is no menu named '{menuPath}'.\n" +
+                            $"Unity {Application.unityVersion}. Tried: [{string.Join(", ", tryPaths)}]\n";
+
+            if (availableMenus.Count > 0)
+            {
+                errorMsg += $"\nAvailable menus under '{parentPath}' ({availableMenus.Count} items):\n" +
+                           string.Join("\n", availableMenus.Take(20));
+
+                if (availableMenus.Count > 20)
+                {
+                    errorMsg += $"\n... and {availableMenus.Count - 20} more";
+                }
+            }
+            return Response.Error(errorMsg, errorData);
+        }
+
+        /// <summary>
+        /// 获取父级菜单路径
+        /// </summary>
+        private static string GetParentMenuPath(string menuPath)
+        {
+            if (string.IsNullOrEmpty(menuPath))
+                return null;
+
+            int lastSlashIndex = menuPath.LastIndexOf('/');
+            if (lastSlashIndex > 0)
+            {
+                return menuPath.Substring(0, lastSlashIndex);
+            }
+
+            return null;
         }
 
         /// <summary>
         /// 处理菜单执行命令
         /// </summary>
-        public static object HandleExecuteMenu(JsonClass cmd)
+        public static JsonClass HandleExecuteMenu(JsonClass cmd)
         {
             string menuPath = cmd["menu_path"]?.Value;
 
@@ -273,10 +353,24 @@ namespace UnityMcp
             try
             {
                 // 尝试执行菜单（不实际创建对象）
-                return EditorApplication.ExecuteMenuItem(menuPath);
+                bool result = EditorApplication.ExecuteMenuItem(menuPath);
+
+                // 记录详细日志以帮助调试
+                if (result)
+                {
+                    Debug.Log($"[MenuUtils] Menu item exists: '{menuPath}'");
+                }
+                else
+                {
+                    Debug.Log($"[MenuUtils] Menu item does not exist: '{menuPath}'");
+                }
+
+                return result;
             }
-            catch
+            catch (System.Exception ex)
             {
+                // 详细记录异常信息
+                Debug.LogError($"[MenuUtils] Exception when checking menu item '{menuPath}': {ex.Message}");
                 return false;
             }
         }
