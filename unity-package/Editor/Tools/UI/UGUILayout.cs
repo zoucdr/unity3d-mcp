@@ -15,20 +15,23 @@ namespace UnityMcp.Tools
     /// Second tree: Layout operations based on action type
     /// 
     /// 使用方式：
-    /// - do_layout: 执行综合布局修改 (可同时设置多个属性)
+    /// - do_layout: 执行综合布局修改 (可同时设置多个属性，不包含锚点预设)
     /// - get_layout: 获取RectTransform属性 (获取所有属性信息)
+    /// - tattoo: 设置锚点预设 (专门处理tattoo_preset、tattoo_self、preserve_visual_position)
     /// 
     /// 特殊参数：
-    /// - anchor_self: 当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置
-    ///   * stretch_all + anchor_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
-    ///   * top_center + anchor_self = 将锚点设置到元素自己的顶部中心位置
-    ///   * 其他预设 + anchor_self = 将锚点设置到元素自身对应的位置
+    /// - tattoo_self: 当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置
+    ///   * stretch_all + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
+    ///   * top_center + tattoo_self = 将锚点设置到元素自己的顶部中心位置
+    ///   * 其他预设 + tattoo_self = 将锚点设置到元素自身对应的位置
     /// 
     /// 例如：
-    /// action="do_layout", anchor_min=[0,1], anchor_max=[0,1], anchored_pos=[100, -50], size_delta=[200, 100]
-    /// action="do_layout", anchor_preset="stretch_all", anchor_self=true  // tattoo效果
-    /// action="do_layout", anchor_preset="top_center", anchor_self=true   // 钉在元素顶部中心
+    /// action="do_layout", anchored_pos=[100, -50], size_delta=[200, 100]  // 不使用锚点预设
+    /// action="tattoo", tattoo_preset="stretch_all", tattoo_self=true  // tattoo效果
+    /// action="tattoo", tattoo_preset="top_center", tattoo_self=true   // 钉在元素顶部中心
     /// action="get_layout"
+    /// 
+    /// 注意：do_layout操作不支持tattoo_preset参数，如需设置锚点预设请使用tattoo操作。
     /// 
     /// 注意：Game窗口分辨率设置功能已迁移到 game_view 工具
     /// 
@@ -49,7 +52,7 @@ namespace UnityMcp.Tools
                 new MethodKey("path", "Object Hierarchy path", false),
                 
                 // 操作参数
-                new MethodKey("action", "Operation type: do_layout(综合布局), get_layout(获取属性)", true),
+                new MethodKey("action", "Operation type: do_layout(综合布局,不包含锚点预设), get_layout(获取属性), tattoo(设置锚点预设)", true),
                 
                 // RectTransform基本属性
                 new MethodKey("anchored_pos", "Anchor position [x, y]", true),
@@ -57,15 +60,10 @@ namespace UnityMcp.Tools
                 new MethodKey("anchor_min", "Minimum anchor [x, y]", true),
                 new MethodKey("anchor_max", "Maximum anchor [x, y]", true),
                       // 预设锚点类型
-                new MethodKey("anchor_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all", true),
-                new MethodKey("anchor_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
+                new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all", true),
+                new MethodKey("tattoo_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
                 new MethodKey("preserve_visual_position", "Whether to preserve visual position when changing anchor preset (default: true)", true),
                 new MethodKey("pivot", "Pivot point [x, y]", true),
-                
-                // Transform继承属性
-                new MethodKey("local_position", "Local position [x, y, z]", true),
-                new MethodKey("local_rotation", "Local rotation [x, y, z]", true),
-                new MethodKey("local_scale", "Local scale [x, y, z]", true),
                 
                 // 层级控制
                 new MethodKey("sibling_index", "Sibling index in parent hierarchy", true)
@@ -90,6 +88,7 @@ namespace UnityMcp.Tools
                 .Key("action")
                     .Leaf("do_layout", (Func<StateTreeContext, object>)HandleDoLayoutAction)
                     .Leaf("get_layout", (Func<StateTreeContext, object>)HandleGetLayoutAction)
+                    .Leaf("tattoo", (Func<StateTreeContext, object>)HandleSetAnchorPresetAction)
                     .DefaultLeaf((Func<StateTreeContext, object>)HandleDefaultAction)
                 .Build();
         }
@@ -138,6 +137,28 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
+        /// 处理锚点预设操作
+        /// </summary>
+        private object HandleSetAnchorPresetAction(StateTreeContext args)
+        {
+            GameObject[] targets = GetTargetsBasedOnSelectMany(args);
+            if (targets.Length == 0)
+            {
+                return Response.Error("No target GameObjects found in execution context.");
+            }
+
+            // 专门处理锚点预设
+            if (targets.Length == 1)
+            {
+                return ApplyAnchorPresetToSingle(targets[0], args);
+            }
+            else
+            {
+                return ApplyAnchorPresetToMultiple(targets, args);
+            }
+        }
+
+        /// <summary>
         /// 默认操作处理（不指定 action 时默认为 do_layout）
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
@@ -165,22 +186,12 @@ namespace UnityMcp.Tools
 
             bool modified = false;
 
-            // 处理锚点预设
-            modified |= ApplyAnchorPreset(rectTransform, args);
-
-            // 应用RectTransform特有属性
+            // 应用RectTransform特有属性（不包含锚点预设）
             modified |= ApplyAnchoredPosition(rectTransform, args);
             modified |= ApplySizeDelta(rectTransform, args);
             modified |= ApplyAnchorMin(rectTransform, args);
             modified |= ApplyAnchorMax(rectTransform, args);
             modified |= ApplyPivot(rectTransform, args);
-
-            // 已移除便捷设置参数，只保留核心属性
-
-            // 应用Transform继承属性
-            modified |= ApplyLocalPosition(rectTransform, args);
-            modified |= ApplyLocalRotation(rectTransform, args);
-            modified |= ApplyLocalScale(rectTransform, args);
 
             // 应用层级控制
             modified |= ApplySetSiblingIndex(rectTransform, args);
@@ -248,6 +259,88 @@ namespace UnityMcp.Tools
 
         #endregion
 
+        #region 锚点预设专用方法
+
+        /// <summary>
+        /// 应用锚点预设到单个GameObject
+        /// </summary>
+        private object ApplyAnchorPresetToSingle(GameObject targetGo, StateTreeContext args)
+        {
+            RectTransform rectTransform = targetGo.GetComponent<RectTransform>();
+            if (rectTransform == null)
+            {
+                return Response.Error($"GameObject '{targetGo.name}' does not have a RectTransform component.");
+            }
+
+            Undo.RecordObject(rectTransform, "Set Anchor Preset");
+
+            // 只处理锚点预设相关参数
+            bool modified = ApplyAnchorPreset(rectTransform, args);
+
+            if (!modified)
+            {
+                return Response.Success(
+                    $"No anchor preset modifications applied to RectTransform on '{targetGo.name}'.",
+                    GetRectTransformData(rectTransform)
+                );
+            }
+
+            EditorUtility.SetDirty(rectTransform);
+            return Response.Success(
+                $"Anchor preset applied successfully to RectTransform on '{targetGo.name}'.",
+                GetRectTransformData(rectTransform)
+            );
+        }
+
+        /// <summary>
+        /// 应用锚点预设到多个GameObject
+        /// </summary>
+        private object ApplyAnchorPresetToMultiple(GameObject[] targets, StateTreeContext args)
+        {
+            var results = new List<Dictionary<string, object>>();
+            var errors = new List<string>();
+            int successCount = 0;
+
+            foreach (GameObject targetGo in targets)
+            {
+                if (targetGo == null) continue;
+
+                try
+                {
+                    var result = ApplyAnchorPresetToSingle(targetGo, args);
+
+                    if (IsSuccessResponse(result, out object data, out string responseMessage))
+                    {
+                        successCount++;
+                        if (data is Dictionary<string, object> dictData)
+                        {
+                            results.Add(dictData);
+                        }
+                        else
+                        {
+                            var rectTransform = targetGo.GetComponent<RectTransform>();
+                            if (rectTransform != null)
+                            {
+                                results.Add(GetRectTransformData(rectTransform));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        errors.Add($"[{targetGo.name}] {responseMessage ?? "Unknown error"}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    errors.Add($"[{targetGo.name}] Error: {e.Message}");
+                }
+            }
+
+            return CreateBatchOperationResponse("set anchor preset", successCount, targets.Length, results, errors);
+        }
+
+        #endregion
+
         #region RectTransform属性应用方法
 
         /// <summary>
@@ -255,7 +348,7 @@ namespace UnityMcp.Tools
         /// </summary>
         private bool ApplyAnchorPreset(RectTransform rectTransform, StateTreeContext args)
         {
-            if (args.TryGetValue("anchor_preset", out object presetObj) && presetObj != null)
+            if (args.TryGetValue("tattoo_preset", out object presetObj) && presetObj != null)
             {
                 string preset = presetObj.ToString().ToLower();
                 Vector2 targetAnchorMin, targetAnchorMax, targetPivot;
@@ -326,9 +419,9 @@ namespace UnityMcp.Tools
                         return false;
                 }
 
-                // 检查是否使用anchor_self模式
+                // 检查是否使用tattoo_self模式
                 bool anchorSelf = false;
-                if (args.TryGetValue("anchor_self", out object anchorSelfObj))
+                if (args.TryGetValue("tattoo_self", out object anchorSelfObj))
                 {
                     if (anchorSelfObj is bool anchorSelfBool)
                         anchorSelf = anchorSelfBool;
@@ -336,7 +429,7 @@ namespace UnityMcp.Tools
                         anchorSelf = parsedAnchorSelf;
                 }
 
-                // 如果使用anchor_self模式，基于元素当前位置重新计算锚点
+                // 如果使用tattoo_self模式，基于元素当前位置重新计算锚点
                 if (anchorSelf)
                 {
                     return ApplyAnchorSelfPreset(rectTransform, preset, args);
@@ -440,7 +533,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 应用基于自身位置的锚点预设（anchor_self=true时调用）
+        /// 应用基于自身位置的锚点预设（tattoo_self=true时调用）
         /// </summary>
         private bool ApplyAnchorSelfPreset(RectTransform rectTransform, string preset, StateTreeContext args)
         {
@@ -545,7 +638,7 @@ namespace UnityMcp.Tools
                     newPivot = new Vector2(0.5f, 0.5f);
                     break;
                 case "stretch_all":
-                    // stretch_all + anchor_self = tattoo功能（AnchorsToCorners）
+                    // stretch_all + tattoo_self = tattoo功能（AnchorsToCorners）
                     newAnchorMin = new Vector2(
                         rectTransform.anchorMin.x + rectTransform.offsetMin.x / parentRect.rect.width,
                         rectTransform.anchorMin.y + rectTransform.offsetMin.y / parentRect.rect.height
@@ -591,7 +684,7 @@ namespace UnityMcp.Tools
             rectTransform.offsetMin = newOffsetMin;
             rectTransform.offsetMax = newOffsetMax;
 
-            Debug.Log($"[UGUILayout] Applied anchor_self preset '{preset}' to '{rectTransform.name}': anchors [{newAnchorMin.x:F3},{newAnchorMin.y:F3}] to [{newAnchorMax.x:F3},{newAnchorMax.y:F3}]");
+            Debug.Log($"[UGUILayout] Applied tattoo_self preset '{preset}' to '{rectTransform.name}': anchors [{newAnchorMin.x:F3},{newAnchorMin.y:F3}] to [{newAnchorMax.x:F3},{newAnchorMax.y:F3}]");
             return true;
         }
 
@@ -680,57 +773,6 @@ namespace UnityMcp.Tools
             return false;
         }
 
-
-        /// <summary>
-        /// 应用本地位置修改
-        /// </summary>
-        private bool ApplyLocalPosition(RectTransform rectTransform, StateTreeContext args)
-        {
-            if (args.TryGetValue("local_position", out object positionObj))
-            {
-                Vector3? position = ParseVector3(positionObj);
-                if (position.HasValue && rectTransform.localPosition != position.Value)
-                {
-                    rectTransform.localPosition = position.Value;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 应用本地旋转修改
-        /// </summary>
-        private bool ApplyLocalRotation(RectTransform rectTransform, StateTreeContext args)
-        {
-            if (args.TryGetValue("local_rotation", out object rotationObj))
-            {
-                Vector3? rotation = ParseVector3(rotationObj);
-                if (rotation.HasValue && rectTransform.localEulerAngles != rotation.Value)
-                {
-                    rectTransform.localEulerAngles = rotation.Value;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 应用本地缩放修改
-        /// </summary>
-        private bool ApplyLocalScale(RectTransform rectTransform, StateTreeContext args)
-        {
-            if (args.TryGetValue("local_scale", out object scaleObj))
-            {
-                Vector3? scale = ParseVector3(scaleObj);
-                if (scale.HasValue && rectTransform.localScale != scale.Value)
-                {
-                    rectTransform.localScale = scale.Value;
-                    return true;
-                }
-            }
-            return false;
-        }
 
         /// <summary>
         /// 应用SiblingIndex修改
