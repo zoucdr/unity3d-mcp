@@ -32,7 +32,7 @@ namespace UnityMcp.Executer
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[FunctionCall] Command execution failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[FunctionCall] Command execution failed: {e}");
                 callback(Response.Error($"Internal error processing function call: {e.Message}"));
                 return;
             }
@@ -43,7 +43,7 @@ namespace UnityMcp.Executer
         /// </summary>
         private void ExecuteFunction(string functionName, JsonClass args, Action<JsonNode> callback)
         {
-            if (McpConnect.EnableLog)
+            if (McpService.EnableLog)
                 Debug.Log($"[FunctionCall] Executing function: {functionName}->{args}");
             try
             {
@@ -64,7 +64,7 @@ namespace UnityMcp.Executer
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[FunctionCall] Failed to execute function '{functionName}': {e}");
+                if (McpService.EnableLog) Debug.LogError($"[FunctionCall] Failed to execute function '{functionName}': {e}");
                 callback(Response.Error($"Error executing function '{functionName}->{args}': {e.Message}"));
             }
         }

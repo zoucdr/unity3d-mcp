@@ -14,8 +14,8 @@ def register_edit_script_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="操作类型: create(创建), read(读取), update(更新), delete(删除)",
-            examples=["create", "read", "update", "delete"]
+            description="操作类型: create(创建), read(读取), update(更新), delete(删除), search(搜索类型)",
+            examples=["create", "read", "update", "delete", "search"]
         )],
         name: Annotated[str, Field(
             title="脚本名称",
@@ -47,6 +47,12 @@ def register_edit_script_tools(mcp: FastMCP):
             description="C#命名空间，创建时使用",
             default=None,
             examples=["MyGame", "MyGame.Player", "MyGame.Managers"]
+        )] = None,
+        query: Annotated[Optional[str], Field(
+            title="查询字符串",
+            description="用于搜索类型的查询字符串，支持通配符*，仅在action为search时使用",
+            default=None,
+            examples=["Controller", "*Manager", "Unity*"]
         )] = None
     ) -> Dict[str, Any]:
         """Unity脚本编辑工具，用于管理Unity项目中的C#脚本文件。（二级工具）
@@ -54,17 +60,24 @@ def register_edit_script_tools(mcp: FastMCP):
         支持完整的C#脚本生命周期管理：创建、读取、更新和删除操作。
         创建时会自动生成符合Unity规范的代码模板（MonoBehaviour、ScriptableObject等），
         并进行基础语法验证（括号匹配）。删除操作使用回收站，可以恢复。
+        还支持在所有程序集中搜索类型。
 
         主要操作：
         - create: 创建新脚本，可自定义代码或使用模板（默认路径"Scripts"）
         - read: 读取脚本内容，返回完整文本和按行数组
         - update: 更新脚本内容，自动触发重新编译
         - delete: 安全删除脚本，移到回收站
+        - search: 在所有程序集中搜索匹配的类型，返回类型信息列表
 
         脚本名称规则：
         - 只能包含字母、数字和下划线，不能以数字开头
         - 必须是有效的C#标识符
         - 必须与类名匹配（Unity要求）
+
+        搜索功能：
+        - 使用query参数指定搜索字符串
+        - 支持通配符*进行模糊匹配
+        - 返回匹配类型的名称、全名、程序集、基类和命名空间信息
 
         注意事项：
         - 支持的script_type: MonoBehaviour, ScriptableObject, Editor, EditorWindow

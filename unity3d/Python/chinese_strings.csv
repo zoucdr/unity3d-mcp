@@ -18,68 +18,68 @@ server.py,始终提供连接对象,always provide a connection object
 server.py,清理连接资源,clean up connection resources
 server.py,尝试连接,attempt to connect
 server.py,即使是,even if
-unity_connection.py,将失败的端口添加到失败列表并记录时间戳,add failed port to list with timestamp
-unity_connection.py,标记当前端口为失败并尝试其他端口,mark current port failed and try others
-unity_connection.py,成功连接后从失败列表中移除,remove from failure list after successful connect
-unity_connection.py,如果有现有连接且不强制重连,if a connection exists and reconnect is not forced
-unity_connection.py,带智能端口切换的重试机制,retry with smart port switching
-unity_connection.py,清理过期的失败端口记录,purge expired failed port entries
-unity_connection.py,验证现有连接是否还有效,verify existing connection is still valid
-unity_connection.py,解析失败但连接可能还在,parse failed but connection may still be alive
-unity_connection.py,只在严重错误时关闭连接,close connection only on critical errors
-unity_connection.py,强制重新连接到不同端口,force reconnect to a different port
-unity_connection.py,如果不是最后一次尝试,if not the last attempt
-unity_connection.py,支持字典和列表类型的,supports dict and list types
-unity_connection.py,如果所有端口都失败过,if all ports have failed
-unity_connection.py,清空失败记录重新开始,clear failure records and restart
-unity_connection.py,网络错误时才关闭连接,close connection only on network errors
-unity_connection.py,仍然尝试使用这个连接,still try using this connection
-unity_connection.py,限制失败端口记录数量,limit number of failed port entries
-unity_connection.py,获取可尝试的端口列表,get list of ports to try
-unity_connection.py,移除最早的失败记录,remove oldest failure record
-unity_connection.py,如果是连接相关错误,if it is a connection related error
-unity_connection.py,标记当前端口为失败,mark current port as failed
-unity_connection.py,排除最近失败的端口,exclude recently failed ports
-unity_connection.py,会自动添加失败端口,will auto add failed ports
-unity_connection.py,避免过于频繁的清理,avoid cleaning too frequently
-unity_connection.py,检查是否需要清理,check if cleanup is needed
-unity_connection.py,先验证连接有效性,validate connection first
-unity_connection.py,所有重试都失败了,all retries have failed
-unity_connection.py,不要立即关闭连接,do not close the connection immediately
-unity_connection.py,清理并重新创建,clean up and recreate
-unity_connection.py,如果是连接问题,if it is a connection issue
-unity_connection.py,现有连接不可用,existing connection is unavailable
-unity_connection.py,增加超时时间到,increase timeout to
-unity_connection.py,失败但连接存在,failed but connection persists
-unity_connection.py,先验证其可用性,first verify its availability
-unity_connection.py,如果已存在连接,if a connection already exists
-unity_connection.py,断开当前连接,disconnect current connection
-unity_connection.py,记录连接时间,record connection time
-unity_connection.py,检查是否包含,check whether contains
-unity_connection.py,设置连接超时,set connection timeout
-unity_connection.py,更宽松的检查,more lenient check
-unity_connection.py,更宽松的验证,more lenient validation
-unity_connection.py,尝试继续使用,attempt to continue using
-unity_connection.py,验证新连接,verify new connection
-unity_connection.py,给一次机会,give it one chance
-unity_connection.py,秒清理一次,clean once every
-unity_connection.py,创建新连接,create a new connection
-unity_connection.py,非连接问题,non connection issue
-unity_connection.py,准备重试,prepare to retry
-unity_connection.py,如果存在,if present
-unity_connection.py,只要包含,as long as it contains
-unity_connection.py,就认为是,considered as
-unity_connection.py,秒后重试,retry after seconds
-unity_connection.py,稍作等待,wait briefly
-unity_connection.py,更宽松的,more lenient
-unity_connection.py,服务器,server
-unity_connection.py,验证,validate
-unity_connection.py,等待,wait
-unity_connection.py,如果,if
-unity_connection.py,参数,parameters
-unity_connection.py,尝试,attempt
-unity_connection.py,秒,seconds
-unity_connection.py,或,or
+connection.py,将失败的端口添加到失败列表并记录时间戳,add failed port to list with timestamp
+connection.py,标记当前端口为失败并尝试其他端口,mark current port failed and try others
+connection.py,成功连接后从失败列表中移除,remove from failure list after successful connect
+connection.py,如果有现有连接且不强制重连,if a connection exists and reconnect is not forced
+connection.py,带智能端口切换的重试机制,retry with smart port switching
+connection.py,清理过期的失败端口记录,purge expired failed port entries
+connection.py,验证现有连接是否还有效,verify existing connection is still valid
+connection.py,解析失败但连接可能还在,parse failed but connection may still be alive
+connection.py,只在严重错误时关闭连接,close connection only on critical errors
+connection.py,强制重新连接到不同端口,force reconnect to a different port
+connection.py,如果不是最后一次尝试,if not the last attempt
+connection.py,支持字典和列表类型的,supports dict and list types
+connection.py,如果所有端口都失败过,if all ports have failed
+connection.py,清空失败记录重新开始,clear failure records and restart
+connection.py,网络错误时才关闭连接,close connection only on network errors
+connection.py,仍然尝试使用这个连接,still try using this connection
+connection.py,限制失败端口记录数量,limit number of failed port entries
+connection.py,获取可尝试的端口列表,get list of ports to try
+connection.py,移除最早的失败记录,remove oldest failure record
+connection.py,如果是连接相关错误,if it is a connection related error
+connection.py,标记当前端口为失败,mark current port as failed
+connection.py,排除最近失败的端口,exclude recently failed ports
+connection.py,会自动添加失败端口,will auto add failed ports
+connection.py,避免过于频繁的清理,avoid cleaning too frequently
+connection.py,检查是否需要清理,check if cleanup is needed
+connection.py,先验证连接有效性,validate connection first
+connection.py,所有重试都失败了,all retries have failed
+connection.py,不要立即关闭连接,do not close the connection immediately
+connection.py,清理并重新创建,clean up and recreate
+connection.py,如果是连接问题,if it is a connection issue
+connection.py,现有连接不可用,existing connection is unavailable
+connection.py,增加超时时间到,increase timeout to
+connection.py,失败但连接存在,failed but connection persists
+connection.py,先验证其可用性,first verify its availability
+connection.py,如果已存在连接,if a connection already exists
+connection.py,断开当前连接,disconnect current connection
+connection.py,记录连接时间,record connection time
+connection.py,检查是否包含,check whether contains
+connection.py,设置连接超时,set connection timeout
+connection.py,更宽松的检查,more lenient check
+connection.py,更宽松的验证,more lenient validation
+connection.py,尝试继续使用,attempt to continue using
+connection.py,验证新连接,verify new connection
+connection.py,给一次机会,give it one chance
+connection.py,秒清理一次,clean once every
+connection.py,创建新连接,create a new connection
+connection.py,非连接问题,non connection issue
+connection.py,准备重试,prepare to retry
+connection.py,如果存在,if present
+connection.py,只要包含,as long as it contains
+connection.py,就认为是,considered as
+connection.py,秒后重试,retry after seconds
+connection.py,稍作等待,wait briefly
+connection.py,更宽松的,more lenient
+connection.py,服务器,server
+connection.py,验证,validate
+connection.py,等待,wait
+connection.py,如果,if
+connection.py,参数,parameters
+connection.py,尝试,attempt
+connection.py,秒,seconds
+connection.py,或,or
 tools\base_editor.py,操作获取指定路径下的所有菜单项,fetch all menu items under the given path
 tools\base_editor.py,是否验证每个菜单项是否真实存在,whether to verify each menu item exists
 tools\base_editor.py,用于编辑器状态查询和菜单管理,for editor state query and menu management

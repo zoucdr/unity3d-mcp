@@ -204,13 +204,13 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 记录信息日志，仅在 McpConnect.EnableLog 为 true 时输出。
+        /// 记录信息日志，仅在 McpService.EnableLog 为 true 时输出。
         /// 子类可用此方法记录执行过程中的信息。
         /// </summary>
         /// <param name="message">要记录的日志消息</param>
         public virtual void LogInfo(string message)
         {
-            if (McpConnect.EnableLog) Debug.Log(message);
+            if (McpService.EnableLog) Debug.Log(message);
         }
     }
 }

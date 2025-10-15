@@ -18,7 +18,7 @@ namespace UnityMcp.Gui
     /// MCP连接管理GUI类，提供所有绘制功能的静态方法
     /// 用于在ProjectSettings中显示MCP设置
     /// </summary>
-    public static class McpConnectGUI
+    public static class McpServiceGUI
     {
         // 工具方法列表相关变量
         private static Dictionary<string, bool> methodFoldouts = new Dictionary<string, bool>();
@@ -33,9 +33,9 @@ namespace UnityMcp.Gui
 
         // 服务运行状态
         private static bool isUnityBridgeRunning = false;
-        private static int unityPortStart => McpConnect.unityPortStart;
-        private static int unityPortEnd => McpConnect.unityPortEnd;
-        private static int currentPort => McpConnect.currentPort;
+        private static int unityPortStart => McpService.unityPortStart;
+        private static int unityPortEnd => McpService.unityPortEnd;
+        private static int currentPort => McpService.currentPort;
 
         /// <summary>
         /// 初始化GUI状态，检查服务运行状态
@@ -47,7 +47,7 @@ namespace UnityMcp.Gui
 
             // 异步检测 - 检查是否有任何端口在使用，并且是否是当前Unity进程
             bool anyPortInUse = await IsAnyPortInRangeInUse();
-            isUnityBridgeRunning = anyPortInUse && McpConnect.IsRunning;
+            isUnityBridgeRunning = anyPortInUse && McpService.IsRunning;
         }
 
         private static async Task<bool> IsPortInUseAsync(int port)
@@ -128,10 +128,10 @@ namespace UnityMcp.Gui
             EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
             // 日志开关
-            bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpConnect.EnableLog, GUILayout.Width(60));
-            if (newEnableLog != McpConnect.EnableLog)
+            bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpService.EnableLog, GUILayout.Width(60));
+            if (newEnableLog != McpService.EnableLog)
             {
-                McpConnect.EnableLog = newEnableLog;
+                McpService.EnableLog = newEnableLog;
                 EditorPrefs.SetBool("mcp_enable_log", newEnableLog);
             }
             EditorGUILayout.EndHorizontal();
@@ -179,7 +179,7 @@ namespace UnityMcp.Gui
         {
             if (isUnityBridgeRunning)
             {
-                McpConnect.Stop();
+                McpService.Stop();
                 isUnityBridgeRunning = false;
             }
             else
@@ -219,13 +219,13 @@ namespace UnityMcp.Gui
                 }
 
                 // 尝试启动Unity MCP，它会自动选择可用端口
-                McpConnect.Start();
+                McpService.Start();
 
                 // 检查启动是否成功
-                if (McpConnect.IsRunning)
+                if (McpService.IsRunning)
                 {
                     isUnityBridgeRunning = true;
-                    Debug.Log($"Unity MCP Bridge 已启动，使用端口: {McpConnect.currentPort}");
+                    Debug.Log($"Unity MCP Bridge 已启动，使用端口: {McpService.currentPort}");
                 }
                 else
                 {
@@ -407,7 +407,7 @@ namespace UnityMcp.Gui
             // 客户端连接状态部分（如果显示）
             if (isUnityBridgeRunning)
             {
-                int clientCount = McpConnect.ConnectedClientCount;
+                int clientCount = McpService.ConnectedClientCount;
                 if (clientCount > 0)
                 {
                     // 如果显示详细信息，额外增加滚动视图高度
@@ -1099,7 +1099,7 @@ namespace UnityMcp.Gui
             EditorGUILayout.LabelField("客户端连接状态", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
             // 显示连接数量
-            int clientCount = McpConnect.ConnectedClientCount;
+            int clientCount = McpService.ConnectedClientCount;
             Color countColor = clientCount > 0 ? Color.green : Color.gray;
             GUIStyle countStyle = new GUIStyle(EditorStyles.label);
             countStyle.normal.textColor = countColor;
@@ -1121,7 +1121,7 @@ namespace UnityMcp.Gui
                     clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
                         GUILayout.MinHeight(80), GUILayout.MaxHeight(220));
 
-                    var clients = McpConnect.GetConnectedClients();
+                    var clients = McpService.GetConnectedClients();
                     foreach (var client in clients)
                     {
                         EditorGUILayout.BeginVertical("box");

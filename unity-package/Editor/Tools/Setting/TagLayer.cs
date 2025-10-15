@@ -360,7 +360,7 @@ namespace UnityMcp.Tools
                 );
                 if (tagManagerAssets == null || tagManagerAssets.Length == 0)
                 {
-                    if (McpConnect.EnableLog) Debug.LogError("[TagLayer] TagManager.asset not found in ProjectSettings.");
+                    if (McpService.EnableLog) Debug.LogError("[TagLayer] TagManager.asset not found in ProjectSettings.");
                     return null;
                 }
                 // The first object in the asset file should be the TagManager
@@ -368,7 +368,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[TagLayer] Error accessing TagManager.asset: {e.Message}");
+                if (McpService.EnableLog) Debug.LogError($"[TagLayer] Error accessing TagManager.asset: {e.Message}");
                 return null;
             }
         }

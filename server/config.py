@@ -11,8 +11,8 @@ class ServerConfig:
     
     # Network settings
     unity_host: str = "127.0.0.1"
-    unity_port_start: int = 6400
-    unity_port_end: int = 6405
+    unity_port_start: int = 8100
+    unity_port_end: int = 8110
     
     # Connection settings
     connection_timeout: float = 120.0  # 增加到120秒超时，减少连接问题

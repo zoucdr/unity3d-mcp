@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
@@ -23,12 +25,13 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：create, read, update, delete", false),
+                new MethodKey("action", "操作类型：create, read, update, delete, search", false),
                 new MethodKey("name", "脚本名称（不含.cs扩展名）", false),
                 new MethodKey("path", "脚本资产路径", false),
                 new MethodKey("lines", "C#代码内容（已换行的字符串数组）", true),
                 new MethodKey("script_type", "脚本类型：MonoBehaviour, ScriptableObject等", true),
-                new MethodKey("namespace", "命名空间", true)
+                new MethodKey("namespace", "命名空间", true),
+                new MethodKey("query", "查询字符串，用于搜索类型", true)
             };
         }
 
@@ -41,6 +44,7 @@ namespace UnityMcp.Tools
                     .Leaf("read", HandleReadAction)
                     .Leaf("update", HandleUpdateAction)
                     .Leaf("delete", HandleDeleteAction)
+                    .Leaf("search", HandleSearchAction)
                 .Build();
         }
 
@@ -67,7 +71,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ManageScript] Create action failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Create action failed: {e}");
                 return Response.Error($"Internal error processing create action: {e.Message}");
             }
         }
@@ -88,7 +92,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ManageScript] Read action failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Read action failed: {e}");
                 return Response.Error($"Internal error processing read action: {e.Message}");
             }
         }
@@ -109,7 +113,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ManageScript] Update action failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Update action failed: {e}");
                 return Response.Error($"Internal error processing update action: {e.Message}");
             }
         }
@@ -130,8 +134,36 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ManageScript] Delete action failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Delete action failed: {e}");
                 return Response.Error($"Internal error processing delete action: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 处理类型搜索操作
+        /// </summary>
+        private object HandleSearchAction(JsonClass args)
+        {
+            try
+            {
+                string query = args["query"]?.Value;
+                if (string.IsNullOrEmpty(query))
+                {
+                    return Response.Error("Query parameter is required for search action.");
+                }
+
+                LogInfo($"[ManageScript] Searching for types matching '{query}'");
+                var searchResults = SearchTypes(query);
+
+                return Response.Success(
+                    $"Found {searchResults.Count} types matching '{query}'.",
+                    new { types = searchResults }
+                );
+            }
+            catch (Exception e)
+            {
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Search action failed: {e}");
+                return Response.Error($"Internal error processing search action: {e.Message}");
             }
         }
 
@@ -187,18 +219,25 @@ namespace UnityMcp.Tools
                 }
             }
 
-            string scriptType = args["scriptType"]?.Value;
+            string scriptType = args["script_type"]?.Value;
             string namespaceName = args["namespace"]?.Value;
 
-            // Validate required args
-            if (string.IsNullOrEmpty(name))
+            // 设置默认值
+            if (string.IsNullOrEmpty(scriptType))
             {
-                info.ErrorResponse = Response.Error("Name parameter is required.");
+                scriptType = "MonoBehaviour";
+            }
+
+            // Validate required args for non-search actions
+            string action = args["action"]?.Value;
+            if (string.IsNullOrEmpty(name) && action != "search")
+            {
+                info.ErrorResponse = Response.Error("Name parameter is required for this action.");
                 return info;
             }
 
-            // Basic name validation
-            if (!Regex.IsMatch(name, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
+            // Basic name validation for non-search actions
+            if (!string.IsNullOrEmpty(name) && action != "search" && !Regex.IsMatch(name, @"^[a-zA-Z_][a-zA-Z0-9_]*$"))
             {
                 info.ErrorResponse = Response.Error(
                     $"Invalid script name: '{name}'. Use only letters, numbers, underscores, and don't start with a number."
@@ -287,7 +326,7 @@ namespace UnityMcp.Tools
             {
                 // Optionally return a specific error or warning about syntax
                 // return Response.Error("Provided script content has potential syntax errors.");
-                if (McpConnect.EnableLog) Debug.LogWarning($"Potential syntax error in script being created: {name}");
+                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being created: {name}");
             }
 
             try
@@ -357,7 +396,7 @@ namespace UnityMcp.Tools
             // Validate syntax (basic check)
             if (!ValidateScriptSyntax(contents))
             {
-                if (McpConnect.EnableLog) Debug.LogWarning($"Potential syntax error in script being updated: {name}");
+                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being updated: {name}");
                 // Consider if this should be a hard error or just a warning
             }
 
@@ -494,7 +533,84 @@ namespace UnityMcp.Tools
             // but is complex to implement directly here.
         }
 
+        /// <summary>
+        /// 在所有程序集中搜索匹配查询的类型
+        /// </summary>
+        /// <param name="query">查询字符串</param>
+        /// <returns>匹配的类型列表</returns>
+        private List<object> SearchTypes(string query)
+        {
+            var results = new List<object>();
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
 
+            // 转换查询为小写以进行不区分大小写的搜索
+            string lowerQuery = query.ToLowerInvariant();
+            bool isExactMatch = !lowerQuery.Contains("*");
+
+            foreach (var assembly in loadedAssemblies)
+            {
+                try
+                {
+                    // 跳过动态程序集，它们可能会导致问题
+                    if (assembly.IsDynamic)
+                        continue;
+
+                    Type[] types;
+                    try
+                    {
+                        types = assembly.GetTypes();
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        // 处理无法加载的类型
+                        types = ex.Types.Where(t => t != null).ToArray();
+                    }
+
+                    foreach (var type in types)
+                    {
+                        if (type == null)
+                            continue;
+
+                        bool isMatch = false;
+                        string typeName = type.Name;
+                        string fullName = type.FullName ?? "";
+
+                        // 检查是否匹配
+                        if (isExactMatch)
+                        {
+                            isMatch = typeName.ToLowerInvariant().Contains(lowerQuery) ||
+                                     fullName.ToLowerInvariant().Contains(lowerQuery);
+                        }
+                        else
+                        {
+                            // 支持通配符搜索
+                            string pattern = "^" + Regex.Escape(lowerQuery).Replace("\\*", ".*") + "$";
+                            isMatch = Regex.IsMatch(typeName.ToLowerInvariant(), pattern, RegexOptions.IgnoreCase) ||
+                                     Regex.IsMatch(fullName.ToLowerInvariant(), pattern, RegexOptions.IgnoreCase);
+                        }
+
+                        if (isMatch)
+                        {
+                            results.Add(new
+                            {
+                                name = type.Name,
+                                fullName = type.FullName,
+                                assemblyName = assembly.GetName().Name,
+                                baseType = type.BaseType?.FullName,
+                                nameSpace = type.Namespace
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 记录错误但继续处理其他程序集
+                    if (McpService.EnableLog) Debug.LogWarning($"Error searching in assembly {assembly.FullName}: {ex.Message}");
+                }
+            }
+
+            return results;
+        }
     }
 }
 

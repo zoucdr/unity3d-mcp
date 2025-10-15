@@ -11,7 +11,7 @@ import json
 from typing import Annotated, List, Dict, Any, Literal
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from unity_connection import get_unity_connection
+from connection import get_unity_connection
 
 # 公共的错误提示文本
 def get_common_call_response(func_name: str) -> dict:

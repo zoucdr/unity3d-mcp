@@ -14,6 +14,10 @@
 
 ## 系统概述
 
+![Unity3d MCP 宣传图](docs/unity3d-mcp.png)
+
+*Unity3d MCP - 连接AI与Unity的桥梁，实现智能化游戏开发*
+
 Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，它通过MCP协议将AI助手（如Cursor、Claude、Trae）与Unity编辑器无缝连接，实现AI驱动的Unity开发工作流。
 
 ### 核心价值
@@ -39,7 +43,7 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 
 1. **AI客户端层**：Cursor、Claude、Trae等AI助手
 2. **MCP协议层**：Python MCP Server + Unity Package
-3. **通信层**：TCP Socket (6400-6405端口) + JSON-RPC
+3. **通信层**：TCP Socket (8100-8110端口) + JSON-RPC
 4. **Unity编辑器层**：Unity Editor + Unity API
 5. **工具层**：32+专业工具 + 状态树执行引擎
 
@@ -71,7 +75,7 @@ AI客户端 → FacadeTools → MethodTools → Unity API
 - 提供统一的错误处理机制
 
 #### 3. 智能连接管理
-- 多端口自动发现 (6400-6405)
+- 多端口自动发现 (8100-8100)
 - 连接健康检查和自动重连
 - 失败端口记录和智能切换
 
@@ -86,7 +90,7 @@ AI客户端 → FacadeTools → MethodTools → Unity API
 server/
 ├── server.py              # FastMCP服务器入口
 ├── config.py              # 配置管理
-├── unity_connection.py    # Unity连接管理
+├── connection.py    # Unity连接管理
 ├── tools/                 # 工具模块
 │   ├── __init__.py       # 工具注册
 │   ├── call_up.py        # 门面工具
@@ -115,7 +119,7 @@ async def server_lifespan(server: FastMCP):
 register_all_tools(mcp)
 ```
 
-**2. Unity连接管理 (unity_connection.py)**
+**2. Unity连接管理 (connection.py)**
 ```python
 class UnityConnection:
     def connect(self, force_reconnect: bool = False) -> bool:
@@ -150,7 +154,7 @@ unity-package/
 │   └── StateTreeContext.cs    # 执行上下文
 ├── Editor/                     # 编辑器扩展（完整实现）
 │   ├── Connection/            # 连接管理
-│   │   └── McpConnect.cs     # TCP连接核心
+│   │   └── McpService.cs     # TCP连接核心
 │   ├── Executer/              # 执行器（核心执行层）
 │   │   ├── SingleCall.cs     # 单次调用
 │   │   ├── BatchCall.cs      # 批量调用
@@ -178,7 +182,7 @@ unity-package/
 │   │   ├── McpExecuteRecordObject.cs # 执行记录
 │   │   └── UIDefineRuleObject.cs # UI规则定义
 │   ├── GUI/                   # 编辑器GUI
-│   │   ├── McpConnectGUI.cs  # 连接GUI
+│   │   ├── McpServiceGUI.cs  # 连接GUI
 │   │   ├── McpDebugWindow.cs # 调试窗口
 │   │   ├── UIDefineRuleObjectDrawer.cs # UI规则绘制器
 │   │   └── UIDefineRuleObjectEditor.cs # UI规则编辑器
@@ -251,16 +255,16 @@ public class StateTree
 - **位置变化**：从 Runtime 移动到 Editor/StateTree
 - **配套工具**：新增 StateTreeBuilder 构建器，简化状态树构建流程
 
-**2. TCP连接管理 (Editor/Connection/McpConnect.cs)**
+**2. TCP连接管理 (Editor/Connection/McpService.cs)**
 ```csharp
-public static partial class McpConnect
+public static partial class McpService
 {
     private static TcpListener listener;
     private static Dictionary<string, ClientInfo> connectedClients;
     
     public static void StartServer()
     {
-        // 多端口监听 (6400-6405)
+        // 多端口监听 (8100-8110)
         // 客户端连接管理
         // 命令队列处理
     }
@@ -324,7 +328,7 @@ public class ProjectSelector : IObjectSelector { }
 - **ToolNameAttribute**：工具名称属性，用于自动注册
 
 **7. GUI系统 (Editor/GUI/)**
-- **McpConnectGUI**：连接状态显示和控制
+- **McpServiceGUI**：连接状态显示和控制
 - **McpDebugWindow**：调试窗口，查看执行历史和日志
 - **UI规则编辑器**：可视化UI规则定义工具
 
@@ -473,7 +477,7 @@ pip install -r requirements.txt
 MCP设置窗口提供以下功能：
 - **连接开关**：启用/禁用MCP服务器连接
 - **工具列表**：查看所有已注册的MCP工具及其分类
-- **端口配置**：配置TCP监听端口范围（默认6400-6405）
+- **端口配置**：配置TCP监听端口范围（默认8100-8110）
 - **日志级别**：设置调试日志的详细程度
 - **UI设置**：配置UI类型（UGUI、UIToolkit等）和构建流程
 - **Figma设置**：配置Figma访问令牌和下载选项
@@ -1004,7 +1008,7 @@ StateTreeBuilder
 
 ### 3. 智能连接管理
 **创新描述**：多端口自动发现和智能切换
-- 端口范围：6400-6405
+- 端口范围：8100-8110
 - 失败端口记录和冷却机制
 - 连接健康检查和自动重连
 
@@ -1050,7 +1054,7 @@ IEnumerator DownloadFileAsync(string url, string savePath, ...)
 - **批量操作**：支持批量调用，提高效率
 
 ### 2. 可靠性保障
-- **多端口支持**：6400-6405端口范围
+- **多端口支持**：8100-8110端口范围
 - **自动重连**：连接断开自动恢复
 - **错误处理**：完善的异常处理机制
 - **超时控制**：防止长时间阻塞
@@ -1166,7 +1170,7 @@ IEnumerator DownloadFileAsync(string url, string savePath, ...)
 
 **解决方案**：
 1. 确认Unity编辑器已启动
-2. 检查端口6400-6405是否可用
+2. 检查端口8100-8110是否可用
 3. 检查防火墙设置
 4. 查看Unity控制台错误信息
 
@@ -1240,7 +1244,7 @@ log_level: str = "DEBUG"
 #### Unity控制台调试
 ```csharp
 // 在Unity中启用详细日志
-McpConnect.EnableLog = true;
+McpService.EnableLog = true;
 ```
 
 #### 网络抓包分析

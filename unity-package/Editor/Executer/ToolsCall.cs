@@ -69,7 +69,7 @@ namespace UnityMcp.Executer
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Command execution failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ToolsCall] Command execution failed: {e}");
                 callback(Response.Error($"Internal error processing method call: {e.Message}"));
                 return;
             }
@@ -80,7 +80,7 @@ namespace UnityMcp.Executer
         /// </summary>
         private void ExecuteMethod(string methodName, JsonClass args, Action<JsonNode> callback)
         {
-            if (McpConnect.EnableLog)
+            if (McpService.EnableLog)
                 Debug.Log($"[ToolsCall] Executing method: {methodName}->{args}");
             try
             {
@@ -100,7 +100,7 @@ namespace UnityMcp.Executer
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to execute method '{methodName}': {e}");
+                if (McpService.EnableLog) Debug.LogError($"[ToolsCall] Failed to execute method '{methodName}': {e}");
                 callback(Response.Error($"Error executing method '{methodName}->{args}': {e.Message}"));
             }
         }
@@ -152,12 +152,12 @@ namespace UnityMcp.Executer
                                 !t.IsAbstract).ToList();
                             methodTypes.AddRange(loadedTypes);
 
-                            if (McpConnect.EnableLog) Debug.LogWarning($"[ToolsCall] Partial load of assembly {assembly.FullName}: {ex.Message}");
+                            if (McpService.EnableLog) Debug.LogWarning($"[ToolsCall] Partial load of assembly {assembly.FullName}: {ex.Message}");
                         }
                         catch (Exception ex)
                         {
                             // 忽略无法访问的程序集
-                            if (McpConnect.EnableLog) Debug.LogWarning($"[ToolsCall] Failed to load types from assembly {assembly.FullName}: {ex.Message}");
+                            if (McpService.EnableLog) Debug.LogWarning($"[ToolsCall] Failed to load types from assembly {assembly.FullName}: {ex.Message}");
                             continue;
                         }
                     }
@@ -173,21 +173,21 @@ namespace UnityMcp.Executer
                                 // 优先使用ToolNameAttribute指定的名称，否则转换类名为snake_case形式
                                 string methodName = GetMethodName(methodType);
                                 _registeredMethods[methodName] = methodInstance;
-                                if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Registered method: {methodName} -> {methodType.FullName}");
+                                if (McpService.EnableLog) Debug.Log($"[ToolsCall] Registered method: {methodName} -> {methodType.FullName}");
                             }
                         }
                         catch (Exception e)
                         {
-                            if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to register method {methodType.FullName}: {e}");
+                            if (McpService.EnableLog) Debug.LogError($"[ToolsCall] Failed to register method {methodType.FullName}: {e}");
                         }
                     }
 
-                    if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Total registered methods: {_registeredMethods.Count}");
-                    if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Available methods: {string.Join(", ", _registeredMethods.Keys)}");
+                    if (McpService.EnableLog) Debug.Log($"[ToolsCall] Total registered methods: {_registeredMethods.Count}");
+                    if (McpService.EnableLog) Debug.Log($"[ToolsCall] Available methods: {string.Join(", ", _registeredMethods.Keys)}");
                 }
                 catch (Exception e)
                 {
-                    if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to register methods: {e}");
+                    if (McpService.EnableLog) Debug.LogError($"[ToolsCall] Failed to register methods: {e}");
                     _registeredMethods = new Dictionary<string, IToolMethod>(); // 确保不为null
                 }
             }
@@ -247,7 +247,7 @@ namespace UnityMcp.Executer
                     _registeredMethods = new Dictionary<string, IToolMethod>();
 
                 _registeredMethods[methodName] = method;
-                if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Manually registered method: {methodName}");
+                if (McpService.EnableLog) Debug.Log($"[ToolsCall] Manually registered method: {methodName}");
             }
         }
 

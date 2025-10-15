@@ -144,7 +144,7 @@ namespace UnityMcp.Tools
                     }
                     catch (Exception ex)
                     {
-                        if (McpConnect.EnableLog) Debug.LogWarning(
+                        if (McpService.EnableLog) Debug.LogWarning(
                             $"Could not get info for window {window.GetType().Name}: {ex.Message}"
                         );
                     }

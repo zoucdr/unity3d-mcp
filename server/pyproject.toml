@@ -11,5 +11,5 @@ requires = ["setuptools>=64.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["config", "server", "unity_connection"]
+py-modules = ["config", "server", "connection"]
 packages = ["tools"]

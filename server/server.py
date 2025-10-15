@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator, Dict, Any, List
 from config import config
 from tools import register_all_tools
-from unity_connection import get_unity_connection, UnityConnection
+from connection import get_unity_connection, UnityConnection
 
 # Configure logging using settings from config
 logging.basicConfig(

@@ -25,7 +25,7 @@ namespace UnityMcp.Gui
                     // 在激活时初始化GUI状态
                     if (!isInitialized)
                     {
-                        McpConnectGUI.Initialize();
+                        McpServiceGUI.Initialize();
                         isInitialized = true;
                     }
                 },
@@ -48,7 +48,7 @@ namespace UnityMcp.Gui
             EditorGUILayout.Space(10);
 
             // 绘制完整的MCP管理GUI
-            McpConnectGUI.DrawGUI();
+            McpServiceGUI.DrawGUI();
 
             // 自动保存
             if (GUI.changed)

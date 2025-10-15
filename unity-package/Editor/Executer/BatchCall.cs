@@ -34,7 +34,7 @@ namespace UnityMcp.Executer
             }
             catch (Exception e)
             {
-                if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] Command execution failed: {e}");
+                if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] Command execution failed: {e}");
                 callback(Response.Error($"Internal error processing batch function calls: {e.Message}"));
                 return;
             }
@@ -45,7 +45,7 @@ namespace UnityMcp.Executer
         /// </summary>
         private void ExecuteFunctions(JsonArray funcsArray, Action<JsonNode> callback)
         {
-            if (McpConnect.EnableLog)
+            if (McpService.EnableLog)
                 Debug.Log($"[FunctionsCall] Executing {funcsArray.Count} function calls asynchronously");
 
             var results = new List<object>();
@@ -104,7 +104,7 @@ namespace UnityMcp.Executer
                         // 检查结果中的success字段
                         var successNode = jsonResult["success"];
 
-                        if (McpConnect.EnableLog)
+                        if (McpService.EnableLog)
                         {
                             Debug.Log($"[BatchCall] Result success node: {successNode?.Value ?? "null"}, type: {successNode?.GetType().Name ?? "null"}");
                         }
@@ -123,7 +123,7 @@ namespace UnityMcp.Executer
                         // null 或无效结果视为失败
                         failedCalls++;
 
-                        if (McpConnect.EnableLog)
+                        if (McpService.EnableLog)
                         {
                             Debug.Log($"[BatchCall] Result is null or not JsonClass: {result?.GetType().Name ?? "null"}");
                         }
@@ -135,7 +135,7 @@ namespace UnityMcp.Executer
                 var finalResponse = CreateBatchResponse(allSuccess, results, totalCalls, successfulCalls, failedCalls);
                 finalCallback(finalResponse);
 
-                if (McpConnect.EnableLog)
+                if (McpService.EnableLog)
                     Debug.Log($"[FunctionsCall] Batch execution completed: {successfulCalls}/{totalCalls} successful, {failedCalls} failed");
                 return;
             }
@@ -150,7 +150,7 @@ namespace UnityMcp.Executer
                     string errorMsg = $"第{currentIndex + 1}个函数调用必须是对象类型";
                     results[currentIndex] = null;
 
-                    if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
+                    if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
                     // 中断执行并返回错误
                     var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
@@ -168,7 +168,7 @@ namespace UnityMcp.Executer
                     string errorMsg = $"第{currentIndex + 1}个函数调用的func字段无效或为空";
                     results[currentIndex] = null;
 
-                    if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
+                    if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
                     // 中断执行并返回错误
                     var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
@@ -182,7 +182,7 @@ namespace UnityMcp.Executer
                     string errorMsg = $"第{currentIndex + 1}个函数调用的args字段必须是对象类型";
                     results[currentIndex] = null;
 
-                    if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
+                    if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
                     // 中断执行并返回错误
                     var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
@@ -196,7 +196,7 @@ namespace UnityMcp.Executer
                     // 保存当前函数的执行结果
                     results[currentIndex] = singleResult;
 
-                    if (McpConnect.EnableLog)
+                    if (McpService.EnableLog)
                     {
                         Debug.Log($"[FunctionsCall] Function {currentIndex + 1}/{totalCalls} ({funcName}) executed");
                     }
@@ -212,7 +212,7 @@ namespace UnityMcp.Executer
                     // 如果执行失败，中断后续执行
                     if (!isSuccess)
                     {
-                        if (McpConnect.EnableLog)
+                        if (McpService.EnableLog)
                         {
                             Debug.LogError($"[FunctionsCall] Function {currentIndex + 1}/{totalCalls} ({funcName}) failed, aborting batch execution");
                         }
@@ -233,7 +233,7 @@ namespace UnityMcp.Executer
                 string errorMsg = $"第{currentIndex + 1}个函数调用失败: {e.Message}";
                 results[currentIndex] = null;
 
-                if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
+                if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] {errorMsg}");
 
                 // 中断执行并返回错误
                 var abortResponse = CreateBatchResponse(false, results, totalCalls, currentIndex, 1, errorMsg);
@@ -253,7 +253,7 @@ namespace UnityMcp.Executer
                 if (method == null)
                 {
                     var availableMethods = string.Join(", ", ToolsCall.GetRegisteredMethodNames());
-                    if (McpConnect.EnableLog)
+                    if (McpService.EnableLog)
                         Debug.LogWarning($"BatchCall Unknown method: '{functionName}'. Available methods: {availableMethods}");
                     callback(null);
                     return;
@@ -274,7 +274,7 @@ namespace UnityMcp.Executer
                     catch (Exception e)
                     {
                         // 执行过程中出现异常
-                        if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] Exception in result callback for '{functionName}': {e}");
+                        if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] Exception in result callback for '{functionName}': {e}");
                         callback(null);
                     }
                 });
@@ -282,7 +282,7 @@ namespace UnityMcp.Executer
             catch (Exception e)
             {
                 // 方法查找或执行设置过程中的异常
-                if (McpConnect.EnableLog) Debug.LogError($"[FunctionsCall] Exception setting up execution for '{functionName}': {e}");
+                if (McpService.EnableLog) Debug.LogError($"[FunctionsCall] Exception setting up execution for '{functionName}': {e}");
                 callback(null);
             }
         }

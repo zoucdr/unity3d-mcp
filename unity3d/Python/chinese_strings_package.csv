@@ -1,156 +1,156 @@
 文件,中文字符串,替换值
-Editor\Connection\McpConnect.cs,使用自定义异常来标识这是正常的连接关闭,Use a custom exception to indicate that this is a normal connection closure
-Editor\Connection\McpConnect.cs,手动从大端序字节数组转换为长度值,Manually convert a big-endian byte array to a length value
-Editor\Connection\McpConnect.cs,尝试序列化一个简化的错误响应,Attempt to serialize a simplified error response
-Editor\Connection\McpConnect.cs,从流中读取指定字节数的数据,Read a specified number of bytes from the stream
-Editor\Connection\McpConnect.cs,记录错误执行结果时发生错误,Error occurred while logging error execution result
-Editor\Connection\McpConnect.cs,没有缓存则反射查找并缓存,Reflect to find and cache if not already cached
-Editor\Connection\McpConnect.cs,根据命令类型决定记录方式,Determine logging method based on command type
-Editor\Connection\McpConnect.cs,使用长度前缀协议接收数据,Receive data using length-prefixed protocol
-Editor\Connection\McpConnect.cs,手动构建大端序字节数组,Manually construct a big-endian byte array
-Editor\Connection\McpConnect.cs,从连接列表中移除客户端,Remove client from connection list
-Editor\Connection\McpConnect.cs,异步执行命令时发生错误,Error occurred during asynchronous command execution
-Editor\Connection\McpConnect.cs,记录执行结果时发生错误,Error occurred while logging execution result
-Editor\Connection\McpConnect.cs,接收带长度前缀的数据,Receive data with length prefix
-Editor\Connection\McpConnect.cs,开始反射查找工具实例,Start reflection to find tool instance
-Editor\Connection\McpConnect.cs,发送带长度前缀的数据,Send data with length prefix
-Editor\Connection\McpConnect.cs,添加客户端到连接列表,Add client to connection list
-Editor\Connection\McpConnect.cs,客户端连接配置完成,Client connection configuration completed
-Editor\Connection\McpConnect.cs,读取指定长度的数据,Read data of specified length
-Editor\Connection\McpConnect.cs,清空客户端连接信息,Clear client connection information
-Editor\Connection\McpConnect.cs,从缓存中获取到工具,Retrieve tool from cache
-Editor\Connection\McpConnect.cs,客户端主动断开连接,Client actively disconnected
-Editor\Connection\McpConnect.cs,记录错误执行结果到,Log error execution result to
-Editor\Connection\McpConnect.cs,通常表示连接已断开,Usually indicates that the connection is closed
-Editor\Connection\McpConnect.cs,更新客户端活动状态,Update client activity status
-Editor\Connection\McpConnect.cs,统一的日志输出方法,Unified log output method
-Editor\Connection\McpConnect.cs,客户端连接状态跟踪,Client connection state tracking
-Editor\Connection\McpConnect.cs,停止服务时发生错误,Error occurred while stopping the service
-Editor\Connection\McpConnect.cs,执行命令时发生错误,Error occurred while executing command
-Editor\Connection\McpConnect.cs,处理命令时发生错误,Error occurred while processing command
-Editor\Connection\McpConnect.cs,接收长度前缀字节,Receiving length-prefixed bytes
-Editor\Connection\McpConnect.cs,长度前缀字节详细,Details of length-prefixed bytes
-Editor\Connection\McpConnect.cs,命令队列处理完成,Command queue processing complete
-Editor\Connection\McpConnect.cs,监听器已成功启动,Listener successfully started
-Editor\Connection\McpConnect.cs,类中添加日志开关,Add log switch in class
-Editor\Connection\McpConnect.cs,所有端口都被占用,All ports are occupied
-Editor\Connection\McpConnect.cs,开始异步处理命令,Begin processing commands asynchronously
-Editor\Connection\McpConnect.cs,客户端连接已关闭,Client connection closed
-Editor\Connection\McpConnect.cs,开始处理命令队列,Start processing command queue
-Editor\Connection\McpConnect.cs,监听循环已启动,Listener loop started
-Editor\Connection\McpConnect.cs,监听循环已结束,Listener loop ended
-Editor\Connection\McpConnect.cs,记录执行结果到,Logging execution result to
-Editor\Connection\McpConnect.cs,序列化响应失败,Failed to serialize response
-Editor\Connection\McpConnect.cs,错误响应已生成,Error response generated
-Editor\Connection\McpConnect.cs,服务已在运行中,Service is already running
-Editor\Connection\McpConnect.cs,监听循环已开始,Listener loop has started
-Editor\Connection\McpConnect.cs,命令反序列化为,Command deserialized as
-Editor\Connection\McpConnect.cs,请确保没有其他,Please ensure there are no others
-Editor\Connection\McpConnect.cs,记录不同的日志,Log different messages
-Editor\Connection\McpConnect.cs,尝试下一个端口,Try next port
-Editor\Connection\McpConnect.cs,正常的连接关闭,Normal connection closure
-Editor\Connection\McpConnect.cs,等待客户端连接,Waiting for client connection
-Editor\Connection\McpConnect.cs,错误响应已设置,Error response set
-Editor\Connection\McpConnect.cs,客户端处理异常,Exception occurred while handling client
-Editor\Connection\McpConnect.cs,让它在后台执行,Run it in the background
-Editor\Connection\McpConnect.cs,命令处理已注册,Command handler registered
-Editor\Connection\McpConnect.cs,命令处理已注销,Command handler unregistered
-Editor\Connection\McpConnect.cs,无法在端口范围,Cannot operate within port range
-Editor\Connection\McpConnect.cs,命令已加入队列,Command added to queue
-Editor\Connection\McpConnect.cs,连接关闭异常,Connection closed unexpectedly
-Editor\Connection\McpConnect.cs,中获取到工具,Tool obtained from
-Editor\Connection\McpConnect.cs,开始执行命令,Begin executing command
-Editor\Connection\McpConnect.cs,工具执行完成,Tool execution completed
-Editor\Connection\McpConnect.cs,请求获取工具,Request to fetch tool
-Editor\Connection\McpConnect.cs,客户端信息类,Client info class
-Editor\Connection\McpConnect.cs,命令处理完成,Command processing finished
-Editor\Connection\McpConnect.cs,监听器已关闭,Listener closed
-Editor\Connection\McpConnect.cs,命令执行失败,Command execution failed
-Editor\Connection\McpConnect.cs,命令类型为空,Command type is empty
-Editor\Connection\McpConnect.cs,接收到长度为,Received length is
-Editor\Connection\McpConnect.cs,接收到空命令,Received empty command
-Editor\Connection\McpConnect.cs,通用函数执行,General function execution
-Editor\Connection\McpConnect.cs,工具缓存完成,Tool cache initialized
-Editor\Connection\McpConnect.cs,防止内存问题,Prevent memory issues
-Editor\Connection\McpConnect.cs,命令执行成功,Command executed successfully
-Editor\Connection\McpConnect.cs,工具缓存为空,Tool cache is empty
-Editor\Connection\McpConnect.cs,字节长度前缀,Byte length prefix
-Editor\Connection\McpConnect.cs,读取日志设置,Read log settings
-Editor\Connection\McpConnect.cs,其他命令类型,Other command types
-Editor\Connection\McpConnect.cs,静态工具类型,Static tool type
-Editor\Connection\McpConnect.cs,异步执行命令,Execute command asynchronously
-Editor\Connection\McpConnect.cs,监听器已停止,Listener stopped
-Editor\Connection\McpConnect.cs,实例正在运行,Instance is running
-Editor\Connection\McpConnect.cs,网络写入错误,Network write error
-Editor\Connection\McpConnect.cs,但不等待结果,But do not wait for result
-Editor\Connection\McpConnect.cs,客户端已连接,Client connected
-Editor\Connection\McpConnect.cs,使用默认方式,Use default mode
-Editor\Connection\McpConnect.cs,响应已发送,Response sent
-Editor\Connection\McpConnect.cs,接收到命令,Command received
-Editor\Connection\McpConnect.cs,尝试在端口,Trying on port
-Editor\Connection\McpConnect.cs,监听器错误,Listener error
-Editor\Connection\McpConnect.cs,类型和实例,Type and instance
-Editor\Connection\McpConnect.cs,记录具体的,Logging details
-Editor\Connection\McpConnect.cs,真正的错误,Actual error
-Editor\Connection\McpConnect.cs,服务已停止,Service stopped
-Editor\Connection\McpConnect.cs,未找到工具,Tool not found
-Editor\Connection\McpConnect.cs,修正为标准,Corrected to standard
-Editor\Connection\McpConnect.cs,消息过大,Message too large
-Editor\Connection\McpConnect.cs,安全检查,Security check
-Editor\Connection\McpConnect.cs,执行命令,Execute command
-Editor\Connection\McpConnect.cs,启动完成,Startup completed
-Editor\Connection\McpConnect.cs,正在停止,Stopping
-Editor\Connection\McpConnect.cs,已被占用,Already in use
-Editor\Connection\McpConnect.cs,队列长度,Queue length
-Editor\Connection\McpConnect.cs,找到工具,Tool found
-Editor\Connection\McpConnect.cs,命令参数,Command parameters
-Editor\Connection\McpConnect.cs,正常关闭,Closed normally
-Editor\Connection\McpConnect.cs,可用工具,Available tools
-Editor\Connection\McpConnect.cs,辅助方法,Helper method
-Editor\Connection\McpConnect.cs,不是错误,Not an error
-Editor\Connection\McpConnect.cs,正在启动,Starting
-Editor\Connection\McpConnect.cs,反序列化,Deserialization
-Editor\Connection\McpConnect.cs,开始解析,Start parsing
-Editor\Connection\McpConnect.cs,发送消息,Send message
-Editor\Connection\McpConnect.cs,处理命令,Processing command
-Editor\Connection\McpConnect.cs,最后错误,Last error
-Editor\Connection\McpConnect.cs,启动失败,Startup failed
-Editor\Connection\McpConnect.cs,缓存工具,Cached tools
-Editor\Connection\McpConnect.cs,动态判断,Dynamically determine
-Editor\Connection\McpConnect.cs,监听器,Listener
-Editor\Connection\McpConnect.cs,的消息,Message of
-Editor\Connection\McpConnect.cs,成功时,On success
-Editor\Connection\McpConnect.cs,名拼接,Name concatenation
-Editor\Connection\McpConnect.cs,内启动,Internal startup
-Editor\Connection\McpConnect.cs,默认为,Default to
-Editor\Connection\McpConnect.cs,已处理,Processed
-Editor\Connection\McpConnect.cs,共缓存,Total cached
-Editor\Connection\McpConnect.cs,个工具,tools
-Editor\Connection\McpConnect.cs,而不是,Instead of
-Editor\Connection\McpConnect.cs,个命令,commands
-Editor\Connection\McpConnect.cs,结果,Result
-Editor\Connection\McpConnect.cs,记录,Record
-Editor\Connection\McpConnect.cs,使用,Use
-Editor\Connection\McpConnect.cs,缓存,Cache
-Editor\Connection\McpConnect.cs,失败,Failure
-Editor\Connection\McpConnect.cs,端口,Port
-Editor\Connection\McpConnect.cs,读取,Read
-Editor\Connection\McpConnect.cs,限制,Limit
-Editor\Connection\McpConnect.cs,命令,Command
-Editor\Connection\McpConnect.cs,为空,Is empty
-Editor\Connection\McpConnect.cs,无效,Invalid
-Editor\Connection\McpConnect.cs,中的,In
-Editor\Connection\McpConnect.cs,启动,Start
-Editor\Connection\McpConnect.cs,最大,Maximum
-Editor\Connection\McpConnect.cs,实例,Instance
-Editor\Connection\McpConnect.cs,获取,Get
-Editor\Connection\McpConnect.cs,根据,According to
-Editor\Connection\McpConnect.cs,处理,Handle
-Editor\Connection\McpConnect.cs,字段,Field
-Editor\Connection\McpConnect.cs,格式,Format
-Editor\Connection\McpConnect.cs,在,At
-Editor\Connection\McpConnect.cs,和,And
-Editor\Connection\McpConnect.cs,从,From
+Editor\Connection\McpService.cs,使用自定义异常来标识这是正常的连接关闭,Use a custom exception to indicate that this is a normal connection closure
+Editor\Connection\McpService.cs,手动从大端序字节数组转换为长度值,Manually convert a big-endian byte array to a length value
+Editor\Connection\McpService.cs,尝试序列化一个简化的错误响应,Attempt to serialize a simplified error response
+Editor\Connection\McpService.cs,从流中读取指定字节数的数据,Read a specified number of bytes from the stream
+Editor\Connection\McpService.cs,记录错误执行结果时发生错误,Error occurred while logging error execution result
+Editor\Connection\McpService.cs,没有缓存则反射查找并缓存,Reflect to find and cache if not already cached
+Editor\Connection\McpService.cs,根据命令类型决定记录方式,Determine logging method based on command type
+Editor\Connection\McpService.cs,使用长度前缀协议接收数据,Receive data using length-prefixed protocol
+Editor\Connection\McpService.cs,手动构建大端序字节数组,Manually construct a big-endian byte array
+Editor\Connection\McpService.cs,从连接列表中移除客户端,Remove client from connection list
+Editor\Connection\McpService.cs,异步执行命令时发生错误,Error occurred during asynchronous command execution
+Editor\Connection\McpService.cs,记录执行结果时发生错误,Error occurred while logging execution result
+Editor\Connection\McpService.cs,接收带长度前缀的数据,Receive data with length prefix
+Editor\Connection\McpService.cs,开始反射查找工具实例,Start reflection to find tool instance
+Editor\Connection\McpService.cs,发送带长度前缀的数据,Send data with length prefix
+Editor\Connection\McpService.cs,添加客户端到连接列表,Add client to connection list
+Editor\Connection\McpService.cs,客户端连接配置完成,Client connection configuration completed
+Editor\Connection\McpService.cs,读取指定长度的数据,Read data of specified length
+Editor\Connection\McpService.cs,清空客户端连接信息,Clear client connection information
+Editor\Connection\McpService.cs,从缓存中获取到工具,Retrieve tool from cache
+Editor\Connection\McpService.cs,客户端主动断开连接,Client actively disconnected
+Editor\Connection\McpService.cs,记录错误执行结果到,Log error execution result to
+Editor\Connection\McpService.cs,通常表示连接已断开,Usually indicates that the connection is closed
+Editor\Connection\McpService.cs,更新客户端活动状态,Update client activity status
+Editor\Connection\McpService.cs,统一的日志输出方法,Unified log output method
+Editor\Connection\McpService.cs,客户端连接状态跟踪,Client connection state tracking
+Editor\Connection\McpService.cs,停止服务时发生错误,Error occurred while stopping the service
+Editor\Connection\McpService.cs,执行命令时发生错误,Error occurred while executing command
+Editor\Connection\McpService.cs,处理命令时发生错误,Error occurred while processing command
+Editor\Connection\McpService.cs,接收长度前缀字节,Receiving length-prefixed bytes
+Editor\Connection\McpService.cs,长度前缀字节详细,Details of length-prefixed bytes
+Editor\Connection\McpService.cs,命令队列处理完成,Command queue processing complete
+Editor\Connection\McpService.cs,监听器已成功启动,Listener successfully started
+Editor\Connection\McpService.cs,类中添加日志开关,Add log switch in class
+Editor\Connection\McpService.cs,所有端口都被占用,All ports are occupied
+Editor\Connection\McpService.cs,开始异步处理命令,Begin processing commands asynchronously
+Editor\Connection\McpService.cs,客户端连接已关闭,Client connection closed
+Editor\Connection\McpService.cs,开始处理命令队列,Start processing command queue
+Editor\Connection\McpService.cs,监听循环已启动,Listener loop started
+Editor\Connection\McpService.cs,监听循环已结束,Listener loop ended
+Editor\Connection\McpService.cs,记录执行结果到,Logging execution result to
+Editor\Connection\McpService.cs,序列化响应失败,Failed to serialize response
+Editor\Connection\McpService.cs,错误响应已生成,Error response generated
+Editor\Connection\McpService.cs,服务已在运行中,Service is already running
+Editor\Connection\McpService.cs,监听循环已开始,Listener loop has started
+Editor\Connection\McpService.cs,命令反序列化为,Command deserialized as
+Editor\Connection\McpService.cs,请确保没有其他,Please ensure there are no others
+Editor\Connection\McpService.cs,记录不同的日志,Log different messages
+Editor\Connection\McpService.cs,尝试下一个端口,Try next port
+Editor\Connection\McpService.cs,正常的连接关闭,Normal connection closure
+Editor\Connection\McpService.cs,等待客户端连接,Waiting for client connection
+Editor\Connection\McpService.cs,错误响应已设置,Error response set
+Editor\Connection\McpService.cs,客户端处理异常,Exception occurred while handling client
+Editor\Connection\McpService.cs,让它在后台执行,Run it in the background
+Editor\Connection\McpService.cs,命令处理已注册,Command handler registered
+Editor\Connection\McpService.cs,命令处理已注销,Command handler unregistered
+Editor\Connection\McpService.cs,无法在端口范围,Cannot operate within port range
+Editor\Connection\McpService.cs,命令已加入队列,Command added to queue
+Editor\Connection\McpService.cs,连接关闭异常,Connection closed unexpectedly
+Editor\Connection\McpService.cs,中获取到工具,Tool obtained from
+Editor\Connection\McpService.cs,开始执行命令,Begin executing command
+Editor\Connection\McpService.cs,工具执行完成,Tool execution completed
+Editor\Connection\McpService.cs,请求获取工具,Request to fetch tool
+Editor\Connection\McpService.cs,客户端信息类,Client info class
+Editor\Connection\McpService.cs,命令处理完成,Command processing finished
+Editor\Connection\McpService.cs,监听器已关闭,Listener closed
+Editor\Connection\McpService.cs,命令执行失败,Command execution failed
+Editor\Connection\McpService.cs,命令类型为空,Command type is empty
+Editor\Connection\McpService.cs,接收到长度为,Received length is
+Editor\Connection\McpService.cs,接收到空命令,Received empty command
+Editor\Connection\McpService.cs,通用函数执行,General function execution
+Editor\Connection\McpService.cs,工具缓存完成,Tool cache initialized
+Editor\Connection\McpService.cs,防止内存问题,Prevent memory issues
+Editor\Connection\McpService.cs,命令执行成功,Command executed successfully
+Editor\Connection\McpService.cs,工具缓存为空,Tool cache is empty
+Editor\Connection\McpService.cs,字节长度前缀,Byte length prefix
+Editor\Connection\McpService.cs,读取日志设置,Read log settings
+Editor\Connection\McpService.cs,其他命令类型,Other command types
+Editor\Connection\McpService.cs,静态工具类型,Static tool type
+Editor\Connection\McpService.cs,异步执行命令,Execute command asynchronously
+Editor\Connection\McpService.cs,监听器已停止,Listener stopped
+Editor\Connection\McpService.cs,实例正在运行,Instance is running
+Editor\Connection\McpService.cs,网络写入错误,Network write error
+Editor\Connection\McpService.cs,但不等待结果,But do not wait for result
+Editor\Connection\McpService.cs,客户端已连接,Client connected
+Editor\Connection\McpService.cs,使用默认方式,Use default mode
+Editor\Connection\McpService.cs,响应已发送,Response sent
+Editor\Connection\McpService.cs,接收到命令,Command received
+Editor\Connection\McpService.cs,尝试在端口,Trying on port
+Editor\Connection\McpService.cs,监听器错误,Listener error
+Editor\Connection\McpService.cs,类型和实例,Type and instance
+Editor\Connection\McpService.cs,记录具体的,Logging details
+Editor\Connection\McpService.cs,真正的错误,Actual error
+Editor\Connection\McpService.cs,服务已停止,Service stopped
+Editor\Connection\McpService.cs,未找到工具,Tool not found
+Editor\Connection\McpService.cs,修正为标准,Corrected to standard
+Editor\Connection\McpService.cs,消息过大,Message too large
+Editor\Connection\McpService.cs,安全检查,Security check
+Editor\Connection\McpService.cs,执行命令,Execute command
+Editor\Connection\McpService.cs,启动完成,Startup completed
+Editor\Connection\McpService.cs,正在停止,Stopping
+Editor\Connection\McpService.cs,已被占用,Already in use
+Editor\Connection\McpService.cs,队列长度,Queue length
+Editor\Connection\McpService.cs,找到工具,Tool found
+Editor\Connection\McpService.cs,命令参数,Command parameters
+Editor\Connection\McpService.cs,正常关闭,Closed normally
+Editor\Connection\McpService.cs,可用工具,Available tools
+Editor\Connection\McpService.cs,辅助方法,Helper method
+Editor\Connection\McpService.cs,不是错误,Not an error
+Editor\Connection\McpService.cs,正在启动,Starting
+Editor\Connection\McpService.cs,反序列化,Deserialization
+Editor\Connection\McpService.cs,开始解析,Start parsing
+Editor\Connection\McpService.cs,发送消息,Send message
+Editor\Connection\McpService.cs,处理命令,Processing command
+Editor\Connection\McpService.cs,最后错误,Last error
+Editor\Connection\McpService.cs,启动失败,Startup failed
+Editor\Connection\McpService.cs,缓存工具,Cached tools
+Editor\Connection\McpService.cs,动态判断,Dynamically determine
+Editor\Connection\McpService.cs,监听器,Listener
+Editor\Connection\McpService.cs,的消息,Message of
+Editor\Connection\McpService.cs,成功时,On success
+Editor\Connection\McpService.cs,名拼接,Name concatenation
+Editor\Connection\McpService.cs,内启动,Internal startup
+Editor\Connection\McpService.cs,默认为,Default to
+Editor\Connection\McpService.cs,已处理,Processed
+Editor\Connection\McpService.cs,共缓存,Total cached
+Editor\Connection\McpService.cs,个工具,tools
+Editor\Connection\McpService.cs,而不是,Instead of
+Editor\Connection\McpService.cs,个命令,commands
+Editor\Connection\McpService.cs,结果,Result
+Editor\Connection\McpService.cs,记录,Record
+Editor\Connection\McpService.cs,使用,Use
+Editor\Connection\McpService.cs,缓存,Cache
+Editor\Connection\McpService.cs,失败,Failure
+Editor\Connection\McpService.cs,端口,Port
+Editor\Connection\McpService.cs,读取,Read
+Editor\Connection\McpService.cs,限制,Limit
+Editor\Connection\McpService.cs,命令,Command
+Editor\Connection\McpService.cs,为空,Is empty
+Editor\Connection\McpService.cs,无效,Invalid
+Editor\Connection\McpService.cs,中的,In
+Editor\Connection\McpService.cs,启动,Start
+Editor\Connection\McpService.cs,最大,Maximum
+Editor\Connection\McpService.cs,实例,Instance
+Editor\Connection\McpService.cs,获取,Get
+Editor\Connection\McpService.cs,根据,According to
+Editor\Connection\McpService.cs,处理,Handle
+Editor\Connection\McpService.cs,字段,Field
+Editor\Connection\McpService.cs,格式,Format
+Editor\Connection\McpService.cs,在,At
+Editor\Connection\McpService.cs,和,And
+Editor\Connection\McpService.cs,从,From
 Editor\Executer\BatchCall.cs,批量调用初始化过程中发生未预期错误,Unexpected error during batch call initialization
 Editor\Executer\BatchCall.cs,方法查找或执行设置过程中的异常,Exception during method lookup or execution setup
 Editor\Executer\BatchCall.cs,异步顺序执行指定索引的函数,Asynchronously execute function at specified index in sequence
@@ -384,253 +384,253 @@ Editor\Executer\ToolsCall.cs,例如,For example
 Editor\Executer\ToolsCall.cs,名称,Name
 Editor\Executer\ToolsCall.cs,形式,Form
 Editor\Executer\ToolsCall.cs,将,Will
-Editor\GUI\McpConnectGUI.cs,检查端口是否被外部进程占用时发生错误,Error occurred while checking if port is occupied by external process
-Editor\GUI\McpConnectGUI.cs,请检查是否有其他进程占用了所有端口,Please check if other processes are occupying all ports
-Editor\GUI\McpConnectGUI.cs,防止连续多次点击被判定为多个双击,Prevent multiple consecutive clicks from being treated as double-clicks
-Editor\GUI\McpConnectGUI.cs,动态计算可用高度并应用到滚动视图,Dynamically calculate available height and apply to scroll view
-Editor\GUI\McpConnectGUI.cs,根据参数名和描述推断类型和示例值,Infer type and example value from parameter name and description
-Editor\GUI\McpConnectGUI.cs,窗口中定位到方法所在的脚本文件,Locate the script file of the method in the window
-Editor\GUI\McpConnectGUI.cs,动态计算工具方法列表的可用高度,Dynamically calculate available height of tool method list
-Editor\GUI\McpConnectGUI.cs,确保该方法在字典中有一个条目,Ensure the method has an entry in the dictionary
-Editor\GUI\McpConnectGUI.cs,检查是否存在上次点击时间记录,Check whether there is a last click time record
-Editor\GUI\McpConnectGUI.cs,如果是可选参数且无法推断类型,If it is optional and type cannot be inferred
-Editor\GUI\McpConnectGUI.cs,计算按钮和程序集标签的位置,Calculate position of button and assembly label
-Editor\GUI\McpConnectGUI.cs,根据参数名和描述生成示例值,Generate example value by parameter name and description
-Editor\GUI\McpConnectGUI.cs,处理方法帮助按钮的点击事件,Handle click event of method help button
-Editor\GUI\McpConnectGUI.cs,确保分组在折叠字典中有条目,Ensure group has an entry in the collapse dictionary
-Editor\GUI\McpConnectGUI.cs,处理方法调试按钮的点击事件,Handle click event of method debug button
-Editor\GUI\McpConnectGUI.cs,提供所有绘制功能的静态方法,Provide all drawing functionality as static methods
-Editor\GUI\McpConnectGUI.cs,检查是否有任何端口在使用,Check if any port is in use
-Editor\GUI\McpConnectGUI.cs,必需参数默认返回空字符串,Required parameters default return empty string
-Editor\GUI\McpConnectGUI.cs,尝试直接使用类型名称查找,Try to look up directly by type name
-Editor\GUI\McpConnectGUI.cs,查找并杀死占用端口的进程,Find and kill process occupying the port
-Editor\GUI\McpConnectGUI.cs,标题行和日志开关在同一行,Title and log switch are on the same row
-Editor\GUI\McpConnectGUI.cs,程序集信息显示在方法名后,Assembly info displayed after method name
-Editor\GUI\McpConnectGUI.cs,检查端口范围内是否有冲突,Check for conflicts in port range
-Editor\GUI\McpConnectGUI.cs,使用垂直布局管理整个窗口,Use vertical layout to manage the whole window
-Editor\GUI\McpConnectGUI.cs,打开方法所在的脚本文件,Open the script file of the method
-Editor\GUI\McpConnectGUI.cs,将使用其他可用端口启动,Will start using other available ports
-Editor\GUI\McpConnectGUI.cs,工具方法列表标题和间距,Tool method list header and spacing
-Editor\GUI\McpConnectGUI.cs,如果有外部进程占用端口,If external process occupies port
-Editor\GUI\McpConnectGUI.cs,检查端口占用时发生错误,Error occurred while checking port occupation
-Editor\GUI\McpConnectGUI.cs,从右到左计算各区域位置,Calculate positions of areas from right to left
-Editor\GUI\McpConnectGUI.cs,客户端连接状态相关变量,Client connection state related variables
-Editor\GUI\McpConnectGUI.cs,转换为小写用于模式匹配,Convert to lowercase for pattern match
-Editor\GUI\McpConnectGUI.cs,生成调试示例时发生错误,Error occurred while generating debug sample
-Editor\GUI\McpConnectGUI.cs,检查是否是外部进程占用,Check whether it is occupied by external process
-Editor\GUI\McpConnectGUI.cs,根据参数信息生成示例值,Generate sample value by parameter info
-Editor\GUI\McpConnectGUI.cs,清理冲突端口时发生错误,Error occurred while cleaning conflicting ports
-Editor\GUI\McpConnectGUI.cs,确保标签有足够的宽度,Ensure label is wide enough
-Editor\GUI\McpConnectGUI.cs,在一行中显示折叠标题,Display collapse header in one row
-Editor\GUI\McpConnectGUI.cs,窗口中高亮显示该资源,Highlight resource in window
-Editor\GUI\McpConnectGUI.cs,控制面板已移至标题行,Control panel moved to title row
-Editor\GUI\McpConnectGUI.cs,设置右对齐的标签样式,Set label style to right-align
-Editor\GUI\McpConnectGUI.cs,用户选择清理冲突端口,User selects to clean conflicting ports
-Editor\GUI\McpConnectGUI.cs,它会自动选择可用端口,It will auto select available port
-Editor\GUI\McpConnectGUI.cs,工具方法列表相关变量,Tool method list related variables
-Editor\GUI\McpConnectGUI.cs,按分组名称排序并绘制,Sort and draw by group name
-Editor\GUI\McpConnectGUI.cs,额外增加滚动视图高度,Extra increase for scroll view height
-Editor\GUI\McpConnectGUI.cs,获取程序集的显示名称,Get display name for assembly
-Editor\GUI\McpConnectGUI.cs,处理调试按钮点击事件,Handle debug button click event
-Editor\GUI\McpConnectGUI.cs,绘制客户端连接状态,Draw client connection state
-Editor\GUI\McpConnectGUI.cs,计算程序集标签宽度,Calculate width of assembly label
-Editor\GUI\McpConnectGUI.cs,标签后增加更多间距,Add more spacing after label
-Editor\GUI\McpConnectGUI.cs,可选参数用灰色标记,Mark optional parameters in gray
-Editor\GUI\McpConnectGUI.cs,生成方法调用的示例,Generate example method invocation
-Editor\GUI\McpConnectGUI.cs,客户端列表滚动视图,Client list scroll view
-Editor\GUI\McpConnectGUI.cs,窗口边距和滚动条等,Window margins and scrollbars, etc.
-Editor\GUI\McpConnectGUI.cs,问号按钮和调试按钮,Question mark and debug buttons
-Editor\GUI\McpConnectGUI.cs,获取方法的分组名称,Get method's group name
-Editor\GUI\McpConnectGUI.cs,可选参数用普通字体,Optional parameters use regular font
-Editor\GUI\McpConnectGUI.cs,将尝试终止占用进程,Will attempt to terminate occupying process
-Editor\GUI\McpConnectGUI.cs,生成方法的示例参数,Generate example parameters for method
-Editor\GUI\McpConnectGUI.cs,客户端连接状态标题,Client connection state title
-Editor\GUI\McpConnectGUI.cs,会自动选择可用端口,Will automatically select available port
-Editor\GUI\McpConnectGUI.cs,客户端连接状态部分,Client connection state section
-Editor\GUI\McpConnectGUI.cs,按钮后增加更多间距,Add more spacing after button
-Editor\GUI\McpConnectGUI.cs,必需参数用红色标记,Mark required parameters in red
-Editor\GUI\McpConnectGUI.cs,绘制分组折叠标题,Draw group collapse header
-Editor\GUI\McpConnectGUI.cs,询问用户是否清理,Ask user whether to clean
-Editor\GUI\McpConnectGUI.cs,计算剩余可用高度,Calculate remaining usable height
-Editor\GUI\McpConnectGUI.cs,让它填充剩余空间,Let it fill remaining space
-Editor\GUI\McpConnectGUI.cs,记录本次点击时间,Record this click time
-Editor\GUI\McpConnectGUI.cs,先设置为默认状态,Set to default first
-Editor\GUI\McpConnectGUI.cs,绘制工具方法列表,Draw tool method list
-Editor\GUI\McpConnectGUI.cs,无法生成调试示例,Unable to generate debug sample
-Editor\GUI\McpConnectGUI.cs,检查启动是否成功,Check if startup succeeded
-Editor\GUI\McpConnectGUI.cs,详细信息折叠控制,Detail collapse control
-Editor\GUI\McpConnectGUI.cs,检查服务运行状态,Check service running state
-Editor\GUI\McpConnectGUI.cs,计算连接持续时间,Calculate connection duration
-Editor\GUI\McpConnectGUI.cs,添加工具方法列表,Add tool method list
-Editor\GUI\McpConnectGUI.cs,两个按钮的总宽度,Total width of two buttons
-Editor\GUI\McpConnectGUI.cs,右侧显示调试按钮,Show debug button on right
-Editor\GUI\McpConnectGUI.cs,中不需要动态计算,No dynamic calculation needed here
-Editor\GUI\McpConnectGUI.cs,创建参数行的样式,Create param row style
-Editor\GUI\McpConnectGUI.cs,根据描述内容推断,Infer from description content
-Editor\GUI\McpConnectGUI.cs,确保充分利用空间,Ensure full usage of space
-Editor\GUI\McpConnectGUI.cs,如果没有找到脚本,If script not found
-Editor\GUI\McpConnectGUI.cs,如果显示详细信息,If displaying details
-Editor\GUI\McpConnectGUI.cs,避免误把连接状态,Avoid misidentifying connection state
-Editor\GUI\McpConnectGUI.cs,处理按钮点击事件,Handle button click event
-Editor\GUI\McpConnectGUI.cs,绘制方法折叠标题,Draw method collapse header
-Editor\GUI\McpConnectGUI.cs,估算已占用的空间,Estimate used space
-Editor\GUI\McpConnectGUI.cs,并且是否是当前,And whether it is current
-Editor\GUI\McpConnectGUI.cs,程序集标签区域,Assembly label area
-Editor\GUI\McpConnectGUI.cs,每个客户端约占,Each client takes about
-Editor\GUI\McpConnectGUI.cs,客户端连接状态,Client connection status
-Editor\GUI\McpConnectGUI.cs,显示其中的方法,Show methods among them
-Editor\GUI\McpConnectGUI.cs,折叠标题栏样式,Collapse header bar style
-Editor\GUI\McpConnectGUI.cs,暂无客户端连接,No client connection
-Editor\GUI\McpConnectGUI.cs,结束主垂直布局,End main vertical layout
-Editor\GUI\McpConnectGUI.cs,状态树结构部分,State tree structure section
-Editor\GUI\McpConnectGUI.cs,不添加到参数中,Do not add to parameters
-Editor\GUI\McpConnectGUI.cs,必需参数用粗体,Mark required parameters in bold
-Editor\GUI\McpConnectGUI.cs,确保方法已注册,Ensure method registered
-Editor\GUI\McpConnectGUI.cs,定位到脚本文件,Locate script file
-Editor\GUI\McpConnectGUI.cs,绘制程序集标签,Draw assembly label
-Editor\GUI\McpConnectGUI.cs,按分组分类显示,Group by category to display
-Editor\GUI\McpConnectGUI.cs,避免文本被截断,Avoid text truncation
-Editor\GUI\McpConnectGUI.cs,按分组分类方法,Group by category method
-Editor\GUI\McpConnectGUI.cs,加载并打开脚本,Load and open script
-Editor\GUI\McpConnectGUI.cs,程序集显示名称,Assembly display name
-Editor\GUI\McpConnectGUI.cs,客户端基本信息,Client basic information
-Editor\GUI\McpConnectGUI.cs,判断是否为双击,Determine if double-click
-Editor\GUI\McpConnectGUI.cs,获取程序集名称,Get assembly name
-Editor\GUI\McpConnectGUI.cs,窗口中找到脚本,Find script in window
-Editor\GUI\McpConnectGUI.cs,无法在端口范围,Cannot within port range
-Editor\GUI\McpConnectGUI.cs,被外部进程占用,Occupied by external process
-Editor\GUI\McpConnectGUI.cs,打开脚本文件,Open script file
-Editor\GUI\McpConnectGUI.cs,使用固定高度,Use fixed height
-Editor\GUI\McpConnectGUI.cs,仅当端口处于,Only when port is at
-Editor\GUI\McpConnectGUI.cs,如果生成失败,If generation failed
-Editor\GUI\McpConnectGUI.cs,绘制折叠标题,Draw collapse header
-Editor\GUI\McpConnectGUI.cs,计算文本行数,Calculate text lines
-Editor\GUI\McpConnectGUI.cs,外部进程占用,Occupied by external process
-Editor\GUI\McpConnectGUI.cs,折叠标题区域,Collapse header area
-Editor\GUI\McpConnectGUI.cs,添加一些间距,Add some spacing
-Editor\GUI\McpConnectGUI.cs,无法打开脚本,Unable to open script
-Editor\GUI\McpConnectGUI.cs,支持折叠展开,Support folding
-Editor\GUI\McpConnectGUI.cs,示例参数对象,Sample parameter object
-Editor\GUI\McpConnectGUI.cs,不预填充内容,Do not prefill content
-Editor\GUI\McpConnectGUI.cs,绘制调试按钮,Draw debug button
-Editor\GUI\McpConnectGUI.cs,显示连接数量,Show connection count
-Editor\GUI\McpConnectGUI.cs,问号按钮区域,Question mark area
-Editor\GUI\McpConnectGUI.cs,获取分组名称,Get group name
-Editor\GUI\McpConnectGUI.cs,才认为被占用,Then considered occupied
-Editor\GUI\McpConnectGUI.cs,获取当前时间,Get current time
-Editor\GUI\McpConnectGUI.cs,显示详细信息,Show details
-Editor\GUI\McpConnectGUI.cs,并预填充示例,And prefill sample
-Editor\GUI\McpConnectGUI.cs,只显示方法名,Show only method name
-Editor\GUI\McpConnectGUI.cs,必需参数默认,Required parameter default
-Editor\GUI\McpConnectGUI.cs,查找脚本资源,Find script resource
-Editor\GUI\McpConnectGUI.cs,可选参数默认,Optional parameter default
-Editor\GUI\McpConnectGUI.cs,通过反射获取,Get via reflection
-Editor\GUI\McpConnectGUI.cs,使用基础模板,Use base template
-Editor\GUI\McpConnectGUI.cs,检查端口占用,Check port usage
-Editor\GUI\McpConnectGUI.cs,打开调试窗口,Open debug window
-Editor\GUI\McpConnectGUI.cs,获取预览信息,Get preview info
-Editor\GUI\McpConnectGUI.cs,时间间隔小于,Time interval less than
-Editor\GUI\McpConnectGUI.cs,不再单独显示,No longer shown alone
-Editor\GUI\McpConnectGUI.cs,左侧显示标题,Show title at left
-Editor\GUI\McpConnectGUI.cs,调试按钮区域,Debug button area
-Editor\GUI\McpConnectGUI.cs,显示端口信息,Show port info
-Editor\GUI\McpConnectGUI.cs,可用工具方法,Available tool methods
-Editor\GUI\McpConnectGUI.cs,返回基础模板,Return base template
-Editor\GUI\McpConnectGUI.cs,分组折叠状态,Group collapse state
-Editor\GUI\McpConnectGUI.cs,服务运行状态,Service run status
-Editor\GUI\McpConnectGUI.cs,调试窗口按钮,Debug window button
-Editor\GUI\McpConnectGUI.cs,获取方法类型,Get method type
-Editor\GUI\McpConnectGUI.cs,绘制问号按钮,Draw question button
-Editor\GUI\McpConnectGUI.cs,双击判定时间,Double-click threshold
-Editor\GUI\McpConnectGUI.cs,显示预览信息,Show preview info
-Editor\GUI\McpConnectGUI.cs,返回默认分组,Return to default group
-Editor\GUI\McpConnectGUI.cs,如果分组展开,If group expanded
-Editor\GUI\McpConnectGUI.cs,重置点击时间,Reset click time
-Editor\GUI\McpConnectGUI.cs,判断是否有,Determine if exists
-Editor\GUI\McpConnectGUI.cs,绘制完整的,Draw full
-Editor\GUI\McpConnectGUI.cs,更淡的灰色,Lighter gray
-Editor\GUI\McpConnectGUI.cs,再加上边距,And add margin
-Editor\GUI\McpConnectGUI.cs,淡蓝色背景,Light blue background
-Editor\GUI\McpConnectGUI.cs,估算高度,Estimate height
-Editor\GUI\McpConnectGUI.cs,滚动视图,Scroll view
-Editor\GUI\McpConnectGUI.cs,调试窗口,Debug window
-Editor\GUI\McpConnectGUI.cs,增加间距,Increase spacing
-Editor\GUI\McpConnectGUI.cs,至少保留,Retain at least
-Editor\GUI\McpConnectGUI.cs,方法名称,Method name
-Editor\GUI\McpConnectGUI.cs,剩余空间,Remaining space
-Editor\GUI\McpConnectGUI.cs,参数名称,Parameter name
-Editor\GUI\McpConnectGUI.cs,信息部分,Info section
-Editor\GUI\McpConnectGUI.cs,方法实例,Method instance
-Editor\GUI\McpConnectGUI.cs,使用端口,Use port
-Editor\GUI\McpConnectGUI.cs,连接时间,Connection time
-Editor\GUI\McpConnectGUI.cs,使用托管,Use managed
-Editor\GUI\McpConnectGUI.cs,当作占用,Regard as occupied
-Editor\GUI\McpConnectGUI.cs,正在监听,Listening
-Editor\GUI\McpConnectGUI.cs,连接时长,Connection duration
-Editor\GUI\McpConnectGUI.cs,最后活动,Last activity
-Editor\GUI\McpConnectGUI.cs,异步检测,Async check
-Editor\GUI\McpConnectGUI.cs,生成示例,Generate example
-Editor\GUI\McpConnectGUI.cs,端口冲突,Port conflict
-Editor\GUI\McpConnectGUI.cs,如果显示,If show
-Editor\GUI\McpConnectGUI.cs,默认操作,Default action
-Editor\GUI\McpConnectGUI.cs,最小宽度,Min width
-Editor\GUI\McpConnectGUI.cs,日志开关,Log switch
-Editor\GUI\McpConnectGUI.cs,是否可选,Optional or not
-Editor\GUI\McpConnectGUI.cs,参数描述,Parameter description
-Editor\GUI\McpConnectGUI.cs,连接管理,Connection management
-Editor\GUI\McpConnectGUI.cs,如果展开,If expand
-Editor\GUI\McpConnectGUI.cs,启动失败,Startup failure
-Editor\GUI\McpConnectGUI.cs,如果没有,If none
-Editor\GUI\McpConnectGUI.cs,尝试启动,Attempt start
-Editor\GUI\McpConnectGUI.cs,分组名称,Group name
-Editor\GUI\McpConnectGUI.cs,已启动,Started
-Editor\GUI\McpConnectGUI.cs,无参数,No parameters
-Editor\GUI\McpConnectGUI.cs,示例值,Example value
-Editor\GUI\McpConnectGUI.cs,中显示,Show in
-Editor\GUI\McpConnectGUI.cs,用于在,Used in
-Editor\GUI\McpConnectGUI.cs,无法在,Cannot on
-Editor\GUI\McpConnectGUI.cs,标题栏,Title bar
-Editor\GUI\McpConnectGUI.cs,连接数,Connection count
-Editor\GUI\McpConnectGUI.cs,最右侧,Rightmost
-Editor\GUI\McpConnectGUI.cs,内启动,Inner startup
-Editor\GUI\McpConnectGUI.cs,字符串,String
-Editor\GUI\McpConnectGUI.cs,的端口,Port of
-Editor\GUI\McpConnectGUI.cs,初始化,Initialization
-Editor\GUI\McpConnectGUI.cs,未分组,Not grouped
-Editor\GUI\McpConnectGUI.cs,参数名,Parameter name
-Editor\GUI\McpConnectGUI.cs,程序集,Assembly
-Editor\GUI\McpConnectGUI.cs,命令数,Command count
-Editor\GUI\McpConnectGUI.cs,因为在,Because in
-Editor\GUI\McpConnectGUI.cs,使用,Use
-Editor\GUI\McpConnectGUI.cs,状态,State
-Editor\GUI\McpConnectGUI.cs,失败,Failure
-Editor\GUI\McpConnectGUI.cs,浮点,Float
-Editor\GUI\McpConnectGUI.cs,打开,Open
-Editor\GUI\McpConnectGUI.cs,端口,Port
-Editor\GUI\McpConnectGUI.cs,端点,Endpoint
-Editor\GUI\McpConnectGUI.cs,错误,Error
-Editor\GUI\McpConnectGUI.cs,设置,Setting
-Editor\GUI\McpConnectGUI.cs,清理,Clear
-Editor\GUI\McpConnectGUI.cs,进程,Process
-Editor\GUI\McpConnectGUI.cs,日志,Log
-Editor\GUI\McpConnectGUI.cs,确定,Confirm
-Editor\GUI\McpConnectGUI.cs,最大,Maximum
-Editor\GUI\McpConnectGUI.cs,返回,Return
-Editor\GUI\McpConnectGUI.cs,数字,Number
-Editor\GUI\McpConnectGUI.cs,单击,Click
-Editor\GUI\McpConnectGUI.cs,示例,Example
-Editor\GUI\McpConnectGUI.cs,最小,Minimum
-Editor\GUI\McpConnectGUI.cs,数组,Array
-Editor\GUI\McpConnectGUI.cs,继续,Continue
-Editor\GUI\McpConnectGUI.cs,参数,Parameter
-Editor\GUI\McpConnectGUI.cs,选择,Select
-Editor\GUI\McpConnectGUI.cs,双击,Double-click
-Editor\GUI\McpConnectGUI.cs,是否,Whether
-Editor\GUI\McpConnectGUI.cs,秒,Seconds
-Editor\GUI\McpConnectGUI.cs,约,About
-Editor\GUI\McpConnectGUI.cs,类,Class
-Editor\GUI\McpConnectGUI.cs,分,Minute
-Editor\GUI\McpConnectGUI.cs,在,At
+Editor\GUI\McpServiceGUI.cs,检查端口是否被外部进程占用时发生错误,Error occurred while checking if port is occupied by external process
+Editor\GUI\McpServiceGUI.cs,请检查是否有其他进程占用了所有端口,Please check if other processes are occupying all ports
+Editor\GUI\McpServiceGUI.cs,防止连续多次点击被判定为多个双击,Prevent multiple consecutive clicks from being treated as double-clicks
+Editor\GUI\McpServiceGUI.cs,动态计算可用高度并应用到滚动视图,Dynamically calculate available height and apply to scroll view
+Editor\GUI\McpServiceGUI.cs,根据参数名和描述推断类型和示例值,Infer type and example value from parameter name and description
+Editor\GUI\McpServiceGUI.cs,窗口中定位到方法所在的脚本文件,Locate the script file of the method in the window
+Editor\GUI\McpServiceGUI.cs,动态计算工具方法列表的可用高度,Dynamically calculate available height of tool method list
+Editor\GUI\McpServiceGUI.cs,确保该方法在字典中有一个条目,Ensure the method has an entry in the dictionary
+Editor\GUI\McpServiceGUI.cs,检查是否存在上次点击时间记录,Check whether there is a last click time record
+Editor\GUI\McpServiceGUI.cs,如果是可选参数且无法推断类型,If it is optional and type cannot be inferred
+Editor\GUI\McpServiceGUI.cs,计算按钮和程序集标签的位置,Calculate position of button and assembly label
+Editor\GUI\McpServiceGUI.cs,根据参数名和描述生成示例值,Generate example value by parameter name and description
+Editor\GUI\McpServiceGUI.cs,处理方法帮助按钮的点击事件,Handle click event of method help button
+Editor\GUI\McpServiceGUI.cs,确保分组在折叠字典中有条目,Ensure group has an entry in the collapse dictionary
+Editor\GUI\McpServiceGUI.cs,处理方法调试按钮的点击事件,Handle click event of method debug button
+Editor\GUI\McpServiceGUI.cs,提供所有绘制功能的静态方法,Provide all drawing functionality as static methods
+Editor\GUI\McpServiceGUI.cs,检查是否有任何端口在使用,Check if any port is in use
+Editor\GUI\McpServiceGUI.cs,必需参数默认返回空字符串,Required parameters default return empty string
+Editor\GUI\McpServiceGUI.cs,尝试直接使用类型名称查找,Try to look up directly by type name
+Editor\GUI\McpServiceGUI.cs,查找并杀死占用端口的进程,Find and kill process occupying the port
+Editor\GUI\McpServiceGUI.cs,标题行和日志开关在同一行,Title and log switch are on the same row
+Editor\GUI\McpServiceGUI.cs,程序集信息显示在方法名后,Assembly info displayed after method name
+Editor\GUI\McpServiceGUI.cs,检查端口范围内是否有冲突,Check for conflicts in port range
+Editor\GUI\McpServiceGUI.cs,使用垂直布局管理整个窗口,Use vertical layout to manage the whole window
+Editor\GUI\McpServiceGUI.cs,打开方法所在的脚本文件,Open the script file of the method
+Editor\GUI\McpServiceGUI.cs,将使用其他可用端口启动,Will start using other available ports
+Editor\GUI\McpServiceGUI.cs,工具方法列表标题和间距,Tool method list header and spacing
+Editor\GUI\McpServiceGUI.cs,如果有外部进程占用端口,If external process occupies port
+Editor\GUI\McpServiceGUI.cs,检查端口占用时发生错误,Error occurred while checking port occupation
+Editor\GUI\McpServiceGUI.cs,从右到左计算各区域位置,Calculate positions of areas from right to left
+Editor\GUI\McpServiceGUI.cs,客户端连接状态相关变量,Client connection state related variables
+Editor\GUI\McpServiceGUI.cs,转换为小写用于模式匹配,Convert to lowercase for pattern match
+Editor\GUI\McpServiceGUI.cs,生成调试示例时发生错误,Error occurred while generating debug sample
+Editor\GUI\McpServiceGUI.cs,检查是否是外部进程占用,Check whether it is occupied by external process
+Editor\GUI\McpServiceGUI.cs,根据参数信息生成示例值,Generate sample value by parameter info
+Editor\GUI\McpServiceGUI.cs,清理冲突端口时发生错误,Error occurred while cleaning conflicting ports
+Editor\GUI\McpServiceGUI.cs,确保标签有足够的宽度,Ensure label is wide enough
+Editor\GUI\McpServiceGUI.cs,在一行中显示折叠标题,Display collapse header in one row
+Editor\GUI\McpServiceGUI.cs,窗口中高亮显示该资源,Highlight resource in window
+Editor\GUI\McpServiceGUI.cs,控制面板已移至标题行,Control panel moved to title row
+Editor\GUI\McpServiceGUI.cs,设置右对齐的标签样式,Set label style to right-align
+Editor\GUI\McpServiceGUI.cs,用户选择清理冲突端口,User selects to clean conflicting ports
+Editor\GUI\McpServiceGUI.cs,它会自动选择可用端口,It will auto select available port
+Editor\GUI\McpServiceGUI.cs,工具方法列表相关变量,Tool method list related variables
+Editor\GUI\McpServiceGUI.cs,按分组名称排序并绘制,Sort and draw by group name
+Editor\GUI\McpServiceGUI.cs,额外增加滚动视图高度,Extra increase for scroll view height
+Editor\GUI\McpServiceGUI.cs,获取程序集的显示名称,Get display name for assembly
+Editor\GUI\McpServiceGUI.cs,处理调试按钮点击事件,Handle debug button click event
+Editor\GUI\McpServiceGUI.cs,绘制客户端连接状态,Draw client connection state
+Editor\GUI\McpServiceGUI.cs,计算程序集标签宽度,Calculate width of assembly label
+Editor\GUI\McpServiceGUI.cs,标签后增加更多间距,Add more spacing after label
+Editor\GUI\McpServiceGUI.cs,可选参数用灰色标记,Mark optional parameters in gray
+Editor\GUI\McpServiceGUI.cs,生成方法调用的示例,Generate example method invocation
+Editor\GUI\McpServiceGUI.cs,客户端列表滚动视图,Client list scroll view
+Editor\GUI\McpServiceGUI.cs,窗口边距和滚动条等,Window margins and scrollbars, etc.
+Editor\GUI\McpServiceGUI.cs,问号按钮和调试按钮,Question mark and debug buttons
+Editor\GUI\McpServiceGUI.cs,获取方法的分组名称,Get method's group name
+Editor\GUI\McpServiceGUI.cs,可选参数用普通字体,Optional parameters use regular font
+Editor\GUI\McpServiceGUI.cs,将尝试终止占用进程,Will attempt to terminate occupying process
+Editor\GUI\McpServiceGUI.cs,生成方法的示例参数,Generate example parameters for method
+Editor\GUI\McpServiceGUI.cs,客户端连接状态标题,Client connection state title
+Editor\GUI\McpServiceGUI.cs,会自动选择可用端口,Will automatically select available port
+Editor\GUI\McpServiceGUI.cs,客户端连接状态部分,Client connection state section
+Editor\GUI\McpServiceGUI.cs,按钮后增加更多间距,Add more spacing after button
+Editor\GUI\McpServiceGUI.cs,必需参数用红色标记,Mark required parameters in red
+Editor\GUI\McpServiceGUI.cs,绘制分组折叠标题,Draw group collapse header
+Editor\GUI\McpServiceGUI.cs,询问用户是否清理,Ask user whether to clean
+Editor\GUI\McpServiceGUI.cs,计算剩余可用高度,Calculate remaining usable height
+Editor\GUI\McpServiceGUI.cs,让它填充剩余空间,Let it fill remaining space
+Editor\GUI\McpServiceGUI.cs,记录本次点击时间,Record this click time
+Editor\GUI\McpServiceGUI.cs,先设置为默认状态,Set to default first
+Editor\GUI\McpServiceGUI.cs,绘制工具方法列表,Draw tool method list
+Editor\GUI\McpServiceGUI.cs,无法生成调试示例,Unable to generate debug sample
+Editor\GUI\McpServiceGUI.cs,检查启动是否成功,Check if startup succeeded
+Editor\GUI\McpServiceGUI.cs,详细信息折叠控制,Detail collapse control
+Editor\GUI\McpServiceGUI.cs,检查服务运行状态,Check service running state
+Editor\GUI\McpServiceGUI.cs,计算连接持续时间,Calculate connection duration
+Editor\GUI\McpServiceGUI.cs,添加工具方法列表,Add tool method list
+Editor\GUI\McpServiceGUI.cs,两个按钮的总宽度,Total width of two buttons
+Editor\GUI\McpServiceGUI.cs,右侧显示调试按钮,Show debug button on right
+Editor\GUI\McpServiceGUI.cs,中不需要动态计算,No dynamic calculation needed here
+Editor\GUI\McpServiceGUI.cs,创建参数行的样式,Create param row style
+Editor\GUI\McpServiceGUI.cs,根据描述内容推断,Infer from description content
+Editor\GUI\McpServiceGUI.cs,确保充分利用空间,Ensure full usage of space
+Editor\GUI\McpServiceGUI.cs,如果没有找到脚本,If script not found
+Editor\GUI\McpServiceGUI.cs,如果显示详细信息,If displaying details
+Editor\GUI\McpServiceGUI.cs,避免误把连接状态,Avoid misidentifying connection state
+Editor\GUI\McpServiceGUI.cs,处理按钮点击事件,Handle button click event
+Editor\GUI\McpServiceGUI.cs,绘制方法折叠标题,Draw method collapse header
+Editor\GUI\McpServiceGUI.cs,估算已占用的空间,Estimate used space
+Editor\GUI\McpServiceGUI.cs,并且是否是当前,And whether it is current
+Editor\GUI\McpServiceGUI.cs,程序集标签区域,Assembly label area
+Editor\GUI\McpServiceGUI.cs,每个客户端约占,Each client takes about
+Editor\GUI\McpServiceGUI.cs,客户端连接状态,Client connection status
+Editor\GUI\McpServiceGUI.cs,显示其中的方法,Show methods among them
+Editor\GUI\McpServiceGUI.cs,折叠标题栏样式,Collapse header bar style
+Editor\GUI\McpServiceGUI.cs,暂无客户端连接,No client connection
+Editor\GUI\McpServiceGUI.cs,结束主垂直布局,End main vertical layout
+Editor\GUI\McpServiceGUI.cs,状态树结构部分,State tree structure section
+Editor\GUI\McpServiceGUI.cs,不添加到参数中,Do not add to parameters
+Editor\GUI\McpServiceGUI.cs,必需参数用粗体,Mark required parameters in bold
+Editor\GUI\McpServiceGUI.cs,确保方法已注册,Ensure method registered
+Editor\GUI\McpServiceGUI.cs,定位到脚本文件,Locate script file
+Editor\GUI\McpServiceGUI.cs,绘制程序集标签,Draw assembly label
+Editor\GUI\McpServiceGUI.cs,按分组分类显示,Group by category to display
+Editor\GUI\McpServiceGUI.cs,避免文本被截断,Avoid text truncation
+Editor\GUI\McpServiceGUI.cs,按分组分类方法,Group by category method
+Editor\GUI\McpServiceGUI.cs,加载并打开脚本,Load and open script
+Editor\GUI\McpServiceGUI.cs,程序集显示名称,Assembly display name
+Editor\GUI\McpServiceGUI.cs,客户端基本信息,Client basic information
+Editor\GUI\McpServiceGUI.cs,判断是否为双击,Determine if double-click
+Editor\GUI\McpServiceGUI.cs,获取程序集名称,Get assembly name
+Editor\GUI\McpServiceGUI.cs,窗口中找到脚本,Find script in window
+Editor\GUI\McpServiceGUI.cs,无法在端口范围,Cannot within port range
+Editor\GUI\McpServiceGUI.cs,被外部进程占用,Occupied by external process
+Editor\GUI\McpServiceGUI.cs,打开脚本文件,Open script file
+Editor\GUI\McpServiceGUI.cs,使用固定高度,Use fixed height
+Editor\GUI\McpServiceGUI.cs,仅当端口处于,Only when port is at
+Editor\GUI\McpServiceGUI.cs,如果生成失败,If generation failed
+Editor\GUI\McpServiceGUI.cs,绘制折叠标题,Draw collapse header
+Editor\GUI\McpServiceGUI.cs,计算文本行数,Calculate text lines
+Editor\GUI\McpServiceGUI.cs,外部进程占用,Occupied by external process
+Editor\GUI\McpServiceGUI.cs,折叠标题区域,Collapse header area
+Editor\GUI\McpServiceGUI.cs,添加一些间距,Add some spacing
+Editor\GUI\McpServiceGUI.cs,无法打开脚本,Unable to open script
+Editor\GUI\McpServiceGUI.cs,支持折叠展开,Support folding
+Editor\GUI\McpServiceGUI.cs,示例参数对象,Sample parameter object
+Editor\GUI\McpServiceGUI.cs,不预填充内容,Do not prefill content
+Editor\GUI\McpServiceGUI.cs,绘制调试按钮,Draw debug button
+Editor\GUI\McpServiceGUI.cs,显示连接数量,Show connection count
+Editor\GUI\McpServiceGUI.cs,问号按钮区域,Question mark area
+Editor\GUI\McpServiceGUI.cs,获取分组名称,Get group name
+Editor\GUI\McpServiceGUI.cs,才认为被占用,Then considered occupied
+Editor\GUI\McpServiceGUI.cs,获取当前时间,Get current time
+Editor\GUI\McpServiceGUI.cs,显示详细信息,Show details
+Editor\GUI\McpServiceGUI.cs,并预填充示例,And prefill sample
+Editor\GUI\McpServiceGUI.cs,只显示方法名,Show only method name
+Editor\GUI\McpServiceGUI.cs,必需参数默认,Required parameter default
+Editor\GUI\McpServiceGUI.cs,查找脚本资源,Find script resource
+Editor\GUI\McpServiceGUI.cs,可选参数默认,Optional parameter default
+Editor\GUI\McpServiceGUI.cs,通过反射获取,Get via reflection
+Editor\GUI\McpServiceGUI.cs,使用基础模板,Use base template
+Editor\GUI\McpServiceGUI.cs,检查端口占用,Check port usage
+Editor\GUI\McpServiceGUI.cs,打开调试窗口,Open debug window
+Editor\GUI\McpServiceGUI.cs,获取预览信息,Get preview info
+Editor\GUI\McpServiceGUI.cs,时间间隔小于,Time interval less than
+Editor\GUI\McpServiceGUI.cs,不再单独显示,No longer shown alone
+Editor\GUI\McpServiceGUI.cs,左侧显示标题,Show title at left
+Editor\GUI\McpServiceGUI.cs,调试按钮区域,Debug button area
+Editor\GUI\McpServiceGUI.cs,显示端口信息,Show port info
+Editor\GUI\McpServiceGUI.cs,可用工具方法,Available tool methods
+Editor\GUI\McpServiceGUI.cs,返回基础模板,Return base template
+Editor\GUI\McpServiceGUI.cs,分组折叠状态,Group collapse state
+Editor\GUI\McpServiceGUI.cs,服务运行状态,Service run status
+Editor\GUI\McpServiceGUI.cs,调试窗口按钮,Debug window button
+Editor\GUI\McpServiceGUI.cs,获取方法类型,Get method type
+Editor\GUI\McpServiceGUI.cs,绘制问号按钮,Draw question button
+Editor\GUI\McpServiceGUI.cs,双击判定时间,Double-click threshold
+Editor\GUI\McpServiceGUI.cs,显示预览信息,Show preview info
+Editor\GUI\McpServiceGUI.cs,返回默认分组,Return to default group
+Editor\GUI\McpServiceGUI.cs,如果分组展开,If group expanded
+Editor\GUI\McpServiceGUI.cs,重置点击时间,Reset click time
+Editor\GUI\McpServiceGUI.cs,判断是否有,Determine if exists
+Editor\GUI\McpServiceGUI.cs,绘制完整的,Draw full
+Editor\GUI\McpServiceGUI.cs,更淡的灰色,Lighter gray
+Editor\GUI\McpServiceGUI.cs,再加上边距,And add margin
+Editor\GUI\McpServiceGUI.cs,淡蓝色背景,Light blue background
+Editor\GUI\McpServiceGUI.cs,估算高度,Estimate height
+Editor\GUI\McpServiceGUI.cs,滚动视图,Scroll view
+Editor\GUI\McpServiceGUI.cs,调试窗口,Debug window
+Editor\GUI\McpServiceGUI.cs,增加间距,Increase spacing
+Editor\GUI\McpServiceGUI.cs,至少保留,Retain at least
+Editor\GUI\McpServiceGUI.cs,方法名称,Method name
+Editor\GUI\McpServiceGUI.cs,剩余空间,Remaining space
+Editor\GUI\McpServiceGUI.cs,参数名称,Parameter name
+Editor\GUI\McpServiceGUI.cs,信息部分,Info section
+Editor\GUI\McpServiceGUI.cs,方法实例,Method instance
+Editor\GUI\McpServiceGUI.cs,使用端口,Use port
+Editor\GUI\McpServiceGUI.cs,连接时间,Connection time
+Editor\GUI\McpServiceGUI.cs,使用托管,Use managed
+Editor\GUI\McpServiceGUI.cs,当作占用,Regard as occupied
+Editor\GUI\McpServiceGUI.cs,正在监听,Listening
+Editor\GUI\McpServiceGUI.cs,连接时长,Connection duration
+Editor\GUI\McpServiceGUI.cs,最后活动,Last activity
+Editor\GUI\McpServiceGUI.cs,异步检测,Async check
+Editor\GUI\McpServiceGUI.cs,生成示例,Generate example
+Editor\GUI\McpServiceGUI.cs,端口冲突,Port conflict
+Editor\GUI\McpServiceGUI.cs,如果显示,If show
+Editor\GUI\McpServiceGUI.cs,默认操作,Default action
+Editor\GUI\McpServiceGUI.cs,最小宽度,Min width
+Editor\GUI\McpServiceGUI.cs,日志开关,Log switch
+Editor\GUI\McpServiceGUI.cs,是否可选,Optional or not
+Editor\GUI\McpServiceGUI.cs,参数描述,Parameter description
+Editor\GUI\McpServiceGUI.cs,连接管理,Connection management
+Editor\GUI\McpServiceGUI.cs,如果展开,If expand
+Editor\GUI\McpServiceGUI.cs,启动失败,Startup failure
+Editor\GUI\McpServiceGUI.cs,如果没有,If none
+Editor\GUI\McpServiceGUI.cs,尝试启动,Attempt start
+Editor\GUI\McpServiceGUI.cs,分组名称,Group name
+Editor\GUI\McpServiceGUI.cs,已启动,Started
+Editor\GUI\McpServiceGUI.cs,无参数,No parameters
+Editor\GUI\McpServiceGUI.cs,示例值,Example value
+Editor\GUI\McpServiceGUI.cs,中显示,Show in
+Editor\GUI\McpServiceGUI.cs,用于在,Used in
+Editor\GUI\McpServiceGUI.cs,无法在,Cannot on
+Editor\GUI\McpServiceGUI.cs,标题栏,Title bar
+Editor\GUI\McpServiceGUI.cs,连接数,Connection count
+Editor\GUI\McpServiceGUI.cs,最右侧,Rightmost
+Editor\GUI\McpServiceGUI.cs,内启动,Inner startup
+Editor\GUI\McpServiceGUI.cs,字符串,String
+Editor\GUI\McpServiceGUI.cs,的端口,Port of
+Editor\GUI\McpServiceGUI.cs,初始化,Initialization
+Editor\GUI\McpServiceGUI.cs,未分组,Not grouped
+Editor\GUI\McpServiceGUI.cs,参数名,Parameter name
+Editor\GUI\McpServiceGUI.cs,程序集,Assembly
+Editor\GUI\McpServiceGUI.cs,命令数,Command count
+Editor\GUI\McpServiceGUI.cs,因为在,Because in
+Editor\GUI\McpServiceGUI.cs,使用,Use
+Editor\GUI\McpServiceGUI.cs,状态,State
+Editor\GUI\McpServiceGUI.cs,失败,Failure
+Editor\GUI\McpServiceGUI.cs,浮点,Float
+Editor\GUI\McpServiceGUI.cs,打开,Open
+Editor\GUI\McpServiceGUI.cs,端口,Port
+Editor\GUI\McpServiceGUI.cs,端点,Endpoint
+Editor\GUI\McpServiceGUI.cs,错误,Error
+Editor\GUI\McpServiceGUI.cs,设置,Setting
+Editor\GUI\McpServiceGUI.cs,清理,Clear
+Editor\GUI\McpServiceGUI.cs,进程,Process
+Editor\GUI\McpServiceGUI.cs,日志,Log
+Editor\GUI\McpServiceGUI.cs,确定,Confirm
+Editor\GUI\McpServiceGUI.cs,最大,Maximum
+Editor\GUI\McpServiceGUI.cs,返回,Return
+Editor\GUI\McpServiceGUI.cs,数字,Number
+Editor\GUI\McpServiceGUI.cs,单击,Click
+Editor\GUI\McpServiceGUI.cs,示例,Example
+Editor\GUI\McpServiceGUI.cs,最小,Minimum
+Editor\GUI\McpServiceGUI.cs,数组,Array
+Editor\GUI\McpServiceGUI.cs,继续,Continue
+Editor\GUI\McpServiceGUI.cs,参数,Parameter
+Editor\GUI\McpServiceGUI.cs,选择,Select
+Editor\GUI\McpServiceGUI.cs,双击,Double-click
+Editor\GUI\McpServiceGUI.cs,是否,Whether
+Editor\GUI\McpServiceGUI.cs,秒,Seconds
+Editor\GUI\McpServiceGUI.cs,约,About
+Editor\GUI\McpServiceGUI.cs,类,Class
+Editor\GUI\McpServiceGUI.cs,分,Minute
+Editor\GUI\McpServiceGUI.cs,在,At
 Editor\GUI\McpDebugWindow.cs,只有当有执行结果且不是从历史记录加载时才显示,Only displayed if there is an execution result and not loaded from history
 Editor\GUI\McpDebugWindow.cs,该分组的所有记录将被移动到默认分组,All records in this group will be moved to the default group
 Editor\GUI\McpDebugWindow.cs,文本中展开所有字符串字段的换行符,Expand all newline characters in string fields within text

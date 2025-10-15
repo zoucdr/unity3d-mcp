@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models;
@@ -15,7 +14,7 @@ using UnityMcp.Executer;
 namespace UnityMcp
 {
     [InitializeOnLoad]
-    public static partial class McpConnect
+    public static partial class McpService
     {
         private static TcpListener listener;
         private static bool isRunning = false;
@@ -24,8 +23,8 @@ namespace UnityMcp
             string,
             (string commandJson, TaskCompletionSource<string> tcs)
         > commandQueue = new();
-        public static readonly int unityPortStart = 6400; // Start of port range
-        public static readonly int unityPortEnd = 6405;   // End of port range
+        public static readonly int unityPortStart = 8100; // Start of port range
+        public static readonly int unityPortEnd = 8110;   // End of port range
         public static int currentPort = -1; // Currently used port
         public static bool IsRunning => isRunning;
 
@@ -104,7 +103,7 @@ namespace UnityMcp
             return Directory.Exists(fullPath);
         }
 
-        static McpConnect()
+        static McpService()
         {
             EditorApplication.quitting += Stop;
             AssemblyReloadEvents.beforeAssemblyReload += Stop;
@@ -117,7 +116,7 @@ namespace UnityMcp
         public static void Start()
         {
             // 从EditorPrefs读取日志设置，默认为false
-            McpConnect.EnableLog = EditorPrefs.GetBool("mcp_enable_log", false);
+            McpService.EnableLog = EditorPrefs.GetBool("mcp_enable_log", false);
             Log($"[UnityMcp] 正在启动UnityMcp...");
             Stop();
 
