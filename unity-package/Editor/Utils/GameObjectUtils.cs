@@ -12,12 +12,12 @@ using UnityMcp.Models;
 namespace UnityMcp
 {
     /// <summary>
-    /// GameObject操作的通用工具类
+    /// GameObjectCommon utility class for operations
     /// </summary>
     public static class GameObjectUtils
     {
         /// <summary>
-        /// 根据Token和搜索方法查找单个GameObject
+        /// According toTokenFind single with search methodsGameObject
         /// </summary>
         public static GameObject FindObjectInternal(
             JsonNode targetToken,
@@ -45,7 +45,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 根据Token和搜索方法查找多个GameObject
+        /// According toTokenFind multiple with search methodsGameObject
         /// </summary>
         public static List<GameObject> FindObjectsInternal(
             JsonNode targetToken,
@@ -203,14 +203,14 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 简单查找GameObject，用于父对象查找等场景
+        /// Simple searchGameObject，Used for parent lookup and similar cases
         /// </summary>
         public static GameObject FindObjectByIdOrPath(string searchTerm)
         {
             if (string.IsNullOrEmpty(searchTerm))
                 return null;
 
-            // 尝试按ID查找
+            // Try byIDFind
             if (int.TryParse(searchTerm, out int id))
             {
                 var allObjects = GetAllSceneObjects(true);
@@ -226,17 +226,17 @@ namespace UnityMcp
 
 
         /// <summary>
-        /// 通过Hierarchy路径在当前场景中查找对象
+        /// ThroughHierarchyPath searches objects in current scene
         /// </summary>
         /// <param name="path">Hierarchy path, like "Parent/Child/Target" or "Parent/Child/Target:ComponentType"</param>
-        /// <param name="type">查找类型</param>
-        /// <returns>找到的对象，未找到则返回null</returns>
+        /// <param name="type">Find type</param>
+        /// <returns>Found object，Return if not foundnull</returns>
         public static object FindByHierarchyPath(string path, Type type)
         {
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            // 检查是否包含组件类型指定符 ":"
+            // Check whether contains component type specifier ":"
             string gameObjectPath = path;
             string componentTypeName = null;
 
@@ -247,7 +247,7 @@ namespace UnityMcp
                 componentTypeName = parts.Length > 1 ? parts[1] : null;
             }
 
-            // 获取当前活动场景中的所有根对象
+            // Get all root objects in current active scene
             Scene activeScene = SceneManager.GetActiveScene();
             if (!activeScene.isLoaded)
             {
@@ -256,16 +256,16 @@ namespace UnityMcp
 
             GameObject[] rootObjects = activeScene.GetRootGameObjects();
 
-            // 分割路径
+            // Split path
             string[] pathSegments = gameObjectPath.Split('/');
             if (pathSegments.Length == 0)
             {
                 return null;
             }
 
-            // 递归查找所有可能的路径
+            // Recursively find all possible paths
             List<GameObject> currentLevel = new List<GameObject>();
-            // 首先找到所有名字匹配的根对象
+            // Find all root objects with matching names first
             foreach (var rootObject in rootObjects)
             {
                 if (rootObject.name == pathSegments[0])
@@ -279,14 +279,14 @@ namespace UnityMcp
                 return null;
             }
 
-            // 逐层查找
+            // Find step by step
             for (int i = 1; i < pathSegments.Length; i++)
             {
                 string segment = pathSegments[i];
                 List<GameObject> nextLevel = new List<GameObject>();
                 foreach (var parent in currentLevel)
                 {
-                    // 这里不能用Find，因为Find只会返回第一个匹配的
+                    // Cannot be used hereFind，BecauseFindOnly returns first matched
                     for (int j = 0; j < parent.transform.childCount; j++)
                     {
                         var child = parent.transform.GetChild(j);
@@ -303,11 +303,11 @@ namespace UnityMcp
                 currentLevel = nextLevel;
             }
 
-            // 最终所有匹配的对象都在currentLevel里，返回最后一个类型匹配的（新创建的对象通常在后面）
+            // EventuallycurrentLevelIn，Return last type matching（Newly created objects usually at the end）
             object lastMatch = null;
             foreach (var obj in currentLevel)
             {
-                // 如果指定了组件类型名，优先使用指定的组件类型
+                // If component type specified，Prefer specified component type
                 if (!string.IsNullOrEmpty(componentTypeName))
                 {
                     Type specifiedComponentType = FindType(componentTypeName);
@@ -315,40 +315,40 @@ namespace UnityMcp
                     {
                         var comp = obj.GetComponent(specifiedComponentType);
                         if (comp != null)
-                            lastMatch = comp; // 记录最后匹配的组件
+                            lastMatch = comp; // Record last matching component
                     }
                     continue;
                 }
 
-                // 如果type是GameObject类型，直接返回
+                // IftypeIsGameObjectType，Return directly
                 if (type == typeof(GameObject))
                 {
-                    lastMatch = obj; // 记录最后匹配的GameObject
+                    lastMatch = obj; // Record last matchedGameObject
                 }
-                // 如果T是Component类型，尝试获取组件
+                // IfTIsComponentType，Try to get component
                 else if (typeof(UnityEngine.Component).IsAssignableFrom(type))
                 {
                     var comp = obj.GetComponent(type);
                     if (comp != null)
-                        lastMatch = comp; // 记录最后匹配的组件
+                        lastMatch = comp; // Record last matching component
                 }
             }
 
-            // 返回最后匹配的对象
+            // Return last matched object
             if (lastMatch != null)
                 return lastMatch;
 
             return null;
         }
         /// <summary>
-        /// 通过Hierarchy路径在当前场景中查找对象（泛型版本）
-        /// 支持场景中有多个重名对象的路径查找，每一层都可能有多个同名对象，需逐层递归查找
+        /// ThroughHierarchyPath searches objects in current scene（Generic version）
+        /// Support path search for multiple objects with same name in scene，Every layer may have multiple objects with the same name，Need to recursively search each step
         /// </summary>
-        /// <param name="path">Hierarchy路径，支持两种格式：
-        /// 1. "Parent/Child/Target" - 只指定GameObject路径
-        /// 2. "Parent/Child/Target:ComponentType" - 指定GameObject路径和组件类型
+        /// <param name="path">HierarchyPath，Support two formats：
+        /// 1. "Parent/Child/Target" - Only specifyGameObjectPath
+        /// 2. "Parent/Child/Target:ComponentType" - SpecifyGameObjectPath and component type
         /// </param>
-        /// <returns>找到的对象，未找到则返回default(T)</returns>
+        /// <returns>Found object，Return if not founddefault(T)</returns>
         public static T FindByHierarchyPath<T>(string path)
         {
             var obj = FindByHierarchyPath(path, typeof(T));
@@ -358,7 +358,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 获取场景中的所有GameObject
+        /// Get all in sceneGameObject
         /// </summary>
         public static IEnumerable<GameObject> GetAllSceneObjects(bool includeInactive)
         {
@@ -375,7 +375,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 根据类型名称查找Type，搜索相关程序集
+        /// Find by type nameType，Search related assemblies
         /// </summary>
         public static Type FindType(string typeName)
         {
@@ -417,7 +417,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 解析JArray为Vector3
+        /// ParseJArrayForVector3
         /// </summary>
         public static Vector3? ParseVector3(JsonArray array)
         {
@@ -439,14 +439,14 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 创建GameObject的可序列化表示，返回JSONClass
+        /// CreateGameObjectSerializable representation of，ReturnJSONClass
         /// </summary>
         public static JsonClass GetGameObjectData(GameObject go)
         {
             if (go == null)
                 return null;
 
-            // 使用YAML格式的紧凑表示
+            // UseYAMLCompact representation of format
             var yamlData = GetGameObjectDataYaml(go);
 
             JsonClass result = new JsonClass();
@@ -455,7 +455,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 创建GameObject的YAML格式数据表示（节省token）
+        /// CreateGameObjectOfYAMLFormat data representation（Savetoken）
         /// </summary>
         public static string GetGameObjectDataYaml(GameObject go)
         {
@@ -482,14 +482,14 @@ components: [{string.Join(", ", components)}]
 path: {GetHierarchyPath(go)}
 scene: {go.scene.name}";
 
-            // 添加父对象信息
+            // Add parent object info
             if (go.transform.parent != null)
             {
                 yaml += $"\nparent: {go.transform.parent.gameObject.name}";
                 yaml += $"\nparentId: {go.transform.parent.gameObject.GetInstanceID()}";
             }
 
-            // 如果有子对象，添加子对象信息
+            // If has child object，Add child object info
             if (go.transform.childCount > 0)
             {
                 var children = new List<string>();
@@ -514,7 +514,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 创建子对象列表，递归记录所有层级的子物体信息
+        /// Create child object list，Recursively record all level child object info
         /// </summary>
         private static List<object> CreateChildIdMap(GameObject go)
         {
@@ -523,20 +523,20 @@ scene: {go.scene.name}";
             if (go == null || go.transform == null)
                 return childList;
 
-            // 递归遍历所有子对象
+            // Recursively traverse all child objects
             CollectChildrenRecursively(go.transform, childList);
             return childList;
         }
 
         /// <summary>
-        /// 递归收集子对象信息
+        /// Recursively collect child object info
         /// </summary>
         private static void CollectChildrenRecursively(Transform parent, List<object> childList)
         {
             if (parent == null)
                 return;
 
-            // 遍历所有直接子对象
+            // Traverse all direct child objects
             for (int i = 0; i < parent.childCount; i++)
             {
                 Transform child = parent.GetChild(i);
@@ -551,7 +551,7 @@ scene: {go.scene.name}";
 
                     childList.Add(childInfo);
 
-                    // 递归处理子对象的子对象
+                    // Recursively handle children of child objects
                     if (child.childCount > 0)
                     {
                         CollectChildrenRecursively(child, childList);
@@ -561,7 +561,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 获取GameObject的完整层级路径
+        /// GetGameObjectFull hierarchy path of
         /// </summary>
         private static string GetHierarchyPath(GameObject go)
         {
@@ -583,12 +583,12 @@ scene: {go.scene.name}";
         // --- GameObject Configuration Methods ---
 
         /// <summary>
-        /// 预先选中父对象（如果指定了父对象参数）
-        /// 用于创建对象前选中父对象，确保Unity创建操作能正确识别父子关系
+        /// Select parent object in advance（If parent parameter specified）
+        /// Used to select parent before creating object，EnsureUnityCreation operation can correctly identify parent-child relationship
         /// </summary>
         public static void PreselectParentIfSpecified(JsonClass args, Action<string> logAction = null)
         {
-            // 检查是否指定了父对象
+            // Check if parent is specified
             string parentPath = args["parent"]?.Value;
             string parentIdStr = args["parent_id"]?.Value;
             string parentPathParam = args["parent_path"]?.Value;
@@ -597,13 +597,13 @@ scene: {go.scene.name}";
                 string.IsNullOrEmpty(parentIdStr) &&
                 string.IsNullOrEmpty(parentPathParam))
             {
-                // 没有指定父对象，不需要预选中
+                // No parent specified，Preselect not needed
                 return;
             }
 
             GameObject parentObject = null;
 
-            // 优先使用 parent_id
+            // Prefer using parent_id
             if (!string.IsNullOrEmpty(parentIdStr) && int.TryParse(parentIdStr, out int parentId))
             {
                 parentObject = EditorUtility.InstanceIDToObject(parentId) as GameObject;
@@ -613,7 +613,7 @@ scene: {go.scene.name}";
                 }
             }
 
-            // 如果通过 ID 未找到，尝试使用 parent 或 parent_path
+            // If via ID Not found，Try using parent Or parent_path
             if (parentObject == null)
             {
                 string searchPath = !string.IsNullOrEmpty(parentPath) ? parentPath : parentPathParam;
@@ -627,7 +627,7 @@ scene: {go.scene.name}";
                 }
             }
 
-            // 如果找到父对象，选中它
+            // If parent object found，Select it
             if (parentObject != null)
             {
                 Selection.activeGameObject = parentObject;
@@ -640,33 +640,33 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用通用GameObject设置
+        /// Apply generalGameObjectSet
         /// </summary>
         public static void ApplyCommonGameObjectSettings(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
 
-            // 设置名称
+            // Set name
             ApplyNameSetting(args, newGo, logAction);
 
-            // 设置父对象
+            // Set parent object
             ApplyParentSetting(args, newGo, logAction);
 
-            // 设置变换
+            // Set transform
             ApplyTransformSettings(args, newGo);
 
-            // 设置标签
+            // Set tag
             ApplyTagSetting(args, newGo, logAction);
 
-            // 设置层
+            // Set layer
             ApplyLayerSetting(args, newGo, logAction);
 
-            // 添加组件
+            // Add component
             ApplyComponentsToAdd(args, newGo, logAction);
 
-            //设置组件属性
+            //Set component property
             ApplyComponentProperties(args, newGo, logAction);
 
-            // 设置激活状态
+            // Set active state
             bool? setActive = args["active"] != null && !args["active"].IsNull()
                 ? (bool?)args["active"].AsBool
                 : null;
@@ -676,7 +676,7 @@ scene: {go.scene.name}";
             }
         }
         /// <summary>
-        /// 应用名称设置
+        /// Apply name settings
         /// </summary>
         public static void ApplyNameSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
@@ -687,7 +687,7 @@ scene: {go.scene.name}";
             }
         }
         /// <summary>
-        /// 应用父对象设置
+        /// Apply parent object settings
         /// </summary>
         public static void ApplyParentSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
@@ -709,7 +709,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用变换设置
+        /// Apply transform settings
         /// </summary>
         public static void ApplyTransformSettings(JsonClass args, GameObject newGo)
         {
@@ -726,7 +726,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用标签设置
+        /// Apply tag settings
         /// </summary>
         public static void ApplyTagSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
@@ -763,7 +763,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用层设置
+        /// Apply layer settings
         /// </summary>
         public static void ApplyLayerSetting(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
@@ -783,7 +783,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用组件添加
+        /// Apply component addition
         /// </summary>
         public static void ApplyComponentsToAdd(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
@@ -821,11 +821,11 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 应用组件属性设置
+        /// Apply component property settings
         /// </summary>
         public static void ApplyComponentProperties(JsonClass args, GameObject newGo, Action<string> logAction = null)
         {
-            // 处理component_properties
+            // Handlecomponent_properties
             if (args["component_properties"] is JsonClass componentPropsObj)
             {
                 foreach (KeyValuePair<string, JsonNode> componentProp in componentPropsObj.Properties())
@@ -838,25 +838,25 @@ scene: {go.scene.name}";
                 }
             }
 
-            // 处理单个component_type和component_properties的情况
+            // Handle singlecomponent_typeAndcomponent_propertiesThe case of
             string singleComponentName = args["component_type"]?.Value;
             if (!string.IsNullOrEmpty(singleComponentName) && args["component_properties"] is JsonClass singleProps)
             {
-                // 检查是否是嵌套结构
+                // Check whether is nested structure
                 if (singleProps[singleComponentName] is JsonClass nestedProps)
                 {
                     SetComponentPropertiesInternal(newGo, singleComponentName, nestedProps, logAction);
                 }
                 else
                 {
-                    // 直接使用属性对象
+                    // Directly use property object
                     SetComponentPropertiesInternal(newGo, singleComponentName, singleProps, logAction);
                 }
             }
         }
 
         /// <summary>
-        /// 设置组件属性的内部方法
+        /// Internal method to set component property
         /// </summary>
         private static void SetComponentPropertiesInternal(
             GameObject targetGo,
@@ -868,7 +868,7 @@ scene: {go.scene.name}";
             if (properties == null || properties.Count == 0)
                 return;
 
-            // 查找组件类型
+            // Find component type
             Type componentType = FindType(componentName);
             Component targetComponent = null;
 
@@ -878,7 +878,7 @@ scene: {go.scene.name}";
             }
             else
             {
-                // 尝试常见的Unity组件命名空间
+                // Try commonUnityComponent namespace
                 string[] commonNamespaces = { "UnityEngine", "UnityEngine.UI" };
                 foreach (string ns in commonNamespaces)
                 {
@@ -922,7 +922,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 设置组件属性
+        /// Set component property
         /// </summary>
         public static bool SetObjectPropertyDeepth(object target, string memberName, JsonNode value, Action<string> logAction = null)
         {
@@ -931,7 +931,7 @@ scene: {go.scene.name}";
 
             try
             {
-                // 处理材质属性的特殊情况
+                // Handle special cases of material properties
                 if (memberName.Equals("material", StringComparison.OrdinalIgnoreCase) && value.type == JsonNodeType.String)
                 {
                     string materialPath = value.Value;
@@ -956,13 +956,13 @@ scene: {go.scene.name}";
                     }
                 }
 
-                // 处理嵌套属性 (如 material.color)
+                // Handle nested property (Such as material.color)
                 if (memberName.Contains('.'))
                 {
                     return SetNestedProperty(target, memberName, value, logAction);
                 }
 
-                // 处理普通属性
+                // Handle normal property
                 PropertyInfo propInfo = type.GetProperty(memberName, flags);
                 if (propInfo != null && propInfo.CanWrite)
                 {
@@ -995,7 +995,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 设置嵌套属性
+        /// Set nested property
         /// </summary>
         private static bool SetNestedProperty(object target, string path, JsonNode value, Action<string> logAction = null)
         {
@@ -1007,7 +1007,7 @@ scene: {go.scene.name}";
             Type currentType = currentObject.GetType();
             BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase;
 
-            // 遍历到最后一个属性之前
+            // Traverse before last property
             for (int i = 0; i < pathParts.Length - 1; i++)
             {
                 string part = pathParts[i];
@@ -1029,13 +1029,13 @@ scene: {go.scene.name}";
                 }
             }
 
-            // 设置最终属性
+            // Set final property
             string finalPart = pathParts[pathParts.Length - 1];
             return SetObjectPropertyDeepth(currentObject, finalPart, value, logAction);
         }
 
         /// <summary>
-        /// 转换JToken为指定类型
+        /// ConvertJTokenFor specified type
         /// </summary>
         private static object ConvertJTokenToType(JsonNode token, Type targetType)
         {
@@ -1050,7 +1050,7 @@ scene: {go.scene.name}";
                 if (targetType == typeof(bool))
                     return token.AsBool;
 
-                // Vector类型
+                // VectorType
                 if (targetType == typeof(Vector2) && token is JsonArray arrV2 && arrV2.Count == 2)
                     return new Vector2(arrV2[0].AsFloat, arrV2[1].AsFloat);
                 if (targetType == typeof(Vector3) && token is JsonArray arrV3 && arrV3.Count == 3)
@@ -1058,15 +1058,15 @@ scene: {go.scene.name}";
                 if (targetType == typeof(Vector4) && token is JsonArray arrV4 && arrV4.Count == 4)
                     return new Vector4(arrV4[0].AsFloat, arrV4[1].AsFloat, arrV4[2].AsFloat, arrV4[3].AsFloat);
 
-                // Color类型
+                // ColorType
                 if (targetType == typeof(Color) && token is JsonArray arrC && arrC.Count >= 3)
                     return new Color(arrC[0].AsFloat, arrC[1].AsFloat, arrC[2].AsFloat, arrC.Count > 3 ? arrC[3].AsFloat : 1.0f);
 
-                // 枚举类型
+                // Enum type
                 if (targetType.IsEnum)
                     return Enum.Parse(targetType, token.Value, true);
 
-                // Unity Object类型（Material, Texture等）
+                // Unity ObjectType（Material, TextureEtc）
                 if (typeof(UnityEngine.Object).IsAssignableFrom(targetType) && token.type == JsonNodeType.String)
                 {
                     string assetPath = token.Value;
@@ -1076,7 +1076,7 @@ scene: {go.scene.name}";
                     }
                 }
 
-                // 尝试直接转换
+                // Try direct conversion
                 return token.ToObject(targetType);
             }
             catch
@@ -1086,7 +1086,7 @@ scene: {go.scene.name}";
         }
 
         /// <summary>
-        /// 添加组件的内部方法（包含物理组件冲突检查）
+        /// Internal method to add component（Contain physical component conflict check）
         /// Returns null on success, or an error response object on failure.
         /// </summary>
         public static object AddComponentInternal(

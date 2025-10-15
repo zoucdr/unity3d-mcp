@@ -11,10 +11,10 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// 场景层级对象选择器
-    /// 按ID或path查找并返回唯一的T类型对象，只在Hierarchy中查找
+    /// Scene hierarchy object selector
+    /// ByIDOrpathFind and return uniqueTType object，Only inHierarchySearch in
     /// </summary>
-    /// <typeparam name="T">要查找的Unity对象类型</typeparam>
+    /// <typeparam name="T">To searchUnityObject type</typeparam>
     public class HierarchySelector<T> : IObjectSelector where T : UnityEngine.Object
     {
 
@@ -38,13 +38,13 @@ namespace UnityMcp.Tools
 
         private object HandleByIdSearch(StateTreeContext context)
         {
-            // 获取ID参数
+            // GetIDParameter
             if (!context.TryGetValue("instance_id", out object idObj) || idObj == null)
             {
                 return Response.Error("Parameter 'id' is required.");
             }
 
-            // 解析ID
+            // ParseID
             if (!int.TryParse(idObj.ToString(), out int instanceId))
             {
                 return Response.Error($"Invalid ID format: '{idObj}'. ID must be an integer.");
@@ -52,7 +52,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 使用EditorUtility.InstanceIDToObject查找对象
+                // UseEditorUtility.InstanceIDToObjectSearch object
                 var foundObject = UnityEditor.EditorUtility.InstanceIDToObject(instanceId);
 
                 if (foundObject == null)
@@ -60,13 +60,13 @@ namespace UnityMcp.Tools
                     return Response.Error($"Object with ID '{instanceId}' not found.");
                 }
 
-                // 检查对象是否在当前场景的Hierarchy中
+                // Check if object is in current sceneHierarchyIn
                 if (!IsInCurrentSceneHierarchy(foundObject))
                 {
                     return Response.Error($"Object with ID '{instanceId}' is not in the current scene's Hierarchy.");
                 }
 
-                // 检查对象类型是否匹配
+                // Check if object type matches
                 if (foundObject is T typedObject)
                 {
                     return typedObject;
@@ -84,7 +84,7 @@ namespace UnityMcp.Tools
 
         private object HandleByPathSearch(StateTreeContext context)
         {
-            // 获取path参数
+            // GetpathParameter
             if (!context.TryGetValue("path", out object pathObj) || pathObj == null)
             {
                 return Response.Error("Parameter 'path' is required.");
@@ -94,7 +94,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 只在当前场景的Hierarchy中查找
+                // Only in the current sceneHierarchySearch in
                 T hierarchyObject = GameObjectUtils.FindByHierarchyPath<T>(path);
                 if (hierarchyObject != null)
                 {
@@ -111,7 +111,7 @@ namespace UnityMcp.Tools
 
         private object HandleDefaultSearch(StateTreeContext context)
         {
-            // 检查是否至少提供了id或path参数之一
+            // Check if at least providedidOrpathOne of the parameters
             bool hasId = context.TryGetValue("instance_id", out object idObj) && idObj != null;
             bool hasPath = context.TryGetValue("path", out object pathObj) && pathObj != null;
 
@@ -121,13 +121,13 @@ namespace UnityMcp.Tools
                 return Response.Error("Either 'instance_id' or 'path' parameter must be provided.");
             }
 
-            // 优先使用id查找
+            // Prefer to useidSearch
             if (hasId)
             {
                 return HandleByIdSearch(context);
             }
 
-            // 使用path查找
+            // UsepathSearch
             if (hasPath)
             {
                 return HandleByPathSearch(context);
@@ -139,35 +139,35 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// 检查对象是否在当前场景的Hierarchy中
+        /// Check if object is in current sceneHierarchyIn
         /// </summary>
-        /// <param name="obj">要检查的对象</param>
-        /// <returns>如果对象在当前场景Hierarchy中返回true，否则返回false</returns>
+        /// <param name="obj">Object to check</param>
+        /// <returns>If the object is in the current sceneHierarchyReturn intrue，Otherwise returnfalse</returns>
         private bool IsInCurrentSceneHierarchy(UnityEngine.Object obj)
         {
             if (obj == null) return false;
 
-            // 如果是GameObject，检查其场景
+            // If isGameObject，Check its scene
             if (obj is GameObject gameObject)
             {
                 return gameObject.scene == SceneManager.GetActiveScene();
             }
 
-            // 如果是Component，检查其GameObject的场景
+            // If isComponent，Check itsGameObjectScene of
             if (obj is Component component)
             {
                 return component.gameObject.scene == SceneManager.GetActiveScene();
             }
 
-            // 其他类型的对象不在Hierarchy中
+            // Other types of objects are not inHierarchyIn
             return false;
         }
 
         /// <summary>
-        /// 通用的按ID查找方法，只在当前场景Hierarchy中查找
+        /// General byIDSearch method，Only in the current sceneHierarchySearch in
         /// </summary>
-        /// <param name="instanceId">对象的InstanceID</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="instanceId">Object'sInstanceID</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindById(int instanceId)
         {
             try
@@ -186,10 +186,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 通用的按路径查找方法，只在当前场景Hierarchy中查找
+        /// Generic search-by-path method，Only in the current sceneHierarchySearch in
         /// </summary>
-        /// <param name="path">Hierarchy路径</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="path">HierarchyPath</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindByPath(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -208,10 +208,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取对象的详细信息
+        /// Get detailed object information
         /// </summary>
-        /// <param name="obj">要获取信息的对象</param>
-        /// <returns>对象信息字符串</returns>
+        /// <param name="obj">Object to get information of</param>
+        /// <returns>Object information string</returns>
         public string GetObjectInfo(T obj)
         {
             if (obj == null) return "null";

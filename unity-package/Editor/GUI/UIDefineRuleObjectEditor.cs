@@ -7,7 +7,7 @@ using UnityMcp.Tools;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// UIDefineRuleObject的自定义Inspector，使用ReorderableList绘制node_names和node_sprites
+    /// UIDefineRuleObjectCustomize ofInspector，UseReorderableListDrawnode_namesAndnode_sprites
     /// </summary>
     [CustomEditor(typeof(UIDefineRuleObject))]
     public class UIDefineRuleObjectEditor : UnityEditor.Editor
@@ -25,14 +25,14 @@ namespace UnityMcp.Gui
         private SerializedProperty nodeNamesProp;
         private SerializedProperty nodeSpritesProp;
 
-        // 折叠状态
+        // Collapse state
         private bool nodeNamesFoldout = true;
         private bool nodeSpritesFoldout = true;
         private bool modifyRecordsFoldout = true;
 
         void OnEnable()
         {
-            // 获取序列化属性
+            // Get serialized property
             linkUrlProp = serializedObject.FindProperty("link_url");
             pictureUrlProp = serializedObject.FindProperty("img_save_to");
             prototypePicProp = serializedObject.FindProperty("prototype_pic");
@@ -42,7 +42,7 @@ namespace UnityMcp.Gui
             nodeNamesProp = serializedObject.FindProperty("node_names");
             nodeSpritesProp = serializedObject.FindProperty("node_sprites");
 
-            // 创建 Node Names 的 ReorderableList
+            // Create Node Names Of ReorderableList
             nodeNamesList = new ReorderableList(serializedObject, nodeNamesProp, true, false, true, true);
             nodeNamesList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
@@ -92,7 +92,7 @@ namespace UnityMcp.Gui
                 EditorGUI.PropertyField(originNameRect, originNameProp, GUIContent.none);
             };
 
-            // 创建 Node Sprites 的 ReorderableList
+            // Create Node Sprites Of ReorderableList
             nodeSpritesList = new ReorderableList(serializedObject, nodeSpritesProp, true, false, true, true);
             nodeSpritesList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
@@ -109,7 +109,7 @@ namespace UnityMcp.Gui
 
                 var totalLabelWidth = labelWidth * 3;
                 var remainingWidth = rect.width - totalLabelWidth - spacing * 4;
-                var fieldWidth = remainingWidth / 3f; // 每个字段占1/3宽度
+                var fieldWidth = remainingWidth / 3f; // Each field occupies1/3Width
                 var idWidth = fieldWidth;
                 var fileNameWidth = fieldWidth;
                 var spriteFieldWidth = fieldWidth;
@@ -143,7 +143,7 @@ namespace UnityMcp.Gui
                 EditorGUI.PropertyField(spriteRect, spriteProp, GUIContent.none);
             };
 
-            // 创建 Modify Records 的 ReorderableList
+            // Create Modify Records Of ReorderableList
             modifyRecordsList = new ReorderableList(serializedObject, modifyRecordsProp, true, false, true, true);
             modifyRecordsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
@@ -158,7 +158,7 @@ namespace UnityMcp.Gui
         {
             serializedObject.Update();
 
-            // 操作按钮
+            // Operation button
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("📋 Copy UI Rule to Clipboard", GUILayout.Height(35)))
@@ -167,7 +167,7 @@ namespace UnityMcp.Gui
             }
             EditorGUILayout.EndHorizontal();
 
-            // 绘制基本属性
+            // Draw basic property
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Basic Settings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(linkUrlProp, new GUIContent("Figma Link URL"));
@@ -178,10 +178,10 @@ namespace UnityMcp.Gui
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(descriptionsProp, new GUIContent("Descriptions"));
 
-            // 绘制 Node Names 列表
+            // Draw Node Names List
             EditorGUILayout.Space();
 
-            // 自定义折叠标题，包含Clear按钮
+            // Customize collapse title，ContainClearButton
             var rect = EditorGUILayout.GetControlRect();
             var foldoutRect = new Rect(rect.x, rect.y, rect.width - 70, rect.height);
             var clearButtonRect = new Rect(rect.x + rect.width - 65, rect.y, 60, rect.height);
@@ -199,10 +199,10 @@ namespace UnityMcp.Gui
                 EditorGUI.indentLevel--;
             }
 
-            // 绘制 Node Sprites 列表
+            // Draw Node Sprites List
             EditorGUILayout.Space();
 
-            // 自定义折叠标题，包含Load All和Clear按钮
+            // Customize collapse title，ContainLoad AllAndClearButton
             var spritesRect = EditorGUILayout.GetControlRect();
             var spritesFoldoutRect = new Rect(spritesRect.x, spritesRect.y, spritesRect.width - 190, spritesRect.height);
             var loadAllButtonRect = new Rect(spritesRect.x + spritesRect.width - 185, spritesRect.y, 120, spritesRect.height);
@@ -225,10 +225,10 @@ namespace UnityMcp.Gui
                 EditorGUI.indentLevel--;
             }
 
-            // 绘制 Modify Records 列表
+            // Draw Modify Records List
             EditorGUILayout.Space();
 
-            // 自定义折叠标题，包含Clear按钮
+            // Customize collapse title，ContainClearButton
             var recordsRect = EditorGUILayout.GetControlRect();
             var recordsFoldoutRect = new Rect(recordsRect.x, recordsRect.y, recordsRect.width - 70, recordsRect.height);
             var clearRecordsButtonRect = new Rect(recordsRect.x + recordsRect.width - 65, recordsRect.y, 60, recordsRect.height);
@@ -251,7 +251,7 @@ namespace UnityMcp.Gui
 
 
         /// <summary>
-        /// 批量载入所有Sprites
+        /// Load all in batchSprites
         /// </summary>
         private void LoadAllSprites()
         {
@@ -285,10 +285,10 @@ namespace UnityMcp.Gui
                     if (string.IsNullOrEmpty(fileNameProp.stringValue))
                         continue;
 
-                    // 构建完整的文件路径
+                    // Build complete file path
                     string fullPath = System.IO.Path.Combine(imgSaveTo, fileNameProp.stringValue);
 
-                    // 尝试加载Sprite
+                    // Attempt to loadSprite
                     Sprite loadedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(fullPath);
                     if (loadedSprite != null)
                     {
@@ -297,13 +297,13 @@ namespace UnityMcp.Gui
                     }
                     else
                     {
-                        // 如果直接加载失败，尝试查找文件
+                        // If direct load fails，Attempt to find file
                         string fileName = System.IO.Path.GetFileNameWithoutExtension(fileNameProp.stringValue);
                         string[] foundAssets = AssetDatabase.FindAssets(fileName + " t:Sprite");
 
                         if (foundAssets.Length > 0)
                         {
-                            // 优先选择在指定路径下的文件
+                            // Prefer file under specified path
                             bool found = false;
                             foreach (string guid in foundAssets)
                             {
@@ -321,7 +321,7 @@ namespace UnityMcp.Gui
                                 }
                             }
 
-                            // 如果在指定路径下没找到，使用第一个找到的
+                            // If not found under specified path，Use first found
                             if (!found)
                             {
                                 string firstAssetPath = AssetDatabase.GUIDToAssetPath(foundAssets[0]);
@@ -349,7 +349,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 清空Node Names列表
+        /// ClearNode NamesList
         /// </summary>
         private void ClearNodeNames()
         {
@@ -364,7 +364,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 清空Node Sprites列表
+        /// ClearNode SpritesList
         /// </summary>
         private void ClearNodeSprites()
         {
@@ -379,7 +379,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 清空Modify Records列表
+        /// ClearModify RecordsList
         /// </summary>
         private void ClearModifyRecords()
         {
@@ -394,7 +394,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 验证并获取UI名称
+        /// Validate and getUIName
         /// </summary>
         private string ValidateAndGetUIName()
         {
@@ -416,26 +416,26 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 获取UI规则（公共方法）
+        /// GetUIRule（Public method）
         /// </summary>
         private void GetUIRule(string uiName, System.Action<string> onComplete)
         {
             Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{uiName}'...");
 
-            // 创建UIRuleManage实例
+            // CreateUIRuleManageInstance
             var uiRuleManage = new UIRuleManage();
 
-            // 创建参数
+            // Create parameter
             var args = new JsonClass();
             args["action"] = "get_rule";
             args["name"] = uiName;
 
-            // 使用StateTreeContext调用ExecuteMethod
+            // UseStateTreeContextCallExecuteMethod
             var context = new UnityMcp.StateTreeContext(args);
             bool resultReceived = false;
             JsonNode result = null;
 
-            // 注册完成回调
+            // Register completion callback
             context.RegistComplete((res) =>
             {
                 result = res;
@@ -447,7 +447,7 @@ namespace UnityMcp.Gui
                 uiRuleManage.ExecuteMethod(context);
                 context.RegistComplete((System.Action<JsonNode>)(x =>
                 {
-                    // 如果立即有结果，直接使用
+                    // If immediate result，Direct use
                     if (x != null)
                     {
                         result = x;
@@ -474,19 +474,19 @@ namespace UnityMcp.Gui
             }
         }
         /// <summary>
-        /// 构建发送到Cursor的消息
+        /// Build send toCursorMessage of
         /// </summary>
         private string BuildCursorMessage(JsonNode result, string uiName)
         {
             try
             {
-                // 将结果转换为JSON字符串以便解析
+                // Convert result toJSONString for parsing
                 string resultJson = Json.FromObject(result);
 
                 var message = new System.Text.StringBuilder();
-                message.AppendLine($"# Unity UI规则信息 - {uiName}");
+                message.AppendLine($"# Unity UIRule info - {uiName}");
                 message.AppendLine();
-                message.AppendLine("以下是Unity项目中的UI制作规则和配置信息，请基于这些信息基于mcp实现UI界面开发：");
+                message.AppendLine("As belowUnityIn projectUICreate rules and config info，Please base on this infomcpImplementUIUI development：");
                 message.AppendLine();
                 message.AppendLine("```json");
                 message.AppendLine(resultJson);
@@ -501,7 +501,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 拷贝UI规则到剪贴板
+        /// CopyUIRules to clipboard
         /// </summary>
         private void CopyUIRuleToClipboard()
         {
@@ -529,7 +529,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// 拷贝内容到剪贴板
+        /// Copy content to clipboard
         /// </summary>
         private void CopyToClipboard(string result, string uiName)
         {
@@ -540,7 +540,7 @@ namespace UnityMcp.Gui
                 return;
             }
 
-            // 解析结果并构建消息
+            // Parse result and construct message
             string message = BuildCursorMessage(result, uiName);
 
             if (string.IsNullOrEmpty(message))
@@ -552,7 +552,7 @@ namespace UnityMcp.Gui
 
             Debug.Log($"[UIDefineRuleObjectEditor] Copying UI rule to clipboard: {message.Length} characters");
 
-            // 拷贝到剪贴板
+            // Copy to clipboard
             GUIUtility.systemCopyBuffer = message;
 
             Debug.Log($"[UIDefineRuleObjectEditor] Successfully copied UI rule '{uiName}' to clipboard");

@@ -9,17 +9,17 @@ using System.Diagnostics;
 namespace UnityMcp
 {
     /// <summary>
-    /// StateTree执行上下文包装类，支持JSON序列化字段和非序列化对象引用
+    /// StateTreeExecution context wrapper class，SupportJSONSerialized fields and non-serialized object references
     /// </summary>
     public class StateTreeContext
     {
         /// <summary>
-        /// JSON可序列化的参数数据（已从 JsonClass 迁移到 JSONClass）
+        /// JSONSerializable parameter data（Already from JsonClass Migrate to JSONClass）
         /// </summary>
         public JsonClass JsonData { get; }
 
         /// <summary>
-        /// 非序列化的对象引用字典，用于存储Unity对象等不可序列化的数据
+        /// Non-serialized object reference dictionary，Used for storingUnityUnserializable data such as objects
         /// </summary>
         public Dictionary<string, object> ObjectReferences { get; }
 
@@ -27,17 +27,17 @@ namespace UnityMcp
 
         public JsonNode Result { get; private set; }
         /// <summary>
-        /// 构造函数，基于现有 JsonClass 创建上下文
+        /// Constructor，Based on existing JsonClass Create context
         /// </summary>
-        /// <param name="jsonData">JSON数据</param>
-        /// <param name="objectReferences">可选的对象引用字典</param>
+        /// <param name="jsonData">JSONData</param>
+        /// <param name="objectReferences">Optional object reference dictionary</param>
         public StateTreeContext(JsonClass jsonData = null, Dictionary<string, object> objectReferences = null)
         {
             JsonData = jsonData ?? new JsonClass();
             ObjectReferences = objectReferences ?? new Dictionary<string, object>();
         }
         /// <summary>
-        /// 注册完成回调
+        /// Register completion callback
         /// </summary>
         /// <param name="completeAction"></param>
         public void RegistComplete(Action<JsonNode> completeAction)
@@ -49,7 +49,7 @@ namespace UnityMcp
             }
         }
         /// <summary>
-        /// 结束回调
+        /// End callback
         /// </summary>
         /// <param name="result"></param>
         public void Complete(JsonNode result)
@@ -61,34 +61,34 @@ namespace UnityMcp
             }
         }
         /// <summary>
-        /// 获取JSON字段值（已从 JsonNode 迁移到 JSONNode）
+        /// GetJSONField value（Already from JsonNode Migrate to JSONNode）
         /// </summary>
-        /// <param name="key">字段键</param>
-        /// <param name="token">输出的Token值</param>
-        /// <returns>是否找到该字段</returns>
+        /// <param name="key">Field key</param>
+        /// <param name="token">Output ofTokenValue</param>
+        /// <returns>Whether the field is found</returns>
         public bool TryGetJsonValue(string key, out JsonNode token)
         {
             return JsonData.TryGetValue(key, out token);
         }
 
         /// <summary>
-        /// 获取对象引用
+        /// Get object reference
         /// </summary>
-        /// <param name="key">对象键</param>
-        /// <param name="obj">输出的对象引用</param>
-        /// <returns>是否找到该对象引用</returns>
+        /// <param name="key">Object key</param>
+        /// <param name="obj">Output object reference</param>
+        /// <returns>Whether the object reference is found</returns>
         public bool TryGetObjectReference(string key, out object obj)
         {
             return ObjectReferences.TryGetValue(key, out obj);
         }
 
         /// <summary>
-        /// 获取对象引用的泛型版本
+        /// Get generic version of object reference
         /// </summary>
-        /// <typeparam name="T">期望的对象类型</typeparam>
-        /// <param name="key">对象键</param>
-        /// <param name="obj">输出的对象引用</param>
-        /// <returns>是否找到该对象引用且类型匹配</returns>
+        /// <typeparam name="T">Expected object type</typeparam>
+        /// <param name="key">Object key</param>
+        /// <param name="obj">Output object reference</param>
+        /// <returns>Whether the object reference is found and type matches</returns>
         public bool TryGetObjectReference<T>(string key, out T obj) where T : class
         {
             if (ObjectReferences.TryGetValue(key, out object objRef) && objRef is T typedObj)
@@ -101,29 +101,29 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 设置JSON字段值（已从 JsonNode 迁移到 JSONNode）
+        /// SettingJSONField value（Already from JsonNode Migrate to JSONNode）
         /// </summary>
-        /// <param name="key">字段键</param>
-        /// <param name="value">字段值</param>
+        /// <param name="key">Field key</param>
+        /// <param name="value">Field value</param>
         public void SetJsonValue(string key, JsonNode value)
         {
             JsonData[key] = value;
         }
 
         /// <summary>
-        /// 设置对象引用
+        /// Set object reference
         /// </summary>
-        /// <param name="key">对象键</param>
-        /// <param name="obj">对象引用</param>
+        /// <param name="key">Object key</param>
+        /// <param name="obj">Object reference</param>
         public void SetObjectReference(string key, object obj)
         {
             ObjectReferences[key] = obj;
         }
 
         /// <summary>
-        /// 复制上下文，可以用于创建新的上下文实例
+        /// Copy context，Can be used to create new context instance
         /// </summary>
-        /// <returns>新的上下文实例</returns>
+        /// <returns>New context instance</returns>
         public StateTreeContext Clone()
         {
             var newJsonData = JsonData.Clone();
@@ -132,20 +132,20 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 索引器，支持通过[]语法访问JsonData或ObjectReferences中的值
-        /// 查找优先级：JsonData -> ObjectReferences
-        /// 设置规则：基本类型和可序列化对象 -> JsonData，Unity对象等 -> ObjectReferences
+        /// Indexer，Support by[]Syntax accessJsonDataOrObjectReferencesValue in
+        /// Priority for search：JsonData -> ObjectReferences
+        /// Set rule：Base types and serializable objects -> JsonData，UnityObjects -> ObjectReferences
         /// </summary>
-        /// <param name="key">要访问的键</param>
-        /// <returns>找到的值，如果没找到则返回null</returns>
+        /// <param name="key">Key to access</param>
+        /// <returns>Found value，If not found then returnnull</returns>
         public object this[string key]
         {
             get
             {
-                // 优先查找JsonData
+                // Preferably searchJsonData
                 if (JsonData.TryGetValue(key, out JsonNode token))
                 {
-                    // 如果是基本类型，直接返回值
+                    // If it is a base type，Return value directly
                     var nodeType = token.type;
                     switch (nodeType)
                     {
@@ -160,63 +160,63 @@ namespace UnityMcp
                         case JsonNodeType.Null:
                             return null;
                         default:
-                            return token; // 返回 JsonNode 本身
+                            return token; // Return JsonNode Itself
                     }
                 }
 
-                // 如果JsonData中没有，查找ObjectReferences
+                // IfJsonDataNot in，SearchObjectReferences
                 if (ObjectReferences.TryGetValue(key, out object obj))
                 {
                     return obj;
                 }
 
-                return null; // 都没找到
+                return null; // None found
             }
             set
             {
                 if (value == null)
                 {
-                    // null值优先存储到JsonData中
+                    // nullStore value preferentially toJsonDataIn
                     JsonData[key] = new JsonData("null");
-                    // 同时从ObjectReferences中移除
+                    // Also fromObjectReferencesRemove from
                     ObjectReferences.Remove(key);
                 }
                 else if (IsSerializableType(value))
                 {
-                    // 可序列化类型存储到JsonData
+                    // Serializable types are stored toJsonData
                     JsonData[key] = Json.FromObject(value);
-                    // 从ObjectReferences中移除
+                    // FromObjectReferencesRemove from
                     ObjectReferences.Remove(key);
                 }
                 else
                 {
-                    // Unity对象和其他复杂对象存储到ObjectReferences
+                    // UnityObject and other complex objects are stored toObjectReferences
                     ObjectReferences[key] = value;
-                    // 从JsonData中移除
+                    // FromJsonDataRemove from
                     JsonData.Remove(key);
                 }
             }
         }
 
         /// <summary>
-        /// 检查指定键是否存在于JsonData或ObjectReferences中
+        /// Check if the specified key exists inJsonDataOrObjectReferencesIn
         /// </summary>
-        /// <param name="key">要检查的键</param>
-        /// <returns>是否存在该键</returns>
+        /// <param name="key">Key to check</param>
+        /// <returns>Whether the key exists</returns>
         public bool ContainsKey(string key)
         {
             return JsonData.ContainsKey(key) || ObjectReferences.ContainsKey(key);
         }
 
         /// <summary>
-        /// 尝试获取值（统一的获取方法）
+        /// Try to get value（Unified method to get）
         /// </summary>
-        /// <param name="key">键</param>
-        /// <param name="value">输出的值</param>
-        /// <returns>是否找到该键</returns>
+        /// <param name="key">Key</param>
+        /// <param name="value">Output value</param>
+        /// <returns>Whether found the key</returns>
         public bool TryGetValue(string key, out object value)
         {
-            // 优先从JsonData获取
+            // Prefer fromJsonDataGet
             if (JsonData.TryGetValue(key, out JsonNode token))
             {
                 var nodeType = token.type;
@@ -243,17 +243,17 @@ namespace UnityMcp
                 }
             }
 
-            // 从ObjectReferences获取
+            // FromObjectReferencesGet
             return ObjectReferences.TryGetValue(key, out value);
         }
 
         /// <summary>
-        /// 尝试获取指定类型的值
+        /// Try getting the value of the specified type
         /// </summary>
-        /// <typeparam name="T">期望的值类型</typeparam>
-        /// <param name="key">键</param>
-        /// <param name="value">输出的值</param>
-        /// <returns>是否找到该键且类型匹配</returns>
+        /// <typeparam name="T">Expected value type</typeparam>
+        /// <param name="key">Key</param>
+        /// <param name="value">Output value</param>
+        /// <returns>Whether the key is found and type matches</returns>
         public bool TryGetValue<T>(string key, out T value)
         {
             if (TryGetValue(key, out object obj))
@@ -264,7 +264,7 @@ namespace UnityMcp
                     return true;
                 }
 
-                // 尝试类型转换
+                // Try type conversion
                 try
                 {
                     value = (T)Convert.ChangeType(obj, typeof(T));
@@ -272,7 +272,7 @@ namespace UnityMcp
                 }
                 catch
                 {
-                    // 转换失败
+                    // Conversion failed
                 }
             }
 
@@ -281,10 +281,10 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 移除指定键的值（从JsonData和ObjectReferences中都移除）
+        /// Remove the value for the specified key（FromJsonDataAndObjectReferencesRemove all from）
         /// </summary>
-        /// <param name="key">要移除的键</param>
-        /// <returns>是否移除了任何值</returns>
+        /// <param name="key">Key to be removed</param>
+        /// <returns>Whether any value was removed</returns>
         public bool Remove(string key)
         {
             bool removedFromJson = JsonData.Remove(key) != null;
@@ -293,44 +293,44 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 判断对象是否为可序列化的基本类型
+        /// Determine whether object is a serializable base type
         /// </summary>
-        /// <param name="value">要检查的对象</param>
-        /// <returns>是否为可序列化类型</returns>
+        /// <param name="value">Object to check</param>
+        /// <returns>Whether it is a serializable type</returns>
         private static bool IsSerializableType(object value)
         {
             if (value == null) return true;
 
             var type = value.GetType();
 
-            // Unity对象类型不可序列化
+            // UnityObject type is not serializable
             if (typeof(UnityEngine.Object).IsAssignableFrom(type))
                 return false;
 
-            // 基本类型可序列化
+            // Base type is serializable
             if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal))
                 return true;
 
-            // 枚举可序列化
+            // Enum is serializable
             if (type.IsEnum)
                 return true;
 
-            // DateTime可序列化
+            // DateTimeSerializable
             if (type == typeof(DateTime) || type == typeof(DateTimeOffset))
                 return true;
 
-            // Guid可序列化
+            // GuidSerializable
             if (type == typeof(Guid))
                 return true;
 
-            // 数组和集合（如果元素是可序列化的）
+            // Array and collection（If element is serializable）
             if (type.IsArray)
             {
                 var elementType = type.GetElementType();
                 return elementType != null && IsSerializableType(Activator.CreateInstance(elementType));
             }
 
-            // 尝试序列化测试（谨慎使用，可能有性能影响）
+            // Try serialization test（Use with caution，May affect performance）
             try
             {
                 Json.FromObject(value);
@@ -343,19 +343,19 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 启动异步协程
+        /// Start asynchronous coroutine
         /// </summary>
-        /// <param name="coroutine">协程</param>
-        /// <returns>当前上下文实例</returns>
+        /// <param name="coroutine">Coroutine</param>
+        /// <returns>Current context instance</returns>
         public StateTreeContext AsyncReturn(IEnumerator coroutine)
         {
             if (coroutine == null)
                 return this;
 
-            // 使用MainThreadExecutor来启动协程
+            // UseMainThreadExecutorTo start coroutine
             CoroutineRunner.StartCoroutine(coroutine, (result) =>
             {
-                // 调用完成回调
+                // Invoke completion callback
                 UnityEngine.Debug.Log($"AsyncReturn: {result}");
                 CompleteAction?.Invoke(Json.FromObject(result));
             });

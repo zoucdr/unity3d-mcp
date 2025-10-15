@@ -1,9 +1,9 @@
 """
-Unity标签和层级管理工具，用于管理项目的Tag和Layer。（二级工具）
+UnityTags & layers management tool，Used to manage projectTagAndLayer。（Secondary tool）
 
-支持的功能：
-- 标签管理：add_tag, remove_tag, get_tags
-- 层级管理：add_layer, remove_layer, get_layers
+Supported features：
+- Tag management：add_tag, remove_tag, get_tags
+- Layer management：add_layer, remove_layer, get_layers
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -16,51 +16,51 @@ def register_tag_layer_tools(mcp: FastMCP):
     def tag_layer(
         ctx: Context,
         action: Annotated[str, Field(
-            title="操作类型",
-            description="要执行的标签/层级操作: add_tag(添加标签), remove_tag(移除标签), get_tags(获取标签列表), add_layer(添加层级), remove_layer(移除层级), get_layers(获取层级列表)",
+            title="Operation type",
+            description="Tag operation to perform/Layer operations: add_tag(Add tag), remove_tag(Remove tag), get_tags(Get tag list), add_layer(Add layer), remove_layer(Remove layer), get_layers(Get layer list)",
             examples=["add_tag", "remove_tag", "get_tags", "add_layer", "remove_layer", "get_layers"]
         )],
         tag_name: Annotated[Optional[str], Field(
-            title="标签名称",
-            description="标签名称，用于add_tag和remove_tag操作",
+            title="Tag name",
+            description="Tag name，Used foradd_tagAndremove_tagOperation",
             default=None,
             examples=["Player", "Enemy", "Item", "NPC", "Boss"]
         )] = None,
         layer_name: Annotated[Optional[str], Field(
-            title="层级名称",
-            description="层级名称，用于add_layer和remove_layer操作",
+            title="Layer name",
+            description="Layer name，Used foradd_layerAndremove_layerOperation",
             default=None,
             examples=["Ground", "Character", "UI", "Effects", "Water"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity标签和层级管理工具，用于管理项目的Tag和Layer。（二级工具）
+        """UnityTags & layers management tool，Used to manage projectTagAndLayer。（Secondary tool）
 
-        支持多种标签和层级管理功能，适用于：
-        - 标签管理：添加、删除、获取项目标签
-        - 层级管理：添加、删除、获取项目层级（索引8-31为用户层级）
+        Supports tag and layer management features，Suitable for：
+        - Tag management：Add、Delete、Get project tags
+        - Layer management：Add、Delete、Get project layers（Index8-31For user layers）
         
-        注意事项：
-        - 不能删除内置标签（如 "Untagged"）
-        - 层级索引 0-7 为系统保留，只能操作索引 8-31 的用户层级
-        - 添加层级时会自动分配到第一个空闲槽位
+        Notes：
+        - Built-in tags cannot be removed（Such as "Untagged"）
+        - Layer index 0-7 Reserved for system，Only index operations are allowed 8-31 User layer
+        - Automatically assigns to the first free slot when adding a layer
         
-        示例用法：
-        1. 添加自定义标签：
+        Example usage：
+        1. Add custom tag：
            {"action": "add_tag", "tag_name": "Boss"}
         
-        2. 移除标签：
+        2. Remove tag：
            {"action": "remove_tag", "tag_name": "OldTag"}
         
-        3. 获取所有标签：
+        3. Get all tags：
            {"action": "get_tags"}
         
-        4. 添加自定义层级：
+        4. Add custom layer：
            {"action": "add_layer", "layer_name": "Water"}
         
-        5. 移除层级：
+        5. Remove layer：
            {"action": "remove_layer", "layer_name": "OldLayer"}
         
-        6. 获取所有层级：
+        6. Get all layers：
            {"action": "get_layers"}
         """
         return get_common_call_response("tag_layer")

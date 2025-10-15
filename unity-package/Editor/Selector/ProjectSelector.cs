@@ -9,11 +9,11 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// 项目资产对象选择器
-    /// 专门处理项目资产中的对象查找
-    /// 支持各种Unity资产类型的查找
+    /// Project asset object selector
+    /// Specifically handle object search in project assets
+    /// Support variousUnityFinding of asset type
     /// </summary>
-    /// <typeparam name="T">要查找的Unity对象类型</typeparam>
+    /// <typeparam name="T">To searchUnityObject type</typeparam>
     public class ProjectSelector<T> : IObjectSelector where T : UnityEngine.Object
     {
         public MethodKey[] CreateKeys()
@@ -36,13 +36,13 @@ namespace UnityMcp.Tools
 
         private object HandleByIdSearch(StateTreeContext context)
         {
-            // 获取ID参数
+            // GetIDParameter
             if (!context.TryGetValue("instance_id", out object idObj) || idObj == null)
             {
                 return Response.Error("Parameter 'id' is required.");
             }
 
-            // 解析ID
+            // ParseID
             if (!int.TryParse(idObj.ToString(), out int instanceId))
             {
                 return Response.Error($"Invalid ID format: '{idObj}'. ID must be an integer.");
@@ -50,7 +50,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 使用EditorUtility.InstanceIDToObject查找对象
+                // UseEditorUtility.InstanceIDToObjectSearch object
                 var foundObject = UnityEditor.EditorUtility.InstanceIDToObject(instanceId);
 
                 if (foundObject == null)
@@ -58,13 +58,13 @@ namespace UnityMcp.Tools
                     return Response.Error($"Object with ID '{instanceId}' not found.");
                 }
 
-                // 检查对象是否是项目资产
+                // Check if object is a project asset
                 if (!IsProjectAsset(foundObject))
                 {
                     return Response.Error($"Object with ID '{instanceId}' is not a project asset.");
                 }
 
-                // 检查对象类型是否匹配
+                // Check if object type matches
                 if (foundObject is T typedObject)
                 {
                     return typedObject;
@@ -82,7 +82,7 @@ namespace UnityMcp.Tools
 
         private object HandleByPathSearch(StateTreeContext context)
         {
-            // 获取path参数
+            // GetpathParameter
             if (!context.TryGetValue("path", out object pathObj) || pathObj == null)
             {
                 return Response.Error("Parameter 'path' is required.");
@@ -92,7 +92,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 只在项目资产中查找
+                // Only search in project assets
                 T asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
                 if (asset != null)
                 {
@@ -109,7 +109,7 @@ namespace UnityMcp.Tools
 
         private object HandleDefaultSearch(StateTreeContext context)
         {
-            // 检查是否至少提供了id或path参数之一
+            // Check if at least providedidOrpathOne of the parameters
             bool hasId = context.TryGetValue("instance_id", out object idObj) && idObj != null;
             bool hasPath = context.TryGetValue("path", out object pathObj) && pathObj != null;
 
@@ -119,13 +119,13 @@ namespace UnityMcp.Tools
                 return Response.Error("Either 'instance_id' or 'path' parameter must be provided.");
             }
 
-            // 优先使用id查找
+            // Prefer to useidSearch
             if (hasId)
             {
                 return HandleByIdSearch(context);
             }
 
-            // 使用path查找
+            // UsepathSearch
             if (hasPath)
             {
                 return HandleByPathSearch(context);
@@ -135,23 +135,23 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查对象是否是项目资产
+        /// Check if object is a project asset
         /// </summary>
-        /// <param name="obj">要检查的对象</param>
-        /// <returns>如果对象是项目资产返回true，否则返回false</returns>
+        /// <param name="obj">Object to check</param>
+        /// <returns>Return if object is project assettrue，Otherwise returnfalse</returns>
         private bool IsProjectAsset(UnityEngine.Object obj)
         {
             if (obj == null) return false;
 
-            // 使用AssetDatabase.Contains检查对象是否是资产
+            // UseAssetDatabase.ContainsCheck if object is asset
             return UnityEditor.AssetDatabase.Contains(obj);
         }
 
         /// <summary>
-        /// 通用的按ID查找方法，只在项目资产中查找
+        /// General byIDSearch method，Only search in project assets
         /// </summary>
-        /// <param name="instanceId">对象的InstanceID</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="instanceId">Object'sInstanceID</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindById(int instanceId)
         {
             try
@@ -170,10 +170,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 通用的按路径查找方法，只在项目资产中查找
+        /// Generic search-by-path method，Only search in project assets
         /// </summary>
-        /// <param name="path">资产路径</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="path">Asset path</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindByPath(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -192,10 +192,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取对象的详细信息
+        /// Get detailed object information
         /// </summary>
-        /// <param name="obj">要获取信息的对象</param>
-        /// <returns>对象信息字符串</returns>
+        /// <param name="obj">Object to get information of</param>
+        /// <returns>Object information string</returns>
         public string GetObjectInfo(T obj)
         {
             if (obj == null) return "null";
@@ -209,15 +209,15 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取指定类型的所有项目资产
+        /// Get all project assets for the specified type
         /// </summary>
-        /// <returns>找到的所有T类型资产列表</returns>
+        /// <returns>All foundTType asset list</returns>
         public List<T> FindAllAssets()
         {
             var assets = new List<T>();
             try
             {
-                // 使用AssetDatabase.FindAssets查找所有T类型的资产
+                // UseAssetDatabase.FindAssetsFind allTAsset of type
                 string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}");
 
                 foreach (string guid in guids)
@@ -239,10 +239,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 在指定文件夹中查找资产
+        /// Find asset in specified folder
         /// </summary>
         /// <param name="folderPath">Folder path, e.g. "Assets/Scripts"</param>
-        /// <returns>找到的T类型资产列表</returns>
+        /// <returns>FoundTType asset list</returns>
         public List<T> FindAssetsInFolder(string folderPath)
         {
             var assets = new List<T>();
@@ -253,7 +253,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 在指定文件夹中查找资产
+                // Find asset in specified folder
                 string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { folderPath });
 
                 foreach (string guid in guids)

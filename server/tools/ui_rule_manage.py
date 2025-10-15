@@ -1,6 +1,6 @@
 """
-UI制作规则文件管理工具
-管理UI制作规则文件，包括创建、修改、删除和获取规则
+UIRule file management tool
+ManageUICreate rule file，Including creation、Modify、Delete and get rules
 """
 
 from typing import Dict, Any, Optional, List
@@ -15,199 +15,199 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="操作类型",
-            description="操作类型",
+            title="Operation type",
+            description="Operation type",
             examples=["create", "modify", "delete", "get", "list", "apply", "validate"]
         ),
         rule_name: str = Field(
             ...,
-            title="规则名称",
-            description="规则名称",
+            title="Rule name",
+            description="Rule name",
             examples=["ButtonRule", "PanelRule", "TextRule"]
         ),
         rule_type: Optional[str] = Field(
             None,
-            title="规则类型",
-            description="规则类型",
+            title="Rule type",
+            description="Rule type",
             examples=["Button", "Panel", "Text", "Image", "InputField", "ScrollView", "Dropdown", "Toggle", "Slider", "Scrollbar"]
         ),
         properties: Optional[Dict[str, Any]] = Field(
             None,
-            title="规则属性",
-            description="规则属性字典",
+            title="Rule properties",
+            description="Rule properties dictionary",
             examples=[{"width": 200, "height": 50, "color": [1, 0, 0, 1]}]
         ),
         constraints: Optional[Dict[str, Any]] = Field(
             None,
-            title="约束条件",
-            description="约束条件字典",
+            title="Constraints",
+            description="Constraints dictionary",
             examples=[{"min_width": 100, "max_width": 500, "required_components": ["Button", "Text"]}]
         ),
         validation_rules: Optional[List[str]] = Field(
             None,
-            title="验证规则",
-            description="验证规则列表",
+            title="Validate rules",
+            description="Validation rules list",
             examples=[["width > 0", "height > 0", "has_button_component"]]
         ),
         target_object: Optional[str] = Field(
             None,
-            title="目标对象",
-            description="目标对象名称或路径",
+            title="Target object",
+            description="Target object name or path",
             examples=["Canvas/UI/Button", "Button", "Panel"]
         ),
         force_apply: Optional[bool] = Field(
             False,
-            title="强制应用",
-            description="是否强制应用规则"
+            title="Force apply",
+            description="Whether to force apply rules"
         ),
         validate_only: Optional[bool] = Field(
             False,
-            title="仅验证",
-            description="是否仅验证而不应用"
+            title="Validate only",
+            description="Validate only without applying"
         ),
         create_missing: Optional[bool] = Field(
             False,
-            title="创建缺失",
-            description="是否创建缺失的组件"
+            title="Create missing",
+            description="Whether to create missing components"
         ),
         remove_extra: Optional[bool] = Field(
             False,
-            title="移除多余",
-            description="是否移除多余的组件"
+            title="Remove redundancies",
+            description="Whether to remove extra components"
         ),
         preserve_hierarchy: Optional[bool] = Field(
             True,
-            title="保持层级",
-            description="是否保持对象层级结构"
+            title="Keep hierarchy",
+            description="Whether to keep object hierarchy"
         ),
         backup_before_apply: Optional[bool] = Field(
             True,
-            title="应用前备份",
-            description="是否在应用前备份对象"
+            title="Backup before applying",
+            description="Whether to back up objects before applying"
         ),
         log_changes: Optional[bool] = Field(
             True,
-            title="记录更改",
-            description="是否记录更改日志"
+            title="Record changes",
+            description="Whether to log changes"
         ),
         rule_file_path: Optional[str] = Field(
             None,
-            title="规则文件路径",
-            description="规则文件路径",
+            title="Rule file path",
+            description="Rule file path",
             examples=["Assets/UI/Rules/ButtonRule.json", "Assets/Config/UI/"]
         ),
         export_format: Optional[str] = Field(
             None,
-            title="导出格式",
-            description="导出格式",
+            title="Export format",
+            description="Export format",
             examples=["json", "xml", "yaml"]
         ),
         import_format: Optional[str] = Field(
             None,
-            title="导入格式",
-            description="导入格式",
+            title="Import format",
+            description="Import format",
             examples=["json", "xml", "yaml"]
         ),
         template_name: Optional[str] = Field(
             None,
-            title="模板名称",
-            description="模板名称",
+            title="Template name",
+            description="Template name",
             examples=["StandardButton", "ModernPanel", "ClassicText"]
         ),
         category: Optional[str] = Field(
             None,
-            title="规则分类",
-            description="规则分类",
+            title="Rule category",
+            description="Rule category",
             examples=["UI", "Gameplay", "System", "Custom"]
         ),
         tags: Optional[List[str]] = Field(
             None,
-            title="标签",
-            description="标签列表",
+            title="Tags",
+            description="Tag list",
             examples=[["button", "ui", "interactive"], ["panel", "container", "layout"]]
         ),
         description: Optional[str] = Field(
             None,
-            title="规则描述",
-            description="规则描述",
-            examples=["标准按钮规则", "面板布局规则", "文本显示规则"]
+            title="Rule description",
+            description="Rule description",
+            examples=["Standard button rule", "Panel layout rule", "Text display rule"]
         ),
         version: Optional[str] = Field(
             None,
-            title="规则版本",
-            description="规则版本",
+            title="Rule version",
+            description="Rule version",
             examples=["1.0", "2.1", "3.0.1"]
         ),
         author: Optional[str] = Field(
             None,
-            title="规则作者",
-            description="规则作者",
+            title="Rule author",
+            description="Rule author",
             examples=["Designer", "Developer", "Artist"]
         ),
         created_date: Optional[str] = Field(
             None,
-            title="创建日期",
-            description="创建日期",
+            title="Created date",
+            description="Created date",
             examples=["2024-01-01", "2024-12-25"]
         ),
         modified_date: Optional[str] = Field(
             None,
-            title="修改日期",
-            description="修改日期",
+            title="Modified date",
+            description="Modified date",
             examples=["2024-01-01", "2024-12-25"]
         ),
         is_active: Optional[bool] = Field(
             True,
-            title="是否激活",
-            description="是否激活规则"
+            title="Whether active",
+            description="Whether the rule is active"
         ),
         priority: Optional[int] = Field(
             0,
-            title="优先级",
-            description="规则优先级",
+            title="Priority",
+            description="Rule priority",
             examples=[0, 1, 5, 10]
         ),
         dependencies: Optional[List[str]] = Field(
             None,
-            title="依赖规则",
-            description="依赖规则列表",
+            title="Dependent rules",
+            description="Dependent rules list",
             examples=[["BaseUIRule", "ColorRule"], ["LayoutRule"]]
         ),
         conflicts: Optional[List[str]] = Field(
             None,
-            title="冲突规则",
-            description="冲突规则列表",
+            title="Conflicting rules",
+            description="Conflicting rules list",
             examples=[["OldButtonRule", "LegacyPanelRule"]]
         ),
         conditions: Optional[Dict[str, Any]] = Field(
             None,
-            title="应用条件",
-            description="应用条件字典",
+            title="Apply conditions",
+            description="Apply-conditions dictionary",
             examples=[{"platform": "mobile", "resolution": "high", "theme": "dark"}]
         ),
         effects: Optional[Dict[str, Any]] = Field(
             None,
-            title="应用效果",
-            description="应用效果字典",
+            title="Apply effects",
+            description="Apply-effects dictionary",
             examples=[{"animation": "fade", "sound": "click", "haptic": "light"}]
         ),
         metadata: Optional[Dict[str, Any]] = Field(
             None,
-            title="元数据",
-            description="元数据字典",
+            title="Metadata",
+            description="Metadata dictionary",
             examples=[{"project": "MyGame", "team": "UI", "status": "approved"}]
         )
     ) -> Dict[str, Any]:
         """
-        UI制作规则文件管理工具（二级工具）
+        UIRule file management tool（Secondary tool）
         
-        支持的操作:
-        - create: 创建新规则
-        - modify: 修改现有规则
-        - delete: 删除规则
-        - get: 获取规则信息
-        - list: 列出所有规则
-        - apply: 应用规则到对象
-        - validate: 验证规则
+        Supported operations:
+        - create: Create new rule
+        - modify: Modify existing rule
+        - delete: Delete rule
+        - get: Get rule info
+        - list: List all rules
+        - apply: Apply rules to object
+        - validate: Validate rules
         """
         return get_common_call_response("ui_rule_manage")

@@ -1,11 +1,11 @@
 """
-Unity MCP 核心调用工具，包含单个和批量Unity函数调用功能。
+Unity MCP Core invocation utility，include single and batchUnityfunction callFunction。
 
-⚠️ 重要说明：
-- 所有MCP函数调用（除single_call和batch_call外）都必须通过此文件中的函数调用
-- 不能直接调用hierarchy_create、edit_gameobject、base_editor等函数
-- 必须使用single_call进行单个函数调用，或使用batch_call进行批量调用
-- 这是Unity MCP系统的核心调用入口，所有其他工具函数都通过这里转发到Unity
+⚠️ important notes：
+- allMCPfunction call（exceptsingle_callandbatch_calloutside）all must be called via functions in this file
+- Cannot be called directlyhierarchy_create、edit_gameobject、base_editorand functions
+- Must usesingle_callperform a single function call，or usebatch_callPerform batch calls
+- this isUnity MCPcore invocation entry of the system，all other tool functions are forwarded here toUnity
 """
 import json
 from typing import Annotated, List, Dict, Any, Literal
@@ -13,20 +13,20 @@ from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
 from unity_connection import get_unity_connection
 
-# 公共的错误提示文本
+# common error message text
 def get_common_call_response(func_name: str) -> dict:
     """
-    获取公共的错误响应格式
+    get common error response format
     
     Args:
-        func_name: 函数名称
+        func_name: function name
         
     Returns:
-        标准的错误响应字典
+        standard error response dict
     """
     return {
         "success": False,
-        "error": "请使用 single_call(func='{func_name}', args={{...}}) 来调用此函数".format(func_name=func_name),
+        "error": "please use single_call(func='{func_name}', args={{...}}) To call thisfunction".format(func_name=func_name),
         "data": None
     }
 
@@ -35,13 +35,13 @@ def register_call_tools(mcp: FastMCP):
     def single_call(
         ctx: Context,
         func: Annotated[str, Field(
-            title="Unity函数名称",
-            description="要调用的Unity函数名称。⚠️ 重要：所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用",
+            title="Unityfunction name",
+            description="to callUnityfunction name。⚠️ important：allMCPfunction call（exceptsingle_callandbatch_calloutside）must be invoked via this function",
             examples=["hierarchy_create", "edit_gameobject", "base_editor", "gameplay", "console_write"]
         )],
         args: Annotated[Dict[str, Any], Field(
-            title="函数参数",
-            description="传递给Unity函数的参数字典。参数格式必须严格按照目标函数的定义，所有参数都通过此args字典传递",
+            title="functionParameters",
+            description="pass toUnityparameter dict of the function。argument format must strictly follow target function definition，all parameters go through thisargspass as dict",
             default_factory=dict,
             examples=[
                 {"source": "primitive", "name": "Cube", "primitive_type": "Cube"},
@@ -50,59 +50,59 @@ def register_call_tools(mcp: FastMCP):
             ]
         )] = {}
     ) -> Dict[str, Any]:
-        """单个函数调用工具，用于调用所有Unity MCP函数。（一级工具）
+        """single function call utility，Used to invokeallUnity MCPfunction。（primary tool）
         
-        ⚠️ 重要说明：
-        - 所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用
-        - 不能直接调用hierarchy_create、edit_gameobject等函数，必须通过single_call
-        - func参数指定要调用的函数名，args参数传递该函数所需的所有参数
+        ⚠️ important notes：
+        - allMCPfunction call（exceptsingle_callandbatch_calloutside）must be invoked via this function
+        - Cannot be called directlyhierarchy_create、edit_gameobjectand functions，must go throughsingle_call
+        - funcparameter specifies function name to call，argsparameters pass all arguments required by the function
         
-        支持的函数包括但不限于：
-        - hierarchy_create: 创建GameObject
-        - edit_gameobject: 编辑GameObject
-        - base_editor: 编辑器管理
-        - gameplay: 游戏玩法控制
-        - console_write: 控制台输出
-        - 以及其他所有MCP工具函数
+        supported functions include but are not limited to：
+        - hierarchy_create: createGameObject
+        - edit_gameobject: editGameObject
+        - base_editor: editManager
+        - gameplay: Gameplay control
+        - console_write: Console output
+        - And otherallMCPutility function
         """
         
         try:
-            # 验证函数名称
+            # Validatefunction name
             if not func or not isinstance(func, str):
                 return {
                     "success": False,
-                    "error": "函数名称无效或为空",
+                    "error": "function name invalid or empty",
                     "result": None
                 }
             
-            # 验证参数类型
+            # Validate parameter types
             if not isinstance(args, dict):
                 return {
                     "success": False,
-                    "error": "参数必须是对象类型",
+                    "error": "argument must be an object",
                     "result": None
                 }
             
-            # 获取Unity连接实例
+            # getUnityconnection instance
             bridge = get_unity_connection()
             
             if bridge is None:
                 return {
                     "success": False,
-                    "error": "无法获取Unity连接",
+                    "error": "unable to obtainUnityconnection",
                     "result": None
                 }
             
-            # 准备发送给Unity的参数
+            # Prepare to send toUnityparameters of
             params = {
                 "func": func,
                 "args": args
             }
             
-            # 使用带重试机制的命令发送
+            # send command with retry mechanism
             result = bridge.send_command_with_retry("single_call", params, max_retries=2)
             
-            # 确保返回结果包含success标志
+            # ensure result containssuccessflag
             if isinstance(result, dict):
                 return result
             else:
@@ -115,19 +115,19 @@ def register_call_tools(mcp: FastMCP):
         except json.JSONDecodeError as e:
             return {
                 "success": False,
-                "error": f"参数序列化失败: {str(e)}",
+                "error": f"parameter serialization failed: {str(e)}",
                 "result": None
             }
         except ConnectionError as e:
             return {
                 "success": False,
-                "error": f"Unity连接错误: {str(e)}",
+                "error": f"Unityconnection error: {str(e)}",
                 "result": None
             }
         except Exception as e:
             return {
                 "success": False,
-                "error": f"函数调用失败: {str(e)}",
+                "error": f"function callFailed: {str(e)}",
                 "result": None
             }
 
@@ -135,8 +135,8 @@ def register_call_tools(mcp: FastMCP):
     def batch_call(
         ctx: Context,
         funcs: Annotated[List[Dict[str, Any]], Field(
-            title="函数调用列表",
-            description="要批量执行的Unity函数调用列表，按顺序执行。⚠️ 重要：每个元素必须包含func和args字段，func指定要调用的MCP函数名，args传递该函数的所有参数",
+            title="function callList",
+            description="To execute in batchofUnityfunction callList，Execute in order。⚠️ important：each element must includefuncandargsfield，funcSpecifyto callMCPfunction name，argspass all parameters for the function",
             min_length=1,
             max_length=50,
             examples=[
@@ -152,43 +152,43 @@ def register_call_tools(mcp: FastMCP):
             ]
         )]
     ) -> Dict[str, Any]:
-        """批量函数调用工具，可以按顺序调用Unity中的多个MCP函数并收集所有返回值。（一级工具）
+        """batch function call utility，can be called in sequenceUnityInofMultipleMCPinvoke functions and collect all returns。（primary tool）
         
-        ⚠️ 重要说明：
-        - 所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用
-        - 每个函数调用元素必须包含func（函数名）和args（参数字典）字段
-        - 函数名必须是有效的MCP函数名，如hierarchy_create、edit_gameobject等
-        - 参数格式必须严格按照目标函数的定义
+        ⚠️ important notes：
+        - allMCPfunction call（exceptsingle_callandbatch_calloutside）must be invoked via this function
+        - each function call item must includefunc（function name）andargs（parameter dict）field
+        - function name must be validMCPfunction name，such ashierarchy_create、edit_gameobjectetc
+        - argument format must strictly follow target function definition
 
-        支持事务性操作和批量处理，常用场景：
-        - 创建并配置GameObject：创建 → 设置属性 → 添加组件
-        - 场景管理：播放 → 截图 → 停止
-        - 批量创建：创建多个不同类型的GameObject
-        - UI创建：创建Canvas → 创建UI元素 → 设置布局
+        supports transactional and batch operations，Common use cases：
+        - createAnd configureGameObject：create → set property → add component
+        - scene management：play → screenshot → stop
+        - batch create：create multiple different types ofGameObject
+        - UIcreate：createCanvas → createUIelement → set layout
         """
         
-        # 获取Unity连接实例
+        # getUnityconnection instance
         bridge = get_unity_connection()
         
         try:
-            # 验证输入参数
+            # Validate input parameters
             if not isinstance(funcs, list):
                 return {
                     "success": False,
                     "results": [],
-                    "errors": ["funcs参数必须是数组类型"],
+                    "errors": ["funcsarguments must be an array"],
                     "total_calls": 0,
                     "successful_calls": 0,
                     "failed_calls": 1
                 }
             
-            # 基本的函数调用格式验证
+            # basic function call format validation
             for i, func_call in enumerate(funcs):
                 if not isinstance(func_call, dict):
                     return {
                         "success": False,
                         "results": [],
-                        "errors": [f"第{i+1}个函数调用必须是对象类型"],
+                        "errors": [f"No{i+1}each function call must be an object"],
                         "total_calls": len(funcs),
                         "successful_calls": 0,
                         "failed_calls": 1
@@ -198,7 +198,7 @@ def register_call_tools(mcp: FastMCP):
                     return {
                         "success": False,
                         "results": [],
-                        "errors": [f"第{i+1}个函数调用的func字段无效或为空"],
+                        "errors": [f"No{i+1}Itemfunction calloffuncfield invalid or empty"],
                         "total_calls": len(funcs),
                         "successful_calls": 0,
                         "failed_calls": 1
@@ -208,20 +208,20 @@ def register_call_tools(mcp: FastMCP):
                     return {
                         "success": False,
                         "results": [],
-                        "errors": [f"第{i+1}个函数调用的args字段必须是对象类型"],
+                        "errors": [f"No{i+1}Itemfunction callofargsfield must be an object"],
                         "total_calls": len(funcs),
                         "successful_calls": 0,
                         "failed_calls": 1
                     }
             
-            # 使用带重试机制的命令发送到Unity的functions_call处理器
+            # send with retry mechanism toUnityoffunctions_callhandler
             result = bridge.send_command_with_retry("batch_call", funcs, max_retries=1)
             
-            # Unity的functions_call处理器返回的结果已经是完整的格式，直接返回data部分
+            # Unityoffunctions_callhandler returns results in complete format，return directlydatasection
             if isinstance(result, dict) and "data" in result:
                 return result["data"]
             else:
-                # 如果返回格式不符合预期，包装成标准格式
+                # if return format is unexpected，wrap into standard format
                 return {
                     "success": True,
                     "results": [result],
@@ -235,7 +235,7 @@ def register_call_tools(mcp: FastMCP):
             return {
                 "success": False,
                 "results": [],
-                "errors": [f"批量调用转发失败: {str(e)}"],
+                "errors": [f"batch call forwarding failed: {str(e)}"],
                 "total_calls": len(funcs) if isinstance(funcs, list) else 0,
                 "successful_calls": 0,
                 "failed_calls": 1

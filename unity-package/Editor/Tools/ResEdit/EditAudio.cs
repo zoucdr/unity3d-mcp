@@ -10,50 +10,50 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// 专门的音频管理工具，提供音频的导入、修改、复制、删除等操作
-    /// 对应方法名: edit_audio
+    /// Specialized audio management tool，Provide audio import、Modify、Copy、Delete etc. operations
+    /// Corresponding method name: edit_audio
     /// </summary>
-    [ToolName("edit_audio", "资源管理")]
+    [ToolName("edit_audio", "Asset management")]
     public class EditAudio : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：import, modify, duplicate, delete, get_info, search, set_import_settings, convert_format, extract_metadata", false),
-                new MethodKey("path", "音频资源路径，Unity标准格式：Assets/Audio/AudioName.wav", false),
-                new MethodKey("source_file", "源文件路径（导入时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.wav, *.mp3, *.ogg", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("import_settings", "导入设置", true),
-                new MethodKey("target_format", "目标格式（转换时使用）", true),
-                // 音频导入设置参数
-                new MethodKey("force_to_mono", "是否强制转换为单声道", true),
-                new MethodKey("load_type", "加载类型：DecompressOnLoad, CompressedInMemory, Streaming", true),
-                new MethodKey("compression_format", "压缩格式：PCM, Vorbis, MP3, ADPCM", true),
-                new MethodKey("quality", "质量（0-1）", true),
-                new MethodKey("sample_rate_setting", "采样率设置：PreserveSampleRate, OptimizeSampleRate, OverrideSampleRate", true),
-                new MethodKey("sample_rate", "采样率", true),
-                new MethodKey("preload_audio_data", "是否预加载音频数据", true),
-                new MethodKey("load_in_background", "是否在后台加载", true),
-                new MethodKey("ambisonic_rendering", "是否启用环绕声渲染", true),
-                new MethodKey("dsp_buffer_size", "DSP缓冲区大小：BestPerformance, GoodLatency, BestLatency", true),
-                new MethodKey("virtualize_when_silent", "静音时是否虚拟化", true),
-                new MethodKey("spatialize", "是否空间化", true),
-                new MethodKey("spatialize_post_effects", "是否在后期效果后空间化", true),
-                new MethodKey("user_data", "用户数据", true),
-                new MethodKey("asset_bundle_name", "资源包名称", true),
-                new MethodKey("asset_bundle_variant", "资源包变体", true)
+                new MethodKey("action", "Operation type：import, modify, duplicate, delete, get_info, search, set_import_settings, convert_format, extract_metadata", false),
+                new MethodKey("path", "Audio resource path，UnityStandard format：Assets/Audio/AudioName.wav", false),
+                new MethodKey("source_file", "Source file path（Use on import）", true),
+                new MethodKey("destination", "Target path（Copy/Use during move）", true),
+                new MethodKey("query", "Search mode，Such as*.wav, *.mp3, *.ogg", true),
+                new MethodKey("recursive", "Recursively search subfolders", true),
+                new MethodKey("force", "Whether to force operation（Overwrite existing files etc.）", true),
+                new MethodKey("import_settings", "Import setting", true),
+                new MethodKey("target_format", "Target format（Use on conversion）", true),
+                // Audio import setting parameter
+                new MethodKey("force_to_mono", "Whether force convert to mono", true),
+                new MethodKey("load_type", "Load type：DecompressOnLoad, CompressedInMemory, Streaming", true),
+                new MethodKey("compression_format", "Compression format：PCM, Vorbis, MP3, ADPCM", true),
+                new MethodKey("quality", "Quality（0-1）", true),
+                new MethodKey("sample_rate_setting", "Sample rate setting：PreserveSampleRate, OptimizeSampleRate, OverrideSampleRate", true),
+                new MethodKey("sample_rate", "Sample rate", true),
+                new MethodKey("preload_audio_data", "Whether preload audio data", true),
+                new MethodKey("load_in_background", "Whether background loading", true),
+                new MethodKey("ambisonic_rendering", "Whether enable surround rendering", true),
+                new MethodKey("dsp_buffer_size", "DSPBuffer size：BestPerformance, GoodLatency, BestLatency", true),
+                new MethodKey("virtualize_when_silent", "Virtualize when muted", true),
+                new MethodKey("spatialize", "Whether spatialized", true),
+                new MethodKey("spatialize_post_effects", "Spatialize after post effects", true),
+                new MethodKey("user_data", "User data", true),
+                new MethodKey("asset_bundle_name", "Asset bundle name", true),
+                new MethodKey("asset_bundle_variant", "Asset bundle variant", true)
             };
         }
 
         /// <summary>
-        /// 创建状态树
+        /// Create state tree
         /// </summary>
         protected override StateTree CreateStateTree()
         {
@@ -72,10 +72,10 @@ namespace UnityMcp.Tools
                 .Build();
         }
 
-        // --- 状态树操作方法 ---
+        // --- State tree operation method ---
 
         /// <summary>
-        /// 处理导入操作
+        /// Handle import operation
         /// </summary>
         private object HandleImportAction(JsonClass args)
         {
@@ -96,7 +96,7 @@ namespace UnityMcp.Tools
             string fullPath = SanitizeAssetPath(path);
             string directory = Path.GetDirectoryName(fullPath);
 
-            // 确保目录存在
+            // Ensure directory exists
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), directory)))
             {
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), directory));
@@ -108,15 +108,15 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 检查源文件是否存在
+                // Check if source file exists
                 if (!File.Exists(sourceFile))
                     return Response.Error($"Source file not found: {sourceFile}");
 
-                // 复制文件到目标路径
+                // Copy file to target path
                 string targetFilePath = Path.Combine(Directory.GetCurrentDirectory(), fullPath);
                 File.Copy(sourceFile, targetFilePath);
 
-                // 导入设置
+                // Import setting
                 if (importSettings != null && importSettings.Count > 0)
                 {
                     AssetDatabase.ImportAsset(fullPath);
@@ -142,7 +142,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理修改操作
+        /// Handle modify operation
         /// </summary>
         private object HandleModifyAction(JsonClass args)
         {
@@ -189,7 +189,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理复制操作
+        /// Handle copy operation
         /// </summary>
         private object HandleDuplicateAction(JsonClass args)
         {
@@ -241,7 +241,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理删除操作
+        /// Handle delete operation
         /// </summary>
         private object HandleDeleteAction(JsonClass args)
         {
@@ -279,7 +279,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理获取信息操作
+        /// Handle info retrieval operation
         /// </summary>
         private object HandleGetInfoAction(JsonClass args)
         {
@@ -308,14 +308,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理搜索操作
+        /// Handle search operation
         /// </summary>
         private object HandleSearchAction(JsonClass args)
         {
             string searchPattern = args["query"]?.Value;
             string pathScope = args["path"]?.Value;
 
-            // 搜索操作至少需要query或path之一
+            // Search operation requires at leastqueryOrpathOne of
             if (string.IsNullOrEmpty(searchPattern) && string.IsNullOrEmpty(pathScope))
             {
                 return Response.Error("Either 'query' or 'path' parameter is required for search.");
@@ -377,7 +377,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理设置导入设置操作
+        /// Handle set import settings operation
         /// </summary>
         private object HandleSetImportSettingsAction(JsonClass args)
         {
@@ -424,7 +424,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理转换格式操作
+        /// Handle format conversion operation
         /// </summary>
         private object HandleConvertFormatAction(JsonClass args)
         {
@@ -436,7 +436,7 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(targetFormat))
                 return Response.Error("'target_format' is required for convert_format.");
 
-            // 验证目标格式是否支持
+            // Verify if target format is supported
             string[] supportedFormats = { "pcm", "vorbis", "mp3", "adpcm" };
             if (!supportedFormats.Contains(targetFormat.ToLowerInvariant()))
             {
@@ -460,7 +460,7 @@ namespace UnityMcp.Tools
 
                 AudioImporterSampleSettings settings = importer.defaultSampleSettings;
 
-                // 设置目标格式
+                // Set target format
                 switch (targetFormat.ToLowerInvariant())
                 {
                     case "pcm":
@@ -496,7 +496,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理提取元数据操作
+        /// Handle extract metadata operation
         /// </summary>
         private object HandleExtractMetadataAction(JsonClass args)
         {
@@ -528,10 +528,10 @@ namespace UnityMcp.Tools
                     channels = audioClip.channels,
                     samples = audioClip.samples,
                     load_type = audioClip.loadType.ToString(),
-                    // preload_audio_data = targetAudioClip.preloadAudioData, // 在某些Unity版本中可能不可用
-                    // load_in_background = targetAudioClip.loadInBackground, // 在某些Unity版本中可能不可用
-                    // ambisonic_rendering = targetAudioClip.ambisonic, // 在某些Unity版本中可能不可用
-                    // 注意：spatialize 和 spatializePostEffects 属性在某些Unity版本中可能不可用
+                    // preload_audio_data = targetAudioClip.preloadAudioData, // In someUnityMay be unavailable in version
+                    // load_in_background = targetAudioClip.loadInBackground, // In someUnityMay be unavailable in version
+                    // ambisonic_rendering = targetAudioClip.ambisonic, // In someUnityMay be unavailable in version
+                    // Note：spatialize And spatializePostEffects Property in someUnityMay be unavailable in version
                     // spatialize = targetAudioClip.spatialize,
                     // spatialize_post_effects = targetAudioClip.spatializePostEffects
                 };
@@ -545,10 +545,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- 内部辅助方法 ---
+        // --- Internal helper method ---
 
         /// <summary>
-        /// 确保资产路径以"Assets/"开头
+        /// Ensure asset path starts with"Assets/"Start
         /// </summary>
         private string SanitizeAssetPath(string path)
         {
@@ -563,7 +563,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查资产是否存在
+        /// Check if asset exists
         /// </summary>
         private bool AssetExists(string sanitizedPath)
         {
@@ -583,7 +583,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 确保目录存在
+        /// Ensure directory exists
         /// </summary>
         private void EnsureDirectoryExists(string directoryPath)
         {
@@ -598,7 +598,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 应用音频导入设置
+        /// Apply audio import settings
         /// </summary>
         private bool ApplyAudioImportSettings(AudioImporter importer, JsonClass settings)
         {
@@ -621,8 +621,8 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool forceToMono = settingValue.AsBool;
-                                // 注意：forceToMono 属性在某些Unity版本中可能不可用
-                                // 这里使用注释掉的方式，避免编译错误
+                                // Note：forceToMono Property in someUnityMay be unavailable in version
+                                // Here use commented-out method，Avoid compile error
                                 LogInfo($"[ApplyAudioImportSettings] forceToMono setting not supported in current Unity version");
                             }
                             break;
@@ -687,7 +687,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
                                 float quality = settingValue.AsFloat;
-                                quality = Mathf.Clamp01(quality); // 确保在0-1范围内
+                                quality = Mathf.Clamp01(quality); // Ensure in0-1Within range
                                 if (Math.Abs(sampleSettings.quality - quality) > 0.001f)
                                 {
                                     sampleSettings.quality = quality;
@@ -737,7 +737,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool preloadAudioData = settingValue.AsBool;
-                                // 注意：preloadAudioData 属性在某些Unity版本中可能不可用
+                                // Note：preloadAudioData Property in someUnityMay be unavailable in version
                                 LogInfo($"[ApplyAudioImportSettings] preloadAudioData setting not supported in current Unity version");
                             }
                             break;
@@ -745,7 +745,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool loadInBackground = settingValue.AsBool;
-                                // 注意：loadInBackground 属性在某些Unity版本中可能不可用
+                                // Note：loadInBackground Property in someUnityMay be unavailable in version
                                 LogInfo($"[ApplyAudioImportSettings] loadInBackground setting not supported in current Unity version");
                             }
                             break;
@@ -753,7 +753,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool ambisonicRendering = settingValue.AsBool;
-                                // 注意：ambisonicRendering 属性在某些Unity版本中可能不可用
+                                // Note：ambisonicRendering Property in someUnityMay be unavailable in version
                                 // if (sampleSettings.ambisonicRendering != ambisonicRendering)
                                 // {
                                 //     sampleSettings.ambisonicRendering = ambisonicRendering;
@@ -766,7 +766,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.String)
                             {
                                 string dspBufferSize = settingValue.Value;
-                                // 注意：DSPBufferSize 枚举和 dspBufferSize 属性在某些Unity版本中可能不可用
+                                // Note：DSPBufferSize Enum and dspBufferSize Property in someUnityMay be unavailable in version
                                 // DSPBufferSize bufferSize = DSPBufferSize.BestPerformance;
                                 // 
                                 // switch (dspBufferSize.ToLowerInvariant())
@@ -790,7 +790,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool virtualizeWhenSilent = settingValue.AsBool;
-                                // 注意：virtualizeWhenSilent 属性在某些Unity版本中可能不可用
+                                // Note：virtualizeWhenSilent Property in someUnityMay be unavailable in version
                                 // if (sampleSettings.virtualizeWhenSilent != virtualizeWhenSilent)
                                 // {
                                 //     sampleSettings.virtualizeWhenSilent = virtualizeWhenSilent;
@@ -803,7 +803,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool spatialize = settingValue.AsBool;
-                                // 注意：spatialize 属性在某些Unity版本中可能不可用
+                                // Note：spatialize Property in someUnityMay be unavailable in version
                                 LogInfo($"[ApplyAudioImportSettings] spatialize setting not supported in current Unity version");
                             }
                             break;
@@ -811,7 +811,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool spatializePostEffects = settingValue.AsBool;
-                                // 注意：spatializePostEffects 属性在某些Unity版本中可能不可用
+                                // Note：spatializePostEffects Property in someUnityMay be unavailable in version
                                 LogInfo($"[ApplyAudioImportSettings] spatializePostEffects setting not supported in current Unity version");
                             }
                             break;
@@ -832,7 +832,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取音频数据
+        /// Get audio data
         /// </summary>
         private object GetAudioData(string path)
         {
@@ -845,7 +845,7 @@ namespace UnityMcp.Tools
             if (audioClip == null)
                 return null;
 
-            // 获取音频导入器信息
+            // Get audio importer info
             AudioImporter importer = AssetImporter.GetAtPath(path) as AudioImporter;
             object importSettings = null;
 
@@ -854,19 +854,19 @@ namespace UnityMcp.Tools
                 AudioImporterSampleSettings settings = importer.defaultSampleSettings;
                 importSettings = new
                 {
-                    // force_to_mono = settings.forceToMono, // 在某些Unity版本中可能不可用
+                    // force_to_mono = settings.forceToMono, // In someUnityMay be unavailable in version
                     load_type = settings.loadType.ToString(),
                     compression_format = settings.compressionFormat.ToString(),
                     quality = settings.quality,
                     sample_rate_setting = settings.sampleRateSetting.ToString(),
                     sample_rate = (int)settings.sampleRateOverride,
-                    // preload_audio_data = settings.preloadAudioData, // 在某些Unity版本中可能不可用
-                    // load_in_background = settings.loadInBackground, // 在某些Unity版本中可能不可用
-                    // ambisonic_rendering = settings.ambisonicRendering, // 在某些Unity版本中可能不可用
-                    // dsp_buffer_size = settings.dspBufferSize.ToString(), // 在某些Unity版本中可能不可用
-                    // virtualize_when_silent = settings.virtualizeWhenSilent, // 在某些Unity版本中可能不可用
-                    // spatialize = settings.spatialize, // 在某些Unity版本中可能不可用
-                    // spatialize_post_effects = settings.spatializePostEffects // 在某些Unity版本中可能不可用
+                    // preload_audio_data = settings.preloadAudioData, // In someUnityMay be unavailable in version
+                    // load_in_background = settings.loadInBackground, // In someUnityMay be unavailable in version
+                    // ambisonic_rendering = settings.ambisonicRendering, // In someUnityMay be unavailable in version
+                    // dsp_buffer_size = settings.dspBufferSize.ToString(), // In someUnityMay be unavailable in version
+                    // virtualize_when_silent = settings.virtualizeWhenSilent, // In someUnityMay be unavailable in version
+                    // spatialize = settings.spatialize, // In someUnityMay be unavailable in version
+                    // spatialize_post_effects = settings.spatializePostEffects // In someUnityMay be unavailable in version
                 };
             }
 
@@ -882,11 +882,11 @@ namespace UnityMcp.Tools
                 channels = audioClip.channels,
                 samples = audioClip.samples,
                 load_type = audioClip.loadType.ToString(),
-                // preload_audio_data = audioClip.preloadAudioData, // 在某些Unity版本中可能不可用
-                // load_in_background = audioClip.loadInBackground, // 在某些Unity版本中可能不可用
-                // ambisonic_rendering = audioClip.ambisonic, // 在某些Unity版本中可能不可用
-                // spatialize = audioClip.spatialize, // 在某些Unity版本中可能不可用
-                // spatialize_post_effects = audioClip.spatializePostEffects, // 在某些Unity版本中可能不可用
+                // preload_audio_data = audioClip.preloadAudioData, // In someUnityMay be unavailable in version
+                // load_in_background = audioClip.loadInBackground, // In someUnityMay be unavailable in version
+                // ambisonic_rendering = audioClip.ambisonic, // In someUnityMay be unavailable in version
+                // spatialize = audioClip.spatialize, // In someUnityMay be unavailable in version
+                // spatialize_post_effects = audioClip.spatializePostEffects, // In someUnityMay be unavailable in version
                 import_settings = importSettings,
                 lastWriteTimeUtc = File.GetLastWriteTimeUtc(Path.Combine(Directory.GetCurrentDirectory(), path)).ToString("o")
             };

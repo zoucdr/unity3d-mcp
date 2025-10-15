@@ -1,5 +1,5 @@
 """
-Unity对象删除工具，包含GameObject、资源和其他Unity对象的删除功能。
+UnityObject deletion tool，IncludeGameObject、Assets and otherUnityObject deletion feature。
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -12,30 +12,30 @@ def register_object_delete_tools(mcp: FastMCP):
     def object_delete(
         ctx: Context,
         path: Annotated[Optional[str], Field(
-            title="对象路径",
-            description="要删除的对象的层次结构路径",
+            title="Object path",
+            description="Hierarchy path of the object to delete",
             default=None,
             examples=["Player", "Canvas/UI/Button", "Assets/Materials/OldMaterial.mat"]
         )] = None,
         instance_id: Annotated[Optional[int], Field(
-            title="实例ID",
-            description="要删除的对象的实例ID",
+            title="InstanceID",
+            description="Instance of the object to deleteID",
             default=None,
             examples=[12345, 67890]
         )] = None,
         confirm: Annotated[Optional[bool], Field(
-            title="强制确认",
-            description="是否强制显示确认对话框：true=总是确认，false/unset=智能确认（≤3个对象自动删除，>3个显示对话框）",
+            title="Force confirmation",
+            description="Whether to force confirmation dialog：true=Always confirm，false/unset=Smart confirmation（≤3Objects auto-deleted，>3Dialogs shown）",
             default=None
         )] = None
     ) -> Dict[str, Any]:
-        """Unity对象删除工具，用于删除GameObject、资源和其他Unity对象。（二级工具）
+        """UnityObject deletion tool，Used to deleteGameObject、Assets and otherUnityObject。（Secondary tool）
 
-        支持多种删除方式和智能确认机制，适用于：
-        - 场景对象删除：删除场景中的GameObject
-        - 资源删除：删除项目中的资源文件
-        - 批量删除：删除多个对象
-        - 安全删除：带确认机制的删除操作
+        Supports multiple delete modes with smart confirmation，Suitable for：
+        - Scene object deletion：Delete in sceneGameObject
+        - Asset deletion：Delete asset files in the project
+        - Bulk delete：Delete multiple objects
+        - Safe delete：Deletion with confirmation
         """
         
         return get_common_call_response("object_delete")

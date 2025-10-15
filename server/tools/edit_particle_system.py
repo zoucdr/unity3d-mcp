@@ -1,6 +1,6 @@
 """
-粒子系统编辑工具
-专门用于Unity粒子系统的创建、配置、播放控制等操作
+particle system editing tool
+specially forUnitycreation of particle system、configuration、playback control operations
 """
 
 from typing import Dict, Any, Optional, List
@@ -15,378 +15,378 @@ def register_edit_particle_system_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="操作类型",
-            description="操作类型: init_component(初始化组件), get_properties(获取属性), set_properties(设置属性), play(播放), pause(暂停), stop(停止), clear(清除), simulate(模拟), restart(重启)",
+            title="operation type",
+            description="operation type: init_component(initialize component), get_properties(get properties), set_properties(set properties), play(play), pause(pause), stop(stop), clear(clear), simulate(simulate), restart(restart)",
             examples=["init_component", "get_properties", "set_properties", "play", "pause", "stop", "clear", "simulate", "restart"]
         ),
         instance_id: Optional[str] = Field(
             None,
-            title="实例ID",
-            description="GameObject的实例ID",
+            title="instanceID",
+            description="GameObjectinstance ofID",
             examples=["12345", "67890"]
         ),
         path: Optional[str] = Field(
             None,
-            title="对象路径",
-            description="GameObject的层次结构路径",
+            title="object path",
+            description="GameObjecthierarchy path of",
             examples=["Particle", "Effects/Smoke", "Player/FireEffect"]
         ),
         
-        # 主模块属性
+        # main module properties
         duration: Optional[float] = Field(
             None,
-            title="持续时间",
-            description="粒子系统持续时间（秒）",
+            title="duration",
+            description="particle system duration（seconds）",
             examples=[5.0, 10.0, 2.5]
         ),
         looping: Optional[bool] = Field(
             None,
-            title="循环播放",
-            description="是否循环播放"
+            title="loop",
+            description="loop playback"
         ),
         prewarm: Optional[bool] = Field(
             None,
-            title="预热",
-            description="是否预热（仅循环模式有效）"
+            title="prewarm",
+            description="prewarm（only valid in loop mode）"
         ),
         start_delay: Optional[float] = Field(
             None,
-            title="开始延迟",
-            description="开始延迟时间（秒）",
+            title="start delay",
+            description="start delay（seconds）",
             examples=[0.0, 0.5, 1.0]
         ),
         start_lifetime: Optional[float] = Field(
             None,
-            title="粒子生命周期",
-            description="粒子生命周期（秒）",
+            title="particle lifetime",
+            description="particle lifetime（seconds）",
             examples=[1.0, 2.0, 5.0]
         ),
         start_speed: Optional[float] = Field(
             None,
-            title="初始速度",
-            description="粒子初始速度",
+            title="initial velocity",
+            description="initial speed",
             examples=[5.0, 10.0, 15.0]
         ),
         start_size: Optional[float] = Field(
             None,
-            title="初始大小",
-            description="粒子初始大小",
+            title="initial size",
+            description="initial size",
             examples=[0.1, 0.5, 1.0]
         ),
         start_rotation: Optional[float] = Field(
             None,
-            title="初始旋转",
-            description="粒子初始旋转角度（度）",
+            title="initial rotation",
+            description="initial rotation angle（degrees）",
             examples=[0.0, 45.0, 90.0]
         ),
         start_color: Optional[List[float]] = Field(
             None,
-            title="初始颜色",
-            description="粒子初始颜色 [r, g, b, a]",
+            title="initial color",
+            description="initial color [r, g, b, a]",
             examples=[[1.0, 1.0, 1.0, 1.0], [1.0, 0.5, 0.0, 1.0]]
         ),
         gravity_modifier: Optional[float] = Field(
             None,
-            title="重力修正",
-            description="重力修正系数",
+            title="gravity modifier",
+            description="gravity modifier",
             examples=[0.0, 0.5, 1.0]
         ),
         simulation_space: Optional[str] = Field(
             None,
-            title="模拟空间",
-            description="模拟空间: Local, World, Custom",
+            title="simulation space",
+            description="simulation space: Local, World, Custom",
             examples=["Local", "World", "Custom"]
         ),
         simulation_speed: Optional[float] = Field(
             None,
-            title="模拟速度",
-            description="模拟速度倍率",
+            title="simulation speed",
+            description="simulation speed multiplier",
             examples=[1.0, 0.5, 2.0]
         ),
         scaling_mode: Optional[str] = Field(
             None,
-            title="缩放模式",
-            description="缩放模式: Hierarchy, Local, Shape",
+            title="scaling mode",
+            description="scaling mode: Hierarchy, Local, Shape",
             examples=["Hierarchy", "Local", "Shape"]
         ),
         play_on_awake: Optional[bool] = Field(
             None,
-            title="唤醒时播放",
-            description="是否在唤醒时自动播放"
+            title="play on awake",
+            description="play on awake"
         ),
         max_particles: Optional[int] = Field(
             None,
-            title="最大粒子数",
-            description="最大粒子数量",
+            title="max particle count",
+            description="max particles",
             examples=[100, 1000, 5000]
         ),
         
-        # 发射模块
+        # emission module
         emission_enabled: Optional[bool] = Field(
             None,
-            title="启用发射",
-            description="是否启用发射模块"
+            title="enable emission",
+            description="enable emission module"
         ),
         emission_rate_over_time: Optional[float] = Field(
             None,
-            title="时间发射率",
-            description="每秒发射粒子数",
+            title="time emission rate",
+            description="particles per second",
             examples=[10.0, 50.0, 100.0]
         ),
         emission_rate_over_distance: Optional[float] = Field(
             None,
-            title="距离发射率",
-            description="每单位距离发射粒子数",
+            title="distance emission rate",
+            description="emission per distance unit",
             examples=[0.0, 5.0, 10.0]
         ),
         
-        # 形状模块
+        # shape module
         shape_enabled: Optional[bool] = Field(
             None,
-            title="启用形状",
-            description="是否启用形状模块"
+            title="enable shape",
+            description="enable shape module"
         ),
         shape_type: Optional[str] = Field(
             None,
-            title="形状类型",
-            description="发射形状类型: Sphere, Hemisphere, Cone, Box, Circle, Edge, Rectangle",
+            title="shape type",
+            description="emission shape type: Sphere, Hemisphere, Cone, Box, Circle, Edge, Rectangle",
             examples=["Sphere", "Cone", "Box", "Circle"]
         ),
         shape_angle: Optional[float] = Field(
             None,
-            title="锥体角度",
-            description="锥体发射角度（度）",
+            title="cone angle",
+            description="cone angle（degrees）",
             examples=[25.0, 45.0, 90.0]
         ),
         shape_radius: Optional[float] = Field(
             None,
-            title="形状半径",
-            description="发射形状的半径",
+            title="shape radius",
+            description="emission shape radius",
             examples=[0.5, 1.0, 5.0]
         ),
         shape_arc: Optional[float] = Field(
             None,
-            title="圆弧角度",
-            description="圆形/圆环的弧度角度（度）",
+            title="arc angle",
+            description="circle/arc angle（degrees）",
             examples=[360.0, 180.0, 90.0]
         ),
         shape_random_direction: Optional[float] = Field(
             None,
-            title="随机方向",
-            description="随机方向量 (0-1)",
+            title="random direction",
+            description="random direction amount (0-1)",
             examples=[0.0, 0.5, 1.0]
         ),
         
-        # 速度模块
+        # velocity module
         velocity_over_lifetime_enabled: Optional[bool] = Field(
             None,
-            title="启用生命周期速度",
-            description="是否启用生命周期速度模块"
+            title="enable velocity over lifetime",
+            description="enable velocity over lifetime"
         ),
         velocity_linear: Optional[List[float]] = Field(
             None,
-            title="线性速度",
-            description="线性速度 [x, y, z]",
+            title="linear velocity",
+            description="linear velocity [x, y, z]",
             examples=[[0.0, 1.0, 0.0], [1.0, 0.0, 0.0]]
         ),
         velocity_orbital: Optional[List[float]] = Field(
             None,
-            title="轨道速度",
-            description="轨道速度 [x, y, z]",
+            title="orbital velocity",
+            description="orbital velocity [x, y, z]",
             examples=[[0.0, 1.0, 0.0], [0.5, 0.5, 0.0]]
         ),
         
-        # 颜色模块
+        # color module
         color_over_lifetime_enabled: Optional[bool] = Field(
             None,
-            title="启用生命周期颜色",
-            description="是否启用生命周期颜色变化"
+            title="enable color over lifetime",
+            description="enable color over lifetime"
         ),
         
-        # 大小模块
+        # size module
         size_over_lifetime_enabled: Optional[bool] = Field(
             None,
-            title="启用生命周期大小",
-            description="是否启用生命周期大小变化"
+            title="enable size over lifetime",
+            description="enable size over lifetime"
         ),
         
-        # 旋转模块
+        # rotation module
         rotation_over_lifetime_enabled: Optional[bool] = Field(
             None,
-            title="启用生命周期旋转",
-            description="是否启用生命周期旋转"
+            title="enable rotation over lifetime",
+            description="enable rotation over lifetime"
         ),
         rotation_angular_velocity: Optional[float] = Field(
             None,
-            title="角速度",
-            description="旋转角速度（度/秒）",
+            title="angular speed",
+            description="angular velocity（degrees/seconds）",
             examples=[45.0, 90.0, 180.0]
         ),
         
-        # 噪声模块
+        # noise module
         noise_enabled: Optional[bool] = Field(
             None,
-            title="启用噪声",
-            description="是否启用噪声模块"
+            title="enable noise",
+            description="enable noise module"
         ),
         noise_strength: Optional[float] = Field(
             None,
-            title="噪声强度",
-            description="噪声扰动强度",
+            title="noise intensity",
+            description="noise strength",
             examples=[0.1, 0.5, 1.0]
         ),
         noise_frequency: Optional[float] = Field(
             None,
-            title="噪声频率",
-            description="噪声频率",
+            title="noise frequency",
+            description="noise frequency",
             examples=[0.1, 0.5, 1.0]
         ),
         
-        # 碰撞模块
+        # collision module
         collision_enabled: Optional[bool] = Field(
             None,
-            title="启用碰撞",
-            description="是否启用碰撞模块"
+            title="enable collision",
+            description="enable collision module"
         ),
         collision_type: Optional[str] = Field(
             None,
-            title="碰撞类型",
-            description="碰撞类型: Planes, World",
+            title="collision type",
+            description="collision type: Planes, World",
             examples=["Planes", "World"]
         ),
         collision_dampen: Optional[float] = Field(
             None,
-            title="碰撞衰减",
-            description="碰撞衰减系数 (0-1)",
+            title="collision damping",
+            description="damping coefficient (0-1)",
             examples=[0.0, 0.5, 1.0]
         ),
         collision_bounce: Optional[float] = Field(
             None,
-            title="碰撞反弹",
-            description="碰撞反弹系数 (0-1)",
+            title="collision bounce",
+            description="bounce coefficient (0-1)",
             examples=[0.0, 0.5, 1.0]
         ),
         
-        # 渲染模块
+        # renderer module
         render_mode: Optional[str] = Field(
             None,
-            title="渲染模式",
-            description="渲染模式: Billboard, Stretch, HorizontalBillboard, VerticalBillboard, Mesh",
+            title="render mode",
+            description="render mode: Billboard, Stretch, HorizontalBillboard, VerticalBillboard, Mesh",
             examples=["Billboard", "Stretch", "Mesh"]
         ),
         material: Optional[str] = Field(
             None,
-            title="材质路径",
-            description="粒子材质资源路径",
+            title="material path",
+            description="particle material path",
             examples=["Assets/Materials/ParticleMaterial.mat"]
         ),
         sorting_layer: Optional[str] = Field(
             None,
-            title="排序层",
-            description="渲染排序层名称",
+            title="sorting layer",
+            description="render sorting layer name",
             examples=["Default", "Effects", "UI"]
         ),
         sorting_order: Optional[int] = Field(
             None,
-            title="排序顺序",
-            description="排序层内的顺序",
+            title="sorting order",
+            description="order in sorting layer",
             examples=[0, 1, 10]
         ),
         
-        # 纹理表动画模块
+        # texture sheet module
         texture_sheet_animation_enabled: Optional[bool] = Field(
             None,
-            title="启用纹理表动画",
-            description="是否启用纹理表动画"
+            title="enable texture sheet animation",
+            description="enable texture sheet animation"
         ),
         texture_sheet_tiles: Optional[List[int]] = Field(
             None,
-            title="纹理表分块",
-            description="纹理表分块数 [x, y]",
+            title="texture sheet tiles",
+            description="texture sheet tiles [x, y]",
             examples=[[2, 2], [4, 4], [8, 8]]
         ),
         texture_sheet_fps: Optional[float] = Field(
             None,
-            title="动画帧率",
-            description="纹理表动画帧率",
+            title="animation frame rate",
+            description="texture sheet frame rate",
             examples=[30.0, 60.0, 24.0]
         ),
         
-        # 拖尾模块
+        # trail module
         trails_enabled: Optional[bool] = Field(
             None,
-            title="启用拖尾",
-            description="是否启用拖尾模块"
+            title="enable trails",
+            description="enable trail module"
         ),
         trails_ratio: Optional[float] = Field(
             None,
-            title="拖尾比率",
-            description="产生拖尾的粒子比率 (0-1)",
+            title="trail ratio",
+            description="trail particle ratio (0-1)",
             examples=[0.5, 1.0]
         ),
         trails_lifetime: Optional[float] = Field(
             None,
-            title="拖尾生命周期",
-            description="拖尾生命周期（秒）",
+            title="trail lifetime",
+            description="trail lifetime（seconds）",
             examples=[0.5, 1.0, 2.0]
         ),
         
-        # 播放控制
+        # playback control
         simulate_time: Optional[float] = Field(
             None,
-            title="模拟时间",
-            description="模拟前进的时间（秒），用于simulate操作",
+            title="simulation time",
+            description="simulate forward time（seconds），forsimulateoperation",
             examples=[0.5, 1.0, 2.0]
         ),
         with_children: Optional[bool] = Field(
             True,
-            title="包含子粒子",
-            description="操作是否包含子粒子系统"
+            title="include sub particles",
+            description="whether to include sub particle systems"
         )
     ) -> Dict[str, Any]:
         """
-        粒子系统编辑工具,提供完整的粒子系统创建、配置和控制功能。（二级工具）
+        particle system editing tool,provide full particle system creation、configuration and control。（secondary tool）
 
-        支持多种粒子系统操作，适用于：
-        - 特效创建：快速创建和配置粒子特效
-        - 属性调整：实时调整粒子系统的各种参数
-        - 播放控制：精确控制粒子系统的播放、暂停、停止
-        - 模拟调试：模拟粒子系统的运行状态
+        supports various particle operations，suitable for：
+        - effect creation：quickly create and configure effects
+        - property tuning：adjust particle system parameters in real time
+        - playback control：control particle playback precisely、pause、stop
+        - simulation debug：simulate particle system state
 
-        主要功能模块：
-        1. 主模块：持续时间、循环、生命周期、速度、大小、颜色等基础属性
-        2. 发射模块：控制粒子发射速率
-        3. 形状模块：定义粒子发射形状（球体、锥体、盒子等）
-        4. 速度模块：设置粒子的线性和轨道速度
-        5. 颜色模块：粒子颜色随生命周期变化
-        6. 大小模块：粒子大小随生命周期变化
-        7. 旋转模块：粒子旋转效果
-        8. 噪声模块：添加噪声扰动
-        9. 碰撞模块：粒子与场景碰撞
-        10. 渲染模块：控制粒子渲染方式
-        11. 纹理表动画：序列帧动画
-        12. 拖尾模块：粒子拖尾效果
+        main modules：
+        1. main module：duration、loop、lifetime、speed、size、basic properties such as color
+        2. emission module：control emission rate
+        3. shape module：define emission shape（sphere、cone、box etc）
+        4. velocity module：set linear and orbital velocity
+        5. color module：particle color changes over lifetime
+        6. size module：particle size changes over lifetime
+        7. rotation module：rotation effect
+        8. noise module：add noise
+        9. collision module：particle scene collisions
+        10. renderer module：control particle rendering mode
+        11. Texture sheet animation：sprite sheet animation
+        12. trail module：trail effect
 
-        操作类型：
-        - init_component: 初始化或添加粒子系统组件
-        - get_properties: 获取粒子系统当前属性
-        - set_properties: 设置粒子系统属性
-        - play: 播放粒子系统
-        - pause: 暂停粒子系统
-        - stop: 停止粒子系统
-        - clear: 清除所有粒子
-        - simulate: 模拟粒子系统运行
-        - restart: 重启粒子系统
+        operation type：
+        - init_component: initialize or add particle system component
+        - get_properties: get current particle system properties
+        - set_properties: set particle system properties
+        - play: play particle system
+        - pause: pause particle system
+        - stop: stop particle system
+        - clear: clear all particles
+        - simulate: simulate particle system
+        - restart: restart particle system
 
-        示例用法：
-        1. 创建简单的火焰效果:
+        example usage：
+        1. create a simple flame effect:
            {"action": "init_component", "path": "FireEffect", "start_color": [1.0, 0.5, 0.0, 1.0], 
             "start_lifetime": 2.0, "emission_rate_over_time": 50.0, "shape_type": "Cone"}
 
-        2. 播放粒子特效:
+        2. play particle effect:
            {"action": "play", "path": "FireEffect", "with_children": true}
 
-        3. 调整粒子大小:
+        3. adjust particle size:
            {"action": "set_properties", "path": "FireEffect", "start_size": 1.5, "max_particles": 1000}
         """
 

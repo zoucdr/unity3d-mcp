@@ -12,13 +12,13 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles Unity Editor state management and controls.
-    /// 对应方法名: base_editor
+    /// Corresponding method name: base_editor
     /// </summary>
-    [ToolName("base_editor", "系统管理")]
+    [ToolName("base_editor", "System management")]
     public class BaseEditor : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create list of parameter keys supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -52,7 +52,7 @@ namespace UnityMcp.Tools
         // --- State Tree Action Handlers ---
 
         /// <summary>
-        /// 处理获取编辑器状态的操作
+        /// Handle operation to get editor status
         /// </summary>
         private object HandleGetStateAction(JsonClass args)
         {
@@ -61,7 +61,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理获取编辑器窗口的操作
+        /// Handle operation to get editor window
         /// </summary>
         private object HandleGetWindowsAction(JsonClass args)
         {
@@ -70,7 +70,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理获取选择对象的操作
+        /// Handle operation to get selected object
         /// </summary>
         private object HandleGetSelectionAction(JsonClass args)
         {

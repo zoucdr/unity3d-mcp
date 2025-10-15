@@ -11,14 +11,14 @@ using System.Collections;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// UI规则管理工具，负责管理UI制作方案和修改记录
-    /// 对应方法名: ui_rule_manage
+    /// UIRules management tool，Responsible for managementUICreate solution and modification record
+    /// Corresponding method name: ui_rule_manage
     /// </summary>
-    [ToolName("ui_rule_manage", "UI管理")]
+    [ToolName("ui_rule_manage", "UIManage")]
     public class UIRuleManage : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by the current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -36,7 +36,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建状态树
+        /// Create state tree
         /// </summary>
         protected override StateTree CreateStateTree()
         {
@@ -55,7 +55,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建UI制作规则
+        /// CreateUIMake rules
         /// </summary>
         private object CreateUIRule(StateTreeContext ctx)
         {
@@ -68,41 +68,41 @@ namespace UnityMcp.Tools
 
             if (string.IsNullOrEmpty(savePath))
             {
-                // 如果没有提供保存路径，使用默认路径
+                // If no save path provided，Use default path
                 savePath = "Assets/ScriptableObjects";
             }
 
             try
             {
-                // 确保保存目录存在
+                // Make sure save directory exists
                 if (!System.IO.Directory.Exists(savePath))
                 {
                     System.IO.Directory.CreateDirectory(savePath);
                     AssetDatabase.Refresh();
                 }
 
-                // 检查是否已经存在同名的资产
+                // Check if an asset with the same name already exists
                 string assetPath = Path.Combine(savePath, $"{uiName}_Rule.asset");
                 if (File.Exists(assetPath))
                 {
                     return Response.Error($"FigmaUGUIRuleObject already exists at path: {assetPath}");
                 }
 
-                // 创建新的 FigmaUGUIRuleObject 实例
+                // Create new FigmaUGUIRuleObject Instance
                 UIDefineRuleObject newRule = ScriptableObject.CreateInstance<UIDefineRuleObject>();
 
-                // 设置基本属性
+                // Set basic property
                 newRule.name = uiName;
                 newRule.modify_records = new List<string>();
 
-                // 如果提供了properties，尝试解析JSON数据
+                // If providedproperties，Try to parseJSONData
                 if (!string.IsNullOrEmpty(propertiesJson))
                 {
                     try
                     {
                         JsonClass properties = Json.Parse(propertiesJson) as JsonClass;
 
-                        // 设置各种属性
+                        // Set various attributes
                         if (properties["link_url"] != null)
                             newRule.link_url = properties["link_url"].Value;
 
@@ -117,8 +117,8 @@ namespace UnityMcp.Tools
 
                         if (properties["descriptions"] != null)
                             newRule.descriptions = properties["descriptions"].Value;
-                        // 注意：descriptions和preferred_components现在从McpSettings中获取
-                        // 不再从properties中解析这些字段
+                        // Note：descriptionsAndpreferred_componentsNow fromMcpSettingsGet from
+                        // No longer frompropertiesParse these fields in
                     }
                     catch (Exception jsonEx)
                     {
@@ -126,7 +126,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 创建资产文件
+                // Create asset file
                 AssetDatabase.CreateAsset(newRule, assetPath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
@@ -149,7 +149,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取UI制作规则和方案
+        /// GetUICreate rules and solutions
         /// </summary>
         private object GetUIRule(StateTreeContext ctx)
         {
@@ -160,12 +160,12 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 搜索相关的 UIDefineRule
+                // Search the related UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
                 {
-                    // 即使没有找到特定的UI规则，也可以返回全局的构建步骤和环境配置
+                    // Even if the specific one is not foundUIRule，Can also return global build steps and environment settings
                     var mcpSettings = McpSettings.Instance;
                     return Response.Success($"No specific UI rule found for '{uiName}', but global build configuration is available.",
                         new
@@ -176,8 +176,8 @@ namespace UnityMcp.Tools
                         });
                 }
 
-                // 使用ctx.AsyncReturn处理异步操作
-                LogInfo($"[UIRuleManage] 启动异步获取UI规则: {uiName}");
+                // Usectx.AsyncReturnHandle async operation
+                LogInfo($"[UIRuleManage] Start async fetchUIRule: {uiName}");
                 return ctx.AsyncReturn(GetUIRuleCoroutine(figmaObj, uiName));
             }
             catch (Exception e)
@@ -188,7 +188,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取原型图片（Base64格式）
+        /// Get prototype image（Base64Format）
         /// </summary>
         private object GetPrototypePic(StateTreeContext ctx)
         {
@@ -199,7 +199,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 搜索相关的 UIDefineRule
+                // Search the related UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -207,7 +207,7 @@ namespace UnityMcp.Tools
                     return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
                 }
 
-                // 检查是否有prototype_pic路径
+                // Check whether there isprototype_picPath
                 if (string.IsNullOrEmpty(figmaObj.prototype_pic))
                 {
                     return Response.Success($"No prototype picture path found for UI '{uiName}'.", new
@@ -219,8 +219,8 @@ namespace UnityMcp.Tools
                     });
                 }
 
-                // 使用ctx.AsyncReturn处理异步操作
-                LogInfo($"[UIRuleManage] 启动异步获取原型图片: {uiName}");
+                // Usectx.AsyncReturnHandle async operation
+                LogInfo($"[UIRuleManage] Start async fetch of prototype image: {uiName}");
                 return ctx.AsyncReturn(GetPrototypePicCoroutine(figmaObj, uiName));
             }
             catch (Exception e)
@@ -231,15 +231,15 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取原型图片的协程
+        /// Coroutine to get prototype image
         /// </summary>
         private IEnumerator GetPrototypePicCoroutine(UIDefineRuleObject figmaObj, string uiName)
         {
-            LogInfo($"[UIRuleManage] 启动协程获取原型图片: {uiName}");
+            LogInfo($"[UIRuleManage] Start coroutine to get prototype image: {uiName}");
 
             string prototypePicBase64 = null;
 
-            // 启动图片加载协程
+            // Start image loading coroutine
             yield return LoadImageAsBase64(figmaObj.prototype_pic, (base64Result) =>
             {
                 prototypePicBase64 = base64Result;
@@ -247,7 +247,7 @@ namespace UnityMcp.Tools
 
             bool hasPrototypePic = !string.IsNullOrEmpty(prototypePicBase64);
 
-            LogInfo($"[UIRuleManage] 原型图片加载完成: {uiName}, 成功: {hasPrototypePic}");
+            LogInfo($"[UIRuleManage] Prototype image loaded: {uiName}, Success: {hasPrototypePic}");
 
             yield return Response.Success($"Retrieved prototype picture for UI '{uiName}'.", new
             {
@@ -260,7 +260,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 添加UI修改记录
+        /// AddUIModification record
         /// </summary>
         private object AddModifyRecord(JsonClass args)
         {
@@ -273,7 +273,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 查找对应的 UIDefineRule
+                // Find the corresponding UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -281,20 +281,20 @@ namespace UnityMcp.Tools
                     return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
                 }
 
-                // 确保 modify_records 列表已初始化
+                // Ensure modify_records List initialized
                 if (figmaObj.modify_records == null)
                 {
                     figmaObj.modify_records = new List<string>();
                 }
 
-                // 创建时间戳记录
+                // Create timestamp record
                 string timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 string recordEntry = $"[{timestamp}] {modify_desc}";
 
-                // 添加记录
+                // Add record
                 figmaObj.modify_records.Add(recordEntry);
 
-                // 标记资产为脏数据并保存
+                // Mark asset as dirty and save
                 EditorUtility.SetDirty(figmaObj);
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
@@ -319,7 +319,7 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// 批量记录节点命名信息
+        /// Batch record node naming information
         /// </summary>
         private object RecordNodeNames(JsonClass args)
         {
@@ -334,7 +334,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 查找对应的 UIDefineRule
+                // Find the corresponding UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -342,7 +342,7 @@ namespace UnityMcp.Tools
                     return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
                 }
 
-                // 确保 node_names 列表已初始化
+                // Ensure node_names List initialized
                 if (figmaObj.node_names == null)
                 {
                     figmaObj.node_names = new List<NodeRenameInfo>();
@@ -351,7 +351,7 @@ namespace UnityMcp.Tools
                 int addedCount = 0;
                 int updatedCount = 0;
 
-                // 处理批量节点信息 - 支持两种格式
+                // Handle batch node information - Support two formats
                 try
                 {
                     JsonClass namesObject = Json.Parse(namesDataJson) as JsonClass;
@@ -361,15 +361,15 @@ namespace UnityMcp.Tools
                         string nodeName = null;
                         string originName = null;
 
-                        // 检查值的类型：字符串（简单格式）或对象（详细格式）
+                        // Check the type of value：String（Simple format）Or object（Detailed format）
                         if (kvp.Value is JsonData jsonData && jsonData.GetJSONNodeType() == JsonNodeType.String)
                         {
-                            // 简单格式：{"node_id": "node_name"}
+                            // Simple format：{"node_id": "node_name"}
                             nodeName = jsonData.Value;
                         }
                         else if (kvp.Value is JsonClass jsonClass)
                         {
-                            // 详细格式：{"node_id": {"name": "new_name", "originName": "orig_name"}}
+                            // Detailed format：{"node_id": {"name": "new_name", "originName": "orig_name"}}
                             nodeName = jsonClass["name"]?.Value;
                             originName = jsonClass["originName"]?.Value;
                         }
@@ -409,7 +409,7 @@ namespace UnityMcp.Tools
                     return Response.Error("No valid node naming data found in names_data object.");
                 }
 
-                // 标记资产为脏数据并保存
+                // Mark asset as dirty and save
                 EditorUtility.SetDirty(figmaObj);
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
@@ -433,7 +433,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取节点命名信息
+        /// Get node naming information
         /// </summary>
         private object GetNodeNames(JsonClass args)
         {
@@ -444,7 +444,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 查找对应的 UIDefineRule
+                // Find the corresponding UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -476,7 +476,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 批量记录节点Sprite信息
+        /// Batch record nodesSpriteInformation
         /// </summary>
         private object RecordNodeSprites(JsonClass args)
         {
@@ -492,7 +492,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 查找对应的 UIDefineRule
+                // Find the corresponding UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -500,7 +500,7 @@ namespace UnityMcp.Tools
                     return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
                 }
 
-                // 确保 node_sprites 列表已初始化
+                // Ensure node_sprites List initialized
                 if (figmaObj.node_sprites == null)
                 {
                     figmaObj.node_sprites = new List<NodeSpriteInfo>();
@@ -510,7 +510,7 @@ namespace UnityMcp.Tools
                 int updatedCount = 0;
                 int loadedSpritesCount = 0;
 
-                // 处理批量Sprite信息 - 键值对格式
+                // Handle batchSpriteInformation - Key-value format
                 try
                 {
                     JsonClass spritesObject = Json.Parse(spritesDataJson) as JsonClass;
@@ -526,7 +526,7 @@ namespace UnityMcp.Tools
                             {
                                 existingSprite.fileName = fileName;
 
-                                // 自动载入Sprite
+                                // Auto loadSprite
                                 if (autoLoadSprites)
                                 {
                                     var loadedSprite = LoadSpriteFromPath(figmaObj.img_save_to, fileName);
@@ -543,7 +543,7 @@ namespace UnityMcp.Tools
                             {
                                 var newSpriteInfo = new NodeSpriteInfo { id = nodeId, fileName = fileName };
 
-                                // 自动载入Sprite
+                                // Auto loadSprite
                                 if (autoLoadSprites)
                                 {
                                     var loadedSprite = LoadSpriteFromPath(figmaObj.img_save_to, fileName);
@@ -570,7 +570,7 @@ namespace UnityMcp.Tools
                     return Response.Error("No valid sprite data found in sprites_data object.");
                 }
 
-                // 标记资产为脏数据并保存
+                // Mark asset as dirty and save
                 EditorUtility.SetDirty(figmaObj);
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
@@ -597,30 +597,30 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 从指定路径载入Sprite
+        /// Load from specified pathSprite
         /// </summary>
         private Sprite LoadSpriteFromPath(string imgSaveTo, string fileName)
         {
             if (string.IsNullOrEmpty(imgSaveTo) || string.IsNullOrEmpty(fileName))
                 return null;
 
-            // 构建完整的文件路径
+            // Build the full file path
             string fullPath = System.IO.Path.Combine(imgSaveTo, fileName);
 
-            // 尝试加载Sprite
+            // Try to loadSprite
             Sprite loadedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(fullPath);
             if (loadedSprite != null)
             {
                 return loadedSprite;
             }
 
-            // 如果直接加载失败，尝试查找文件
+            // If direct load fails，Attempt to find file
             string fileNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(fileName);
             string[] foundAssets = AssetDatabase.FindAssets(fileNameWithoutExt + " t:Sprite");
 
             if (foundAssets.Length > 0)
             {
-                // 优先选择在指定路径下的文件
+                // Prefer files in the specified path
                 foreach (string guid in foundAssets)
                 {
                     string assetPath = AssetDatabase.GUIDToAssetPath(guid);
@@ -634,7 +634,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 如果在指定路径下没找到，使用第一个找到的
+                // If not found in the specified path，Use the first one found
                 string firstAssetPath = AssetDatabase.GUIDToAssetPath(foundAssets[0]);
                 Sprite firstSprite = AssetDatabase.LoadAssetAtPath<Sprite>(firstAssetPath);
                 if (firstSprite != null)
@@ -647,7 +647,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取节点Sprite信息
+        /// Get nodeSpriteInformation
         /// </summary>
         private object GetNodeSprites(JsonClass args)
         {
@@ -658,7 +658,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 查找对应的 UIDefineRule
+                // Find the corresponding UIDefineRule
                 UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
 
                 if (figmaObj == null)
@@ -692,15 +692,15 @@ namespace UnityMcp.Tools
         // --- Helper Methods ---
 
         /// <summary>
-        /// 使用协程方式获取UI规则（不包含原型图片）
+        /// Use coroutine method to getUIRule（Does not contain prototype image）
         /// </summary>
         private IEnumerator GetUIRuleCoroutine(UIDefineRuleObject figmaObj, string uiName)
         {
-            LogInfo($"[UIRuleManage] 启动协程获取UI规则: {uiName}");
-            // 获取McpSettings中的配置
+            LogInfo($"[UIRuleManage] Start coroutine fetchUIRule: {uiName}");
+            // GetMcpSettingsConfig in
             var mcpSettings = McpSettings.Instance;
 
-            // 读取optimize_rule_path的文本内容
+            // Readoptimize_rule_pathThe text content of
             string optimizeRuleContent = "";
             string optimizeRuleMessage = "";
 
@@ -712,27 +712,27 @@ namespace UnityMcp.Tools
                     if (File.Exists(fullPath))
                     {
                         optimizeRuleContent = File.ReadAllText(fullPath, System.Text.Encoding.UTF8);
-                        optimizeRuleMessage = "UI布局优化规则已加载";
-                        LogInfo($"[UIRuleManage] 成功读取优化规则文件: {fullPath}");
+                        optimizeRuleMessage = "UILayout optimization rules loaded";
+                        LogInfo($"[UIRuleManage] Successfully read optimization rule file: {fullPath}");
                     }
                     else
                     {
-                        optimizeRuleMessage = "UI布局信息需要下载 - 文件不存在";
-                        LogWarning($"[UIRuleManage] 优化规则文件不存在: {fullPath}");
+                        optimizeRuleMessage = "UILayout info needs downloading - File does not exist";
+                        LogWarning($"[UIRuleManage] Optimization rule file does not exist: {fullPath}");
                     }
                 }
                 catch (Exception e)
                 {
-                    optimizeRuleMessage = $"UI布局信息需要下载 - 读取失败: {e.Message}";
-                    LogError($"[UIRuleManage] 读取优化规则文件失败: {e.Message}");
+                    optimizeRuleMessage = $"UILayout info needs downloading - Read failed: {e.Message}";
+                    LogError($"[UIRuleManage] Fail to read optimization rule file: {e.Message}");
                 }
             }
             else
             {
-                optimizeRuleMessage = "UI布局信息需要下载 - 未设置优化规则路径";
+                optimizeRuleMessage = "UILayout info needs downloading - Optimization rule path not set";
             }
 
-            // 构建UI规则信息（不包含designPic）
+            // BuildUIRule info（Does not containdesignPic）
             var rule = new
             {
                 name = figmaObj.name,
@@ -749,7 +749,7 @@ namespace UnityMcp.Tools
                 sprite_count = figmaObj.node_sprites.Count > 0 ? figmaObj.node_sprites.Count : 0
             };
 
-            LogInfo($"[UIRuleManage] UI规则构建完成: {uiName}");
+            LogInfo($"[UIRuleManage] UIRules construction complete: {uiName}");
 
             yield return Response.Success($"Found UI rule for '{uiName}'.", new
             {
@@ -760,55 +760,55 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 加载图片并转换为Base64（协程版本）
+        /// Load image and convert toBase64（Coroutine version）
         /// </summary>
         private IEnumerator LoadImageAsBase64(string imagePath, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 开始加载图片: {imagePath}");
+            LogInfo($"[UIRuleManage] Begin loading image: {imagePath}");
 
-            // 判断是本地路径还是网络路径
+            // Determine if it is a local or network path
             if (IsNetworkPath(imagePath))
             {
-                // 网络路径：使用UnityWebRequest下载
+                // Network path：UseUnityWebRequestDownload
                 yield return LoadNetworkImageAsBase64(imagePath, callback);
             }
             else
             {
-                // 本地路径：直接读取文件
+                // Local path：Read file directly
                 yield return LoadLocalImageAsBase64(imagePath, callback);
             }
         }
 
         /// <summary>
-        /// 加载网络图片并转换为Base64
+        /// Load online image and convert toBase64
         /// </summary>
         private IEnumerator LoadNetworkImageAsBase64(string url, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 从网络加载图片: {url}");
+            LogInfo($"[UIRuleManage] Load image from network: {url}");
 
             using (var request = UnityWebRequest.Get(url))
             {
-                request.timeout = 30; // 30秒超时
+                request.timeout = 30; // 30Seconds timeout
                 request.SetRequestHeader("User-Agent", "Unity-MCP-UIRuleManager/1.0");
 
                 var operation = request.SendWebRequest();
                 float startTime = Time.realtimeSinceStartup;
 
-                // 等待下载完成
+                // Wait for download complete
                 while (!operation.isDone)
                 {
-                    // 检查超时
+                    // Check timeout
                     if (Time.realtimeSinceStartup - startTime > 30f)
                     {
                         request.Abort();
-                        LogError($"[UIRuleManage] 网络图片下载超时: {url}");
+                        LogError($"[UIRuleManage] Network image download timeout: {url}");
                         callback?.Invoke(null);
                         yield break;
                     }
                     yield return null;
                 }
 
-                // 检查下载结果
+                // Check download result
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     try
@@ -816,49 +816,49 @@ namespace UnityMcp.Tools
                         byte[] imageData = request.downloadHandler.data;
                         string base64String = Convert.ToBase64String(imageData);
 
-                        // 根据Content-Type添加数据URI前缀
+                        // According toContent-TypeAdd dataURIPrefix
                         string contentType = request.GetResponseHeader("Content-Type") ?? "image/png";
                         string dataUri = $"data:{contentType};base64,{base64String}";
 
-                        LogInfo($"[UIRuleManage] 网络图片转换为Base64成功，大小: {imageData.Length} bytes");
+                        LogInfo($"[UIRuleManage] Network image converted toBase64Success，Size: {imageData.Length} bytes");
                         callback?.Invoke(dataUri);
                     }
                     catch (Exception e)
                     {
-                        LogError($"[UIRuleManage] 网络图片Base64转换失败: {e.Message}");
+                        LogError($"[UIRuleManage] Online imageBase64Conversion failed: {e.Message}");
                         callback?.Invoke(null);
                     }
                 }
                 else
                 {
-                    LogError($"[UIRuleManage] 网络图片下载失败: {request.error}");
+                    LogError($"[UIRuleManage] Network image download failed: {request.error}");
                     callback?.Invoke(null);
                 }
             }
         }
 
         /// <summary>
-        /// 加载本地图片并转换为Base64
+        /// Load local image and convert toBase64
         /// </summary>
         private IEnumerator LoadLocalImageAsBase64(string filePath, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 从本地加载图片: {filePath}");
+            LogInfo($"[UIRuleManage] Load image from local: {filePath}");
 
-            // 规范化路径
+            // Normalize path
             string fullPath = GetFullImagePath(filePath);
 
             if (!File.Exists(fullPath))
             {
-                LogError($"[UIRuleManage] 本地图片文件不存在: {fullPath}");
+                LogError($"[UIRuleManage] Local image file does not exist: {fullPath}");
                 callback?.Invoke(null);
                 yield break;
             }
 
-            // 在协程中处理文件读取，避免阻塞
+            // Handle file reading in coroutine，Avoid blocking
             byte[] imageData = null;
             string errorMessage = null;
 
-            // 使用协程分帧读取大文件
+            // Use coroutines to read large files in frames
             yield return ReadFileInChunks(fullPath, (data, error) =>
             {
                 imageData = data;
@@ -867,32 +867,32 @@ namespace UnityMcp.Tools
 
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                LogError($"[UIRuleManage] 本地图片读取失败: {errorMessage}");
+                LogError($"[UIRuleManage] Failed to read local image: {errorMessage}");
                 callback?.Invoke(null);
                 yield break;
             }
 
             if (imageData == null || imageData.Length == 0)
             {
-                LogError($"[UIRuleManage] 本地图片数据为空: {fullPath}");
+                LogError($"[UIRuleManage] Local image data is empty: {fullPath}");
                 callback?.Invoke(null);
                 yield break;
             }
 
-            // 根据文件扩展名确定MIME类型
+            // Determine by file extensionMIMEType
             string extension = Path.GetExtension(fullPath).ToLower();
             string mimeType = GetMimeTypeFromExtension(extension);
 
-            // 转换为Base64
+            // Convert toBase64
             string base64String = Convert.ToBase64String(imageData);
             string dataUri = $"data:{mimeType};base64,{base64String}";
 
-            LogInfo($"[UIRuleManage] 本地图片转换为Base64成功，大小: {imageData.Length} bytes");
+            LogInfo($"[UIRuleManage] Local image converted toBase64Success，Size: {imageData.Length} bytes");
             callback?.Invoke(dataUri);
         }
 
         /// <summary>
-        /// 分块读取文件以避免阻塞（协程版本）
+        /// Read file in chunks to avoid blocking（Coroutine version）
         /// </summary>
         private IEnumerator ReadFileInChunks(string filePath, Action<byte[], string> callback)
         {
@@ -902,7 +902,7 @@ namespace UnityMcp.Tools
 
             FileStream fileStream = null;
 
-            // 在协程外部处理异常，避免在try-catch中使用yield return
+            // Handle exceptions outside the coroutine，Avoid intry-catchUse inyield return
             bool initSuccess = false;
             long totalSize = 0;
 
@@ -924,7 +924,7 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // 读取文件数据
+            // Read file data
             long bytesRead = 0;
             while (bytesRead < totalSize)
             {
@@ -938,7 +938,7 @@ namespace UnityMcp.Tools
                     {
                         if (actualRead < currentChunkSize)
                         {
-                            // 调整数组大小
+                            // Adjust array size
                             Array.Resize(ref chunk, actualRead);
                         }
                         chunks.Add(chunk);
@@ -946,7 +946,7 @@ namespace UnityMcp.Tools
                     }
                     else
                     {
-                        // 没有更多数据可读
+                        // No more data to read
                         break;
                     }
                 }
@@ -956,11 +956,11 @@ namespace UnityMcp.Tools
                     break;
                 }
 
-                // 每读取一块就yield一次，避免阻塞
+                // For each chunk readyieldOnce，Avoid blocking
                 yield return null;
             }
 
-            // 清理资源
+            // Clear resources
             fileStream?.Close();
             fileStream?.Dispose();
 
@@ -970,7 +970,7 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // 合并所有块
+            // Merge all chunks
             int totalLength = chunks.Sum(c => c.Length);
             byte[] result = new byte[totalLength];
             int offset = 0;
@@ -985,7 +985,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 判断是否为网络路径
+        /// Determine whether it's a network path
         /// </summary>
         private bool IsNetworkPath(string path)
         {
@@ -998,23 +998,23 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取图片的完整本地路径
+        /// Get complete local path of image
         /// </summary>
         /// <summary>
-        /// 获取图片的完整本地路径，兼容filePath为全路径或相对路径
+        /// Get complete local path of image，CompatiblefilePathA full path or relative path
         /// </summary>
         private string GetFullImagePath(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 return filePath;
 
-            // 如果已经是绝对路径，直接返回
+            // If already an absolute path，Directly return
             if (Path.IsPathRooted(filePath) && File.Exists(filePath))
             {
                 return filePath;
             }
 
-            // 如果路径以Assets开头，拼接到项目根目录
+            // If path starts withAssetsStart，Append to project root directory
             if (filePath.StartsWith("Assets"))
             {
                 string absPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
@@ -1022,43 +1022,43 @@ namespace UnityMcp.Tools
                     return absPath;
             }
 
-            // 尝试拼接到Assets目录下
+            // Try to append toAssetsIn the directory
             string assetsPath = Path.Combine(Application.dataPath, filePath);
             if (File.Exists(assetsPath))
                 return assetsPath;
 
-            // 如果都找不到，返回原始路径（可能是错误路径）
+            // If none can be found，Return original path（May be wrong path）
             return filePath;
         }
 
         /// <summary>
-        /// 获取优化规则文件的完整本地路径，兼容filePath为全路径或相对路径
+        /// Get the complete local path of the optimization rule file，CompatiblefilePathA full path or relative path
         /// </summary>
         private string GetFullRulePath(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 return filePath;
 
-            // 如果已经是绝对路径，直接返回
+            // If already an absolute path，Directly return
             if (Path.IsPathRooted(filePath))
             {
                 return filePath;
             }
 
-            // 如果路径以Assets开头，拼接到项目根目录
+            // If path starts withAssetsStart，Append to project root directory
             if (filePath.StartsWith("Assets"))
             {
                 string absPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
                 return absPath;
             }
 
-            // 尝试拼接到Assets目录下
+            // Try to append toAssetsIn the directory
             string assetsPath = Path.Combine(Application.dataPath, filePath);
             return assetsPath;
         }
 
         /// <summary>
-        /// 根据文件扩展名获取MIME类型
+        /// Get by file extensionMIMEType
         /// </summary>
         private string GetMimeTypeFromExtension(string extension)
         {
@@ -1078,16 +1078,16 @@ namespace UnityMcp.Tools
                 case ".svg":
                     return "image/svg+xml";
                 default:
-                    return "image/png"; // 默认为PNG
+                    return "image/png"; // Default isPNG
             }
         }
 
         /// <summary>
-        /// 查找相关的UIDefineRule
+        /// Find relatedUIDefineRule
         /// </summary>
         private UIDefineRuleObject FindUIDefineRule(string uiName)
         {
-            // 在全工程中查找所有 UIDefineRule
+            // Find all throughout the project UIDefineRule
             string[] guids = AssetDatabase.FindAssets($"t:" + typeof(UIDefineRuleObject).Name);
 
             foreach (string guid in guids)
@@ -1109,14 +1109,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 构建UI制作规则
+        /// BuildUIMake rules
         /// </summary>
         private object BuildUIRule(UIDefineRuleObject figmaObj)
         {
-            // 获取McpSettings中的配置
+            // GetMcpSettingsConfig in
             var mcpSettings = McpSettings.Instance;
 
-            // 读取optimize_rule_path的文本内容
+            // Readoptimize_rule_pathThe text content of
             string optimizeRuleContent = "";
             string optimizeRuleMessage = "";
 
@@ -1128,21 +1128,21 @@ namespace UnityMcp.Tools
                     if (File.Exists(fullPath))
                     {
                         optimizeRuleContent = File.ReadAllText(fullPath, System.Text.Encoding.UTF8);
-                        optimizeRuleMessage = "UI布局优化规则已加载";
+                        optimizeRuleMessage = "UILayout optimization rules loaded";
                     }
                     else
                     {
-                        optimizeRuleMessage = "UI布局信息需要下载 - 文件不存在";
+                        optimizeRuleMessage = "UILayout info needs downloading - File does not exist";
                     }
                 }
                 catch (Exception e)
                 {
-                    optimizeRuleMessage = $"UI布局信息需要下载 - 读取失败: {e.Message}";
+                    optimizeRuleMessage = $"UILayout info needs downloading - Read failed: {e.Message}";
                 }
             }
             else
             {
-                optimizeRuleMessage = "UI布局信息需要下载 - 未设置优化规则路径";
+                optimizeRuleMessage = "UILayout info needs downloading - Optimization rule path not set";
             }
 
             return new
@@ -1155,7 +1155,7 @@ namespace UnityMcp.Tools
                 optimizeRuleMessage = optimizeRuleMessage,
                 imageScale = figmaObj.image_scale,
                 descriptions = figmaObj.descriptions,
-                // 使用McpUISettingsProvider中的配置替代原来的descriptions和preferred_components
+                // UseMcpUISettingsProviderConfig in replaces the originaldescriptionsAndpreferred_components
                 buildSteps = Json.FromObject(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps()),
                 buildEnvironments = Json.FromObject(mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments()),
                 assetPath = AssetDatabase.GetAssetPath(figmaObj)
@@ -1163,20 +1163,20 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 生成包含构建步骤、构建环境和附加条件的Markdown描述文本
+        /// Generate including build steps、Of build environment and extra conditionsMarkdownDescription text
         /// </summary>
         private string GenerateMarkdownDescription(List<string> buildSteps, List<string> buildEnvironments, string additionalConditions)
         {
             var markdown = new System.Text.StringBuilder();
 
-            // 添加标题
-            markdown.AppendLine("# UI构建规则说明");
+            // Add title
+            markdown.AppendLine("# UIBuild rule description");
             markdown.AppendLine();
 
-            // 添加构建步骤
+            // Add build step
             if (buildSteps != null && buildSteps.Count > 0)
             {
-                markdown.AppendLine("## 🔨 构建步骤");
+                markdown.AppendLine("## 🔨 Build step");
                 markdown.AppendLine();
                 for (int i = 0; i < buildSteps.Count; i++)
                 {
@@ -1185,10 +1185,10 @@ namespace UnityMcp.Tools
                 markdown.AppendLine();
             }
 
-            // 添加构建环境
+            // Add build environment
             if (buildEnvironments != null && buildEnvironments.Count > 0)
             {
-                markdown.AppendLine("## 🌐 构建环境");
+                markdown.AppendLine("## 🌐 Build environment");
                 markdown.AppendLine();
                 foreach (var env in buildEnvironments)
                 {
@@ -1197,10 +1197,10 @@ namespace UnityMcp.Tools
                 markdown.AppendLine();
             }
 
-            // 添加附加条件
+            // Add additional condition
             if (!string.IsNullOrEmpty(additionalConditions))
             {
-                markdown.AppendLine("## 📋 附加条件");
+                markdown.AppendLine("## 📋 Additional condition");
                 markdown.AppendLine();
                 markdown.AppendLine(additionalConditions);
                 markdown.AppendLine();

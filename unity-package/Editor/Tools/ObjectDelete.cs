@@ -17,9 +17,9 @@ namespace UnityMcp.Tools
     ///   - confirm=true: Always shows confirmation dialog before deletion
     ///   - confirm=false/unset: Asset deletion requires confirmation, scene object deletion is direct
     /// Uses coroutines with EditorUtility.DisplayDialog for interactive user confirmation.
-    /// 对应方法名: object_delete
+    /// Corresponding method name: object_delete
     /// </summary>
-    [ToolName("object_delete", "对象编辑")]
+    [ToolName("object_delete", "Object editing")]
     public class ObjectDelete : DualStateMethodBase
     {
         private IObjectSelector objectSelector;
@@ -30,13 +30,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                // 目标查找参数（交给IObjectSelector处理）
+                // Target lookup parameter（Entrust toIObjectSelectorHandle）
                 new MethodKey("path", "Object Hierarchy path", false),
                 new MethodKey("instance_id", "Object InstanceID", true),
                 new MethodKey("confirm", "Force confirmation dialog: true=always confirm, false/unset=smart confirmation (auto ≤3, dialog >3)", true),
@@ -44,7 +44,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建目标定位状态树（使用IObjectSelector）
+        /// Create target location state tree（UseIObjectSelector）
         /// </summary>
         protected override StateTree CreateTargetTree()
         {
@@ -52,21 +52,21 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建操作执行状态树
+        /// Create operation execution state tree
         /// </summary>
         protected override StateTree CreateActionTree()
         {
             return StateTreeBuilder
                 .Create()
                 .Key("confirm")
-                    .Leaf("true", (Func<StateTreeContext, object>)HandleConfirmedDeleteAction) // 确认删除
-                    .Leaf("false", (Func<StateTreeContext, object>)HandleUnconfirmedDeleteAction) // 未确认删除
-                    .DefaultLeaf((Func<StateTreeContext, object>)HandleUnconfirmedDeleteAction) // 默认为未确认删除
+                    .Leaf("true", (Func<StateTreeContext, object>)HandleConfirmedDeleteAction) // Confirm deletion
+                    .Leaf("false", (Func<StateTreeContext, object>)HandleUnconfirmedDeleteAction) // Unconfirmed deletion
+                    .DefaultLeaf((Func<StateTreeContext, object>)HandleUnconfirmedDeleteAction) // Default as unconfirmed deletion
                 .Build();
         }
 
         /// <summary>
-        /// 异步处理需要用户确认的删除操作（仅用于资源文件删除）
+        /// Asynchronously handle delete actions requiring user confirmation（For resource file deletions only）
         /// </summary>
         private IEnumerator HandleConfirmedDeleteActionAsync(StateTreeContext ctx)
         {
@@ -77,17 +77,17 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // 检查是否是资源文件删除
+            // Check if resource file is being deleted
             bool isAssetDeletion = IsAssetDeletion(ctx);
             if (!isAssetDeletion)
             {
-                // 不是资源删除，直接删除Object
+                // Not a resource deletion，Delete directlyObject
                 var result = DeleteSingleObject(target);
                 yield return result;
                 yield break;
             }
 
-            // 资源删除需要确认对话框
+            // Resource delete requires confirmation dialog
             string confirmationMessage = $"Are you sure you want to delete the asset '{target.name}' ({target.GetType().Name})?\n\nThis action cannot be undone.";
 
             bool confirmed = EditorUtility.DisplayDialog(
@@ -106,13 +106,13 @@ namespace UnityMcp.Tools
 
             LogInfo($"[ObjectDelete] User confirmed asset deletion for Object '{target.name}'");
 
-            // 用户确认后执行删除
+            // Perform deletion after user confirmation
             var deleteResult = DeleteSingleObject(target);
             yield return deleteResult;
         }
 
         /// <summary>
-        /// 处理需要用户确认的删除操作
+        /// Handle delete actions requiring user confirmation
         /// </summary>
         private object HandleConfirmedDeleteAction(StateTreeContext ctx)
         {
@@ -120,7 +120,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 异步处理未明确确认的删除操作，检查是否是资源删除来决定是否需要确认
+        /// Asynchronously handle unconfirmed deletions，Check if resource deletion requires confirmation
         /// </summary>
         private IEnumerator HandleUnconfirmedDeleteActionAsync(StateTreeContext ctx)
         {
@@ -131,7 +131,7 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // 检查预制体重定向（仅对GameObject适用）
+            // Check prefab redirection（For onlyGameObjectApplicable）
             if (target is GameObject gameObject)
             {
                 object redirectResult = CheckPrefabRedirection(gameObject);
@@ -142,18 +142,18 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 检查是否是资源删除
+            // Check if it is a resource deletion
             bool isAssetDeletion = IsAssetDeletion(ctx);
             if (!isAssetDeletion)
             {
-                // 场景Object删除，直接删除无需确认
+                // SceneObjectDelete，Direct delete without confirmation
                 LogInfo($"[ObjectDelete] Direct deletion of {target.GetType().Name} '{target.name}' without confirmation");
                 var result = DeleteSingleObject(target);
                 yield return result;
                 yield break;
             }
 
-            // 资源删除需要用户确认
+            // Resource deletion requires user confirmation
             LogInfo($"[ObjectDelete] Asset deletion detected for '{target.name}', showing confirmation dialog");
 
             string confirmationMessage = $"You are about to delete the asset '{target.name}' ({target.GetType().Name}).\n\nThis action cannot be undone. Continue?";
@@ -174,13 +174,13 @@ namespace UnityMcp.Tools
 
             LogInfo($"[ObjectDelete] User confirmed asset deletion for '{target.name}'");
 
-            // 用户确认后执行删除
+            // Perform deletion after user confirmation
             var deleteResult = DeleteSingleObject(target);
             yield return deleteResult;
         }
 
         /// <summary>
-        /// 处理未确认的删除操作
+        /// Handle unconfirmed delete actions
         /// </summary>
         private object HandleUnconfirmedDeleteAction(StateTreeContext ctx)
         {
@@ -188,11 +188,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 从执行上下文中提取唯一目标UnityEngine.Object
+        /// Extract unique target from execution contextUnityEngine.Object
         /// </summary>
         private UnityEngine.Object ExtractTargetFromContext(StateTreeContext context)
         {
-            // 先尝试从ObjectReferences获取（避免序列化问题）
+            // First attempt fromObjectReferencesGet（Avoid serialization issues）
             if (context.TryGetObjectReference("_resolved_targets", out object targetsObj))
             {
                 if (targetsObj is UnityEngine.Object singleObject)
@@ -201,14 +201,14 @@ namespace UnityMcp.Tools
                 }
                 else if (targetsObj is UnityEngine.Object[] objectArray && objectArray.Length > 0)
                 {
-                    return objectArray[0]; // 只取第一个
+                    return objectArray[0]; // Only take the first
                 }
                 else if (targetsObj is System.Collections.IList list && list.Count > 0)
                 {
                     foreach (var item in list)
                     {
                         if (item is UnityEngine.Object obj)
-                            return obj; // 返回第一个找到的UnityEngine.Object
+                            return obj; // Return the first foundUnityEngine.Object
                     }
                 }
             }
@@ -216,15 +216,15 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查是否是资源删除操作
+        /// Check if it is a resource deletion operation
         /// </summary>
         private bool IsAssetDeletion(StateTreeContext context)
         {
-            // 通过path参数判断是否是资源路径
+            // ThroughpathDetermine if parameter is a resource path
             if (context.TryGetValue("path", out object pathObj) && pathObj != null)
             {
                 string path = pathObj.ToString();
-                // 如果路径以Assets/开头，则认为是资源删除
+                // If path starts withAssets/Start，Then regarded as resource deletion
                 if (!string.IsNullOrEmpty(path) && path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
@@ -234,26 +234,26 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查预制体重定向逻辑
+        /// Check prefab redirection logic
         /// </summary>
         private object CheckPrefabRedirection(GameObject target)
         {
             if (target == null)
                 return null;
 
-            // 检查是否是预制体实例，如果是预制体资产本身，应该使用manage_asset命令
+            // Check if it is a prefab instance，If it is the prefab asset itself，Should usemanage_assetCommand
             string assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(target);
             if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
-                // 这是预制体实例，可以正常删除
+                // This is a prefab instance，Can delete normally
                 return null;
             }
 
-            return null; // 继续正常处理
+            return null; // Continue normal processing
         }
 
         /// <summary>
-        /// 删除单个UnityEngine.Object
+        /// Delete singleUnityEngine.Object
         /// </summary>
         private object DeleteSingleObject(UnityEngine.Object targetObject)
         {
@@ -268,11 +268,11 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 判断是否为资源文件
+                // Determine if it is a resource file
                 string assetPath = AssetDatabase.GetAssetPath(targetObject);
                 if (!string.IsNullOrEmpty(assetPath))
                 {
-                    // 资源文件删除
+                    // Resource file deletion
                     bool success = AssetDatabase.DeleteAsset(assetPath);
                     if (success)
                     {
@@ -286,7 +286,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // 场景对象删除
+                    // Scene object deletion
                     Undo.DestroyObjectImmediate(targetObject);
                     var deletedObject = new { name = objectName, instanceID = objectId, type = objectType };
                     return Response.Success($"{objectType} '{objectName}' deleted successfully.", deletedObject);

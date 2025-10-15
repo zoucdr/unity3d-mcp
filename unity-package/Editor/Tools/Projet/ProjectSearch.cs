@@ -10,26 +10,26 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles Project window search operations for finding assets and objects.
-    /// 对应方法名: project_search
+    /// Corresponding method name: project_search
     /// </summary>
-    [ToolName("project_search", "项目管理")]
+    [ToolName("project_search", "Project management")]
     public class ProjectSearch : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("search_target", "搜索类型：asset, folder, script, texture, material, prefab, scene等", false),
-                new MethodKey("query", "搜索关键词", false),
-                new MethodKey("directory", "搜索路径（相对于Assets）", true),
-                new MethodKey("file_extension", "文件扩展名过滤", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("case_sensitive", "是否区分大小写", true),
-                new MethodKey("max_results", "最大返回结果数", true),
-                new MethodKey("include_meta", "是否包含.meta文件", true)
+                new MethodKey("search_target", "Search type：asset, folder, script, texture, material, prefab, sceneEtc", false),
+                new MethodKey("query", "Search keywords", false),
+                new MethodKey("directory", "Search path（Relative toAssets）", true),
+                new MethodKey("file_extension", "File extension filter", true),
+                new MethodKey("recursive", "Whether to recursively search subfolders", true),
+                new MethodKey("case_sensitive", "Case sensitive or not", true),
+                new MethodKey("max_results", "Maximum return count", true),
+                new MethodKey("include_meta", "Whether contains.metaFile", true)
             };
         }
 
@@ -56,7 +56,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索所有类型的资产
+        /// Search all types of assets
         /// </summary>
         private object HandleAssetSearch(JsonClass args)
         {
@@ -64,7 +64,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索文件夹
+        /// Search folders
         /// </summary>
         private object HandleFolderSearch(JsonClass args)
         {
@@ -72,7 +72,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索脚本文件
+        /// Search script files
         /// </summary>
         private object HandleScriptSearch(JsonClass args)
         {
@@ -80,7 +80,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索纹理文件
+        /// Search texture files
         /// </summary>
         private object HandleTextureSearch(JsonClass args)
         {
@@ -88,7 +88,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索材质文件
+        /// Search material files
         /// </summary>
         private object HandleMaterialSearch(JsonClass args)
         {
@@ -96,7 +96,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索预制体文件
+        /// Search prefab files
         /// </summary>
         private object HandlePrefabSearch(JsonClass args)
         {
@@ -104,7 +104,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索场景文件
+        /// Search scene files
         /// </summary>
         private object HandleSceneSearch(JsonClass args)
         {
@@ -112,7 +112,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索音频文件
+        /// Search audio files
         /// </summary>
         private object HandleAudioSearch(JsonClass args)
         {
@@ -120,7 +120,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索3D模型文件
+        /// Search3DModel file
         /// </summary>
         private object HandleModelSearch(JsonClass args)
         {
@@ -128,7 +128,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索Shader文件
+        /// SearchShaderFile
         /// </summary>
         private object HandleShaderSearch(JsonClass args)
         {
@@ -136,7 +136,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 搜索动画文件
+        /// Search animation files
         /// </summary>
         private object HandleAnimationSearch(JsonClass args)
         {
@@ -144,7 +144,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 通用搜索
+        /// Generic search
         /// </summary>
         private object HandleGeneralSearch(JsonClass args)
         {
@@ -152,7 +152,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 执行搜索的主要实现
+        /// Main implementation of search
         /// </summary>
         private object PerformSearch(JsonClass args, string searchType, string[] extensions = null)
         {
@@ -164,7 +164,7 @@ namespace UnityMcp.Tools
             int maxResults = args["max_results"].AsIntDefault(100);
             bool includeMeta = args["include_meta"].AsBoolDefault(false);
 
-            // 验证搜索路径
+            // Validate search path
             if (!searchPath.StartsWith("Assets/") && searchPath != "Assets")
             {
                 searchPath = "Assets/" + searchPath.TrimStart('/');
@@ -172,10 +172,10 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 用JArray来序列化结果，确保兼容JSON序列化
+                // UseJArrayFor serializing result，Ensure compatibilityJSONSerialize
                 List<JsonClass> results = new List<JsonClass>();
 
-                // 获取所有资产GUID
+                // Get all assetsGUID
                 string[] guids = AssetDatabase.FindAssets(searchTerm, new[] { searchPath });
 
                 foreach (string guid in guids)
@@ -185,24 +185,24 @@ namespace UnityMcp.Tools
 
                     string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 
-                    // 检查是否在指定路径范围内
+                    // Check if path is in given scope
                     if (!IsInSearchPath(assetPath, searchPath, recursive))
                         continue;
 
-                    // 检查文件扩展名
+                    // Check file extension
                     if (extensions != null && !extensions.Any(ext => assetPath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
                         continue;
 
-                    // 跳过.meta文件（除非明确要求包含）
+                    // Skip.metaFile（Unless explicitly required to include）
                     if (!includeMeta && assetPath.EndsWith(".meta"))
                         continue;
 
-                    // 获取资产对象
+                    // Get asset object
                     UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
                     if (asset != null)
                     {
                         var assetInfo = GetAssetInfo(asset, assetPath, guid);
-                        // assetInfo本身是JObject，直接加入JArray
+                        // assetInfoItself isJObject，Join directlyJArray
                         results.Add(assetInfo);
                     }
                 }
@@ -213,7 +213,7 @@ namespace UnityMcp.Tools
                     message += $" (type: {searchType})";
                 }
 
-                // 用JObject包装返回，保证序列化友好
+                // UseJObjectWrap result，Ensure serialization-friendly
                 var resultObj = new JsonClass
                 {
                     ["query"] = searchTerm,
@@ -232,7 +232,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查资产路径是否在搜索路径范围内
+        /// Check if asset path is within search range
         /// </summary>
         private bool IsInSearchPath(string assetPath, string searchPath, bool recursive)
         {
@@ -241,7 +241,7 @@ namespace UnityMcp.Tools
                 if (recursive)
                     return true;
 
-                // 如果不递归，检查是否在直接子目录中
+                // If not recursive，Check if in subdirectory
                 string relativePath = assetPath.Substring(searchPath.Length).TrimStart('/');
                 return !relativePath.Contains('/');
             }
@@ -249,7 +249,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取资产的详细信息
+        /// Get detailed info of asset
         /// </summary>
         private JsonClass GetAssetInfo(UnityEngine.Object asset, string assetPath, string guid)
         {
@@ -262,7 +262,7 @@ namespace UnityMcp.Tools
                 ["instanceID"] = asset.GetInstanceID()
             };
 
-            // 根据资产类型添加特定信息
+            // Add specific info according to asset type
             if (asset is Texture2D texture)
             {
                 info["width"] = texture.width;
@@ -297,7 +297,7 @@ namespace UnityMcp.Tools
                 info["scriptableObjectType"] = scriptableObject.GetType().FullName;
             }
 
-            // 添加文件信息
+            // Add file info
             try
             {
                 var fileInfo = new System.IO.FileInfo(assetPath);
@@ -306,14 +306,14 @@ namespace UnityMcp.Tools
             }
             catch
             {
-                // 忽略文件信息获取错误
+                // Ignore file info fetching errors
             }
 
             return info;
         }
 
         /// <summary>
-        /// 搜索特定类型的资产
+        /// Search specific asset types
         /// </summary>
         private object SearchByType<T>(string searchTerm, string searchPath, bool recursive, int maxResults) where T : UnityEngine.Object
         {
@@ -341,7 +341,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 查找指定资源的所有依赖项
+        /// Find all dependencies for specified resource
         /// </summary>
         private object HandleDependenciesSearch(JsonClass args)
         {
@@ -354,7 +354,7 @@ namespace UnityMcp.Tools
                 return Response.Error("'query' parameter is required and must be a valid asset path");
             }
 
-            // 规范化资产路径
+            // Normalize asset path
             if (!assetPath.StartsWith("Assets/") && !assetPath.StartsWith("Packages/"))
             {
                 assetPath = "Assets/" + assetPath.TrimStart('/');
@@ -362,13 +362,13 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 检查资产是否存在
+                // Check if asset exists
                 if (!System.IO.File.Exists(assetPath) && !System.IO.Directory.Exists(assetPath))
                 {
                     return Response.Error($"Asset not found: {assetPath}");
                 }
 
-                // 获取依赖项
+                // Get dependencies
                 string[] dependencies = AssetDatabase.GetDependencies(assetPath, recursive);
 
                 List<JsonClass> results = new List<JsonClass>();
@@ -378,11 +378,11 @@ namespace UnityMcp.Tools
                     if (results.Count >= maxResults)
                         break;
 
-                    // 跳过自身
+                    // Skip self
                     if (depPath == assetPath)
                         continue;
 
-                    // 加载资产
+                    // Load asset
                     UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(depPath);
                     if (asset != null)
                     {
@@ -413,7 +413,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 查找引用指定资源的所有资源
+        /// Find all resources referring to specified resource
         /// </summary>
         private object HandleReferencesSearch(JsonClass args)
         {
@@ -427,7 +427,7 @@ namespace UnityMcp.Tools
                 return Response.Error("'query' parameter is required and must be a valid asset path");
             }
 
-            // 规范化资产路径
+            // Normalize asset path
             if (!assetPath.StartsWith("Assets/") && !assetPath.StartsWith("Packages/"))
             {
                 assetPath = "Assets/" + assetPath.TrimStart('/');
@@ -435,18 +435,18 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 检查资产是否存在
+                // Check if asset exists
                 if (!System.IO.File.Exists(assetPath) && !System.IO.Directory.Exists(assetPath))
                 {
                     return Response.Error($"Asset not found: {assetPath}");
                 }
 
-                // 获取目标资产的 GUID
+                // Get target asset's GUID
                 string targetGuid = AssetDatabase.AssetPathToGUID(assetPath);
 
                 List<JsonClass> results = new List<JsonClass>();
 
-                // 搜索所有资产
+                // Search all assets
                 string[] allAssetGuids = AssetDatabase.FindAssets("", new[] { searchPath });
 
                 foreach (string guid in allAssetGuids)
@@ -456,14 +456,14 @@ namespace UnityMcp.Tools
 
                     string checkedPath = AssetDatabase.GUIDToAssetPath(guid);
 
-                    // 跳过自身
+                    // Skip self
                     if (checkedPath == assetPath)
                         continue;
 
-                    // 获取该资产的依赖项
+                    // Get dependencies of this asset
                     string[] dependencies = AssetDatabase.GetDependencies(checkedPath, false);
 
-                    // 检查是否依赖目标资产
+                    // Check if depends on target asset
                     if (dependencies.Contains(assetPath))
                     {
                         UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(checkedPath);

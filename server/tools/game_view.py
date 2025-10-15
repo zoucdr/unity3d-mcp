@@ -1,12 +1,12 @@
 """
-Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。（二级工具）
+Unity GameWindow management tool，Used to controlGameView display and performance settings。（Secondary tool）
 
-支持的功能：
-- 分辨率管理：set_resolution, get_resolution
-- 性能设置：set_vsync, set_target_framerate
-- 窗口控制：maximize
-- 统计信息：get_stats
-- 宽高比设置：set_aspect_ratio
+Supported features：
+- Resolution management：set_resolution, get_resolution
+- Performance settings：set_vsync, set_target_framerate
+- Window control：maximize
+- Statistics：get_stats
+- Aspect ratio settings：set_aspect_ratio
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -19,82 +19,82 @@ def register_game_view_tools(mcp: FastMCP):
     def game_view(
         ctx: Context,
         action: Annotated[str, Field(
-            title="操作类型",
-            description="要执行的Game窗口操作: set_resolution(设置分辨率), get_resolution(获取分辨率), get_stats(获取统计信息), set_vsync(设置垂直同步), set_target_framerate(设置目标帧率), maximize(最大化窗口), set_aspect_ratio(设置宽高比)",
+            title="Operation type",
+            description="To executeGameWindow operations: set_resolution(Set resolution), get_resolution(Get resolution), get_stats(Get statistics), set_vsync(Set vertical sync), set_target_framerate(Set target frame rate), maximize(Maximize window), set_aspect_ratio(Set aspect ratio)",
             examples=["set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio"]
         )],
         width: Annotated[Optional[int], Field(
-            title="窗口宽度",
-            description="Game窗口宽度（像素），用于set_resolution操作",
+            title="Window width",
+            description="GameWindow width（Pixels），Used forset_resolutionOperation",
             default=None,
             examples=[1920, 1280, 1024, 800]
         )] = None,
         height: Annotated[Optional[int], Field(
-            title="窗口高度",
-            description="Game窗口高度（像素），用于set_resolution操作",
+            title="Window height",
+            description="GameWindow height（Pixels），Used forset_resolutionOperation",
             default=None,
             examples=[1080, 720, 768, 600]
         )] = None,
         vsync_count: Annotated[Optional[int], Field(
-            title="垂直同步计数",
-            description="VSync计数：0=关闭, 1=每帧同步, 2=每2帧同步, 用于set_vsync操作",
+            title="VSync count",
+            description="VSyncCount：0=Close, 1=Per-frame sync, 2=Per2Frame sync, Used forset_vsyncOperation",
             default=None,
             examples=[0, 1, 2]
         )] = None,
         target_framerate: Annotated[Optional[int], Field(
-            title="目标帧率",
-            description="目标帧率（FPS），-1表示无限制，用于set_target_framerate操作",
+            title="Target frame rate",
+            description="Target frame rate（FPS），-1Indicates unlimited，Used forset_target_framerateOperation",
             default=None,
             examples=[60, 30, 120, -1]
         )] = None,
         aspect_ratio: Annotated[Optional[str], Field(
-            title="宽高比",
-            description="宽高比设置，如'16:9', '4:3', 'Free'等，用于set_aspect_ratio操作",
+            title="Aspect ratio",
+            description="Aspect ratio settings，Such as'16:9', '4:3', 'Free'Etc.，Used forset_aspect_ratioOperation",
             default=None,
             examples=["16:9", "16:10", "4:3", "Free", "21:9"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。（二级工具）
+        """Unity GameWindow management tool，Used to controlGameView display and performance settings。（Secondary tool）
 
-        支持多种Game窗口管理功能，适用于：
-        - 分辨率管理：设置和查询Game窗口分辨率
-        - 性能优化：配置VSync和目标帧率
-        - 窗口控制：最大化Game窗口
-        - 统计监控：获取当前性能和显示统计信息
-        - 显示设置：配置宽高比
+        Supports multipleGameWindow management features，Suitable for：
+        - Resolution management：Set and queryGameWindow resolution
+        - Performance optimization：ConfigurationVSyncAnd target frame rate
+        - Window control：MaximizeGameWindow
+        - Metrics monitoring：Get current performance and display stats
+        - Display settings：Configure aspect ratio
         
-        注意事项：
-        - 分辨率设置会影响Game窗口的显示大小
-        - VSync设置会影响性能和画面流畅度
-        - 目标帧率-1表示不限制帧率
-        - 宽高比设置是简化实现，完整功能需要复杂的Unity内部API访问
+        Notes：
+        - Resolution settings affectGameWindow display size
+        - VSyncSettings affect performance and smoothness
+        - Target frame rate-1Indicates no FPS limit
+        - Aspect ratio setting is a simplified implementation，Full functionality requires more complexUnityInternalAPIAccess
         
-        示例用法：
-        1. 设置Game窗口分辨率为1920x1080：
+        Example usage：
+        1. SettingsGameWindow resolution is1920x1080：
            {"action": "set_resolution", "width": 1920, "height": 1080}
         
-        2. 获取当前分辨率：
+        2. Get current resolution：
            {"action": "get_resolution"}
         
-        3. 获取Game窗口统计信息：
+        3. GetGameWindow statistics：
            {"action": "get_stats"}
         
-        4. 开启VSync（每帧同步）：
+        4. EnableVSync（Per-frame sync）：
            {"action": "set_vsync", "vsync_count": 1}
         
-        5. 关闭VSync：
+        5. CloseVSync：
            {"action": "set_vsync", "vsync_count": 0}
         
-        6. 设置目标帧率为60FPS：
+        6. Set target frame rate to60FPS：
            {"action": "set_target_framerate", "target_framerate": 60}
         
-        7. 设置无限制帧率：
+        7. Set unlimited frame rate：
            {"action": "set_target_framerate", "target_framerate": -1}
         
-        8. 最大化Game窗口：
+        8. MaximizeGameWindow：
            {"action": "maximize"}
         
-        9. 设置16:9宽高比：
+        9. Settings16:9Aspect ratio：
            {"action": "set_aspect_ratio", "aspect_ratio": "16:9"}
         """
         return get_common_call_response("game_view")

@@ -8,148 +8,148 @@ using UnityEngine;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// Figma数据简化器 - 将复杂的Figma节点数据简化为AI友好且token高效的格式
+    /// Figma数据Simplify器 - Make complexFigmaNode dataSimplifyAsAIUser-friendly andtoken高效的格式
     /// </summary>
     public static class FigmaDataSimplifier
     {
         /// <summary>
-        /// 简化的节点数据结构
+        /// Simplified node数据结构
         /// </summary>
         [Serializable]
         public class SimplifiedNode
         {
-            public string id;              // 节点ID
-            public string name;            // 节点名称
-            public string type;            // 节点类型 (FRAME, TEXT, RECTANGLE等)
-            // visible字段已移除，因为所有返回的节点都是可见的
+            public string id;              // NodeID
+            public string name;            // Node name
+            public string type;            // Node type (FRAME, TEXT, RECTANGLEEtc.)
+            // visibleField has been removed，因As所有返回的Node都是可见的
 
-            // 文本相关
-            public string text;            // 文本内容
-            public TextStyle textStyle;    // 文本样式
+            // Text related
+            public string text;            // Text content
+            public TextStyle textStyle;    // Text style
 
-            // 样式相关
-            public ColorInfo backgroundColor; // 背景色（主要填充色，保持向后兼容）
-            public ColorInfo textColor;      // 文字颜色
-            public List<FillInfo> fills;     // 完整的填充信息列表
-            public float cornerRadius;       // 圆角
-            public bool hasImage;            // 是否包含图片引用
-            public bool hasEffect;           // 是否需要下载为图片（复杂效果）
-            public string imageRef;          // 图片引用
+            // Style related
+            public ColorInfo backgroundColor; // Background color（Main fill color，保持向后兼容）
+            public ColorInfo textColor;      // Text color
+            public List<FillInfo> fills;     // CompleteFill infoList
+            public float cornerRadius;       // Corner radius
+            public bool hasImage;            // 是否包含Image reference
+            public bool hasEffect;           // 是否需要下载AsImage（Complex effect）
+            public string imageRef;          // Image reference
 
-            // 布局相关
-            public LayoutInfo layout;        // 布局信息
+            // Layout related
+            public LayoutInfo layout;        // Layout info
 
-            // 简化的布局信息（使用Figma坐标系）
-            public float[] pos;              // 位置 [x, y] (Figma坐标系: 左上角原点)
-            public float[] size;             // 控件尺寸 [width, height]
+            // Simplify的Layout info（UseFigmaCoordinate system）
+            public float[] pos;              // Position [x, y] (FigmaCoordinate system: 左上角原点)
+            public float[] size;             // Control size [width, height]
 
-            public List<SimplifiedNode> children; // 子节点
+            public List<SimplifiedNode> children; // Child node
 
-            // 组件列表（仅在根节点包含）
-            public List<string> components;   // 组件ID列表
+            // Component list（仅在Root node包含）
+            public List<string> components;   // ComponentIDList
         }
 
         /// <summary>
-        /// 文本样式信息
+        /// Text styleInfo
         /// </summary>
         [Serializable]
         public class TextStyle
         {
-            public string fontFamily;      // 字体族
-            public string fontWeight;      // 字体粗细
-            public float fontSize;         // 字体大小
-            public string textAlign;       // 文本对齐
-            public float lineHeight;       // 行高
+            public string fontFamily;      // Font family
+            public string fontWeight;      // Font weight
+            public float fontSize;         // Font size
+            public string textAlign;       // Text alignment
+            public float lineHeight;       // Line height
         }
 
         /// <summary>
-        /// 颜色信息
+        /// Color info
         /// </summary>
         [Serializable]
         public class ColorInfo
         {
-            public float r, g, b, a;       // RGBA值
-            public string hex;             // 十六进制颜色值
-            public string type;            // 颜色类型 (SOLID, GRADIENT等)
+            public float r, g, b, a;       // RGBAValue
+            public string hex;             // 十六进制ColorValue
+            public string type;            // Color type (SOLID, GRADIENTEtc.)
         }
 
         /// <summary>
-        /// 填充信息（完整的Figma填充数据）
+        /// Fill info（CompleteFigmaFill data）
         /// </summary>
         [Serializable]
         public class FillInfo
         {
-            public string type;            // 填充类型 (SOLID, GRADIENT_LINEAR, GRADIENT_RADIAL, IMAGE等)
-            public bool visible;           // 填充是否可见
-            public float opacity;          // 不透明度
-            public string blendMode;       // 混合模式
-            public ColorInfo color;        // 纯色填充的颜色信息
-            public string imageRef;        // 图片填充的引用
-            public GradientInfo gradient;  // 渐变填充信息
+            public string type;            // Fill type (SOLID, GRADIENT_LINEAR, GRADIENT_RADIAL, IMAGEEtc.)
+            public bool visible;           // Fill是否可见
+            public float opacity;          // Opacity
+            public string blendMode;       // Blend mode
+            public ColorInfo color;        // Solid colorFill的Color info
+            public string imageRef;        // Image fill的引用
+            public GradientInfo gradient;  // GradientFill info
         }
 
         /// <summary>
-        /// 渐变信息
+        /// Gradient info
         /// </summary>
         [Serializable]
         public class GradientInfo
         {
-            public string type;            // 渐变类型 (LINEAR, RADIAL, ANGULAR)
-            public List<GradientStop> gradientStops; // 渐变停止点
-            public float[] gradientHandlePositions;  // 渐变句柄位置
+            public string type;            // Gradient type (LINEAR, RADIAL, ANGULAR)
+            public List<GradientStop> gradientStops; // Gradient stop point
+            public float[] gradientHandlePositions;  // Gradient句柄Position
         }
 
         /// <summary>
-        /// 渐变停止点
+        /// Gradient stop point
         /// </summary>
         [Serializable]
         public class GradientStop
         {
-            public float position;         // 位置 (0-1)
-            public ColorInfo color;        // 颜色
+            public float position;         // Position (0-1)
+            public ColorInfo color;        // Color
         }
 
         /// <summary>
-        /// 布局信息
+        /// Layout info
         /// </summary>
         [Serializable]
         public class LayoutInfo
         {
-            public string layoutMode;      // 布局模式 (VERTICAL, HORIZONTAL等)
-            public string alignItems;      // 对齐方式
-            public float itemSpacing;      // 间距
-            public float[] padding;        // 内边距 [left, top, right, bottom]
+            public string layoutMode;      // Layout mode (VERTICAL, HORIZONTALEtc.)
+            public string alignItems;      // Alignment
+            public float itemSpacing;      // Spacing
+            public float[] padding;        // Padding [left, top, right, bottom]
         }
 
 
 
         /// <summary>
-        /// 简化Figma节点数据，提取绝对位置和尺寸信息
+        /// SimplifyFigmaNode data，提取绝对PositionAndSizeInfo
         /// </summary>
-        /// <param name="figmaNode">原始Figma节点数据</param>
-        /// <param name="maxDepth">最大深度，默认无限制</param>
-        /// <param name="convertToUGUI">保留参数以兼容，现在始终使用Figma坐标系</param>
+        /// <param name="figmaNode">OriginalFigmaNode data</param>
+        /// <param name="maxDepth">Maximum depth，Default unlimited</param>
+        /// <param name="convertToUGUI">保留参数以兼容，现在始终UseFigmaCoordinate system</param>
         /// <param name="cleanupRedundantData">保留参数以兼容</param>
         /// <param name="canvasHeight">保留参数以兼容</param>
         /// <param name="canvasWidth">保留参数以兼容</param>
-        /// <returns>简化后的节点数据</returns>
+        /// <returns>SimplifiedNode data</returns>
         public static SimplifiedNode SimplifyNode(JsonNode figmaNode, int maxDepth = -1, bool convertToUGUI = true, bool cleanupRedundantData = true, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             var result = SimplifyNodeInternal(figmaNode, maxDepth, convertToUGUI, cleanupRedundantData, null, null, canvasHeight, canvasWidth);
 
-            // 使用Figma坐标系，不需要坐标转换
+            // UseFigmaCoordinate system，不需要坐标Convert
             return result;
         }
 
         /// <summary>
-        /// 内部简化方法，支持传递父节点信息
+        /// 内部Simplify方法，支持传递父NodeInfo
         /// </summary>
         private static SimplifiedNode SimplifyNodeInternal(JsonNode figmaNode, int maxDepth, bool convertToUGUI, bool cleanupRedundantData, SimplifiedNode parentNode, JsonNode parentFigmaNode, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             if (figmaNode == null || maxDepth == 0)
                 return null;
 
-            // 如果节点不可见，直接返回null，不进行解析
+            // IfNode不可见，Return directlynull，Do not parse
             bool visible = figmaNode["visible"].AsBoolDefault(true);
             if (!visible)
                 return null;
@@ -159,10 +159,10 @@ namespace UnityMcp.Tools
                 id = figmaNode["id"]?.Value,
                 name = figmaNode["name"]?.Value,
                 type = figmaNode["type"]?.Value
-                // visible字段已移除，因为所有返回的节点都是可见的
+                // visibleField has been removed，因As所有返回的Node都是可见的
             };
 
-            // 提取绝对位置和尺寸信息（使用Figma坐标系）
+            // 提取绝对PositionAndSizeInfo（UseFigmaCoordinate system）
             var absoluteBoundingBox = figmaNode["absoluteBoundingBox"];
             if (absoluteBoundingBox != null)
             {
@@ -171,7 +171,7 @@ namespace UnityMcp.Tools
                 float width = absoluteBoundingBox["width"].AsFloatDefault(0);
                 float height = absoluteBoundingBox["height"].AsFloatDefault(0);
 
-                // 使用Figma原始坐标系（左上角原点）
+                // UseFigmaOriginal coordinate system（左上角原点）
                 simplified.pos = new float[]
                 {
                     (float)Math.Round(figmaX, 2),
@@ -185,29 +185,29 @@ namespace UnityMcp.Tools
                 };
             }
 
-            // 提取文本内容和样式
+            // 提取Text contentAnd样式
             ExtractTextInfo(figmaNode, simplified);
 
-            // 提取样式信息
+            // 提取样式Info
             ExtractStyleInfo(figmaNode, simplified);
 
-            // 提取布局信息
+            // 提取Layout info
             ExtractLayoutInfo(figmaNode, simplified);
 
-            // 判断是否包含图片引用
+            // 判断是否包含Image reference
             simplified.hasImage = HasImageRef(figmaNode);
 
-            // 判断是否需要下载为图片（复杂效果）
+            // 判断是否需要下载AsImage（Complex effect）
             simplified.hasEffect = IsDownloadableNode(figmaNode);
 
-            // 递归处理子节点
+            // 递归处理Child node
             var children = figmaNode["children"];
             if (children != null && children.type == JsonNodeType.Array)
             {
                 simplified.children = new List<SimplifiedNode>();
-                foreach (JsonNode child in children.Childs) // 处理所有子节点
+                foreach (JsonNode child in children.Childs) // 处理所有Child node
                 {
-                    var nextDepth = maxDepth > 0 ? maxDepth - 1 : -1; // 如果maxDepth为-1则保持无限制
+                    var nextDepth = maxDepth > 0 ? maxDepth - 1 : -1; // IfmaxDepthAs-1则保持无限制
                     var simplifiedChild = SimplifyNodeInternal(child, nextDepth, convertToUGUI, cleanupRedundantData, simplified, figmaNode, canvasHeight, canvasWidth);
                     if (simplifiedChild != null)
                     {
@@ -215,26 +215,26 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 如果没有子节点，设为null节省空间
+                // If没有Child node，Set asnullSave space
                 if (simplified.children.Count == 0)
                     simplified.children = null;
             }
 
-            // 布局信息已直接提取到absolutePos和size，无需复杂的UGUI转换
+            // Layout info已直接提取到absolutePosAndsize，No complexity requiredUGUIConvert
 
             return simplified;
         }
 
 
         /// <summary>
-        /// 提取文本信息
+        /// 提取TextInfo
         /// </summary>
         private static void ExtractTextInfo(JsonNode node, SimplifiedNode simplified)
         {
-            // 文本内容
+            // Text content
             simplified.text = node["characters"]?.Value;
 
-            // 文本样式
+            // Text style
             var style = node["style"];
             if (style != null && style.type == JsonNodeType.Object)
             {
@@ -250,17 +250,17 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取样式信息
+        /// 提取样式Info
         /// </summary>
         private static void ExtractStyleInfo(JsonNode node, SimplifiedNode simplified)
         {
-            // 提取完整的填充信息
+            // 提取CompleteFill info
             var fills = node["fills"];
             if (fills != null && fills.type == JsonNodeType.Array && fills.Count > 0)
             {
                 simplified.fills = ExtractFillsInfo(fills);
 
-                // 保持向后兼容：设置第一个可见填充作为背景色
+                // 保持向后兼容：设置第一Item可见Fill作AsBackground color
                 var firstVisibleFill = simplified.fills?.FirstOrDefault(f => f.visible);
                 if (firstVisibleFill?.color != null)
                 {
@@ -268,7 +268,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 文字颜色
+            // Text color
             if (simplified.textStyle != null && fills != null && fills.type == JsonNodeType.Array && fills.Count > 0)
             {
                 var firstFill = fills.Childs.FirstOrDefault();
@@ -278,10 +278,10 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 圆角
+            // Corner radius
             simplified.cornerRadius = (float)Math.Round(node["cornerRadius"].AsFloatDefault(0), 2);
 
-            // 图片信息 - 检查是否包含图片引用
+            // Image info - 检查是否包含Image reference
             if (simplified.fills != null)
             {
                 var imageFill = simplified.fills.FirstOrDefault(f => f.type == "IMAGE" && !string.IsNullOrEmpty(f.imageRef));
@@ -293,7 +293,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取完整的填充信息列表
+        /// 提取CompleteFill infoList
         /// </summary>
         private static List<FillInfo> ExtractFillsInfo(JsonNode fills)
         {
@@ -315,7 +315,7 @@ namespace UnityMcp.Tools
                     blendMode = fill["blendMode"]?.Value
                 };
 
-                // 根据填充类型提取具体信息
+                // 根据Fill type提取具体Info
                 switch (fillInfo.type)
                 {
                     case "SOLID":
@@ -340,7 +340,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取渐变信息
+        /// 提取Gradient info
         /// </summary>
         private static GradientInfo ExtractGradientInfo(JsonNode fill)
         {
@@ -349,7 +349,7 @@ namespace UnityMcp.Tools
                 type = fill["type"]?.Value
             };
 
-            // 提取渐变停止点
+            // 提取Gradient stop point
             var gradientStops = fill["gradientStops"];
             if (gradientStops != null && gradientStops.type == JsonNodeType.Array)
             {
@@ -368,7 +368,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 提取渐变句柄位置
+            // 提取Gradient句柄Position
             var gradientHandlePositions = fill["gradientHandlePositions"];
             if (gradientHandlePositions != null && gradientHandlePositions.type == JsonNodeType.Array)
             {
@@ -388,7 +388,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取颜色信息
+        /// 提取Color info
         /// </summary>
         private static ColorInfo ExtractColor(JsonNode fill)
         {
@@ -407,7 +407,7 @@ namespace UnityMcp.Tools
                 colorInfo.b = (float)Math.Round(color["b"].AsFloatDefault(0), 2);
                 colorInfo.a = (float)Math.Round(color["a"].AsFloatDefault(1), 2);
 
-                // 转换为十六进制
+                // ConvertAs十六进制
                 int r = Mathf.RoundToInt(colorInfo.r * 255);
                 int g = Mathf.RoundToInt(colorInfo.g * 255);
                 int b = Mathf.RoundToInt(colorInfo.b * 255);
@@ -418,7 +418,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取布局信息
+        /// 提取Layout info
         /// </summary>
         private static void ExtractLayoutInfo(JsonNode node, SimplifiedNode simplified)
         {
@@ -432,7 +432,7 @@ namespace UnityMcp.Tools
                     itemSpacing = (float)Math.Round(node["itemSpacing"].AsFloatDefault(0), 2)
                 };
 
-                // 内边距
+                // Padding
                 var paddingLeft = (float)Math.Round(node["paddingLeft"].AsFloatDefault(0), 2);
                 var paddingTop = (float)Math.Round(node["paddingTop"].AsFloatDefault(0), 2);
                 var paddingRight = (float)Math.Round(node["paddingRight"].AsFloatDefault(0), 2);
@@ -447,26 +447,26 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// 将简化的节点数据转换为紧凑的JSON字符串
+        /// 将Simplified node数据ConvertAs紧凑的JSONString
         /// </summary>
-        /// <param name="simplifiedNode">简化的节点数据</param>
-        /// <param name="prettyPrint">是否格式化输出，默认false以减少token</param>
-        /// <returns>JSON字符串</returns>
+        /// <param name="simplifiedNode">Simplified node数据</param>
+        /// <param name="prettyPrint">是否格式化输出，DefaultfalseTo reducetoken</param>
+        /// <returns>JSONString</returns>
         public static string ToCompactJson(SimplifiedNode simplifiedNode, bool prettyPrint = false)
         {
-            // 使用SimpleJson序列化
+            // UseSimpleJsonSerialization
             return Json.FromObject(simplifiedNode);
         }
 
         /// <summary>
-        /// 批量简化多个节点
+        /// 批量Simplify多ItemNode
         /// </summary>
-        /// <param name="figmaNodes">原始节点数据字典</param>
-        /// <param name="maxDepth">最大深度，默认无限制</param>
-        /// <param name="convertToUGUI">是否转换为Unity坐标系，默认true</param>
-        /// <param name="canvasHeight">Canvas高度，用于Unity坐标系转换，默认720</param>
-        /// <param name="canvasWidth">Canvas宽度，用于Unity坐标系转换，默认1200</param>
-        /// <returns>简化后的节点字典</returns>
+        /// <param name="figmaNodes">OriginalNode data字典</param>
+        /// <param name="maxDepth">Maximum depth，Default unlimited</param>
+        /// <param name="convertToUGUI">Whether to convert toUnityCoordinate system，Defaulttrue</param>
+        /// <param name="canvasHeight">CanvasHeight，ForUnityCoordinate system conversion，Default720</param>
+        /// <param name="canvasWidth">CanvasWidth，ForUnityCoordinate system conversion，Default1200</param>
+        /// <returns>SimplifiedNode dictionary</returns>
         public static Dictionary<string, SimplifiedNode> SimplifyNodes(JsonClass figmaNodes, int maxDepth = -1, bool convertToUGUI = true, float canvasHeight = 720f, float canvasWidth = 1200f)
         {
             var result = new Dictionary<string, SimplifiedNode>();
@@ -481,7 +481,7 @@ namespace UnityMcp.Tools
                     var simplified = SimplifyNode(nodeData, maxDepth, convertToUGUI, true, canvasHeight, canvasWidth);
                     if (simplified != null)
                     {
-                        // 提取并简化 components
+                        // Extract and simplify components
                         var componentsData = kvp.Value["components"];
                         if (componentsData != null && componentsData is JsonClass)
                         {
@@ -497,10 +497,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取组件ID列表
+        /// Extract componentIDList
         /// </summary>
-        /// <param name="componentsData">组件数据对象</param>
-        /// <returns>组件ID列表</returns>
+        /// <param name="componentsData">Component数据对象</param>
+        /// <returns>ComponentIDList</returns>
         private static List<string> ExtractComponentIds(JsonNode componentsData)
         {
             var componentIds = new List<string>();
@@ -510,7 +510,7 @@ namespace UnityMcp.Tools
 
             foreach (string key in ((JsonClass)componentsData).GetKeys())
             {
-                // key 就是组件ID
+                // key Is componentID
                 componentIds.Add(key);
             }
 
@@ -518,37 +518,37 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 生成AI友好的节点摘要
+        /// GenerateAI友好的Node摘要
         /// </summary>
-        /// <param name="simplifiedNode">简化的节点数据</param>
-        /// <returns>文本摘要</returns>
+        /// <param name="simplifiedNode">Simplified node数据</param>
+        /// <returns>Text summary</returns>
         public static string GenerateNodeSummary(SimplifiedNode simplifiedNode)
         {
             if (simplifiedNode == null) return "";
 
             var summary = new List<string>();
 
-            // 基本信息
-            summary.Add($"节点: {simplifiedNode.name} ({simplifiedNode.type})");
+            // Basic info
+            summary.Add($"Node: {simplifiedNode.name} ({simplifiedNode.type})");
 
-            // 显示尺寸和位置信息
+            // 显示SizeAndPositionInfo
             if (simplifiedNode.size != null)
             {
-                summary.Add($"尺寸: {simplifiedNode.size[0]:F0}x{simplifiedNode.size[1]:F0}");
+                summary.Add($"Size: {simplifiedNode.size[0]:F0}x{simplifiedNode.size[1]:F0}");
                 if (simplifiedNode.pos != null)
-                    summary.Add($"位置: [{simplifiedNode.pos[0]:F0}, {simplifiedNode.pos[1]:F0}]");
+                    summary.Add($"Position: [{simplifiedNode.pos[0]:F0}, {simplifiedNode.pos[1]:F0}]");
             }
 
             if (!string.IsNullOrEmpty(simplifiedNode.text))
             {
-                summary.Add($"文本: \"{simplifiedNode.text}\"");
+                summary.Add($"Text: \"{simplifiedNode.text}\"");
                 if (simplifiedNode.textStyle != null)
                 {
-                    summary.Add($"字体: {simplifiedNode.textStyle.fontFamily} {simplifiedNode.textStyle.fontSize:F0}px");
+                    summary.Add($"Font: {simplifiedNode.textStyle.fontFamily} {simplifiedNode.textStyle.fontSize:F0}px");
                 }
             }
 
-            // 显示背景信息（包含完整fills信息）
+            // 显示BackgroundInfo（Include completefillsInfo）
             if (simplifiedNode.fills != null && simplifiedNode.fills.Count > 0)
             {
                 var visibleFills = simplifiedNode.fills.Where(f => f.visible).ToList();
@@ -561,19 +561,19 @@ namespace UnityMcp.Tools
                         {
                             case "SOLID":
                                 if (fill.color?.hex != null)
-                                    fillDescriptions.Add($"纯色({fill.color.hex})");
+                                    fillDescriptions.Add($"Solid color({fill.color.hex})");
                                 break;
                             case "IMAGE":
-                                fillDescriptions.Add("图片填充");
+                                fillDescriptions.Add("Image fill");
                                 break;
                             case "GRADIENT_LINEAR":
-                                fillDescriptions.Add("线性渐变");
+                                fillDescriptions.Add("Linear gradient");
                                 break;
                             case "GRADIENT_RADIAL":
-                                fillDescriptions.Add("径向渐变");
+                                fillDescriptions.Add("Radial gradient");
                                 break;
                             case "GRADIENT_ANGULAR":
-                                fillDescriptions.Add("角度渐变");
+                                fillDescriptions.Add("Angular gradient");
                                 break;
                             default:
                                 fillDescriptions.Add(fill.type);
@@ -581,37 +581,37 @@ namespace UnityMcp.Tools
                         }
                     }
                     if (fillDescriptions.Count > 0)
-                        summary.Add($"填充: {string.Join(", ", fillDescriptions)}");
+                        summary.Add($"Fill: {string.Join(", ", fillDescriptions)}");
                 }
             }
             else if (simplifiedNode.backgroundColor != null)
             {
-                summary.Add($"背景: {simplifiedNode.backgroundColor.hex}");
+                summary.Add($"Background: {simplifiedNode.backgroundColor.hex}");
             }
 
             if (simplifiedNode.hasImage)
             {
-                summary.Add("包含图片引用");
+                summary.Add("包含Image reference");
             }
 
             if (simplifiedNode.hasEffect)
             {
-                summary.Add("需要下载为图片");
+                summary.Add("需要下载AsImage");
             }
 
             if (simplifiedNode.layout != null)
             {
-                summary.Add($"布局: {simplifiedNode.layout.layoutMode}");
+                summary.Add($"Layout: {simplifiedNode.layout.layoutMode}");
             }
 
             if (simplifiedNode.children != null && simplifiedNode.children.Count > 0)
             {
-                summary.Add($"子节点: {simplifiedNode.children.Count}个");
+                summary.Add($"Child node: {simplifiedNode.children.Count}Item");
             }
 
             if (simplifiedNode.components != null && simplifiedNode.components.Count > 0)
             {
-                summary.Add($"组件: {simplifiedNode.components.Count}个");
+                summary.Add($"Component: {simplifiedNode.components.Count}Item");
             }
 
             return string.Join(", ", summary);
@@ -620,8 +620,8 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 计算数据压缩率
         /// </summary>
-        /// <param name="originalJson">原始JSON</param>
-        /// <param name="simplifiedJson">简化后的JSON</param>
+        /// <param name="originalJson">OriginalJSON</param>
+        /// <param name="simplifiedJson">SimplifiedJSON</param>
         /// <returns>压缩率百分比</returns>
         public static float CalculateCompressionRatio(string originalJson, string simplifiedJson)
         {
@@ -635,10 +635,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取关键节点信息（进一步压缩）
+        /// 提取关键NodeInfo（Further compression）
         /// </summary>
-        /// <param name="simplifiedNode">简化的节点</param>
-        /// <returns>关键信息字典</returns>
+        /// <param name="simplifiedNode">Simplified node</param>
+        /// <returns>关键Info字典</returns>
         public static Dictionary<string, object> ExtractKeyInfo(SimplifiedNode simplifiedNode)
         {
             var keyInfo = new Dictionary<string, object>
@@ -649,18 +649,18 @@ namespace UnityMcp.Tools
                 ["size"] = simplifiedNode.size != null ? $"{simplifiedNode.size[0]:F0}x{simplifiedNode.size[1]:F0}" : "0x0"
             };
 
-            // 添加位置信息
+            // 添加PositionInfo
             if (simplifiedNode.pos != null)
                 keyInfo["position"] = $"[{simplifiedNode.pos[0]:F0},{simplifiedNode.pos[1]:F0}]";
 
-            // 只添加非空的关键信息
+            // 只添加非空的关键Info
             if (!string.IsNullOrEmpty(simplifiedNode.text))
                 keyInfo["text"] = simplifiedNode.text;
 
             if (simplifiedNode.textStyle?.fontSize > 0)
                 keyInfo["fontSize"] = simplifiedNode.textStyle.fontSize;
 
-            // 优先使用fills信息，回退到backgroundColor
+            // Prefer usefillsInfo，Fallback tobackgroundColor
             if (simplifiedNode.fills != null && simplifiedNode.fills.Count > 0)
             {
                 var visibleFills = simplifiedNode.fills.Where(f => f.visible).ToList();
@@ -688,7 +688,7 @@ namespace UnityMcp.Tools
             if (simplifiedNode.children?.Count > 0)
             {
                 keyInfo["childCount"] = simplifiedNode.children.Count;
-                // 只包含子节点的关键信息
+                // 只包含Child node的关键Info
                 keyInfo["children"] = simplifiedNode.children.Select(child => new
                 {
                     id = child.id,
@@ -710,22 +710,22 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 生成超简洁的AI提示文本
+        /// Generate超简洁的AIHint text
         /// </summary>
-        /// <param name="simplifiedNode">简化的节点</param>
-        /// <returns>AI提示文本</returns>
+        /// <param name="simplifiedNode">Simplified node</param>
+        /// <returns>AIHint text</returns>
         public static string GenerateAIPrompt(SimplifiedNode simplifiedNode)
         {
             var parts = new List<string>();
 
-            // 基础结构
+            // Basic structure
             parts.Add($"{simplifiedNode.name}({simplifiedNode.type})");
 
-            // 尺寸（只在重要时显示）
+            // Size（只在重要时显示）
             if (simplifiedNode.size != null && (simplifiedNode.size[0] > 100 || simplifiedNode.size[1] > 100))
                 parts.Add($"{simplifiedNode.size[0]:F0}x{simplifiedNode.size[1]:F0}");
 
-            // 文本内容
+            // Text content
             if (!string.IsNullOrEmpty(simplifiedNode.text))
             {
                 var text = simplifiedNode.text.Length > 20 ?
@@ -737,7 +737,7 @@ namespace UnityMcp.Tools
                     parts.Add($"{simplifiedNode.textStyle.fontSize:F0}px");
             }
 
-            // 颜色（优先使用fills信息，只显示主要颜色）
+            // Color（Prefer usefillsInfo，只显示主要Color）
             string primaryColor = null;
             if (simplifiedNode.fills != null && simplifiedNode.fills.Count > 0)
             {
@@ -773,7 +773,7 @@ namespace UnityMcp.Tools
                 parts.Add(primaryColor);
             }
 
-            // 特殊标记
+            // Special mark
             if (simplifiedNode.hasImage) parts.Add("📷");
             if (simplifiedNode.hasEffect) parts.Add("🎨");
             if (simplifiedNode.layout?.layoutMode == "HORIZONTAL") parts.Add("→");
@@ -783,24 +783,24 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 批量生成AI提示文本
+        /// Batch generateAIHint text
         /// </summary>
-        /// <param name="nodes">节点字典</param>
-        /// <returns>AI友好的结构化文本</returns>
+        /// <param name="nodes">Node dictionary</param>
+        /// <returns>AI友好的结构化Text</returns>
         public static string GenerateBatchAIPrompt(Dictionary<string, SimplifiedNode> nodes)
         {
             var result = new List<string>();
 
-            foreach (var kvp in nodes) // 处理所有节点
+            foreach (var kvp in nodes) // 处理所有Node
             {
                 var nodePrompt = GenerateAIPrompt(kvp.Value);
                 result.Add($"• {nodePrompt}");
 
-                // 显示重要子节点
+                // 显示重要Child node
                 if (kvp.Value.children != null)
                 {
                     var importantChildren = kvp.Value.children
-                        .Where(child => !string.IsNullOrEmpty(child.text) || child.hasImage || child.hasEffect); // 显示所有重要子节点
+                        .Where(child => !string.IsNullOrEmpty(child.text) || child.hasImage || child.hasEffect); // 显示所有重要Child node
 
                     foreach (var child in importantChildren)
                     {
@@ -813,13 +813,13 @@ namespace UnityMcp.Tools
             return string.Join("\n", result);
         }
 
-        #region 布局信息处理
+        #region Layout info处理
 
         /// <summary>
-        /// 获取节点的简化布局参数字符串（用于MCP调用）
+        /// 获取Node的SimplifyLayout parameterString（ForMCPCall）
         /// </summary>
-        /// <param name="node">简化节点</param>
-        /// <returns>布局参数</returns>
+        /// <param name="node">Simplified node</param>
+        /// <returns>Layout parameter</returns>
         public static string GetLayoutParams(SimplifiedNode node)
         {
             if (node?.size == null) return "";
@@ -835,26 +835,26 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 生成MCP布局调用代码（使用Figma坐标系）
+        /// GenerateMCPLayoutCall code（UseFigmaCoordinate system）
         /// </summary>
-        /// <param name="node">简化节点</param>
-        /// <param name="parentPath">父节点路径</param>
-        /// <returns>MCP调用代码</returns>
+        /// <param name="node">Simplified node</param>
+        /// <param name="parentPath">Parent node path</param>
+        /// <returns>MCPCall code</returns>
         public static string GenerateMCPLayoutCall(SimplifiedNode node, string parentPath = "")
         {
             if (node?.size == null) return "";
 
             string nodePath = string.IsNullOrEmpty(parentPath) ? node.name : $"{parentPath}/{node.name}";
 
-            // 生成布局调用，使用Figma坐标系
+            // GenerateLayoutCall，UseFigmaCoordinate system
             var parts = new List<string>();
             parts.Add($"path=\"{nodePath}\"");
             parts.Add("action=\"layout_anchor\"");
-            parts.Add("anchor_min=[0, 1]");  // 左上角锚点
-            parts.Add("anchor_max=[0, 1]");  // 左上角锚点
+            parts.Add("anchor_min=[0, 1]");  // Top-left anchor point
+            parts.Add("anchor_max=[0, 1]");  // Top-left anchor point
 
             if (node.pos != null)
-                parts.Add($"anchored_pos=[{node.pos[0]:F2}, {-node.pos[1]:F2}]");  // Y坐标取负值以适配Unity
+                parts.Add($"anchored_pos=[{node.pos[0]:F2}, {-node.pos[1]:F2}]");  // Y坐标取负Value以适配Unity
 
             if (node.size != null)
                 parts.Add($"size_delta=[{node.size[0]:F2}, {node.size[1]:F2}]");
@@ -867,58 +867,58 @@ namespace UnityMcp.Tools
         #region 下载判断逻辑
 
         /// <summary>
-        /// 智能分析节点，判断是否需要下载为图片
+        /// 智能分析Node，判断是否需要下载AsImage
         /// </summary>
         private static bool IsDownloadableNode(JsonNode node)
         {
             if (node == null) return false;
 
             string nodeType = node["type"]?.Value;
-            // 不需要检查visible，因为不可见的节点已经在外层被过滤掉了
+            // 不需要检查visible，因As不可见的Node已经在外层被过滤掉了
 
-            // 1. 包含图片引用的节点
+            // 1. 包含Image reference的Node
             if (HasImageRef(node))
             {
                 return true;
             }
 
-            // 2. Vector类型节点（矢量图形）
+            // 2. VectorType node（Vector graphics）
             if (nodeType == "VECTOR" || nodeType == "BOOLEAN_OPERATION")
             {
                 return true;
             }
 
-            // 3. 有填充且非简单颜色的节点
+            // 3. 有Fill且非简单Color的Node
             if (HasComplexFills(node))
             {
                 return true;
             }
 
-            // 4. 有描边的节点
+            // 4. 有描边的Node
             if (HasStrokes(node))
             {
                 return true;
             }
 
-            // 5. 有效果的节点（阴影、模糊等）
+            // 5. 有效果的Node（Shadow、Blur）
             if (HasEffects(node))
             {
                 return true;
             }
 
-            // 6. 椭圆节点
+            // 6. Ellipse node
             if (nodeType == "ELLIPSE")
             {
                 return true;
             }
 
-            // 7. 有圆角的矩形
+            // 7. 有Corner radius的矩形
             if (nodeType == "RECTANGLE" && HasRoundedCorners(node))
             {
                 return true;
             }
 
-            // 8. 复杂的Frame（包含多个子元素且有样式）
+            // 8. ComplexFrame（包含多Item子元素且有样式）
             if (nodeType == "FRAME" && IsComplexFrame(node))
             {
                 return true;
@@ -928,7 +928,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查节点是否包含图片引用
+        /// 检查Node是否包含Image reference
         /// </summary>
         private static bool HasImageRef(JsonNode node)
         {
@@ -947,7 +947,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查是否有复杂填充（渐变、图片等）
+        /// 检查是否有复杂Fill（Gradient、Image）
         /// </summary>
         private static bool HasComplexFills(JsonNode node)
         {
@@ -988,7 +988,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查是否有圆角
+        /// 检查是否有Corner radius
         /// </summary>
         private static bool HasRoundedCorners(JsonNode node)
         {
@@ -1013,7 +1013,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查是否为复杂Frame
+        /// 检查是否As复杂Frame
         /// </summary>
         private static bool IsComplexFrame(JsonNode node)
         {
@@ -1021,13 +1021,13 @@ namespace UnityMcp.Tools
             if (children == null || children.Count == 0)
                 return false;
 
-            // 如果Frame有背景色、效果或者包含多个不同类型的子元素，认为是复杂Frame
+            // IfFrameWith background color、效果或者包含多Item不同类型的子元素，Considered complexFrame
             if (HasComplexFills(node) || HasEffects(node) || HasStrokes(node))
                 return true;
 
-            // 检查子元素数量和类型多样性
+            // 检查子元素数量And类型多样性
             int childCount = children.Count;
-            if (childCount > 3) // 超过3个子元素的复杂布局
+            if (childCount > 3) // Exceed3Item子元素的复杂Layout
                 return true;
 
             return false;
@@ -1036,28 +1036,28 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region 使用示例和工具方法
+        #region Use示例And工具方法
 
         /// <summary>
-        /// 批量生成所有节点的MCP布局调用代码
+        /// Batch generate所有Node的MCPLayoutCall code
         /// </summary>
-        /// <param name="rootNode">根节点</param>
-        /// <param name="parentPath">父路径</param>
-        /// <returns>MCP调用代码列表</returns>
+        /// <param name="rootNode">Root node</param>
+        /// <param name="parentPath">Parent path</param>
+        /// <returns>MCPCall codeList</returns>
         public static List<string> GenerateAllMCPLayoutCalls(SimplifiedNode rootNode, string parentPath = "")
         {
             var calls = new List<string>();
 
             if (rootNode == null) return calls;
 
-            // 为当前节点生成调用
+            // As当前NodeGenerateCall
             var call = GenerateMCPLayoutCall(rootNode, parentPath);
             if (!string.IsNullOrEmpty(call))
             {
                 calls.Add(call);
             }
 
-            // 递归处理子节点
+            // 递归处理Child node
             if (rootNode.children != null)
             {
                 string currentPath = string.IsNullOrEmpty(parentPath) ? rootNode.name : $"{parentPath}/{rootNode.name}";
@@ -1071,10 +1071,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 生成完整的MCP批量调用代码（使用Figma坐标系）
+        /// Generate completeMCP批量Call code（UseFigmaCoordinate system）
         /// </summary>
-        /// <param name="rootNode">根节点</param>
-        /// <returns>完整的functions_call代码</returns>
+        /// <param name="rootNode">Root node</param>
+        /// <returns>Completefunctions_callCode</returns>
         public static string GenerateBatchMCPCall(SimplifiedNode rootNode)
         {
             var calls = GenerateAllMCPLayoutCalls(rootNode);
@@ -1095,17 +1095,17 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region 调试和测试方法
+        #region 调试And测试方法
 
         /// <summary>
-        /// 生成fills信息的详细描述（用于调试）
+        /// GeneratefillsInfo的详细描述（For debugging）
         /// </summary>
-        /// <param name="simplifiedNode">简化节点</param>
-        /// <returns>fills详细信息</returns>
+        /// <param name="simplifiedNode">Simplified node</param>
+        /// <returns>fillsDetails</returns>
         public static string GetFillsDebugInfo(SimplifiedNode simplifiedNode)
         {
             if (simplifiedNode?.fills == null || simplifiedNode.fills.Count == 0)
-                return "无填充信息";
+                return "No fill info";
 
             var info = new List<string>();
             for (int i = 0; i < simplifiedNode.fills.Count; i++)
@@ -1114,31 +1114,31 @@ namespace UnityMcp.Tools
                 var fillDesc = $"Fill[{i}]: {fill.type}";
 
                 if (!fill.visible)
-                    fillDesc += " (隐藏)";
+                    fillDesc += " (Hide)";
 
                 if (fill.opacity < 1.0f)
-                    fillDesc += $" 透明度:{fill.opacity:P0}";
+                    fillDesc += $" Transparency:{fill.opacity:P0}";
 
                 switch (fill.type)
                 {
                     case "SOLID":
                         if (fill.color != null)
-                            fillDesc += $" 颜色:{fill.color.hex}";
+                            fillDesc += $" Color:{fill.color.hex}";
                         break;
                     case "IMAGE":
                         if (!string.IsNullOrEmpty(fill.imageRef))
-                            fillDesc += $" 图片:{fill.imageRef}";
+                            fillDesc += $" Image:{fill.imageRef}";
                         break;
                     case "GRADIENT_LINEAR":
                     case "GRADIENT_RADIAL":
                     case "GRADIENT_ANGULAR":
                         if (fill.gradient?.gradientStops != null)
-                            fillDesc += $" 渐变停止点:{fill.gradient.gradientStops.Count}个";
+                            fillDesc += $" Gradient stop point:{fill.gradient.gradientStops.Count}Item";
                         break;
                 }
 
                 if (!string.IsNullOrEmpty(fill.blendMode) && fill.blendMode != "NORMAL")
-                    fillDesc += $" 混合:{fill.blendMode}";
+                    fillDesc += $" Blend:{fill.blendMode}";
 
                 info.Add(fillDesc);
             }

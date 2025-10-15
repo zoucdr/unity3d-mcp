@@ -6,28 +6,28 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// 简化的对象选择器，按ID或path查找并返回唯一的T类型对象
+    /// Simplified object selector，ByIDOrpathFind and return uniqueTType object
     /// </summary>
-    /// <typeparam name="T">要查找的Unity对象类型，必须继承自UnityEngine.Object</typeparam>
+    /// <typeparam name="T">To searchUnityObject type，Must inherit fromUnityEngine.Object</typeparam>
     public class ObjectSelector<T> : IObjectSelector where T : UnityEngine.Object
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create list of parameter keys supported by current method
         /// </summary>
-        /// <returns>包含id和path参数的MethodKey数组</returns>
+        /// <returns>IncludeidAndpathParameter'sMethodKeyArray</returns>
         public MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                new MethodKey("instance_id", "对象的InstanceID", true),
-                new MethodKey("path", "对象的路径（Assets路径或Hierarchy路径）", true)
+                new MethodKey("instance_id", "Object'sInstanceID", true),
+                new MethodKey("path", "Path of the object（AssetsPath orHierarchyPath）", true)
             };
         }
 
         /// <summary>
-        /// 构建对象查找状态树，支持按ID或path查找
+        /// Build object search state tree，Support byIDOrpathSearch
         /// </summary>
-        /// <returns>构建的状态树</returns>
+        /// <returns>Built state tree</returns>
         public StateTree BuildStateTree()
         {
             return StateTreeBuilder.Create()
@@ -38,19 +38,19 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 按ID搜索处理，返回唯一的T类型对象
+        /// ByIDSearch processing，Return uniqueTType object
         /// </summary>
-        /// <param name="context">状态树上下文</param>
-        /// <returns>找到的对象或错误信息</returns>
+        /// <param name="context">State tree context</param>
+        /// <returns>Found object or error information</returns>
         private object HandleByIdSearch(StateTreeContext context)
         {
-            // 获取ID参数
+            // GetIDParameter
             if (!context.TryGetValue("instance_id", out object idObj) || idObj == null)
             {
                 return Response.Error("Parameter 'id' is required.");
             }
 
-            // 解析ID
+            // ParseID
             if (!int.TryParse(idObj.ToString(), out int instanceId))
             {
                 return Response.Error($"Invalid ID format: '{idObj}'. ID must be an integer.");
@@ -58,7 +58,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 使用EditorUtility.InstanceIDToObject查找对象
+                // UseEditorUtility.InstanceIDToObjectSearch object
                 var foundObject = UnityEditor.EditorUtility.InstanceIDToObject(instanceId);
 
                 if (foundObject == null)
@@ -66,7 +66,7 @@ namespace UnityMcp.Tools
                     return Response.Error($"Object with ID '{instanceId}' not found.");
                 }
 
-                // 检查对象类型是否匹配
+                // Check if object type matches
                 if (foundObject is T typedObject)
                 {
                     return typedObject;
@@ -83,13 +83,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 按路径搜索处理，返回唯一的T类型对象
+        /// Search and handle by path，Return uniqueTType object
         /// </summary>
-        /// <param name="context">状态树上下文</param>
-        /// <returns>找到的对象或错误信息</returns>
+        /// <param name="context">State tree context</param>
+        /// <returns>Found object or error information</returns>
         private object HandleByPathSearch(StateTreeContext context)
         {
-            // 获取path参数
+            // GetpathParameter
             if (!context.TryGetValue("path", out object pathObj) || pathObj == null)
             {
                 return Response.Error("Parameter 'path' is required.");
@@ -99,14 +99,14 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 尝试作为Assets路径加载
+                // Try asAssetsPath loading
                 T asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
                 if (asset != null)
                 {
                     return asset;
                 }
 
-                // 如果Assets路径失败，尝试作为Hierarchy路径查找
+                // IfAssetsPath failed，Try asHierarchyPath search
                 T hierarchyObject = FindByHierarchyPath(path);
                 if (hierarchyObject != null)
                 {
@@ -122,13 +122,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 默认搜索处理，确保至少提供id或path参数之一
+        /// Default search handling，Ensure that at least providedidOrpathOne of the parameters
         /// </summary>
-        /// <param name="context">状态树上下文</param>
-        /// <returns>找到的对象或错误信息</returns>
+        /// <param name="context">State tree context</param>
+        /// <returns>Found object or error information</returns>
         private object HandleDefaultSearch(StateTreeContext context)
         {
-            // 检查是否至少提供了id或path参数之一
+            // Check if at least providedidOrpathOne of the parameters
             bool hasId = context.TryGetValue("instance_id", out object idObj) && idObj != null;
             bool hasPath = context.TryGetValue("path", out object pathObj) && pathObj != null;
 
@@ -138,13 +138,13 @@ namespace UnityMcp.Tools
                 return Response.Error("Either 'instance_id' or 'path' parameter must be provided.");
             }
 
-            // 优先使用id查找
+            // Prefer to useidSearch
             if (hasId)
             {
                 return HandleByIdSearch(context);
             }
 
-            // 使用path查找
+            // UsepathSearch
             if (hasPath)
             {
                 return HandleByPathSearch(context);
@@ -154,13 +154,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 通过Hierarchy路径查找对象
+        /// ThroughHierarchyFind object by path
         /// </summary>
-        /// <param name="path">Hierarchy路径，如"Parent/Child/Target"</param>
-        /// <returns>找到的对象，未找到则返回null</returns>
+        /// <param name="path">HierarchyPath，Such as"Parent/Child/Target"</param>
+        /// <returns>Found object，If not found then returnnull</returns>
         private T FindByHierarchyPath(string path)
         {
-            // 使用GameObject.Find查找GameObject
+            // UseGameObject.FindSearchGameObject
             GameObject foundGameObject = GameObject.Find(path);
 
             if (foundGameObject == null)
@@ -168,13 +168,13 @@ namespace UnityMcp.Tools
                 return null;
             }
 
-            // 如果T是GameObject类型，直接返回
+            // IfTIsGameObjectType，Return directly
             if (foundGameObject is T directMatch)
             {
                 return directMatch;
             }
 
-            // 如果T是Component类型，尝试获取组件
+            // IfTIsComponentType，Try to get component
             if (typeof(UnityEngine.Component).IsAssignableFrom(typeof(T)))
             {
                 return foundGameObject.GetComponent<T>();
@@ -184,10 +184,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取对象的详细信息
+        /// Get detailed object information
         /// </summary>
-        /// <param name="obj">要获取信息的对象</param>
-        /// <returns>对象信息字符串</returns>
+        /// <param name="obj">Object to get information of</param>
+        /// <returns>Object information string</returns>
         public string GetObjectInfo(T obj)
         {
             if (obj == null) return "null";
@@ -196,14 +196,14 @@ namespace UnityMcp.Tools
             string name = obj.name;
             string instanceId = obj.GetInstanceID().ToString();
 
-            return $"类型: {type}, 名称: {name}, InstanceID: {instanceId}";
+            return $"Type: {type}, Name: {name}, InstanceID: {instanceId}";
         }
 
         /// <summary>
-        /// 通用的按ID查找方法，可直接调用
+        /// General byIDSearch method，Can be called directly
         /// </summary>
-        /// <param name="instanceId">对象的InstanceID</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="instanceId">Object'sInstanceID</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindById(int instanceId)
         {
             try
@@ -218,10 +218,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 通用的按路径查找方法，可直接调用
+        /// Generic search-by-path method，Can be called directly
         /// </summary>
-        /// <param name="path">对象的路径（Assets路径或Hierarchy路径）</param>
-        /// <returns>找到的对象，如果未找到或类型不匹配则返回null</returns>
+        /// <param name="path">Path of the object（AssetsPath orHierarchyPath）</param>
+        /// <returns>Found object，If not found or type mismatchnull</returns>
         public T FindByPath(string path)
         {
             if (string.IsNullOrEmpty(path))
@@ -231,14 +231,14 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 尝试作为Assets路径加载
+                // Try asAssetsPath loading
                 T asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
                 if (asset != null)
                 {
                     return asset;
                 }
 
-                // 尝试作为Hierarchy路径查找
+                // Try asHierarchyPath search
                 return FindByHierarchyPath(path);
             }
             catch

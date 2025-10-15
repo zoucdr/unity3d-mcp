@@ -10,10 +10,10 @@ namespace UnityMcp.Models
     {
         public List<McpExecuteRecord> records = new List<McpExecuteRecord>();
         public List<McpExecuteRecordGroup> recordGroups = new List<McpExecuteRecordGroup>();
-        public string currentGroupId = "default"; // 当前选中的分组ID
-        public bool useGrouping = true; // 是否启用分组功能（默认启用）
+        public string currentGroupId = "default"; // Currently selected groupID
+        public bool useGrouping = true; // Whether to enable grouping feature（Enabled by default）
 
-        // 初始化标记，确保只初始化一次
+        // Initialization flag，Ensure initialization only occurs once
         private bool isInitialized = false;
         [System.Serializable]
         public class McpExecuteRecord
@@ -24,18 +24,18 @@ namespace UnityMcp.Models
             public string error;
             public string timestamp;
             public bool success;
-            public double duration; // 执行时间（毫秒）
-            public string source; // 记录来源："MCP Client" 或 "Debug Window"
+            public double duration; // Execution time（Millisecond）
+            public string source; // Source of record："MCP Client" Or "Debug Window"
         }
         [System.Serializable]
         public class McpExecuteRecordGroup
         {
-            public string id; // 分组唯一ID
-            public string name; // 分组显示名称
-            public string description; // 分组描述
+            public string id; // Group uniqueID
+            public string name; // Group display name
+            public string description; // Group description
             public List<McpExecuteRecord> records = new List<McpExecuteRecord>();
-            public System.DateTime createdTime; // 创建时间
-            public bool isDefault; // 是否为默认分组
+            public System.DateTime createdTime; // Creation time
+            public bool isDefault; // Whether it is the default group
         }
         public void addRecord(string name, string cmd, string result, string error)
         {
@@ -50,12 +50,12 @@ namespace UnityMcp.Models
                 duration = 0,
                 source = "Legacy"
             });
-            saveRecords(); // 确保保存
+            saveRecords(); // Ensure saving
         }
 
         public void addRecord(string name, string cmd, string result, string error, double duration, string source)
         {
-            // 确保分组功能已初始化
+            // Ensure grouping feature is initialized
             EnsureGroupingEnabled();
 
             var record = new McpExecuteRecord()
@@ -72,26 +72,26 @@ namespace UnityMcp.Models
 
             if (useGrouping)
             {
-                // 使用分组模式，添加到当前分组
+                // Use grouping mode，Add to the current group
                 AddRecordToCurrentGroup(record);
             }
             else
             {
-                // 传统模式，添加到全局记录列表
+                // Traditional mode，Add to global record list
                 records.Add(record);
-                saveRecords(); // 传统模式下也需要保存
+                saveRecords(); // Need to save in traditional mode as well
             }
         }
         public void clearRecords()
         {
-            // 禁止清空全部，仅清空当前分组
+            // Prohibit clearing all，Clear only the current group
             EnsureGroupingEnabled();
             ClearCurrentGroupRecords();
-            Debug.Log("[McpExecuteRecordObject] 已清空当前分组记录（禁止清空全部）");
+            Debug.Log("[McpExecuteRecordObject] Current group records have been cleared（Prohibit clearing all）");
         }
         public void saveRecords()
         {
-            // ScriptableSingleton 使用 Save() 方法来持久化数据
+            // ScriptableSingleton Use Save() Method to persist data
             Save(true);
         }
         public void loadRecords()
@@ -99,37 +99,37 @@ namespace UnityMcp.Models
             records = new List<McpExecuteRecord>();
         }
 
-        #region 分组管理功能
+        #region Group management function
 
         /// <summary>
-        /// 确保分组功能已启用并初始化
-        /// 这个方法会在任何记录操作前被调用，确保即使 Debug Window 未开启，记录也能正确保存
+        /// Ensure grouping feature is enabled and initialized
+        /// This method is called before any record operation，Ensure even if Debug Window Not enabled，Records can also be saved correctly
         /// </summary>
         private void EnsureGroupingEnabled()
         {
-            // 如果已经初始化过，直接返回
+            // If already initialized，Return directly
             if (isInitialized)
                 return;
 
-            // 启用分组功能
+            // Enable grouping feature
             if (!useGrouping)
             {
                 useGrouping = true;
             }
 
-            // 初始化默认分组
+            // Initialize the default group
             InitializeDefaultGroup();
 
-            // 如果全局 records 列表中有旧数据，迁移到默认分组
+            // If global records There is old data in the list，Migrate to the default group
             if (records.Count > 0)
             {
                 var defaultGroup = GetGroup("default");
                 if (defaultGroup != null)
                 {
-                    // 迁移旧记录到默认分组
+                    // Migrate old records to default group
                     defaultGroup.records.AddRange(records);
                     records.Clear();
-                    Debug.Log($"[McpExecuteRecordObject] 已将 {defaultGroup.records.Count} 条旧记录迁移到默认分组");
+                    Debug.Log($"[McpExecuteRecordObject] Already {defaultGroup.records.Count} Old records migrated to default group");
                 }
             }
 
@@ -138,22 +138,22 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 初始化默认分组
+        /// Initialize the default group
         /// </summary>
         public void InitializeDefaultGroup()
         {
             if (recordGroups.Count == 0)
             {
-                CreateGroup("default", "默认分组", "系统默认分组，用于存放未分类的记录", true);
+                CreateGroup("default", "Default group", "System default group，Used to store uncategorized records", true);
             }
 
-            // 确保有默认分组
+            // Ensure there is a default group
             if (!HasGroup("default"))
             {
-                CreateGroup("default", "默认分组", "系统默认分组，用于存放未分类的记录", true);
+                CreateGroup("default", "Default group", "System default group，Used to store uncategorized records", true);
             }
 
-            // 如果当前分组ID无效，重置为默认
+            // If current groupIDInvalid，Reset to default
             if (!HasGroup(currentGroupId))
             {
                 currentGroupId = "default";
@@ -161,13 +161,13 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 创建新分组
+        /// Create new group
         /// </summary>
         public bool CreateGroup(string id, string name, string description = "", bool isDefault = false)
         {
             if (HasGroup(id))
             {
-                Debug.LogWarning($"分组ID '{id}' 已存在");
+                Debug.LogWarning($"GroupID '{id}' Already exists");
                 return false;
             }
 
@@ -186,20 +186,20 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 删除分组
+        /// Delete group
         /// </summary>
         public bool DeleteGroup(string groupId)
         {
             if (groupId == "default")
             {
-                Debug.LogWarning("不能删除默认分组");
+                Debug.LogWarning("Cannot delete default group");
                 return false;
             }
 
             var group = GetGroup(groupId);
             if (group == null) return false;
 
-            // 将该分组的记录移动到默认分组
+            // Move the records of this group to the default group
             var defaultGroup = GetGroup("default");
             if (defaultGroup != null && group.records.Count > 0)
             {
@@ -208,7 +208,7 @@ namespace UnityMcp.Models
 
             recordGroups.Remove(group);
 
-            // 如果删除的是当前分组，切换到默认分组
+            // If the deleted group is the current group，Switch to the default group
             if (currentGroupId == groupId)
             {
                 currentGroupId = "default";
@@ -219,7 +219,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 获取分组
+        /// Get group
         /// </summary>
         public McpExecuteRecordGroup GetGroup(string groupId)
         {
@@ -227,7 +227,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 检查分组是否存在
+        /// Check if the group exists
         /// </summary>
         public bool HasGroup(string groupId)
         {
@@ -235,7 +235,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 获取当前分组
+        /// Get current group
         /// </summary>
         public McpExecuteRecordGroup GetCurrentGroup()
         {
@@ -243,7 +243,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 切换到指定分组
+        /// Switch to the specified group
         /// </summary>
         public void SwitchToGroup(string groupId)
         {
@@ -255,7 +255,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 向指定分组添加记录
+        /// Add records to the specified group
         /// </summary>
         public void AddRecordToGroup(string groupId, McpExecuteRecord record)
         {
@@ -268,16 +268,16 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 向当前分组添加记录
+        /// Add records to the current group
         /// </summary>
         public void AddRecordToCurrentGroup(McpExecuteRecord record)
         {
-            InitializeDefaultGroup(); // 确保有默认分组
+            InitializeDefaultGroup(); // Ensure there is a default group
             AddRecordToGroup(currentGroupId, record);
         }
 
         /// <summary>
-        /// 移动记录到指定分组
+        /// Move records to the specified group
         /// </summary>
         public bool MoveRecordToGroup(McpExecuteRecord record, string fromGroupId, string toGroupId)
         {
@@ -297,16 +297,16 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 获取当前分组的记录
+        /// Get records in the current group
         /// </summary>
         public List<McpExecuteRecord> GetCurrentGroupRecords()
         {
-            // 确保分组功能已初始化
+            // Ensure grouping feature is initialized
             EnsureGroupingEnabled();
 
             if (!useGrouping)
             {
-                return records; // 不使用分组时返回全局记录
+                return records; // Return global records when grouping is not used
             }
 
             var currentGroup = GetCurrentGroup();
@@ -314,7 +314,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 清空当前分组的记录
+        /// Clear records in the current group
         /// </summary>
         public void ClearCurrentGroupRecords()
         {
@@ -331,7 +331,7 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 重命名分组
+        /// Rename group
         /// </summary>
         public bool RenameGroup(string groupId, string newName)
         {
@@ -346,17 +346,17 @@ namespace UnityMcp.Models
         }
 
         /// <summary>
-        /// 获取分组统计信息
+        /// Get group statistics info
         /// </summary>
         public string GetGroupStatistics(string groupId)
         {
             var group = GetGroup(groupId);
-            if (group == null) return "分组不存在";
+            if (group == null) return "Group does not exist";
 
             int successCount = group.records.Count(r => r.success);
             int errorCount = group.records.Count - successCount;
 
-            return $"{group.records.Count}个记录 (成功:{successCount} 失败:{errorCount})";
+            return $"{group.records.Count}Record(s) (Success:{successCount} Failure:{errorCount})";
         }
 
         #endregion

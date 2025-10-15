@@ -5,7 +5,7 @@ using UnityMcp.Models;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// NodeSpriteInfo的自定义PropertyDrawer，让id、fileName和sprite显示在同一行，并支持载入图片按钮
+    /// NodeSpriteInfoCustomized ofPropertyDrawer，Letid、fileNameAndspriteShow in one line，And support load picture button
     /// </summary>
     [CustomPropertyDrawer(typeof(NodeSpriteInfo))]
     public class NodeSpriteInfoDrawer : PropertyDrawer
@@ -14,17 +14,17 @@ namespace UnityMcp.Gui
         {
             EditorGUI.BeginProperty(position, label, property);
 
-            // 不缩进子属性
+            // Don't indent child property
             var indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
 
-            // 计算字段的矩形区域
-            var labelWidth = 45f; // 标签宽度
-            var spacing = 3f; // 间距
+            // Calculate field rectangle area
+            var labelWidth = 45f; // Label width
+            var spacing = 3f; // Spacing
 
-            var totalLabelWidth = labelWidth * 3; // 三个标签的总宽度
+            var totalLabelWidth = labelWidth * 3; // Total width of three labels
             var remainingWidth = position.width - totalLabelWidth - spacing * 4;
-            var fieldWidth = remainingWidth / 3f; // 每个字段占1/3宽度
+            var fieldWidth = remainingWidth / 3f; // Each field occupies1/3Width
             var idWidth = fieldWidth;
             var fileNameWidth = fieldWidth;
             var spriteFieldWidth = fieldWidth;
@@ -48,7 +48,7 @@ namespace UnityMcp.Gui
             currentX += labelWidth;
             var spriteRect = new Rect(currentX, position.y, spriteFieldWidth, position.height);
 
-            // 绘制标签和字段
+            // Draw label and field
             var idProp = property.FindPropertyRelative("id");
             var fileNameProp = property.FindPropertyRelative("fileName");
             var spriteProp = property.FindPropertyRelative("sprite");
@@ -62,7 +62,7 @@ namespace UnityMcp.Gui
             EditorGUI.LabelField(spriteLabelRect, "Sprite:");
             EditorGUI.PropertyField(spriteRect, spriteProp, GUIContent.none);
 
-            // 恢复缩进
+            // Restore indent
             EditorGUI.indentLevel = indent;
 
             EditorGUI.EndProperty();

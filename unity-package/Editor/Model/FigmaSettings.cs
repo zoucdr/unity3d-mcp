@@ -5,13 +5,13 @@ using UnityEditor;
 namespace UnityMcp
 {
     /// <summary>
-    /// Figma设置类，用于管理与Figma集成相关的配置
+    /// FigmaSettings class，Used to manage andFigmaIntegration related configuration
     /// </summary>
     [System.Serializable]
     public class FigmaSettings
     {
         /// <summary>
-        /// 默认下载路径
+        /// Default download path
         /// </summary>
         public string default_download_path
         {
@@ -26,7 +26,7 @@ namespace UnityMcp
         [SerializeField] private string _default_download_path;
 
         /// <summary>
-        /// Figma资产数据路径
+        /// FigmaAsset data path
         /// </summary>
         public string figma_assets_path
         {
@@ -41,7 +41,7 @@ namespace UnityMcp
         [SerializeField] private string _figma_assets_path;
 
         /// <summary>
-        /// Figma预览图保存路径
+        /// FigmaPreview image save path
         /// </summary>
         public string figma_preview_path
         {
@@ -56,32 +56,32 @@ namespace UnityMcp
         [SerializeField] private string _figma_preview_path;
 
         /// <summary>
-        /// 自动下载图片
+        /// Automatically download images
         /// </summary>
         public bool auto_download_images = true;
 
         /// <summary>
-        /// 图片缩放倍数
+        /// Image scale factor
         /// </summary>
         public float image_scale = 2.0f;
 
         /// <summary>
-        /// 自动转换图片为Sprite格式
+        /// Automatically convert images toSpriteFormat
         /// </summary>
         public bool auto_convert_to_sprite = true;
 
         /// <summary>
-        /// 预览图最大尺寸
+        /// Maximum size of preview image
         /// </summary>
         public int preview_max_size = 100;
 
         /// <summary>
-        /// 引擎支持效果
+        /// Engine-supported features
         /// </summary>
         public EngineSupportEffect engineSupportEffect;
 
         /// <summary>
-        /// Figma访问令牌（保存在EditorPrefs中，不会被提交到版本控制）
+        /// FigmaAccess token（Save inEditorPrefsIn，Will not be committed to version control）
         /// </summary>
         public string figma_access_token
         {
@@ -96,7 +96,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 引擎支持效果
+        /// Engine-supported features
         /// </summary>
         [System.Serializable]
         public class EngineSupportEffect
@@ -107,11 +107,11 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         public FigmaSettings()
         {
-            // 初始化默认值
+            // Initialize default values
             _default_download_path = "Assets/UI/Figma";
             _figma_assets_path = "Assets/FigmaAssets";
             _figma_preview_path = "Assets/FigmaAssets/Previews";

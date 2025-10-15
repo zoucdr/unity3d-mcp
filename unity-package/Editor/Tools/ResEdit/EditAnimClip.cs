@@ -10,48 +10,48 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// 专门的动画片段管理工具，提供动画片段的创建、修改、复制、删除等操作
-    /// 对应方法名: manage_anim_clip
+    /// Dedicated animation clip management tool，Provide animation clip creation、Modify、Copy、Delete etc. operations
+    /// Corresponding method name: manage_anim_clip
     /// </summary>
-    [ToolName("edit_anim_clip", "资源管理")]
+    [ToolName("edit_anim_clip", "Asset management")]
     public class EditAnimClip : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：create, modify, duplicate, delete, get_info, search, set_curve, set_events", false),
-                new MethodKey("path", "动画片段资源路径，Unity标准格式：Assets/Animations/ClipName.anim", false),
-                new MethodKey("source_path", "源动画片段路径（复制时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.anim", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("length", "动画长度（秒）", true),
-                new MethodKey("frame_rate", "帧率", true),
-                new MethodKey("loop_time", "是否循环播放", true),
-                new MethodKey("loop_pose", "是否循环姿势", true),
-                new MethodKey("cycle_offset", "循环偏移", true),
-                new MethodKey("root_rotation_offset_y", "根旋转Y轴偏移", true),
-                new MethodKey("root_height_offset_y", "根高度Y轴偏移", true),
-                new MethodKey("root_height_offset_y_active", "是否启用根高度Y轴偏移", true),
-                new MethodKey("lock_root_height_y", "是否锁定根高度Y轴", true),
-                new MethodKey("lock_root_rotation_y", "是否锁定根旋转Y轴", true),
-                new MethodKey("lock_root_rotation_offset_y", "是否锁定根旋转偏移Y轴", true),
-                new MethodKey("keep_original_orientation_y", "是否保持原始方向Y轴", true),
-                new MethodKey("height_from_ground", "是否从地面计算高度", true),
-                new MethodKey("mirror", "是否镜像", true),
-                new MethodKey("body_orientation", "身体方向", true),
-                new MethodKey("curves", "动画曲线数据", true),
-                new MethodKey("events", "动画事件数据", true)
+                new MethodKey("action", "Operation type：create, modify, duplicate, delete, get_info, search, set_curve, set_events", false),
+                new MethodKey("path", "Animation clip resource path，UnityStandard format：Assets/Animations/ClipName.anim", false),
+                new MethodKey("source_path", "Source animation clip path（Used on copy）", true),
+                new MethodKey("destination", "Target path（Copy/Used on move）", true),
+                new MethodKey("query", "Search mode，Such as*.anim", true),
+                new MethodKey("recursive", "Whether to search subfolders recursively", true),
+                new MethodKey("force", "Whether to force executing operation（Overwrite existing files etc.）", true),
+                new MethodKey("length", "Animation length（Second）", true),
+                new MethodKey("frame_rate", "Frame rate", true),
+                new MethodKey("loop_time", "Whether to loop playback", true),
+                new MethodKey("loop_pose", "Whether to loop pose", true),
+                new MethodKey("cycle_offset", "Loop offset", true),
+                new MethodKey("root_rotation_offset_y", "Root rotationYAxis offset", true),
+                new MethodKey("root_height_offset_y", "Root heightYAxis offset", true),
+                new MethodKey("root_height_offset_y_active", "Whether to enable root heightYAxis offset", true),
+                new MethodKey("lock_root_height_y", "Whether lock root heightYAxis", true),
+                new MethodKey("lock_root_rotation_y", "Whether lock root rotationYAxis", true),
+                new MethodKey("lock_root_rotation_offset_y", "Whether lock root rotation offsetYAxis", true),
+                new MethodKey("keep_original_orientation_y", "Whether to keep original orientationYAxis", true),
+                new MethodKey("height_from_ground", "Whether to calculate height from ground", true),
+                new MethodKey("mirror", "Whether mirror", true),
+                new MethodKey("body_orientation", "Body orientation", true),
+                new MethodKey("curves", "Animation curve data", true),
+                new MethodKey("events", "Animation event data", true)
             };
         }
 
         /// <summary>
-        /// 创建状态树
+        /// Create state tree
         /// </summary>
         protected override StateTree CreateStateTree()
         {
@@ -71,7 +71,7 @@ namespace UnityMcp.Tools
                 .Build();
         }
 
-        // --- 状态树操作方法 ---
+        // --- State tree operation method ---
 
         private object CreateAnimClip(JsonClass args)
         {
@@ -85,7 +85,7 @@ namespace UnityMcp.Tools
             string fullPath = SanitizeAssetPath(path);
             string directory = Path.GetDirectoryName(fullPath);
 
-            // 确保目录存在
+            // Ensure directory exists
             if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), directory)))
             {
                 Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), directory));
@@ -99,12 +99,12 @@ namespace UnityMcp.Tools
             {
                 AnimationClip clip = new AnimationClip();
 
-                // 设置基本属性
+                // Set basic properties
                 clip.frameRate = frameRate;
-                // 注意：clip.length 是只读属性，不能直接设置
-                // 动画长度通常由动画数据本身决定
+                // Note：clip.length Is read-only property，Cannot set directly
+                // Animation length usually determined by animation data itself
 
-                // 应用设置
+                // Apply settings
                 JsonClass settings = args["settings"] as JsonClass;
                 if (settings != null)
                 {
@@ -147,19 +147,19 @@ namespace UnityMcp.Tools
 
                 bool modified = false;
 
-                // 应用设置
+                // Apply settings
                 if (settings != null && settings.Count > 0)
                 {
                     modified |= ApplyAnimClipSettings(clip, settings);
                 }
 
-                // 应用曲线
+                // Apply curve
                 if (curves != null && curves.Count > 0)
                 {
                     modified |= ApplyAnimClipCurves(clip, curves);
                 }
 
-                // 应用事件
+                // Apply event
                 if (events != null && events.Count > 0)
                 {
                     modified |= ApplyAnimClipEvents(clip, events);
@@ -470,7 +470,7 @@ namespace UnityMcp.Tools
                 if (modelImporter == null)
                     return Response.Error($"Failed to get ModelImporter for '{modelFullPath}'");
 
-                // 获取模型中的所有动画片段
+                // Get all animation clips in model
                 ModelImporterClipAnimation[] clipAnimations = modelImporter.defaultClipAnimations;
                 AnimationClip targetClip = null;
 
@@ -478,9 +478,9 @@ namespace UnityMcp.Tools
                 {
                     if (clipAnim.name == clipName)
                     {
-                        // 找到目标动画片段，现在需要提取它
-                        // 这里需要更复杂的逻辑来从模型中提取特定的动画片段
-                        // 暂时返回错误，提示用户使用其他方法
+                        // Find target animation clip，Need to extract it now
+                        // More complex logic needed here to extract specific animation clip from model
+                        // Temporarily return error，Prompt user to use other method
                         return Response.Error($"Extracting specific animation clips from models requires more complex implementation. Please use the model import settings or create animation clips manually.");
                     }
                 }
@@ -493,10 +493,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- 内部辅助方法 ---
+        // --- Internal helper method ---
 
         /// <summary>
-        /// 确保资产路径以"Assets/"开头
+        /// Ensure asset path starts with"Assets/"Start
         /// </summary>
         private string SanitizeAssetPath(string path)
         {
@@ -511,7 +511,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 检查资产是否存在
+        /// Check if asset exists
         /// </summary>
         private bool AssetExists(string sanitizedPath)
         {
@@ -531,7 +531,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 确保目录存在
+        /// Ensure directory exists
         /// </summary>
         private void EnsureDirectoryExists(string directoryPath)
         {
@@ -546,7 +546,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 应用动画片段设置
+        /// Apply animation clip settings
         /// </summary>
         private bool ApplyAnimClipSettings(AnimationClip clip, JsonClass settings)
         {
@@ -567,8 +567,8 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
                                 float length = settingValue.AsFloat;
-                                // 注意：clip.length 是只读属性，不能直接设置
-                                // 动画长度通常由动画数据本身决定
+                                // Note：clip.length Is read-only property，Cannot set directly
+                                // Animation length usually determined by animation data itself
                                 LogWarning($"[ApplyAnimClipSettings] Cannot set length property - it is read-only. Current length: {clip.length}");
                             }
                             break;
@@ -587,7 +587,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool loopTime = settingValue.AsBool;
-                                // 注意：clip.isLooping 是只读属性，需要通过 AnimationClipSettings 设置
+                                // Note：clip.isLooping Is read-only property，Need via AnimationClipSettings Set
                                 LogWarning($"[ApplyAnimClipSettings] Cannot set isLooping property directly - it is read-only. Use AnimationClipSettings instead.");
                             }
                             break;
@@ -595,8 +595,8 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool loopPose = settingValue.AsBool;
-                                // 注意：loopPose 设置需要通过 AnimationClipSettings 来设置
-                                // 这里简化处理，实际可能需要更复杂的逻辑
+                                // Note：loopPose Setting needs via AnimationClipSettings For setting
+                                // Simplified handling here，May actually require more complex logic
                                 break;
                             }
                             break;
@@ -604,7 +604,7 @@ namespace UnityMcp.Tools
                             if (settingValue.type == JsonNodeType.Float || settingValue.type == JsonNodeType.Integer)
                             {
                                 float cycleOffset = settingValue.AsFloat;
-                                // 注意：cycleOffset 设置需要通过 AnimationClipSettings 来设置
+                                // Note：cycleOffset Setting needs via AnimationClipSettings For setting
                                 break;
                             }
                             break;
@@ -620,7 +620,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 应用动画片段曲线
+        /// Apply animation clip curve
         /// </summary>
         private bool ApplyAnimClipCurves(AnimationClip clip, JsonClass curves)
         {
@@ -637,8 +637,8 @@ namespace UnityMcp.Tools
                 {
                     if (curveData is JsonClass curveObj)
                     {
-                        // 这里需要根据具体的曲线数据格式来设置
-                        // 简化实现，实际可能需要更复杂的曲线解析逻辑
+                        // Need to set according to detailed curve data format
+                        // Simplified implementation，May actually need more complex curve parsing logic
                         LogWarning($"[ApplyAnimClipCurves] Curve setting for '{propertyPath}' not fully implemented yet.");
                     }
                 }
@@ -652,7 +652,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 应用动画片段事件
+        /// Apply animation clip events
         /// </summary>
         private bool ApplyAnimClipEvents(AnimationClip clip, JsonArray events)
         {
@@ -662,7 +662,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 清除现有事件
+                // Clear existing events
                 AnimationUtility.SetAnimationEvents(clip, new AnimationEvent[0]);
 
                 List<AnimationEvent> animationEvents = new List<AnimationEvent>();
@@ -713,7 +713,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取动画片段数据
+        /// Get animation clip data
         /// </summary>
         private object GetAnimClipData(string path)
         {
@@ -726,7 +726,7 @@ namespace UnityMcp.Tools
             if (clip == null)
                 return null;
 
-            // 获取动画事件
+            // Get animation events
             AnimationEvent[] events = AnimationUtility.GetAnimationEvents(clip);
             List<object> eventList = events.Select(e => new
             {

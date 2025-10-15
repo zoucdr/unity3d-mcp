@@ -25,7 +25,7 @@ namespace UnityMcp.Executer
         private string _methodType = "tools_call";
         public override string ToolName => _methodType;
 
-        // 已经注册的工具实例 (key: snake_case名称, value: 工具实例)
+        // Already registered tool instance (key: snake_caseName, value: Tool instance)
         private static Dictionary<string, IToolMethod> _registeredMethods = null;
         private static readonly object _registrationLock = new object();
 
@@ -35,10 +35,10 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// 获取指定名称的工具方法
+        /// Get tool method by specified name
         /// </summary>
-        /// <param name="toolName">工具名称</param>
-        /// <returns>工具方法实例，如果未找到则返回null</returns>
+        /// <param name="toolName">Tool name</param>
+        /// <returns>Tool method instance，Return if not foundnull</returns>
         public IToolMethod GetToolMethod(string toolName)
         {
             EnsureMethodsRegistered();
@@ -47,7 +47,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// Main handler for method calls (同步版本).
+        /// Main handler for method calls (Synchronous version).
         /// Expects command format: {"type": "hierarchy_create", "args": {...}}
         /// </summary>
         public override void HandleCommand(JsonNode args, Action<JsonNode> callback)
@@ -76,7 +76,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// Executes a specific method by routing to the appropriate tool method (同步版本).
+        /// Executes a specific method by routing to the appropriate tool method (Synchronous version).
         /// </summary>
         private void ExecuteMethod(string methodName, JsonClass args, Action<JsonNode> callback)
         {
@@ -106,7 +106,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// 确保所有方法通过反射注册 (内部方法)
+        /// Ensure all methods are registered by reflection (Internal method)
         /// </summary>
         private void EnsureMethodsRegistered()
         {
@@ -114,7 +114,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// 确保所有方法通过反射注册 (静态方法，供外部调用使用)
+        /// Ensure all methods are registered by reflection (Static method，For external invocation)
         /// </summary>
         public static void EnsureMethodsRegisteredStatic()
         {
@@ -122,16 +122,16 @@ namespace UnityMcp.Executer
 
             lock (_registrationLock)
             {
-                if (_registeredMethods != null) return; // 双重检查锁定
+                if (_registeredMethods != null) return; // Double-check locking
 
                 _registeredMethods = new Dictionary<string, IToolMethod>();
 
                 try
                 {
-                    // 通过反射查找所有程序集中实现IToolMethod接口的类
+                    // Find all implementations in all assemblies via reflectionIToolMethodClass implementing the interface
                     var methodTypes = new List<Type>();
 
-                    // 遍历所有已加载的程序集
+                    // Iterate through all loaded assemblies
                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                     {
                         try
@@ -145,7 +145,7 @@ namespace UnityMcp.Executer
                         }
                         catch (ReflectionTypeLoadException ex)
                         {
-                            // 某些程序集可能无法完全加载，但我们可以获取成功加载的类型
+                            // Some assemblies may not load completely，But we can obtain the successfully loaded types
                             var loadedTypes = ex.Types.Where(t => t != null &&
                                 typeof(IToolMethod).IsAssignableFrom(t) &&
                                 !t.IsInterface &&
@@ -156,7 +156,7 @@ namespace UnityMcp.Executer
                         }
                         catch (Exception ex)
                         {
-                            // 忽略无法访问的程序集
+                            // Ignore inaccessible assemblies
                             if (McpConnect.EnableLog) Debug.LogWarning($"[ToolsCall] Failed to load types from assembly {assembly.FullName}: {ex.Message}");
                             continue;
                         }
@@ -166,11 +166,11 @@ namespace UnityMcp.Executer
                     {
                         try
                         {
-                            // 创建方法实例
+                            // Create method instance
                             var methodInstance = Activator.CreateInstance(methodType) as IToolMethod;
                             if (methodInstance != null)
                             {
-                                // 优先使用ToolNameAttribute指定的名称，否则转换类名为snake_case形式
+                                // Preferred useToolNameAttributeSpecified name，Otherwise convert class name tosnake_caseForm
                                 string methodName = GetMethodName(methodType);
                                 _registeredMethods[methodName] = methodInstance;
                                 if (McpConnect.EnableLog) Debug.Log($"[ToolsCall] Registered method: {methodName} -> {methodType.FullName}");
@@ -188,16 +188,16 @@ namespace UnityMcp.Executer
                 catch (Exception e)
                 {
                     if (McpConnect.EnableLog) Debug.LogError($"[ToolsCall] Failed to register methods: {e}");
-                    _registeredMethods = new Dictionary<string, IToolMethod>(); // 确保不为null
+                    _registeredMethods = new Dictionary<string, IToolMethod>(); // Ensure notnull
                 }
             }
         }
 
         /// <summary>
-        /// 获取已注册的方法实例 (静态方法，供外部调用使用)
+        /// Get registered method instance (Static method，For external invocation)
         /// </summary>
-        /// <param name="methodName">方法名称</param>
-        /// <returns>方法实例，如果未找到则返回null</returns>
+        /// <param name="methodName">Method name</param>
+        /// <returns>Method instance，Return if not foundnull</returns>
         public static IToolMethod GetRegisteredMethod(string methodName)
         {
             EnsureMethodsRegisteredStatic();
@@ -206,38 +206,38 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// 获取方法名称，优先使用ToolNameAttribute指定的名称，否则转换类名为snake_case形式
+        /// Get method name，Preferred useToolNameAttributeSpecified name，Otherwise convert class name tosnake_caseForm
         /// </summary>
-        /// <param name="methodType">方法类型</param>
-        /// <returns>方法名称</returns>
+        /// <param name="methodType">Method type</param>
+        /// <returns>Method name</returns>
         private static string GetMethodName(Type methodType)
         {
-            // 检查是否有ToolNameAttribute
+            // Check if there isToolNameAttribute
             var toolNameAttribute = methodType.GetCustomAttribute<ToolNameAttribute>();
             if (toolNameAttribute != null)
             {
                 return toolNameAttribute.ToolName;
             }
 
-            // 否则将类名转换为snake_case形式
+            // Otherwise convert class name tosnake_caseForm
             return ConvertToSnakeCase(methodType.Name);
         }
 
         /// <summary>
-        /// 将Pascal命名法转换为snake_case命名法
-        /// 例如: ManageAsset -> manage_asset, ExecuteMenuItem -> execute_menu_item
+        /// WillPascalNaming convention conversion tosnake_caseNaming convention
+        /// For example: ManageAsset -> manage_asset, ExecuteMenuItem -> execute_menu_item
         /// </summary>
         private static string ConvertToSnakeCase(string pascalCase)
         {
             if (string.IsNullOrEmpty(pascalCase))
                 return pascalCase;
 
-            // 使用正则表达式在大写字母前添加下划线，然后转换为小写
+            // Use regex to add underscores before uppercase letters，Then convert to lowercase
             return Regex.Replace(pascalCase, "(?<!^)([A-Z])", "_$1").ToLower();
         }
 
         /// <summary>
-        /// 手动注册方法（供外部调用）
+        /// Manually register method（For external call）
         /// </summary>
         public static void RegisterMethod(string methodName, IToolMethod method)
         {
@@ -252,7 +252,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// 获取所有已注册的方法名称
+        /// Get all registered method names
         /// </summary>
         public static string[] GetRegisteredMethodNames()
         {

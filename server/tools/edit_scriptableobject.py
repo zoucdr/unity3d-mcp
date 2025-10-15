@@ -1,6 +1,6 @@
 """
-ScriptableObject管理工具
-专门管理Unity中的ScriptableObject资源，提供创建、修改、复制、搜索等操作
+ScriptableObjectmanagement tool
+specially manageUnityinScriptableObjectasset，provide creation、modify、copy、search and related operations
 """
 
 from typing import Dict, Any, Optional
@@ -15,26 +15,26 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="操作类型",
-            description="操作类型: create(创建), modify(修改), duplicate(复制), get_info(获取信息), search(搜索)",
+            title="operation type",
+            description="operation type: create(create), modify(modify), duplicate(copy), get_info(get information), search(search)",
             examples=["create", "modify", "duplicate", "get_info", "search"]
         ),
         path: str = Field(
             ...,
-            title="ScriptableObject路径",
-            description="ScriptableObject资源路径，Unity标准格式：Assets/Data/MyData.asset",
+            title="ScriptableObjectpath",
+            description="ScriptableObjectasset path，Unitystandard format：Assets/Data/MyData.asset",
             examples=["Assets/Data/PlayerData.asset", "Assets/Settings/GameSettings.asset", "Assets/Config/LevelConfig.asset"]
         ),
         script_class: Optional[str] = Field(
             None,
-            title="脚本类名",
-            description="ScriptableObject脚本类名（创建时必需），不需要命名空间",
+            title="script class name",
+            description="ScriptableObjectscript class name（required on creation），namespace not needed",
             examples=["PlayerData", "GameSettings", "LevelConfig", "ItemDatabase"]
         ),
         properties: Optional[Dict[str, Any]] = Field(
             None,
-            title="属性字典",
-            description="要设置的ScriptableObject属性键值对，支持基础类型、Vector、Color等Unity类型",
+            title="property dict",
+            description="to setScriptableObjectproperty key values，supports primitive types、Vector、ColoretcUnitytype",
             examples=[
                 {"playerName": "Player1", "level": 1, "health": 100},
                 {"volume": 0.8, "musicEnabled": True},
@@ -43,64 +43,64 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
         ),
         destination: Optional[str] = Field(
             None,
-            title="目标路径",
-            description="目标路径（复制时使用），如不提供则自动生成唯一路径",
+            title="target path",
+            description="target path（used when duplicating），auto generate unique path if not provided",
             examples=["Assets/Data/PlayerDataCopy.asset", "Assets/Backup/GameSettings.asset"]
         ),
         query: Optional[str] = Field(
             None,
-            title="搜索模式",
-            description="搜索模式或关键词（搜索时使用）",
+            title="search mode",
+            description="search mode or keyword（used when searching）",
             examples=["PlayerData", "Settings", "Config*"]
         ),
         recursive: Optional[bool] = Field(
             True,
-            title="递归搜索",
-            description="是否递归搜索子文件夹（搜索时使用）"
+            title="recursive search",
+            description="recursively search subfolders（used when searching）"
         ),
         force: Optional[bool] = Field(
             False,
-            title="强制执行",
-            description="是否强制执行操作（覆盖现有文件等）"
+            title="force execute",
+            description="whether to force execution（overwrite existing files etc）"
         ),
         page_size: Optional[int] = Field(
             50,
-            title="页面大小",
-            description="搜索结果每页的数量，默认50",
+            title="page size",
+            description="items per page in search，default50",
             examples=[10, 50, 100]
         ),
         page_number: Optional[int] = Field(
             1,
-            title="页码",
-            description="搜索结果的页码，从1开始",
+            title="page",
+            description="page number of results，from1start",
             examples=[1, 2, 3]
         ),
         generate_preview: Optional[bool] = Field(
             False,
-            title="生成预览",
-            description="是否生成资源预览图（Base64编码的PNG）"
+            title="generate preview",
+            description="whether to generate preview（Base64encodedPNG）"
         )
     ) -> Dict[str, Any]:
         """
-        ScriptableObject管理工具，专门用于Unity中的数据资源管理。（二级工具）
+        ScriptableObjectmanagement tool，specially used forUnitydata asset management。（secondary tool）
 
-        ScriptableObject是Unity中用于存储游戏配置、关卡数据、角色属性等的数据容器，
-        本工具提供完整的ScriptableObject资源生命周期管理功能。
+        ScriptableObjectisUnityused to store game config、level data、data containers such as character stats，
+        tool provides completeScriptableObjectasset lifecycle management。
 
-        主要功能：
-        - 资源创建：从脚本类创建新的ScriptableObject资源
-        - 属性修改：动态修改已存在资源的属性值
-        - 资源复制：快速复制现有配置创建变体
-        - 资源搜索：按条件搜索项目中的ScriptableObject
-        - 信息查询：获取资源的详细信息和元数据
+        main features：
+        - asset creation：create new from script classScriptableObjectasset
+        - property modification：dynamically modify properties of existing assets
+        - asset duplication：quickly copy config to create variant
+        - asset search：conditional search in projectScriptableObject
+        - information query：get detailed info and metadata of assets
 
-        操作类型详解：
+        operation types in detail：
 
-        1. **create** - 创建ScriptableObject
-           必需参数：path, script_class
-           可选参数：properties（初始属性值）
+        1. **create** - createScriptableObject
+           required parameter：path, script_class
+           optional parameters：properties（initial property values）
            
-           示例：创建玩家数据
+           example：create player data
            {
              "action": "create",
              "path": "Assets/Data/PlayerData.asset",
@@ -113,10 +113,10 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
              }
            }
 
-        2. **modify** - 修改ScriptableObject属性
-           必需参数：path, properties
+        2. **modify** - modifyScriptableObjectproperty
+           required parameter：path, properties
            
-           示例：更新游戏设置
+           example：update game settings
            {
              "action": "modify",
              "path": "Assets/Settings/GameSettings.asset",
@@ -127,21 +127,21 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
              }
            }
 
-        3. **duplicate** - 复制ScriptableObject
-           必需参数：path
-           可选参数：destination（目标路径，不提供则自动生成）
+        3. **duplicate** - copyScriptableObject
+           required parameter：path
+           optional parameters：destination（target path，auto generate if not provided）
            
-           示例：复制关卡配置
+           example：duplicate level config
            {
              "action": "duplicate",
              "path": "Assets/Levels/Level1.asset",
              "destination": "Assets/Levels/Level2.asset"
            }
 
-        4. **search** - 搜索ScriptableObject
-           可选参数：query, path（搜索范围文件夹）, page_size, page_number, generate_preview
+        4. **search** - searchScriptableObject
+           optional parameters：query, path（search scope folder）, page_size, page_number, generate_preview
            
-           示例：搜索所有玩家数据
+           example：search all player data
            {
              "action": "search",
              "query": "PlayerData",
@@ -151,38 +151,38 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
              "generate_preview": False
            }
 
-        5. **get_info** - 获取ScriptableObject信息
-           必需参数：path
-           可选参数：generate_preview
+        5. **get_info** - getScriptableObjectinformation
+           required parameter：path
+           optional parameters：generate_preview
            
-           示例：查看资源详情
+           example：view asset details
            {
              "action": "get_info",
              "path": "Assets/Data/PlayerData.asset",
              "generate_preview": True
            }
 
-        属性设置支持的类型：
-        - 基础类型：int, float, bool, string
-        - Unity向量：Vector2 [x, y], Vector3 [x, y, z], Vector4 [x, y, z, w]
-        - Unity颜色：Color [r, g, b, a]（值范围0-1）
-        - Unity四元数：Quaternion [x, y, z, w]
-        - 枚举类型：使用字符串名称
-        - 资源引用：使用资源路径（如Material、Texture等）
+        supported types for property set：
+        - primitive types：int, float, bool, string
+        - Unityvector：Vector2 [x, y], Vector3 [x, y, z], Vector4 [x, y, z, w]
+        - Unitycolor：Color [r, g, b, a]（value range0-1）
+        - Unityquaternion：Quaternion [x, y, z, w]
+        - enum types：use string name
+        - asset reference：use asset path（such asMaterial、Textureetc）
 
-        使用场景：
-        - 游戏配置管理：关卡设置、难度配置、平衡参数
-        - 角色数据：玩家属性、敌人配置、NPC数据
-        - UI配置：主题设置、语言本地化
-        - 关卡编辑：关卡参数、波次配置
-        - 物品数据库：道具、装备、技能配置
+        use cases：
+        - game config management：level settings、difficulty configuration、Balance parameters
+        - character data：player attributes、enemy configuration、NPCdata
+        - UIconfiguration：theme settings、language localization
+        - level editing：level parameters、wave configuration
+        - item database：item、equipment、skill configuration
 
-        注意事项：
-        - script_class不需要包含命名空间，工具会自动搜索
-        - properties中的属性名不区分大小写
-        - 修改会自动标记为Dirty并保存到磁盘
-        - 支持Undo/Redo操作
-        - 预览生成可能较慢，建议仅在需要时启用
+        notes：
+        - script_classnamespace not required，tool will search automatically
+        - propertiesproperty names are case insensitive
+        - modifications auto mark asDirtysave to disk
+        - supportUndo/Redooperation
+        - preview generation may be slow，recommended only when needed
         """
 
         return get_common_call_response("edit_scriptableobject")

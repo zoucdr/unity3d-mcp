@@ -6,21 +6,21 @@ using UnityMcp.Models;
 namespace UnityMcp
 {
     /// <summary>
-    /// 工具方法接口，所有具体工具类都应实现此接口
+    /// Tool method interface，All concrete tool classes must implement this interface
     /// </summary>
     public interface IToolMethod
     {
         MethodKey[] Keys { get; }
         /// <summary>
-        /// 执行工具方法（同步版本，保持向后兼容）
+        /// Execute tool method（Synchronous version，Remain backward compatible）
         /// </summary>
-        /// <param name="args">参数对象</param>
-        /// <returns>执行结果</returns>
+        /// <param name="args">Parameter object</param>
+        /// <returns>Execution result</returns>
         void ExecuteMethod(StateTreeContext args);
         /// <summary>
-        /// 预览方法
+        /// Preview method
         /// </summary>
-        /// <returns>预览结果</returns>
+        /// <returns>Preview result</returns>
         string Preview();
     }
 }

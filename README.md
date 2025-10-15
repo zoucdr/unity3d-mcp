@@ -430,7 +430,7 @@ pip install -r requirements.txt
 ```json
 {
   "mcpServers": {
-    "unityMCP": {
+    "unity3d-mcp": {
       "command": "uv",
       "args": [
         "--directory",
@@ -447,7 +447,7 @@ pip install -r requirements.txt
 ```json
 {
   "mcpServers": {
-    "unityMCP": {
+    "unity3d-mcp": {
       "command": "uv",
       "args": [
         "--directory",

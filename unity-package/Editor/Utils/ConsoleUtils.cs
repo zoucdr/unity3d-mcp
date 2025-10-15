@@ -8,12 +8,12 @@ using UnityEngine;
 namespace UnityMcp
 {
     /// <summary>
-    /// 负责Unity编辑器控制台的实际操作，包括读取和清空日志条目。
-    /// 使用反射访问内部LogEntry方法/属性。
+    /// Responsible forUnityActual operation of editor console，Include reading and clearing log entries。
+    /// Use reflection to access internalLogEntryMethod/Attribute。
     /// </summary>
     public static class ConsoleUtils
     {
-        // 用于访问内部LogEntry数据的反射成员
+        // Used to access internalLogEntryReflection member for data
         private static MethodInfo _startGettingEntriesMethod;
         private static MethodInfo _endGettingEntriesMethod;
         private static MethodInfo _clearMethod;
@@ -25,7 +25,7 @@ namespace UnityMcp
         private static FieldInfo _lineField;
         private static FieldInfo _instanceIdField;
 
-        // 静态构造函数用于反射设置
+        // Static constructor used for reflection setup
         static ConsoleUtils()
         {
             try
@@ -36,7 +36,7 @@ namespace UnityMcp
                 if (logEntriesType == null)
                     throw new Exception("Could not find internal type UnityEditor.LogEntries");
 
-                // 包含NonPublic绑定标志，因为内部API可能会改变可访问性
+                // ContainsNonPublicBinding flag，Because internalAPIMay affect accessibility
                 BindingFlags staticFlags =
                     BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
                 BindingFlags instanceFlags =
@@ -99,7 +99,7 @@ namespace UnityMcp
                 if (McpConnect.EnableLog) Debug.LogError(
                     $"[ConsoleController] Static Initialization Failed: Could not setup reflection for LogEntries/LogEntry. Console reading/clearing will likely fail. Specific Error: {e.Message}"
                 );
-                // 将成员设置为null以防止后续的NullReferenceExceptions
+                // Set member asnullTo avoid subsequentNullReferenceExceptions
                 _startGettingEntriesMethod =
                     _endGettingEntriesMethod =
                     _clearMethod =
@@ -111,7 +111,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 检查反射成员是否已正确初始化
+        /// Check if reflection members have been correctly initialized
         /// </summary>
         public static bool AreReflectionMembersInitialized()
         {
@@ -128,7 +128,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 清空控制台日志
+        /// Clear console logs
         /// </summary>
         public static void ClearConsole()
         {
@@ -139,7 +139,7 @@ namespace UnityMcp
 
             try
             {
-                _clearMethod.Invoke(null, null); // 静态方法，无实例，无参数
+                _clearMethod.Invoke(null, null); // Static method，No instance，No parameter
             }
             catch (Exception e)
             {
@@ -149,14 +149,14 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 获取控制台日志条目
+        /// Get console log entry
         /// </summary>
-        /// <param name="types">要获取的日志类型列表</param>
-        /// <param name="count">限制获取的数量，null表示获取所有</param>
-        /// <param name="filterText">文本过滤器</param>
-        /// <param name="format">返回格式</param>
-        /// <param name="includeStacktrace">是否包含堆栈跟踪</param>
-        /// <returns>格式化的日志条目列表</returns>
+        /// <param name="types">List of log types to get</param>
+        /// <param name="count">Limit the number retrieved，nullIndicates get all</param>
+        /// <param name="filterText">Text filter</param>
+        /// <param name="format">Return format</param>
+        /// <param name="includeStacktrace">Whether contains stack trace</param>
+        /// <returns>Formatted log entry list</returns>
         public static List<object> GetConsoleEntries(
             List<string> types,
             int? count,
@@ -175,11 +175,11 @@ namespace UnityMcp
 
             try
             {
-                // LogEntries 需要在GetEntries/GetEntryInternal周围调用Start/Stop
+                // LogEntries Need to be atGetEntries/GetEntryInternalCalling aroundStart/Stop
                 _startGettingEntriesMethod.Invoke(null, null);
 
                 int totalEntries = (int)_getCountMethod.Invoke(null, null);
-                // 创建实例传递给GetEntryInternal - 确保类型正确
+                // Create instance and pass toGetEntryInternal - Ensure type is correct
                 Type logEntryType = typeof(EditorApplication).Assembly.GetType(
                     "UnityEditor.LogEntry"
                 );
@@ -191,49 +191,49 @@ namespace UnityMcp
 
                 for (int i = 0; i < totalEntries; i++)
                 {
-                    // 使用反射将条目数据获取到我们的实例中
+                    // Use reflection to get entry data into our instance
                     _getEntryMethod.Invoke(null, new object[] { i, logEntryInstance });
 
-                    // 使用反射提取数据
+                    // Use reflection to extract data
                     int mode = (int)_modeField.GetValue(logEntryInstance);
                     string message = (string)_messageField.GetValue(logEntryInstance);
                     string file = (string)_fileField.GetValue(logEntryInstance);
                     int line = (int)_lineField.GetValue(logEntryInstance);
 
                     if (string.IsNullOrEmpty(message))
-                        continue; // 跳过空消息
+                        continue; // Skip blank message
 
 
 
-                    // --- 格式化和类型推断 ---
+                    // --- Formatting and type inference ---
                     string stackTrace = includeStacktrace ? ExtractStackTrace(message) : null;
-                    // 根据includeStacktrace参数决定是否包含堆栈信息
+                    // According toincludeStacktraceParameter determines whether stack info is included
                     string messageOnly;
                     if (includeStacktrace)
                     {
-                        // 需要堆栈跟踪时，使用完整消息
+                        // When stack trace is needed，Use full message
                         messageOnly = message;
                     }
                     else
                     {
-                        // 不需要堆栈跟踪时，只提取第一行作为纯消息
+                        // When no stack trace needed，Only extract the first line as plain message
                         messageOnly = message.Split(
                             new[] { '\n', '\r' },
                             StringSplitOptions.RemoveEmptyEntries
                         )[0];
                     }
 
-                    // 使用堆栈跟踪信息进行更准确的类型识别
+                    // Identify type more accurately using stack trace info
                     LogType currentType = GetLogTypeFromModeAndStackTrace(mode, message, stackTrace);
 
-                    // --- 过滤 ---  
-                    // 按类型过滤
+                    // --- Filter ---  
+                    // Filter by type
                     if (!types.Contains(currentType.ToString().ToLowerInvariant()))
                     {
                         continue;
                     }
 
-                    // 按文本过滤（不区分大小写）
+                    // Filter by text（Case insensitive）
                     if (
                         !string.IsNullOrEmpty(filterText)
                         && message.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) < 0
@@ -249,7 +249,7 @@ namespace UnityMcp
                             formattedEntry = messageOnly;
                             break;
                         case "json":
-                        case "detailed": // 将detailed视为json以返回结构化数据
+                        case "detailed": // WilldetailedRegard asjsonTo return structured data
                         default:
                             formattedEntry = new
                             {
@@ -257,7 +257,7 @@ namespace UnityMcp
                                 message = messageOnly,
                                 file = file,
                                 line = line,
-                                stackTrace = stackTrace, // 如果includeStacktrace为false或未找到堆栈，将为null
+                                stackTrace = stackTrace, // IfincludeStacktraceForfalseOr stack not found，Will benull
                             };
                             break;
                     }
@@ -265,7 +265,7 @@ namespace UnityMcp
                     formattedEntries.Add(formattedEntry);
                     retrievedCount++;
 
-                    // 应用数量限制（过滤后）
+                    // Apply count limit（After filtering）
                     if (count.HasValue && retrievedCount >= count.Value)
                     {
                         break;
@@ -275,18 +275,18 @@ namespace UnityMcp
             catch (Exception e)
             {
                 if (McpConnect.EnableLog) Debug.LogError($"[ConsoleController] Error while retrieving log entries: {e}");
-                // 即使在迭代期间出现错误，也要确保调用EndGettingEntries
+                // Even if an error occurs during iteration，Also make sure callEndGettingEntries
                 try
                 {
                     _endGettingEntriesMethod.Invoke(null, null);
                 }
                 catch
-                { /* 忽略嵌套异常 */ }
+                { /* Ignore nested exception */ }
                 throw new InvalidOperationException($"Error retrieving log entries: {e.Message}", e);
             }
             finally
             {
-                // 确保我们总是调用EndGettingEntries
+                // Ensure we always callEndGettingEntries
                 try
                 {
                     _endGettingEntriesMethod.Invoke(null, null);
@@ -294,22 +294,22 @@ namespace UnityMcp
                 catch (Exception e)
                 {
                     if (McpConnect.EnableLog) Debug.LogError($"[ConsoleController] Failed to call EndGettingEntries: {e}");
-                    // 这里不返回错误，因为我们可能有有效数据，但要记录它。
+                    // No error returned here，Because we may have valid data，But record it。
                 }
             }
 
             return formattedEntries;
         }
 
-        // --- 内部辅助方法 ---
+        // --- Internal helper method ---
 
-        // LogEntry.mode位到LogType枚举的映射
-        // 基于反编译的UnityEditor代码或常见模式。确切的位可能在Unity版本之间改变。
+        // LogEntry.modeBit toLogTypeEnum mapping
+        // Based on decompilationUnityEditorCode or common pattern。Exact bit may be inUnityChange between versions。
         private const int ModeBitError = 1 << 0;
         private const int ModeBitAssert = 1 << 1;
         private const int ModeBitWarning = 1 << 2;
         private const int ModeBitLog = 1 << 3;
-        private const int ModeBitException = 1 << 4; // 经常与Error位组合
+        private const int ModeBitException = 1 << 4; // Often withErrorBit combination
         private const int ModeBitScriptingError = 1 << 9;
         private const int ModeBitScriptingWarning = 1 << 10;
         private const int ModeBitScriptingLog = 1 << 11;
@@ -318,56 +318,56 @@ namespace UnityMcp
 
         private static LogType GetLogTypeFromMode(int mode)
         {
-            // 基于Unity 2021.3的实际bit模式
-            // 通过观察发现Unity内部的mode位定义与我们预期的不同
+            // Based onUnity 2021.3The actualbitPattern
+            // Discovered by observationUnityInternalmodeBit definition differs from our expectation
 
-            // 简化的基于位模式的映射
-            // 基于实际观察，重新定义位映射：
+            // Simplified mapping based on bit pattern
+            // Based on observation，Redefine bit mapping：
 
-            if ((mode & 0x8) != 0) // 位3 - 实际对应Error
+            if ((mode & 0x8) != 0) // Bit3 - Actual corresponds toError
             {
                 return LogType.Error;
             }
-            else if ((mode & 0x4) != 0) // 位2 - 实际对应Warning  
+            else if ((mode & 0x4) != 0) // Bit2 - Actual corresponds toWarning  
             {
                 return LogType.Warning;
             }
-            else if ((mode & 0x2) != 0) // 位1 - 实际对应Assert
+            else if ((mode & 0x2) != 0) // Bit1 - Actual corresponds toAssert
             {
                 return LogType.Assert;
             }
-            else if ((mode & 0x1) != 0) // 位0 - 实际对应Exception
+            else if ((mode & 0x1) != 0) // Bit0 - Actual corresponds toException
             {
                 return LogType.Exception;
             }
-            else if ((mode & 0x10) != 0) // 位4 - 可能对应其他Exception类型
+            else if ((mode & 0x10) != 0) // Bit4 - May correspond to otherExceptionType
             {
                 return LogType.Exception;
             }
             else
             {
-                return LogType.Log; // 默认为普通日志
+                return LogType.Log; // Default is normal log
             }
         }
 
         /// <summary>
-        /// 基于mode、消息内容和堆栈跟踪推断正确的日志类型
+        /// Based onmode、Infer correct log type from message and stack trace
         /// </summary>
         private static LogType GetLogTypeFromModeAndStackTrace(int mode, string fullMessage, string stackTrace)
         {
-            // 首先检查编译警告 - Unity将编译警告标记为Error，但我们应该将其识别为Warning
+            // Check compile warnings first - UnityMark compile warning asError，But we should recognize it asWarning
             if (!string.IsNullOrEmpty(fullMessage) &&
                 (fullMessage.Contains("warning CS") || fullMessage.Contains(": warning ")))
             {
                 return LogType.Warning;
             }
 
-            // 优先使用堆栈跟踪进行类型判断，这是最可靠的方法
+            // Prefer stack trace for type judgement，This is the most reliable method
             string textToSearch = stackTrace ?? fullMessage;
 
             if (!string.IsNullOrEmpty(textToSearch))
             {
-                // 精确匹配Debug方法调用
+                // Exact matchDebugMethod call
                 if (textToSearch.Contains("UnityEngine.Debug:LogError (object)"))
                 {
                     return LogType.Error;
@@ -389,7 +389,7 @@ namespace UnityMcp
                     return LogType.Log;
                 }
 
-                // 备用模式匹配（不那么精确）
+                // Alternative pattern match（Not so precise）
                 else if (textToSearch.Contains("UnityEngine.Debug:LogError"))
                 {
                     return LogType.Error;
@@ -404,11 +404,11 @@ namespace UnityMcp
                 }
             }
 
-            // 对于编译错误等特殊情况，使用mode位分析
-            // 编译错误通常不包含Debug调用的堆栈跟踪
+            // For special cases like compilation error，UsemodeBit analysis
+            // Compile errors usually don't containDebugCalled stack trace
             if (string.IsNullOrEmpty(stackTrace) || !stackTrace.Contains("UnityEngine.Debug:"))
             {
-                // 对于真正的编译错误，mode位是可靠的
+                // For real compile errors，modeBit is reliable
                 if ((mode & ModeBitError) != 0 || (mode & ModeBitException) != 0 ||
                     (mode & ModeBitScriptingError) != 0 || (mode & ModeBitScriptingException) != 0)
                 {
@@ -424,47 +424,47 @@ namespace UnityMcp
                 }
             }
 
-            // 默认回退
+            // Default fallback
             return LogType.Log;
         }
 
         /// <summary>
-        /// 尝试从日志消息中提取堆栈跟踪部分。
-        /// Unity日志消息通常在主消息后附加堆栈跟踪，
-        /// 从新行开始，通常缩进或以"at "开始。
+        /// Try to extract stack trace section from log message。
+        /// UnityLog message usually appends stack trace after main message，
+        /// Start from new line，Usually indented or with"at "Start。
         /// </summary>
-        /// <param name="fullMessage">包含潜在堆栈跟踪的完整日志消息。</param>
-        /// <returns>提取的堆栈跟踪字符串，如果没有找到则返回null。</returns>
+        /// <param name="fullMessage">Full log message containing possible stack trace。</param>
+        /// <returns>Extracted stack trace string，Return if not foundnull。</returns>
         private static string ExtractStackTrace(string fullMessage)
         {
             if (string.IsNullOrEmpty(fullMessage))
                 return null;
 
-            // 分割成行，移除空行以优雅地处理不同的行结尾。
+            // Split into lines，Remove blank lines to gracefully handle line endings。
             string[] lines = fullMessage.Split(
                 new[] { '\r', '\n' },
                 StringSplitOptions.RemoveEmptyEntries
             );
 
-            // 如果只有一行或更少，没有单独的堆栈跟踪。
+            // If only one line or less，No separate stack trace。
             if (lines.Length <= 1)
                 return null;
 
             int stackStartIndex = -1;
 
-            // 从第二行开始检查。
+            // Start check from line 2。
             for (int i = 1; i < lines.Length; ++i)
             {
                 string trimmedLine = lines[i].TrimStart();
 
-                // 检查常见的堆栈跟踪模式。
+                // Check common stack trace patterns。
                 if (
                     trimmedLine.StartsWith("at ")
                     || trimmedLine.StartsWith("UnityEngine.")
                     || trimmedLine.StartsWith("UnityEditor.")
                     || trimmedLine.Contains("(at ")
-                    || // 涵盖"(at Assets/..."模式
-                       // 启发式：检查行是否以可能的命名空间/类模式开始（Uppercase.Something）
+                    || // Cover"(at Assets/..."Pattern
+                       // Heuristic：Check if line starts with a possible namespace/Class pattern start（Uppercase.Something）
                     (
                         trimmedLine.Length > 0
                         && char.IsUpper(trimmedLine[0])
@@ -473,19 +473,19 @@ namespace UnityMcp
                 )
                 {
                     stackStartIndex = i;
-                    break; // 找到堆栈跟踪的可能开始
+                    break; // Find possible start of stack trace
                 }
             }
 
-            // 如果找到了潜在的开始索引...
+            // If potential start index found...
             if (stackStartIndex > 0)
             {
-                // 使用标准换行符连接从堆栈开始索引往后的行。
-                // 这重构了消息的堆栈跟踪部分。
+                // Join lines from stack start index with standard newline。
+                // This reconstructs the stack trace portion of the message。
                 return string.Join("\n", lines.Skip(stackStartIndex));
             }
 
-            // 基于模式没有找到明确的堆栈跟踪。
+            // No explicit stack trace found based on pattern。
             return null;
         }
     }

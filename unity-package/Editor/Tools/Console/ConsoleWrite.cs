@@ -11,23 +11,23 @@ namespace UnityMcp.Tools
     /// <summary>
     /// Handles writing different types of log messages to Unity Editor console.
     /// Supports Error, Warning, Log, Assert, and Exception message types.
-    /// 对应方法名: console_write
+    /// Corresponding method name: console_write
     /// </summary>
-    [ToolName("console_write", "开发工具")]
+    [ToolName("console_write", "Development tool")]
     public class ConsoleWrite : StateMethodBase
     {
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：error, warning, log, assert, exception", false),
-                new MethodKey("message", "要写入的日志消息内容", false),
-                new MethodKey("tag", "日志标签，用于分类和过滤，可选", true),
-                new MethodKey("context", "上下文对象名称，用于在控制台中定位相关GameObject，可选", true),
-                new MethodKey("condition", "断言条件表达式（仅用于assert类型），可选", true)
+                new MethodKey("action", "Operation type：error, warning, log, assert, exception", false),
+                new MethodKey("message", "Content of log message to write", false),
+                new MethodKey("tag", "Log tag，Used for categorization and filtering，Optional", true),
+                new MethodKey("context", "Context object name，Used to locate related in consoleGameObject，Optional", true),
+                new MethodKey("condition", "Assert condition expression（Used only forassertType），Optional", true)
             };
         }
 
@@ -48,7 +48,7 @@ namespace UnityMcp.Tools
         // --- State Tree Action Handlers ---
 
         /// <summary>
-        /// 处理写入错误日志的操作
+        /// Handle writing error logs
         /// </summary>
         private object HandleWriteError(JsonClass args)
         {
@@ -81,7 +81,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理写入警告日志的操作
+        /// Handle writing warning logs
         /// </summary>
         private object HandleWriteWarning(JsonClass args)
         {
@@ -114,7 +114,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理写入普通日志的操作
+        /// Handle writing normal logs
         /// </summary>
         private object HandleWriteLog(JsonClass args)
         {
@@ -147,7 +147,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理写入断言日志的操作
+        /// Handle writing assert logs
         /// </summary>
         private object HandleWriteAssert(JsonClass args)
         {
@@ -181,7 +181,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理写入异常日志的操作
+        /// Handle writing exception logs
         /// </summary>
         private object HandleWriteException(JsonClass args)
         {
@@ -195,7 +195,7 @@ namespace UnityMcp.Tools
 
                 LogInfo($"[ConsoleWrite] Writing exception log: {formattedMessage}");
 
-                // 创建一个简单的异常对象用于日志
+                // Create a simple exception object for logging
                 var exception = new System.Exception(formattedMessage);
 
                 if (context != null)
@@ -217,7 +217,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理未知操作的回调方法
+        /// Callback for learning unknown operations
         /// </summary>
         private object HandleUnknownAction(JsonClass args)
         {
@@ -229,7 +229,7 @@ namespace UnityMcp.Tools
         // --- Parameter Extraction Helper Methods ---
 
         /// <summary>
-        /// 提取消息参数
+        /// Extract message parameter
         /// </summary>
         private string ExtractMessage(JsonClass args)
         {
@@ -242,7 +242,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取标签参数
+        /// Extract tag parameter
         /// </summary>
         private string ExtractTag(JsonClass args)
         {
@@ -250,7 +250,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取条件参数（用于断言）
+        /// Extract condition parameter（For assertion）
         /// </summary>
         private string ExtractCondition(JsonClass args)
         {
@@ -258,7 +258,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 提取上下文对象
+        /// Extract context object
         /// </summary>
         private UnityEngine.Object ExtractContext(JsonClass args)
         {
@@ -270,14 +270,14 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 尝试找到GameObject
+                // Attempt to findGameObject
                 GameObject go = GameObject.Find(contextName);
                 if (go != null)
                 {
                     return go;
                 }
 
-                // 尝试通过Resources加载资源
+                // Attempt viaResourcesLoad resource
                 UnityEngine.Object asset = Resources.Load(contextName);
                 if (asset != null)
                 {
@@ -297,7 +297,7 @@ namespace UnityMcp.Tools
         // --- Message Formatting Helper Methods ---
 
         /// <summary>
-        /// 格式化日志消息
+        /// Format log message
         /// </summary>
         private string FormatMessage(string message, string tag, string logType)
         {
@@ -309,7 +309,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 格式化断言日志消息
+        /// Format assert log message
         /// </summary>
         private string FormatAssertMessage(string message, string tag, string condition)
         {

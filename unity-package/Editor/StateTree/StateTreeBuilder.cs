@@ -30,7 +30,7 @@ namespace UnityMcp
 
         public StateTreeBuilder Branch(object edgeKey)
         {
-            // 防止null key导致异常
+            // Preventnull keyCause anomaly
             if (edgeKey == null)
             {
                 throw new ArgumentNullException(nameof(edgeKey), "edgeKey cannot be null in Branch method");
@@ -51,7 +51,7 @@ namespace UnityMcp
         }
         public StateTreeBuilder Leaf(object edgeKey, Func<JsonClass, object> action)
         {
-            // 防止null key导致异常
+            // Preventnull keyCause anomaly
             if (edgeKey == null)
             {
                 throw new ArgumentNullException(nameof(edgeKey), "edgeKey cannot be null in Leaf method");
@@ -62,7 +62,7 @@ namespace UnityMcp
         }
         public StateTreeBuilder Leaf(object edgeKey, Func<StateTreeContext, object> action)
         {
-            // 防止null key导致异常
+            // Preventnull keyCause anomaly
             if (edgeKey == null)
             {
                 throw new ArgumentNullException(nameof(edgeKey), "edgeKey cannot be null in Leaf method");
@@ -83,56 +83,56 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// 添加可选参数分支：当指定的参数存在时执行对应的动作
+        /// Add optional parameter branch：Execute corresponding action when the specified parameter exists
         /// </summary>
-        /// <param name="parameterName">要检查的参数名</param>
-        /// <param name="action">参数存在时执行的动作</param>
+        /// <param name="parameterName">Parameter name to check</param>
+        /// <param name="action">Action to execute when parameter exists</param>
         public StateTreeBuilder OptionalLeaf(string parameterName, Func<JsonClass, object> action)
         {
-            // 直接使用参数名作为key，并添加到可选参数集合中
+            // Directly use parameter name askey，And add to optional parameter collection
             Current.select[parameterName] = (StateTree)action;
             Current.optionalParams.Add(parameterName);
             return this;
         }
         /// <summary>
-        /// 添加可选参数分支：当指定的参数存在时执行对应的动作
+        /// Add optional parameter branch：Execute corresponding action when the specified parameter exists
         /// </summary>
-        /// <param name="parameterName">要检查的参数名</param>
-        /// <param name="action">参数存在时执行的动作</param>
+        /// <param name="parameterName">Parameter name to check</param>
+        /// <param name="action">Action to execute when parameter exists</param>
         public StateTreeBuilder OptionalLeaf(string parameterName, Func<StateTreeContext, object> action)
         {
-            // 直接使用参数名作为key，并添加到可选参数集合中
+            // Directly use parameter name askey，And add to optional parameter collection
             Current.select[parameterName] = (StateTree)action;
             Current.optionalParams.Add(parameterName);
             return this;
         }
         /// <summary>
-        /// 添加可选参数分支：当指定的参数存在时进入子分支
+        /// Add optional parameter branch：Enter subbranch when specified parameter exists
         /// </summary>
-        /// <param name="parameterName">要检查的参数名</param>
+        /// <param name="parameterName">Parameter name to check</param>
         public StateTreeBuilder OptionalBranch(string parameterName)
         {
-            // 直接使用参数名作为key，并添加到可选参数集合中
+            // Directly use parameter name askey，And add to optional parameter collection
             Current.optionalParams.Add(parameterName);
             return Branch(parameterName);
         }
 
         /// <summary>
-        /// 添加可选参数节点：当指定的参数存在时进入子分支并设置key
-        /// 相当于 OptionalBranch + Key 的组合
+        /// Add optional parameter node：Enter subbranch and set when specified parameter existskey
+        /// Equivalent to OptionalBranch + Key Combination of
         /// </summary>
-        /// <param name="parameterName">要检查的参数名</param>
-        /// <param name="variableKey">子分支的变量key</param>
+        /// <param name="parameterName">Parameter name to check</param>
+        /// <param name="variableKey">Variable of subbranchkey</param>
         public StateTreeBuilder OptionalNode(string parameterName, string variableKey)
         {
             return OptionalBranch(parameterName).Key(variableKey);
         }
 
         /// <summary>
-        /// 添加可选参数分支：当指定的参数存在时进入子分支并设置key
+        /// Add optional parameter branch：Enter subbranch and set when specified parameter existskey
         /// </summary>
-        /// <param name="parameterName">要检查的参数名</param>
-        /// <param name="variableKey">子分支的变量key</param>
+        /// <param name="parameterName">Parameter name to check</param>
+        /// <param name="variableKey">Variable of subbranchkey</param>
         public StateTreeBuilder OptionalKey(string parameterName)
         {
             return OptionalBranch(parameterName).Key(parameterName);

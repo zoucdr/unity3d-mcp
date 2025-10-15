@@ -1,6 +1,6 @@
 """
-纹理导入设置修改工具
-修改Unity中纹理资源的导入设置，包括设置为Sprite类型、调整压缩质量等
+texture import settings editor
+modifyUnityimport settings of texture assets，including set toSpritetype、adjust compression quality etc
 """
 
 from typing import Dict, Any, Optional
@@ -15,96 +15,96 @@ def register_edit_texture_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="操作类型",
-            description="操作类型",
+            title="operation type",
+            description="operation type",
             examples=["set_type", "set_sprite_settings", "get_settings"]
         ),
         texture_path: str = Field(
             ...,
-            title="纹理资源路径",
-            description="纹理资源路径（相对于Assets）",
+            title="texture asset path",
+            description="texture asset path（relative toAssets）",
             examples=["Assets/Pics/rabbit.jpg", "Assets/Textures/icon.png", "Assets/UI/button.png"]
         ),
         texture_type: Optional[str] = Field(
             None,
-            title="纹理类型",
-            description="纹理类型",
+            title="texture type",
+            description="texture type",
             examples=["Default", "NormalMap", "Sprite", "Cursor", "Cookie", "Lightmap", "HDR"]
         ),
         sprite_mode: Optional[str] = Field(
             None,
-            title="Sprite模式",
-            description="Sprite模式",
+            title="Spritemode",
+            description="Spritemode",
             examples=["Single", "Multiple", "Polygon"]
         ),
         pixels_per_unit: Optional[float] = Field(
             None,
-            title="每单位像素数",
-            description="每单位像素数",
+            title="pixels per unit",
+            description="pixels per unit",
             examples=[100, 200, 1]
         ),
         sprite_pivot: Optional[str] = Field(
             None,
-            title="Sprite轴心点",
-            description="Sprite轴心点",
+            title="Spritepivot",
+            description="Spritepivot",
             examples=["Center", "TopLeft", "TopCenter", "TopRight", "MiddleLeft", "MiddleCenter", "MiddleRight", "BottomLeft", "BottomCenter", "BottomRight"]
         ),
         generate_physics_shape: Optional[bool] = Field(
             None,
-            title="生成物理形状",
-            description="生成物理形状"
+            title="generate physics shape",
+            description="generate physics shape"
         ),
         mesh_type: Optional[str] = Field(
             None,
-            title="网格类型",
-            description="网格类型"
+            title="mesh type",
+            description="mesh type"
         ),
         compression: Optional[str] = Field(
             None,
-            title="压缩格式",
-            description="压缩格式",
+            title="compression format",
+            description="compression format",
             examples=["HighQuality", "NormalQuality", "LowQuality"]
         ),
         max_texture_size: Optional[int] = Field(
             None,
-            title="最大纹理尺寸",
-            description="最大纹理尺寸",
+            title="max texture size",
+            description="max texture size",
             examples=[1024, 2048, 4096]
         ),
         filter_mode: Optional[str] = Field(
             None,
-            title="过滤模式",
-            description="过滤模式",
+            title="filter mode",
+            description="filter mode",
             examples=["Point", "Bilinear", "Trilinear"]
         ),
         wrap_mode: Optional[str] = Field(
             None,
-            title="包装模式",
-            description="包装模式",
+            title="wrap mode",
+            description="wrap mode",
             examples=["Repeat", "Clamp", "Mirror", "MirrorOnce"]
         ),
         readable: Optional[bool] = Field(
             None,
-            title="可读写",
-            description="可读写"
+            title="read write",
+            description="read write"
         ),
         generate_mip_maps: Optional[bool] = Field(
             None,
-            title="生成Mip贴图",
-            description="生成Mip贴图"
+            title="generateMiptexture",
+            description="generateMiptexture"
         ),
         srgb_texture: Optional[bool] = Field(
             None,
-            title="sRGB纹理",
-            description="sRGB纹理"
+            title="sRGBtexture",
+            description="sRGBtexture"
         )
     ) -> Dict[str, Any]:
         """
-        纹理导入设置修改工具（二级工具）
+        texture import settings editor（secondary tool）
         
-        支持的操作:
-        - set_type: 设置纹理类型
-        - set_sprite_settings: 设置Sprite详细参数
-        - get_settings: 获取当前纹理设置
+        supported operations:
+        - set_type: set texture type
+        - set_sprite_settings: setSpritedetailed parameters
+        - get_settings: get current texture settings
         """
         return get_common_call_response("edit_texture")

@@ -13,23 +13,23 @@ namespace UnityMcp.Tools
     /// Handles Component-specific operations using dual state tree architecture.
     /// First tree: Target location (using GameObjectSelector)
     /// Second tree: Component operation execution
-    /// 对应方法名: edit_component
+    /// Corresponding method name: edit_component
     /// </summary>
-    [ToolName("edit_component", "资源管理")]
+    [ToolName("edit_component", "Asset management")]
     public class EditComponent : DualStateMethodBase
     {
         /// <summary>
-        /// 目标查找
+        /// Target lookup
         /// </summary>
         private IObjectSelector objectSelector;
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create parameter key list supported by current method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                // 目标查找参数
+                // Target search parameter
                 new MethodKey("instance_id", "Object InstanceID", false),
                 new MethodKey("path", "Object Hierarchy path", false),
                 new MethodKey("action", "Operation type: get_component_propertys, set_component_propertys", true),
@@ -39,7 +39,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建目标定位状态树（使用GameObjectSelector）
+        /// Create target locating state tree（UseGameObjectSelector）
         /// </summary>
         protected override StateTree CreateTargetTree()
         {
@@ -48,7 +48,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 创建组件操作执行状态树
+        /// Create component operation execution state tree
         /// </summary>
         protected override StateTree CreateActionTree()
         {
@@ -62,7 +62,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 默认操作处理（当没有指定具体action时）
+        /// Default operation handling（When not specifically specifiedactionWhen）
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
         {
@@ -74,11 +74,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 从执行上下文中提取目标GameObject（单个）
+        /// Extract target from execution contextGameObject（Single）
         /// </summary>
         private GameObject ExtractTargetFromContext(StateTreeContext context)
         {
-            // 先尝试从ObjectReferences获取
+            // Try first fromObjectReferencesGet
             if (context.TryGetObjectReference("_resolved_targets", out object targetsObj))
             {
                 if (targetsObj is GameObject singleGameObject)
@@ -87,7 +87,7 @@ namespace UnityMcp.Tools
                 }
                 else if (targetsObj is GameObject[] gameObjectArray && gameObjectArray.Length > 0)
                 {
-                    return gameObjectArray[0]; // 只取第一个
+                    return gameObjectArray[0]; // Take only the first
                 }
                 else if (targetsObj is System.Collections.IList list && list.Count > 0)
                 {
@@ -96,16 +96,16 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 不要尝试从JSONNode转换，因为JSONNode不能转为GameObject
+            // Do not try fromJSONNodeConvert，BecauseJSONNodeCannot convert toGameObject
             return null;
         }
 
 
 
-        #region 组件操作Action Handlers
+        #region Component operationAction Handlers
 
         /// <summary>
-        /// 处理获取组件属性的操作（批量）
+        /// Handle get component property operation（Batch）
         /// </summary>
         private object HandleGetComponentPropertysAction(StateTreeContext args)
         {
@@ -119,7 +119,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理设置组件属性的操作（批量）
+        /// Handle set component property operation（Batch）
         /// </summary>
         private object HandleSetComponentPropertysAction(StateTreeContext args)
         {
@@ -134,11 +134,11 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region 组件操作核心方法
+        #region Component operation core method
 
         /// <summary>
-        /// 获取组件属性的具体实现（批量）
-        /// 只收集Inspector面板上可见的字段：public字段和带[SerializeField]特性的私有字段
+        /// Concrete implementation of getting component property（Batch）
+        /// Collect onlyInspectorVisible fields in panel：publicField and with[SerializeField]Private fields of attribute
         /// </summary>
         private object GetComponentPropertysFromTarget(StateTreeContext cmd, GameObject targetGo)
         {
@@ -151,40 +151,40 @@ namespace UnityMcp.Tools
 
                 string compName = compNameObj.ToString();
 
-                // 查找组件
+                // Find component
                 Component targetComponent = FindComponentOnGameObject(targetGo, compName);
                 if (targetComponent == null)
                 {
                     return Response.Error($"Component '{compName}' not found on '{targetGo.name}'.");
                 }
 
-                // 获取组件的所有字段和属性
+                // Get all fields and properties of component
                 Type componentType = targetComponent.GetType();
                 BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
 
                 var propertiesDict = new Dictionary<string, object>();
 
-                // 定义要跳过的属性名称（Unity组件快捷访问器和不常用属性）
+                // Define names of properties to skip（UnityComponent quick accessors and seldom-used attributes）
                 var skipProperties = new HashSet<string>
                 {
                     "hideFlags", "rigidbody", "rigidbody2D", "camera", "light", "animation",
                     "constantForce", "renderer", "audio", "networkView", "collider", "collider2D",
                     "hingeJoint", "particleSystem", "gameObject", "transform", "tag", "name",
                     "worldToLocalMatrix", "localToWorldMatrix", "isPartOfStaticBatch",
-                    // 跳过会导致实例化的属性（避免副作用）
-                    "material", "materials", "mesh"  // 使用 sharedMaterial, sharedMaterials, sharedMesh 代替
+                    // Skip properties that cause instantiation（Avoid side effects）
+                    "material", "materials", "mesh"  // Use sharedMaterial, sharedMaterials, sharedMesh Instead
                 };
 
-                // 1. 获取所有公共属性 (Properties)
+                // 1. Get all public properties (Properties)
                 PropertyInfo[] properties = componentType.GetProperties(flags);
                 if (properties != null)
                 {
                     foreach (PropertyInfo prop in properties)
                     {
-                        // 跳过黑名单中的属性
+                        // Skip blacklist properties
                         if (skipProperties.Contains(prop.Name)) continue;
 
-                        // 只获取可读的、可写的属性（排除只读属性和索引器）
+                        // Only get readable、Writable property（Exclude readonly and indexer properties）
                         if (prop.CanRead && prop.CanWrite && !prop.GetIndexParameters().Any())
                         {
                             try
@@ -195,25 +195,25 @@ namespace UnityMcp.Tools
                             catch (Exception ex)
                             {
                                 Debug.LogWarning($"[GetComponentPropertysFromTarget] Failed to get property '{prop.Name}': {ex.Message}");
-                                // 不添加错误信息到结果中
+                                // Do not add error info to result
                             }
                         }
                     }
                 }
 
-                // 2. 获取所有字段 (Fields) - 包括 SerializeField
+                // 2. Get all fields (Fields) - Include SerializeField
                 FieldInfo[] fields = componentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 if (fields != null)
                 {
                     foreach (FieldInfo field in fields)
                     {
-                        // 检查字段是否可序列化
-                        // 条件1: public字段
-                        // 条件2: 带有SerializeField特性的非public字段
+                        // Check if field is serializable
+                        // Condition1: publicField
+                        // Condition2: WithSerializeFieldAttribute's non-publicField
                         bool isSerializable = field.IsPublic ||
                                              field.GetCustomAttributes(typeof(SerializeField), true).Length > 0;
 
-                        if (isSerializable && !propertiesDict.ContainsKey(field.Name)) // 避免重复
+                        if (isSerializable && !propertiesDict.ContainsKey(field.Name)) // Avoid duplication
                         {
                             try
                             {
@@ -223,13 +223,13 @@ namespace UnityMcp.Tools
                             catch (Exception ex)
                             {
                                 Debug.LogWarning($"[GetComponentPropertysFromTarget] Failed to get field '{field.Name}': {ex.Message}");
-                                // 不添加错误信息到结果中
+                                // Do not add error info to result
                             }
                         }
                     }
                 }
 
-                // 如果没有任何可访问的属性或字段
+                // If there are no accessible properties or fields
                 if (propertiesDict.Count == 0)
                 {
                     return Response.Success(
@@ -238,12 +238,12 @@ namespace UnityMcp.Tools
                         {
                             { "component_type", compName },
                             { "gameobject_name", targetGo.name },
-                            { "properties", "" }  // 空YAML
+                            { "properties", "" }  // NullYAML
                         }
                     );
                 }
 
-                // 转换为YAML格式
+                // Convert toYAMLFormat
                 string propertiesYaml = ConvertDictionaryToYaml(propertiesDict);
                 return Response.Success(
                     $"Retrieved {propertiesDict.Count} serializable fields from component '{compName}' on '{targetGo.name}'.",
@@ -251,7 +251,7 @@ namespace UnityMcp.Tools
                     {
                         { "component_type", compName },
                         { "gameobject_name", targetGo.name },
-                        { "properties", propertiesYaml }  // 直接用YAML格式
+                        { "properties", propertiesYaml }  // Use directlyYAMLFormat
                     }
                 );
             }
@@ -264,7 +264,7 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// 设置组件属性的具体实现（批量）
+        /// Concrete implementation of setting component property（Batch）
         /// </summary>
         private object SetComponentPropertysOnTarget(StateTreeContext cmd, GameObject targetGo)
         {
@@ -275,14 +275,14 @@ namespace UnityMcp.Tools
 
             string compName = compNameObj.ToString();
 
-            // 查找组件
+            // Find component
             Component targetComponent = FindComponentOnGameObject(targetGo, compName);
             if (targetComponent == null)
             {
                 return Response.Error($"Component '{compName}' not found on '{targetGo.name}'.");
             }
 
-            // 获取要设置的属性字典
+            // Get property dict to set
             if (!cmd.TryGetValue("properties", out object propertiesObj) || propertiesObj == null)
             {
                 return Response.Error("'properties' parameter is required for setting component properties.");
@@ -295,7 +295,7 @@ namespace UnityMcp.Tools
             }
             else
             {
-                // 尝试从其他格式转换
+                // Try conversion from other format
                 try
                 {
                     propertiesToSet = Json.FromObject(propertiesObj) as JsonClass;
@@ -358,7 +358,7 @@ namespace UnityMcp.Tools
 
             if (errors.Count > 0)
             {
-                // 转换为数组以确保序列化正确
+                // Convert to array to ensure proper serialization
                 responseData["errors"] = errors.ToArray();
             }
 
@@ -376,10 +376,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region 组件辅助方法
+        #region Component helper methods
 
         /// <summary>
-        /// 在GameObject上查找组件
+        /// InGameObjectFind component on
         /// </summary>
         private Component FindComponentOnGameObject(GameObject gameObject, string componentName)
         {
@@ -392,7 +392,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 将值转换为可序列化的格式
+        /// Convert value to serializable format
         /// </summary>
         private object ConvertToSerializableValue(object value)
         {
@@ -400,13 +400,13 @@ namespace UnityMcp.Tools
 
             Type valueType = value.GetType();
 
-            // 基本类型直接返回
+            // Basic type returned directly
             if (valueType.IsPrimitive || value is string || value is decimal)
             {
                 return value;
             }
 
-            // Unity基本类型转换
+            // UnityBasic type conversion
             if (value is Vector2 v2)
                 return new { x = v2.x, y = v2.y };
             if (value is Vector3 v3)
@@ -420,10 +420,10 @@ namespace UnityMcp.Tools
             if (value is Rect rect)
                 return new { x = rect.x, y = rect.y, width = rect.width, height = rect.height };
 
-            // Unity Object引用
+            // Unity ObjectReference
             if (value is UnityEngine.Object unityObj)
             {
-                // Unity的fake null检查：被销毁的对象不是真正的null
+                // UnityOffake nullCheck：Destroyed object is not validnull
                 if (unityObj == null || !unityObj)
                     return null;
 
@@ -442,13 +442,13 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // 枚举类型
+            // Enum type
             if (valueType.IsEnum)
             {
                 return value.ToString();
             }
 
-            // 数组或列表
+            // Array or list
             if (value is System.Collections.IEnumerable enumerable && !(value is string))
             {
                 var list = new List<object>();
@@ -456,7 +456,7 @@ namespace UnityMcp.Tools
                 {
                     foreach (var item in enumerable)
                     {
-                        // 安全地转换每个元素，防止空引用
+                        // Convert each element safely，Prevent null reference
                         try
                         {
                             list.Add(ConvertToSerializableValue(item));
@@ -466,7 +466,7 @@ namespace UnityMcp.Tools
                             list.Add($"<Error: {ex.Message}>");
                         }
 
-                        if (list.Count > 10) // 限制数组长度避免过大
+                        if (list.Count > 10) // Limit array length to avoid too large
                         {
                             list.Add("...(truncated)");
                             break;
@@ -480,7 +480,7 @@ namespace UnityMcp.Tools
                 return list.ToArray();
             }
 
-            // 复杂对象，尝试序列化为字符串
+            // Complex object，Try to serialize as string
             try
             {
                 return value.ToString();
@@ -492,7 +492,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 将Dictionary转换为YAML格式字符串
+        /// WillDictionaryConvert toYAMLFormat string
         /// </summary>
         private string ConvertDictionaryToYaml(Dictionary<string, object> dict, int indent = 0)
         {
@@ -514,7 +514,7 @@ namespace UnityMcp.Tools
                 }
                 else if (kvp.Value is string str)
                 {
-                    // 多行字符串
+                    // Multiline string
                     if (str.Contains("\n"))
                     {
                         sb.AppendLine("|");
@@ -532,13 +532,13 @@ namespace UnityMcp.Tools
                 }
                 else if (kvp.Value is Dictionary<string, object> nestedDict)
                 {
-                    // 嵌套字典
+                    // Nested dictionary
                     sb.AppendLine();
                     sb.Append(ConvertDictionaryToYaml(nestedDict, indent + 2));
                 }
                 else if (kvp.Value is System.Collections.IList list)
                 {
-                    // 数组
+                    // Array
                     if (list.Count == 0)
                     {
                         sb.AppendLine("[]");
@@ -564,7 +564,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // 其他类型转字符串
+                    // Other type to string
                     sb.AppendLine(kvp.Value.ToString());
                 }
             }
@@ -572,7 +572,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取组件属性值
+        /// Get component property value
         /// </summary>
         private object GetComponentProperty(Component component, string propertyName)
         {
@@ -581,7 +581,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 处理嵌套属性（点符号分隔）
+                // Handle nested property（Dot notation separated）
                 if (propertyName.Contains('.') || propertyName.Contains('['))
                 {
                     return GetNestedProperty(component, propertyName);
@@ -609,7 +609,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取嵌套属性值
+        /// Get nested property value
         /// </summary>
         private object GetNestedProperty(object target, string path)
         {
@@ -1174,7 +1174,7 @@ namespace UnityMcp.Tools
                     return token.AsBool;
 
                 // Vector/Quaternion/Color types
-                // 处理 Vector2
+                // Handle Vector2
                 if (targetType == typeof(Vector2))
                 {
                     if (token is JsonArray arrV2 && arrV2.Count == 2)
@@ -1187,7 +1187,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 处理 Vector3
+                // Handle Vector3
                 if (targetType == typeof(Vector3))
                 {
                     if (token is JsonArray arrV3 && arrV3.Count == 3)
@@ -1200,7 +1200,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 处理 Vector4
+                // Handle Vector4
                 if (targetType == typeof(Vector4))
                 {
                     if (token is JsonArray arrV4 && arrV4.Count == 4)
@@ -1213,7 +1213,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 处理 Quaternion
+                // Handle Quaternion
                 if (targetType == typeof(Quaternion))
                 {
                     if (token is JsonArray arrQ && arrQ.Count == 4)
@@ -1226,14 +1226,14 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 处理 Color
+                // Handle Color
                 if (targetType == typeof(Color))
                 {
                     if (token is JsonArray arrC && arrC.Count >= 3)
                         return new Color(arrC[0].AsFloat, arrC[1].AsFloat, arrC[2].AsFloat, arrC.Count > 3 ? arrC[3].AsFloat : 1.0f);
                     if (token.type == JsonNodeType.String)
                     {
-                        float[] values = ParseNumberArrayFromString(token.Value, -1); // -1 表示接受 3 或 4 个值
+                        float[] values = ParseNumberArrayFromString(token.Value, -1); // -1 Means accept 3 Or 4 Value
                         if (values != null && values.Length >= 3)
                             return new Color(values[0], values[1], values[2], values.Length > 3 ? values[3] : 1.0f);
                     }
@@ -1352,7 +1352,7 @@ namespace UnityMcp.Tools
                     return null;
                 }
 
-                // SimpleJson 不支持 ToObject(targetType)
+                // SimpleJson Not supported ToObject(targetType)
                 return null;
             }
             catch (Exception ex)
@@ -1363,14 +1363,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 查找组件类型，遍历所有已加载的程序集
+        /// Lookup component type，Iterate all loaded assemblies
         /// </summary>
         private Type FindComponentType(string componentName)
         {
             if (string.IsNullOrEmpty(componentName))
                 return null;
 
-            // 遍历所有已加载的程序集
+            // Iterate all loaded assemblies
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies)
             {
@@ -1381,7 +1381,7 @@ namespace UnityMcp.Tools
                 }
                 catch
                 {
-                    // 某些动态程序集可能抛异常，忽略
+                    // Some dynamic assemblies may throw exception，Ignore
                     continue;
                 }
 
@@ -1390,7 +1390,7 @@ namespace UnityMcp.Tools
                     if (!typeof(Component).IsAssignableFrom(type))
                         continue;
 
-                    // 名字或全名匹配即可
+                    // Name or full name match is enough
                     if (type.Name == componentName || type.FullName == componentName)
                     {
                         return type;
@@ -1401,24 +1401,24 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取GameObject的数据表示 - 使用优化的YAML格式
+        /// GetGameObjectRepresentation of data - Use optimizedYAMLFormat
         /// </summary>
         private object GetGameObjectData(GameObject go)
         {
             if (go == null) return null;
 
-            // 使用统一的YAML格式，大幅减少token使用量
+            // Use unifiedYAMLFormat，Significantly reducetokenUsage
             var yamlData = GameObjectUtils.GetGameObjectDataYaml(go);
             return new { yaml = yamlData };
         }
 
         /// <summary>
-        /// 从字符串解析数字数组，支持多种格式：
+        /// Parse numeric array from string，Support multiple formats：
         /// "[0.1, 0.2, 0.3]", "(0.1, 0.2, 0.3)", "0.1, 0.2, 0.3"
         /// </summary>
-        /// <param name="str">输入字符串</param>
-        /// <param name="expectedCount">期望的数字数量，-1 表示不限制</param>
-        /// <returns>解析后的 float 数组，失败返回 null</returns>
+        /// <param name="str">Input string</param>
+        /// <param name="expectedCount">Expected count of numbers，-1 Indicates no limit</param>
+        /// <returns>Parsed float Array，Return on fail null</returns>
         private float[] ParseNumberArrayFromString(string str, int expectedCount)
         {
             if (string.IsNullOrWhiteSpace(str))
@@ -1426,20 +1426,20 @@ namespace UnityMcp.Tools
 
             try
             {
-                // 去除首尾空格
+                // Trim leading/trailing spaces
                 str = str.Trim();
 
-                // 移除外层括号（支持方括号和圆括号）
+                // Remove outer parentheses（Support square/round brackets）
                 if ((str.StartsWith("[") && str.EndsWith("]")) ||
                     (str.StartsWith("(") && str.EndsWith(")")))
                 {
                     str = str.Substring(1, str.Length - 2);
                 }
 
-                // 按逗号分割
+                // Split by comma
                 string[] parts = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // 检查数量
+                // Check count
                 if (expectedCount > 0 && parts.Length != expectedCount)
                 {
                     Debug.LogWarning($"[ParseNumberArrayFromString] Expected {expectedCount} values, but got {parts.Length} in string: '{str}'");
@@ -1452,7 +1452,7 @@ namespace UnityMcp.Tools
                     return null;
                 }
 
-                // 解析每个数字
+                // Parse each number
                 float[] result = new float[parts.Length];
                 for (int i = 0; i < parts.Length; i++)
                 {
