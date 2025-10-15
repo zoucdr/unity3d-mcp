@@ -19,7 +19,7 @@ namespace UnityMcp.Models
         public static JsonClass Success(string message, JsonNode data)
         {
             var response = new JsonClass();
-            response.Add("success", new JsonData("true"));
+            response.Add("success", new JsonData(true));
             response.Add("message", new JsonData(message));
 
             if (data != null)
@@ -54,7 +54,7 @@ namespace UnityMcp.Models
         public static JsonClass Error(string errorMessage, JsonNode data)
         {
             var response = new JsonClass();
-            response.Add("success", new JsonData("false"));
+            response.Add("success", new JsonData(false));
             response.Add("error", new JsonData(errorMessage));
 
             if (data != null)

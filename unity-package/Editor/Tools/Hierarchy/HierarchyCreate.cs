@@ -88,8 +88,8 @@ namespace UnityMcp.Tools
 
             if (!menuPath.StartsWith("GameObject"))
             {
-                menuPath = "GameObject/" + menuPath;
-                LogInfo($"[HierarchyCreate] Menu path adjusted: '{menuPath}'");
+                yield return Response.Error("'menu_path' parameter must start with 'GameObject'");
+                yield break;
             }
 
             // 记录创建前的选中对象

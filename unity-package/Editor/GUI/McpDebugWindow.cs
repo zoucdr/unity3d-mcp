@@ -1317,15 +1317,6 @@ namespace UnityMcp.Gui
 
             // 判断结果的 status
             string status = "success";
-            if (result != null && result is JsonClass resultObj)
-            {
-                var successNode = resultObj["success"];
-                if (successNode != null && successNode.Value == "false")
-                {
-                    status = "error";
-                }
-            }
-
             // 创建包装后的结果对象
             JsonClass wrappedResult = new JsonClass();
             wrappedResult["status"] = status;

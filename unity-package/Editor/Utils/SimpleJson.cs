@@ -224,7 +224,35 @@ namespace UnityMcp
         }
         public static implicit operator JsonNode(long aLong)
         {
-            return new JsonData(aLong.ToString());
+            return new JsonData(aLong);
+        }
+        public static implicit operator JsonNode(decimal aDecimal)
+        {
+            return new JsonData(aDecimal);
+        }
+        public static implicit operator JsonNode(uint aUInt)
+        {
+            return new JsonData(aUInt);
+        }
+        public static implicit operator JsonNode(short aShort)
+        {
+            return new JsonData(aShort);
+        }
+        public static implicit operator JsonNode(ushort aUShort)
+        {
+            return new JsonData(aUShort);
+        }
+        public static implicit operator JsonNode(byte aByte)
+        {
+            return new JsonData(aByte);
+        }
+        public static implicit operator JsonNode(sbyte aSByte)
+        {
+            return new JsonData(aSByte);
+        }
+        public static implicit operator JsonNode(char aChar)
+        {
+            return new JsonData(aChar);
         }
         public static bool operator ==(JsonNode a, object b)
         {
@@ -1244,10 +1272,14 @@ return LoadFromCompressedStream(stream);
     public class JsonData : JsonNode
     {
         private string m_Data;
+
         public override string Value
         {
             get { return m_Data; }
-            set { m_Data = value; }
+            set
+            {
+                m_Data = value;
+            }
         }
         public JsonData(string aData)
         {
@@ -1269,20 +1301,79 @@ return LoadFromCompressedStream(stream);
         {
             AsInt = aData;
         }
+        public JsonData(long aData)
+        {
+            m_Data = aData.ToString();
+        }
+        public JsonData(decimal aData)
+        {
+            m_Data = aData.ToString();
+        }
+        public JsonData(uint aData)
+        {
+            m_Data = aData.ToString();
+        }
+        public JsonData(short aData)
+        {
+            AsInt = aData;
+        }
+        public JsonData(ushort aData)
+        {
+            m_Data = aData.ToString();
+        }
+        public JsonData(byte aData)
+        {
+            AsInt = aData;
+        }
+        public JsonData(sbyte aData)
+        {
+            AsInt = aData;
+        }
+        public JsonData(char aData)
+        {
+            m_Data = aData.ToString();
+        }
 
         public override string ToString()
         {
+            JsonNodeType nodeType = this.type;
+            if (nodeType == JsonNodeType.Boolean)
+            {
+                return m_Data.ToLower(); // 布尔值不需要引号
+            }
+            else if (nodeType == JsonNodeType.Integer || nodeType == JsonNodeType.Float)
+            {
+                return m_Data; // 数字不需要引号
+            }
             return "\"" + Escape(m_Data) + "\"";
         }
 
         public override string ToString(string aPrefix)
         {
+            JsonNodeType nodeType = this.type;
+            if (nodeType == JsonNodeType.Boolean)
+            {
+                return m_Data.ToLower(); // 布尔值不需要引号
+            }
+            else if (nodeType == JsonNodeType.Integer || nodeType == JsonNodeType.Float)
+            {
+                return m_Data; // 数字不需要引号
+            }
             return "\"" + Escape(m_Data) + "\"";
         }
 
         public override string ToPrettyStringInternal(int level, string indent)
         {
-            return ToString();
+            JsonNodeType nodeType = this.type;
+            if (nodeType == JsonNodeType.Boolean)
+            {
+                return m_Data.ToLower(); // 布尔值不需要引号
+            }
+            else if (nodeType == JsonNodeType.Integer || nodeType == JsonNodeType.Float)
+            {
+                return m_Data; // 数字不需要引号
+            }
+            return "\"" + Escape(m_Data) + "\"";
         }
 
         // 隐式转换操作符，支持从基本类型转换为 JsonData
@@ -1304,7 +1395,35 @@ return LoadFromCompressedStream(stream);
         }
         public static implicit operator JsonData(long aLong)
         {
-            return new JsonData(aLong.ToString());
+            return new JsonData(aLong);
+        }
+        public static implicit operator JsonData(decimal aDecimal)
+        {
+            return new JsonData(aDecimal);
+        }
+        public static implicit operator JsonData(uint aUInt)
+        {
+            return new JsonData(aUInt);
+        }
+        public static implicit operator JsonData(short aShort)
+        {
+            return new JsonData(aShort);
+        }
+        public static implicit operator JsonData(ushort aUShort)
+        {
+            return new JsonData(aUShort);
+        }
+        public static implicit operator JsonData(byte aByte)
+        {
+            return new JsonData(aByte);
+        }
+        public static implicit operator JsonData(sbyte aSByte)
+        {
+            return new JsonData(aSByte);
+        }
+        public static implicit operator JsonData(char aChar)
+        {
+            return new JsonData(aChar);
         }
 
         public override void Serialize(System.IO.BinaryWriter aWriter)
@@ -1555,11 +1674,29 @@ return LoadFromCompressedStream(stream);
             if (obj is string str)
                 return new JsonData(str);
 
-            if (obj is int || obj is long || obj is short || obj is byte)
-                return new JsonData(obj.ToString());
+            if (obj is int intVal)
+                return new JsonData(intVal);
+            if (obj is long longVal)
+                return new JsonData(longVal);
+            if (obj is short shortVal)
+                return new JsonData(shortVal);
+            if (obj is byte byteVal)
+                return new JsonData(byteVal);
+            if (obj is uint uintVal)
+                return new JsonData(uintVal);
+            if (obj is ushort ushortVal)
+                return new JsonData(ushortVal);
+            if (obj is sbyte sbyteVal)
+                return new JsonData(sbyteVal);
+            if (obj is char charVal)
+                return new JsonData(charVal);
 
-            if (obj is float || obj is double || obj is decimal)
-                return new JsonData(obj.ToString());
+            if (obj is float floatVal)
+                return new JsonData(floatVal);
+            if (obj is double doubleVal)
+                return new JsonData(doubleVal);
+            if (obj is decimal decimalVal)
+                return new JsonData(decimalVal);
 
             if (obj is bool b)
                 return new JsonData(b ? "true" : "false");

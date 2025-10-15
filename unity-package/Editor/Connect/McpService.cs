@@ -668,39 +668,14 @@ namespace UnityMcp
                     var endTime = System.DateTime.Now;
                     var duration = (endTime - startTime).TotalMilliseconds;
 
-                    // 动态判断 status：根据 result 中的 success 字段
-                    string status = "success";
-                    string error = "";
-                    if (result is JsonClass jsonResult)
-                    {
-                        var successNode = jsonResult["success"];
-                        if (successNode != null && successNode.Value == "false")
-                        {
-                            status = "error";
-                            error = jsonResult["error"].Value;
-                        }
-                    }
-
-                    var response = new
-                    {
-                        status = status,
-                        result = Json.FromObject(result)
-                    };
-
-                    // 根据 status 记录不同的日志
-                    if (status == "success")
-                    {
-                        Log($"[UnityMcp] 命令执行成功: Type={command.type} {command.cmd}");
-                    }
-                    else
-                    {
-                        Log($"[UnityMcp] 命令执行失败: Type={command.type} {command.cmd}");
-                    }
-
                     string re;
                     try
                     {
-                        re = Json.FromObject((object)response).ToString();
+                        re = Json.FromObject(new
+                        {
+                            status = "success",
+                            result = Json.FromObject(result)
+                        }).ToString();
                         Log($"[UnityMcp] 工具执行完成，结果: {re}");
                     }
                     catch (Exception serEx)
@@ -766,6 +741,17 @@ namespace UnityMcp
                             cmdName = command.type;
                             // 修正为标准JSON格式
                             argsString = Json.FromObject((object)(new { func = cmdName, args = paramsObject })).ToPrettyString();
+                        }
+
+                        // 动态判断 status：根据 result 中的 success 字段
+                        string error = "";
+                        if (result is JsonClass jsonResult)
+                        {
+                            var successNode = jsonResult["success"];
+                            if (successNode != null && successNode.Value == "false")
+                            {
+                                error = jsonResult["error"].Value;
+                            }
                         }
 
                         recordObject.addRecord(

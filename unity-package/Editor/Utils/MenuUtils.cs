@@ -150,25 +150,6 @@ namespace UnityMcp
                 availableMenus = GetMenuItems(parentPath, true);
             }
 
-            // 构建错误消息和数据
-            var errorData = new JsonClass();
-            errorData["failed_menu_path"] = menuPath;
-            errorData["tried_paths"] = new JsonArray();
-            foreach (var path in tryPaths)
-            {
-                ((JsonArray)errorData["tried_paths"]).Add(path);
-            }
-            errorData["unity_version"] = Application.unityVersion;
-            errorData["parent_path"] = parentPath ?? "";
-            errorData["available_menus_count"] = availableMenus.Count;
-
-            var menusArray = new JsonArray();
-            foreach (var menu in availableMenus)
-            {
-                menusArray.Add(menu);
-            }
-            errorData["available_menus"] = menusArray;
-
             string errorMsg = $"ExecuteMenuItem failed because there is no menu named '{menuPath}'.\n" +
                             $"Unity {Application.unityVersion}. Tried: [{string.Join(", ", tryPaths)}]\n";
 
@@ -182,7 +163,7 @@ namespace UnityMcp
                     errorMsg += $"\n... and {availableMenus.Count - 20} more";
                 }
             }
-            return Response.Error(errorMsg, errorData);
+            return Response.Error(errorMsg);
         }
 
         /// <summary>
