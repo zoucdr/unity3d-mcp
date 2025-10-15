@@ -6,7 +6,7 @@ UI制作规则文件管理工具
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_ui_rule_manage_tools(mcp: FastMCP):
@@ -199,7 +199,7 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        UI制作规则文件管理工具（二级工具）
+        UI制作规则文件管理工具
         
         支持的操作:
         - create: 创建新规则
@@ -210,4 +210,37 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         - apply: 应用规则到对象
         - validate: 验证规则
         """
-        return get_common_call_response("ui_rule_manage")
+        return send_to_unity("ui_rule_manage", {
+            "action": action,
+            "rule_name": rule_name,
+            "rule_type": rule_type,
+            "properties": properties,
+            "constraints": constraints,
+            "validation_rules": validation_rules,
+            "target_object": target_object,
+            "force_apply": force_apply,
+            "validate_only": validate_only,
+            "create_missing": create_missing,
+            "remove_extra": remove_extra,
+            "preserve_hierarchy": preserve_hierarchy,
+            "backup_before_apply": backup_before_apply,
+            "log_changes": log_changes,
+            "rule_file_path": rule_file_path,
+            "export_format": export_format,
+            "import_format": import_format,
+            "template_name": template_name,
+            "category": category,
+            "tags": tags,
+            "description": description,
+            "version": version,
+            "author": author,
+            "created_date": created_date,
+            "modified_date": modified_date,
+            "is_active": is_active,
+            "priority": priority,
+            "dependencies": dependencies,
+            "conflicts": conflicts,
+            "conditions": conditions,
+            "effects": effects,
+            "metadata": metadata
+        })

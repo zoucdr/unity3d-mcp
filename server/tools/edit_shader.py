@@ -6,7 +6,7 @@ Shader管理工具
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 def register_edit_shader_tools(mcp: FastMCP):
     @mcp.tool("edit_shader")
@@ -137,8 +137,32 @@ def register_edit_shader_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        Shader管理工具（二级工具）
+        Shader管理工具
         
         支持的操作: create(创建Shader), modify(修改Shader), delete(删除Shader), get_info(获取Shader信息), search(搜索Shader), duplicate(复制Shader), move(移动/重命名Shader), rename(移动/重命名Shader，与move相同), compile(编译Shader), validate(验证Shader)
         """
-        return get_common_call_response("edit_shader")
+        return send_to_unity("edit_shader", {
+            "action": action,
+            "path": path,
+            "shader_name": shader_name,
+            "shader_type": shader_type,
+            "shader_code": shader_code,
+            "properties": properties,
+            "destination": destination,
+            "query": query,
+            "recursive": recursive,
+            "force": force,
+            "create_folder": create_folder,
+            "backup": backup,
+            "validate_syntax": validate_syntax,
+            "compile_shader": compile_shader,
+            "check_errors": check_errors,
+            "apply_immediately": apply_immediately,
+            "mark_dirty": mark_dirty,
+            "save_assets": save_assets,
+            "refresh_assets": refresh_assets,
+            "include_variants": include_variants,
+            "platform_specific": platform_specific,
+            "optimization_level": optimization_level,
+            "debug_mode": debug_mode
+        })

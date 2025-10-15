@@ -5,7 +5,7 @@ Storage - SourceLocation工具
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_storage_source_location_tools(mcp: FastMCP):
@@ -48,7 +48,7 @@ def register_storage_source_location_tools(mcp: FastMCP):
             examples=["MainCamera", "Player", "GameManager", "Canvas"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity资源定位工具，用于在文件系统中定位和操作资源。（二级工具）
+        """Unity资源定位工具，用于在文件系统中定位和操作资源。
 
         支持多种资源定位操作，适用于：
         - 文件浏览：在系统文件浏览器中打开和显示文件（Windows资源管理器/Mac Finder）
@@ -82,5 +82,12 @@ def register_storage_source_location_tools(mcp: FastMCP):
         - 支持通过多种方式定位资源：路径、实例ID、GUID、名称
         """
         
-        return get_common_call_response("source_location")
+        return send_to_unity("source_location", {
+            "action": action,
+            "asset_path": asset_path,
+            "folder_path": folder_path,
+            "instance_id": instance_id,
+            "guid": guid,
+            "object_name": object_name
+        })
 

@@ -6,7 +6,7 @@ ScriptableObject管理工具
 from typing import Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_scriptableobject_tools(mcp: FastMCP):
@@ -82,7 +82,7 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        ScriptableObject管理工具，专门用于Unity中的数据资源管理。（二级工具）
+        ScriptableObject管理工具，专门用于Unity中的数据资源管理。
 
         ScriptableObject是Unity中用于存储游戏配置、关卡数据、角色属性等的数据容器，
         本工具提供完整的ScriptableObject资源生命周期管理功能。
@@ -185,4 +185,16 @@ def register_edit_scriptableobject_tools(mcp: FastMCP):
         - 预览生成可能较慢，建议仅在需要时启用
         """
 
-        return get_common_call_response("edit_scriptableobject")
+        return send_to_unity("edit_scriptableobject", {
+            "action": action,
+            "path": path,
+            "script_class": script_class,
+            "properties": properties,
+            "destination": destination,
+            "query": query,
+            "recursive": recursive,
+            "force": force,
+            "page_size": page_size,
+            "page_number": page_number,
+            "generate_preview": generate_preview
+        })

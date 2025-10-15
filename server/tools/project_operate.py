@@ -4,7 +4,7 @@ Unity项目操作工具，包含项目资源管理功能。
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_project_operate_tools(mcp: FastMCP):
@@ -46,7 +46,7 @@ def register_project_operate_tools(mcp: FastMCP):
             default=True
         )] = True
     ) -> Dict[str, Any]:
-        """Unity项目操作工具，用于执行各种项目管理操作。（二级工具）
+        """Unity项目操作工具，用于执行各种项目管理操作。
 
         支持多种项目操作，适用于：
         - 资源管理：导入外部资源文件到项目中
@@ -57,8 +57,11 @@ def register_project_operate_tools(mcp: FastMCP):
 
         """
         
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="project_operate", args={"action": "refresh"})
-        
-        return get_common_call_response("project_operate")
+        return send_to_unity("project_operate", {
+            "action": action,
+            "path": path,
+            "target_path": target_path,
+            "source_path": source_path,
+            "package_name": package_name,
+            "include_dependencies": include_dependencies
+        })

@@ -4,7 +4,7 @@ Unity Figma管理工具，包含Figma图片下载、节点数据拉取等功能�
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_figma_manage_tools(mcp: FastMCP):
@@ -83,7 +83,7 @@ def register_figma_manage_tools(mcp: FastMCP):
             le=10
         )] = 1
     ) -> Dict[str, Any]:
-        """Unity Figma管理工具，用于管理Figma资源和数据。（二级工具）
+        """Unity Figma管理工具，用于管理Figma资源和数据。
 
         支持多种Figma操作，适用于：
         - 图片下载：从Figma下载单张或批量图片
@@ -120,4 +120,17 @@ def register_figma_manage_tools(mcp: FastMCP):
         示例 - 图片预览（返回base64）:
           action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_ids="1:4"
         """
-        return get_common_call_response("figma_manage")
+        return send_to_unity("figma_manage", {
+            "action": action,
+            "file_key": file_key,
+            "node_ids": node_ids,
+            "node_imgs": node_imgs,
+            "root_node_id": root_node_id,
+            "save_path": save_path,
+            "format": format,
+            "scale": scale,
+            "local_json_path": local_json_path,
+            "auto_convert_sprite": auto_convert_sprite,
+            "include_children": include_children,
+            "depth": depth
+        })

@@ -6,7 +6,7 @@ Unity资产管理工具
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_asset_tools(mcp: FastMCP):
@@ -50,7 +50,7 @@ def register_edit_asset_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        Unity资产管理工具（二级工具）
+        Unity资产管理工具
         
         支持的操作:
         - import: 重新导入资产
@@ -62,8 +62,11 @@ def register_edit_asset_tools(mcp: FastMCP):
         - get_info: 获取资产信息
         - create_folder: 创建文件夹
         """
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="edit_asset", args={...})
-
-        return get_common_call_response("edit_asset")
+        return send_to_unity("edit_asset", {
+            "action": action,
+            "path": path,
+            "properties": properties,
+            "destination": destination,
+            "query": query,
+            "force": force
+        })

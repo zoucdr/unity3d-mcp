@@ -6,7 +6,7 @@
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_particle_system_tools(mcp: FastMCP):
@@ -345,7 +345,7 @@ def register_edit_particle_system_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        粒子系统编辑工具,提供完整的粒子系统创建、配置和控制功能。（二级工具）
+        粒子系统编辑工具,提供完整的粒子系统创建、配置和控制功能。
 
         支持多种粒子系统操作，适用于：
         - 特效创建：快速创建和配置粒子特效
@@ -390,5 +390,59 @@ def register_edit_particle_system_tools(mcp: FastMCP):
            {"action": "set_properties", "path": "FireEffect", "start_size": 1.5, "max_particles": 1000}
         """
 
-        return get_common_call_response("edit_particle_system")
+        return send_to_unity("edit_particle_system", {
+            "action": action,
+            "instance_id": instance_id,
+            "path": path,
+            "duration": duration,
+            "looping": looping,
+            "prewarm": prewarm,
+            "start_delay": start_delay,
+            "start_lifetime": start_lifetime,
+            "start_speed": start_speed,
+            "start_size": start_size,
+            "start_rotation": start_rotation,
+            "start_color": start_color,
+            "gravity_modifier": gravity_modifier,
+            "simulation_space": simulation_space,
+            "simulation_speed": simulation_speed,
+            "scaling_mode": scaling_mode,
+            "play_on_awake": play_on_awake,
+            "max_particles": max_particles,
+            "emission_enabled": emission_enabled,
+            "emission_rate_over_time": emission_rate_over_time,
+            "emission_rate_over_distance": emission_rate_over_distance,
+            "shape_enabled": shape_enabled,
+            "shape_type": shape_type,
+            "shape_angle": shape_angle,
+            "shape_radius": shape_radius,
+            "shape_arc": shape_arc,
+            "shape_random_direction": shape_random_direction,
+            "velocity_over_lifetime_enabled": velocity_over_lifetime_enabled,
+            "velocity_linear": velocity_linear,
+            "velocity_orbital": velocity_orbital,
+            "color_over_lifetime_enabled": color_over_lifetime_enabled,
+            "size_over_lifetime_enabled": size_over_lifetime_enabled,
+            "rotation_over_lifetime_enabled": rotation_over_lifetime_enabled,
+            "rotation_angular_velocity": rotation_angular_velocity,
+            "noise_enabled": noise_enabled,
+            "noise_strength": noise_strength,
+            "noise_frequency": noise_frequency,
+            "collision_enabled": collision_enabled,
+            "collision_type": collision_type,
+            "collision_dampen": collision_dampen,
+            "collision_bounce": collision_bounce,
+            "render_mode": render_mode,
+            "material": material,
+            "sorting_layer": sorting_layer,
+            "sorting_order": sorting_order,
+            "texture_sheet_animation_enabled": texture_sheet_animation_enabled,
+            "texture_sheet_tiles": texture_sheet_tiles,
+            "texture_sheet_fps": texture_sheet_fps,
+            "trails_enabled": trails_enabled,
+            "trails_ratio": trails_ratio,
+            "trails_lifetime": trails_lifetime,
+            "simulate_time": simulate_time,
+            "with_children": with_children
+        })
 

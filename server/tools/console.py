@@ -4,7 +4,7 @@ Unity控制台操作工具，包含控制台读取和写入功能。
 from typing import Annotated, List, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_console_tools(mcp: FastMCP):
@@ -46,7 +46,7 @@ def register_console_tools(mcp: FastMCP):
             examples=["plain", "detailed", "json"]
         )] = "detailed"
     ) -> Dict[str, Any]:
-        """Unity控制台读取工具，可以读取或清空Unity编辑器控制台消息。（二级工具）
+        """Unity控制台读取工具，可以读取或清空Unity编辑器控制台消息。
 
         支持多种操作模式和灵活的过滤选项，适用于：
         - 调试信息收集：获取错误和警告消息
@@ -59,7 +59,13 @@ def register_console_tools(mcp: FastMCP):
         # 实际调用请使用 single_call 函数
         # 示例：single_call(func="console_read", args={"action": "get", "types": ["error", "warning"]})
         
-        return get_common_call_response("console_read")
+        return send_to_unity("console_read", {
+            "action": action,
+            "types": types,
+            "count": count,
+            "filterText": filterText,
+            "format": format
+        })
 
     @mcp.tool("console_write")
     def console_write(
@@ -107,8 +113,10 @@ def register_console_tools(mcp: FastMCP):
         - 用户反馈：显示游戏状态和提示信息
         """
         
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="console_write", args={"action": "log", "message": "Hello Unity!"})
-        
-        return get_common_call_response("console_write")
+        return send_to_unity("console_write", {
+            "action": action,
+            "message": message,
+            "tag": tag,
+            "context": context,
+            "condition": condition
+        })

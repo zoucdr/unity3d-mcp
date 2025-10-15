@@ -4,7 +4,7 @@ Unity GameObject编辑工具，包含GameObject的创建、修改、组件管理
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_gameobject_tools(mcp: FastMCP):
@@ -94,7 +94,7 @@ def register_edit_gameobject_tools(mcp: FastMCP):
             examples=[0, 1, 2, 4]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity GameObject编辑工具，用于创建、修改和管理GameObject。（二级工具）
+        """Unity GameObject编辑工具，用于创建、修改和管理GameObject。
 
         支持多种GameObject操作，适用于：
         - 对象创建：创建新的GameObject
@@ -108,4 +108,19 @@ def register_edit_gameobject_tools(mcp: FastMCP):
         # 实际调用请使用 single_call 函数
         # 示例：single_call(func="edit_gameobject", args={"path": "Player", "action": "modify"})
         
-        return get_common_call_response("edit_gameobject")
+        return send_to_unity("edit_gameobject", {
+            "action": action,
+            "path": path,
+            "instance_id": instance_id,
+            "name": name,
+            "tag": tag,
+            "layer": layer,
+            "parent_id": parent_id,
+            "parent_path": parent_path,
+            "position": position,
+            "rotation": rotation,
+            "scale": scale,
+            "component_type": component_type,
+            "active": active,
+            "static_flags": static_flags
+        })

@@ -1,5 +1,5 @@
 """
-Unity编辑器基础管理工具，用于编辑器状态查询和菜单管理。（二级工具）
+Unity编辑器基础管理工具，用于编辑器状态查询和菜单管理。
 
 支持的功能：
 - 状态查询：get_state, get_windows, get_selection
@@ -10,7 +10,7 @@ Unity编辑器基础管理工具，用于编辑器状态查询和菜单管理。
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_base_editor_tools(mcp: FastMCP):
@@ -45,7 +45,7 @@ def register_base_editor_tools(mcp: FastMCP):
             default=False
         )] = False
     ) -> Dict[str, Any]:
-        """Unity编辑器基础管理工具，用于编辑器状态查询和菜单管理。（二级工具）
+        """Unity编辑器基础管理工具，用于编辑器状态查询和菜单管理。
 
         支持的功能，适用于：
         - 状态查询：获取编辑器状态、窗口列表、当前选择等
@@ -66,4 +66,10 @@ def register_base_editor_tools(mcp: FastMCP):
         4. 获取当前选择的对象：
            {"action": "get_selection"}
         """
-        return get_common_call_response("base_editor")
+        return send_to_unity("base_editor", {
+            "action": action,
+            "menu_path": menu_path,
+            "root_path": root_path,
+            "include_submenus": include_submenus,
+            "verify_exists": verify_exists
+        })

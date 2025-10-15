@@ -5,7 +5,7 @@ Unity脚本编辑工具
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_script_tools(mcp: FastMCP):
@@ -55,7 +55,7 @@ def register_edit_script_tools(mcp: FastMCP):
             examples=["Controller", "*Manager", "Unity*"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity脚本编辑工具，用于管理Unity项目中的C#脚本文件。（二级工具）
+        """Unity脚本编辑工具，用于管理Unity项目中的C#脚本文件。
 
         支持完整的C#脚本生命周期管理：创建、读取、更新和删除操作。
         创建时会自动生成符合Unity规范的代码模板（MonoBehaviour、ScriptableObject等），
@@ -85,4 +85,12 @@ def register_edit_script_tools(mcp: FastMCP):
         - 路径支持相对于Assets的路径，自动创建不存在的目录
         """
 
-        return get_common_call_response("edit_script")
+        return send_to_unity("edit_script", {
+            "action": action,
+            "name": name,
+            "path": path,
+            "lines": lines,
+            "script_type": script_type,
+            "namespace": namespace,
+            "query": query
+        })

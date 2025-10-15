@@ -1,5 +1,5 @@
 """
-Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。（二级工具）
+Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。
 
 使用双状态树架构处理RectTransform修改操作：
 - 第一棵树：目标定位（使用GameObjectSelector）
@@ -26,7 +26,7 @@ Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。（
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_ugui_layout_tools(mcp: FastMCP):
@@ -104,7 +104,7 @@ def register_ugui_layout_tools(mcp: FastMCP):
             examples=[0, 1, 2]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。（二级工具）
+        """Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。
 
         支持多种布局操作，适用于：
         - 布局修改：设置UI元素的位置、大小、锚点等属性（注意：do_layout不支持tattoo_preset）
@@ -131,8 +131,17 @@ def register_ugui_layout_tools(mcp: FastMCP):
            
         注意：do_layout操作不支持tattoo_preset参数，如需设置锚点预设请使用tattoo操作。
         """
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="ugui_layout", args={...})
-        
-        return get_common_call_response("ugui_layout")
+        return send_to_unity("ugui_layout", {
+            "instance_id": instance_id,
+            "path": path,
+            "action": action,
+            "anchored_position": anchored_position,
+            "size_delta": size_delta,
+            "anchor_min": anchor_min,
+            "anchor_max": anchor_max,
+            "tattoo_preset": tattoo_preset,
+            "tattoo_self": tattoo_self,
+            "preserve_visual_position": preserve_visual_position,
+            "pivot": pivot,
+            "sibling_index": sibling_index
+        })

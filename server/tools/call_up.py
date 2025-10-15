@@ -13,22 +13,69 @@ from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
 from connection import get_unity_connection
 
-# 公共的错误提示文本
-def get_common_call_response(func_name: str) -> dict:
-    """
-    获取公共的错误响应格式
-    
-    Args:
-        func_name: 函数名称
-        
-    Returns:
-        标准的错误响应字典
-    """
-    return {
-        "success": False,
-        "error": "请使用 single_call(func='{func_name}', args={{...}}) 来调用此函数".format(func_name=func_name),
-        "data": None
-    }
+# 发送命令到Unity
+def send_to_unity(func,args):
+        try:
+            # 验证函数名称
+            if not func or not isinstance(func, str):
+                return {
+                    "success": False,
+                    "error": "函数名称无效或为空",
+                    "result": None
+                }
+            
+            # 验证参数类型
+            if not isinstance(args, dict):
+                return {
+                    "success": False,
+                    "error": "参数必须是对象类型",
+                    "result": None
+                }
+            
+            # 获取Unity连接实例
+            bridge = get_unity_connection()
+            
+            if bridge is None:
+                return {
+                    "success": False,
+                    "error": "无法获取Unity连接",
+                    "result": None
+                }
+            
+            # 只传递args中不为空的参数
+            params = {k: v for k, v in args.items() if v is not None}
+
+            # 使用带重试机制的命令发送
+            result = bridge.send_command_with_retry(func, params, max_retries=2)
+            
+            # 确保返回结果包含success标志
+            if isinstance(result, dict):
+                return result
+            else:
+                return {
+                    "success": True,
+                    "result": result,
+                    "error": None
+                }
+                
+        except json.JSONDecodeError as e:
+            return {
+                "success": False,
+                "error": f"参数序列化失败: {str(e)}",
+                "result": None
+            }
+        except ConnectionError as e:
+            return {
+                "success": False,
+                "error": f"Unity连接错误: {str(e)}",
+                "result": None
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"函数调用失败: {str(e)}",
+                "result": None
+            }
 
 def register_call_tools(mcp: FastMCP):
     @mcp.tool("single_call")
@@ -50,11 +97,8 @@ def register_call_tools(mcp: FastMCP):
             ]
         )] = {}
     ) -> Dict[str, Any]:
-        """单个函数调用工具，用于调用所有Unity MCP函数。（一级工具）
+        """单个函数调用工具，用于调用所有Unity MCP函数。（基础工具）
         
-        ⚠️ 重要说明：
-        - 所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用
-        - 不能直接调用hierarchy_create、edit_gameobject等函数，必须通过single_call
         - func参数指定要调用的函数名，args参数传递该函数所需的所有参数
         
         支持的函数包括但不限于：
@@ -152,10 +196,8 @@ def register_call_tools(mcp: FastMCP):
             ]
         )]
     ) -> Dict[str, Any]:
-        """批量函数调用工具，可以按顺序调用Unity中的多个MCP函数并收集所有返回值。（一级工具）
+        """批量函数调用工具，可以按顺序调用Unity中的多个MCP函数并收集所有返回值。（基础工具）
         
-        ⚠️ 重要说明：
-        - 所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用
         - 每个函数调用元素必须包含func（函数名）和args（参数字典）字段
         - 函数名必须是有效的MCP函数名，如hierarchy_create、edit_gameobject等
         - 参数格式必须严格按照目标函数的定义

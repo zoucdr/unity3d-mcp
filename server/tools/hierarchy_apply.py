@@ -4,7 +4,7 @@ Unity层次结构应用工具，包含GameObject预制体应用和连接操作�
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_hierarchy_apply_tools(mcp: FastMCP):
@@ -39,7 +39,7 @@ def register_hierarchy_apply_tools(mcp: FastMCP):
             default=False
         )] = False
     ) -> Dict[str, Any]:
-        """Unity层次结构应用工具，用于处理GameObject预制体应用和连接操作。（二级工具）
+        """Unity层次结构应用工具，用于处理GameObject预制体应用和连接操作。
 
         支持多种预制体操作，适用于：
         - 预制体连接：将GameObject连接到预制体
@@ -48,4 +48,10 @@ def register_hierarchy_apply_tools(mcp: FastMCP):
         - 强制应用：覆盖现有的预制体连接
         """
         
-        return get_common_call_response("hierarchy_apply")
+        return send_to_unity("hierarchy_apply", {
+            "action": action,
+            "target_object": target_object,
+            "prefab_path": prefab_path,
+            "apply_type": apply_type,
+            "force_apply": force_apply
+        })

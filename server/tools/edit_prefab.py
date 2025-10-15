@@ -6,7 +6,7 @@
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_prefab_tools(mcp: FastMCP):
@@ -139,4 +139,26 @@ def register_edit_prefab_tools(mcp: FastMCP):
         create(创建), modify(修改), duplicate(复制), get_info(获取信息), search(搜索), instantiate(实例化), unpack(解包), pack(打包), create_variant(创建变体), connect_to_prefab(连接), apply_changes(应用更改), revert_changes(还原更改), break_connection(断开连接)
         """
 
-        return get_common_call_response("edit_prefab")
+        return send_to_unity("edit_prefab", {
+            "action": action,
+            "path": path,
+            "source_object": source_object,
+            "destination": destination,
+            "query": query,
+            "recursive": recursive,
+            "force": force,
+            "prefab_variant": prefab_variant,
+            "unpack_mode": unpack_mode,
+            "pack_mode": pack_mode,
+            "connect_to_prefab": connect_to_prefab,
+            "apply_prefab_changes": apply_prefab_changes,
+            "revert_prefab_changes": revert_prefab_changes,
+            "break_prefab_connection": break_prefab_connection,
+            "prefab_type": prefab_type,
+            "parent_prefab": parent_prefab,
+            "scene_path": scene_path,
+            "position": position,
+            "rotation": rotation,
+            "scale": scale,
+            "parent_path": parent_path
+        })

@@ -4,7 +4,7 @@ Unity代码运行工具，包含Python代码执行和C#代码编译执行功能�
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_run_code_tools(mcp: FastMCP):
@@ -62,11 +62,14 @@ def register_run_code_tools(mcp: FastMCP):
         
         """
         
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="python_runner", args={"action": "execute", "code": "print('Hello')"})
-        
-        return get_common_call_response("python_runner")
+        return send_to_unity("python_runner", {
+            "action": action,
+            "code": code,
+            "package_name": package_name,
+            "version": version,
+            "timeout": timeout,
+            "cleanup": cleanup
+        })
 
 
     @mcp.tool("code_runner")
@@ -137,7 +140,7 @@ def register_run_code_tools(mcp: FastMCP):
             default=True
         )] = True
     ) -> Dict[str, Any]:
-        """Unity C#代码运行工具，支持编译执行C#代码和语法验证。（二级工具）
+        """Unity C#代码运行工具，支持编译执行C#代码和语法验证。
 
         提供完整的Unity API访问权限，适用于：
         - 快速原型：测试Unity API调用
@@ -158,4 +161,15 @@ def register_run_code_tools(mcp: FastMCP):
         2. 完整类定义：包含using、namespace、class的完整代码
         """
         
-        return get_common_call_response("code_runner")
+        return send_to_unity("code_runner", {
+            "action": action,
+            "code": code,
+            "class_name": class_name,
+            "entry_method": entry_method,
+            "namespace": namespace,
+            "includes": includes,
+            "parameters": parameters,
+            "timeout": timeout,
+            "cleanup": cleanup,
+            "return_output": return_output
+        })

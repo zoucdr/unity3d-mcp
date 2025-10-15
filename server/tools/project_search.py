@@ -4,7 +4,7 @@ Unity项目搜索工具，包含项目资源搜索功能。
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_project_search_tools(mcp: FastMCP):
@@ -50,7 +50,7 @@ def register_project_search_tools(mcp: FastMCP):
             le=10000
         )] = 100
     ) -> Dict[str, Any]:
-        """Unity项目搜索工具，用于在项目中搜索各种类型的资源和文件。（二级工具）
+        """Unity项目搜索工具，用于在项目中搜索各种类型的资源和文件。
 
         支持多种搜索类型和过滤条件，适用于：
         - 快速定位：找到特定名称的资源文件
@@ -66,4 +66,12 @@ def register_project_search_tools(mcp: FastMCP):
 
         """
         
-        return get_common_call_response("project_search")
+        return send_to_unity("project_search", {
+            "search_target": search_target,
+            "query": query,
+            "folder": folder,
+            "recursive": recursive,
+            "include_packages": include_packages,
+            "case_sensitive": case_sensitive,
+            "max_results": max_results
+        })

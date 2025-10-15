@@ -1,5 +1,5 @@
 """
-Unity标签和层级管理工具，用于管理项目的Tag和Layer。（二级工具）
+Unity标签和层级管理工具，用于管理项目的Tag和Layer。
 
 支持的功能：
 - 标签管理：add_tag, remove_tag, get_tags
@@ -8,7 +8,7 @@ Unity标签和层级管理工具，用于管理项目的Tag和Layer。（二级�
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_tag_layer_tools(mcp: FastMCP):
@@ -33,7 +33,7 @@ def register_tag_layer_tools(mcp: FastMCP):
             examples=["Ground", "Character", "UI", "Effects", "Water"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity标签和层级管理工具，用于管理项目的Tag和Layer。（二级工具）
+        """Unity标签和层级管理工具，用于管理项目的Tag和Layer。
 
         支持多种标签和层级管理功能，适用于：
         - 标签管理：添加、删除、获取项目标签
@@ -63,5 +63,9 @@ def register_tag_layer_tools(mcp: FastMCP):
         6. 获取所有层级：
            {"action": "get_layers"}
         """
-        return get_common_call_response("tag_layer")
+        return send_to_unity("tag_layer", {
+            "action": action,
+            "tag_name": tag_name,
+            "layer_name": layer_name
+        })
 

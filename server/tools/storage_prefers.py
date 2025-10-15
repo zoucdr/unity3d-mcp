@@ -5,7 +5,7 @@ Storage - Prefers工具
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_storage_prefers_tools(mcp: FastMCP):
@@ -48,7 +48,7 @@ def register_storage_prefers_tools(mcp: FastMCP):
             examples=["0", "false", "", "1.0"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity偏好设置管理工具，用于管理EditorPrefs和PlayerPrefs。（二级工具）
+        """Unity偏好设置管理工具，用于管理EditorPrefs和PlayerPrefs。
 
         支持多种偏好设置操作，适用于：
         - 编辑器配置：保存和读取编辑器设置（EditorPrefs）
@@ -76,5 +76,12 @@ def register_storage_prefers_tools(mcp: FastMCP):
         - Unity不支持直接枚举所有键，需要使用已知的键名
         """
         
-        return get_common_call_response("prefers")
+        return send_to_unity("prefers", {
+            "action": action,
+            "pref_type": pref_type,
+            "key": key,
+            "value": value,
+            "value_type": value_type,
+            "default_value": default_value
+        })
 

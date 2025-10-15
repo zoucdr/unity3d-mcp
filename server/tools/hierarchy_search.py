@@ -4,7 +4,7 @@ Unity层次结构搜索工具，包含GameObject的搜索功能。
 from typing import Annotated, Dict, Any
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_hierarchy_search_tools(mcp: FastMCP):
@@ -43,7 +43,7 @@ def register_hierarchy_search_tools(mcp: FastMCP):
             default=False
         )] = False
     ) -> Dict[str, Any]:
-        """Unity层次结构搜索工具，用于查找场景中的GameObject。（二级工具）
+        """Unity层次结构搜索工具，用于查找场景中的GameObject。
         
         支持多种搜索方式，适用于：
         - 对象定位：快速找到特定名称的GameObject
@@ -59,9 +59,12 @@ def register_hierarchy_search_tools(mcp: FastMCP):
         - 默认搜索功能：当没有指定search_type时自动使用按名称搜索
         """
         
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="hierarchy_search", args={"query": "Player", "search_type": "name"})
-        
-        return get_common_call_response("hierarchy_search")
+        return send_to_unity("hierarchy_search", {
+            "query": query,
+            "search_type": search_type,
+            "select_many": select_many,
+            "include_hierarchy": include_hierarchy,
+            "include_inactive": include_inactive,
+            "use_regex": use_regex
+        })
 

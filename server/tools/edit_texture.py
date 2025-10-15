@@ -6,7 +6,7 @@
 from typing import Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_texture_tools(mcp: FastMCP):
@@ -100,11 +100,27 @@ def register_edit_texture_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        纹理导入设置修改工具（二级工具）
+        纹理导入设置修改工具
         
         支持的操作:
         - set_type: 设置纹理类型
         - set_sprite_settings: 设置Sprite详细参数
         - get_settings: 获取当前纹理设置
         """
-        return get_common_call_response("edit_texture")
+        return send_to_unity("edit_texture", {
+            "action": action,
+            "texture_path": texture_path,
+            "texture_type": texture_type,
+            "sprite_mode": sprite_mode,
+            "pixels_per_unit": pixels_per_unit,
+            "sprite_pivot": sprite_pivot,
+            "generate_physics_shape": generate_physics_shape,
+            "mesh_type": mesh_type,
+            "compression": compression,
+            "max_texture_size": max_texture_size,
+            "filter_mode": filter_mode,
+            "wrap_mode": wrap_mode,
+            "readable": readable,
+            "generate_mip_maps": generate_mip_maps,
+            "srgb_texture": srgb_texture
+        })

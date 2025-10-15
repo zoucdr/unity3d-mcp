@@ -4,7 +4,7 @@ Unity游戏玩法控制工具，包含游戏播放控制、截图、游戏状态
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_gameplay_tools(mcp: FastMCP):
@@ -43,7 +43,7 @@ def register_gameplay_tools(mcp: FastMCP):
             examples=["Screenshots/game.png", "Assets/Images/capture.jpg"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity游戏玩法控制工具，用于控制游戏的播放状态和截图等操作。（二级工具）
+        """Unity游戏玩法控制工具，用于控制游戏的播放状态和截图等操作。
 
         支持多种游戏控制操作，适用于：
         - 自动化测试：控制游戏播放进行测试
@@ -51,4 +51,10 @@ def register_gameplay_tools(mcp: FastMCP):
         - 开发调试：控制游戏状态进行调试
         - 演示录制：控制游戏流程进行演示
         """
-        return get_common_call_response("gameplay")
+        return send_to_unity("gameplay", {
+            "action": action,
+            "format": format,
+            "width": width,
+            "height": height,
+            "path": path
+        })

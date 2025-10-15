@@ -4,7 +4,7 @@ Unity包管理工具，包含包安装、卸载、搜索、列表等功能。
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_manage_package_tools(mcp: FastMCP):
@@ -47,7 +47,7 @@ def register_manage_package_tools(mcp: FastMCP):
             le=300
         )] = 60
     ) -> Dict[str, Any]:
-        """Unity包管理工具，用于管理Unity Package Manager中的包。（二级工具）
+        """Unity包管理工具，用于管理Unity Package Manager中的包。
         支持多种包管理操作，适用于：
         - 包安装：添加新的包到项目中
         - 包管理：移除不需要的包
@@ -55,4 +55,11 @@ def register_manage_package_tools(mcp: FastMCP):
         - 包信息：获取包的详细信息
         - 包更新：更新包到最新版本
         """
-        return get_common_call_response("manage_package")
+        return send_to_unity("manage_package", {
+            "action": action,
+            "package_name": package_name,
+            "version": version,
+            "search_query": search_query,
+            "include_prerelease": include_prerelease,
+            "timeout": timeout
+        })

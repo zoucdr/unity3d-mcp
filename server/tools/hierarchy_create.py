@@ -4,7 +4,7 @@ Unity层次结构创建工具，包含GameObject的创建功能。
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_hierarchy_create_tools(mcp: FastMCP):
@@ -98,7 +98,7 @@ def register_hierarchy_create_tools(mcp: FastMCP):
             default=None
         )] = None
     ) -> Dict[str, Any]:
-        """Unity层次结构创建工具，用于在场景中创建各种类型的GameObject。（二级工具）
+        """Unity层次结构创建工具，用于在场景中创建各种类型的GameObject。
 
         支持多种创建方式，适用于：
         - 菜单创建：通过Unity菜单系统创建对象
@@ -108,4 +108,20 @@ def register_hierarchy_create_tools(mcp: FastMCP):
         - UI构建：创建空对象作为容器
 
         """
-        return get_common_call_response("hierarchy_create")
+        return send_to_unity("hierarchy_create", {
+            "source": source,
+            "name": name,
+            "primitive_type": primitive_type,
+            "prefab_path": prefab_path,
+            "copy_source": copy_source,
+            "parent": parent,
+            "menu_path": menu_path,
+            "tag": tag,
+            "layer": layer,
+            "parent_id": parent_id,
+            "position": position,
+            "rotation": rotation,
+            "scale": scale,
+            "save_as_prefab": save_as_prefab,
+            "set_active": set_active
+        })

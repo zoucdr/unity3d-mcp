@@ -6,7 +6,7 @@
 from typing import Optional, List, Dict, Any
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_terrain_tools(mcp: FastMCP):
@@ -100,7 +100,7 @@ def register_edit_terrain_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        地形编辑工具（二级工具）
+        地形编辑工具
         
         支持的操作:
         - create: 创建新的Terrain
@@ -118,5 +118,22 @@ def register_edit_terrain_tools(mcp: FastMCP):
         - clear_trees: 清除树木
         - clear_details: 清除细节（草等）
         """
-        return get_common_call_response("edit_terrain")
+        return send_to_unity("edit_terrain", {
+            "action": action,
+            "path": path,
+            "instance_id": instance_id,
+            "terrain_data_path": terrain_data_path,
+            "position": position,
+            "terrain_size": terrain_size,
+            "heightmap_resolution": heightmap_resolution,
+            "heightmap_data": heightmap_data,
+            "heightmap_file": heightmap_file,
+            "texture_layer": texture_layer,
+            "layer_index": layer_index,
+            "properties": properties,
+            "height": height,
+            "smooth_factor": smooth_factor,
+            "export_format": export_format,
+            "force": force
+        })
 

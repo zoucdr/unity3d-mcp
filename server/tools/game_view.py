@@ -1,5 +1,5 @@
 """
-Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。（二级工具）
+Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。
 
 支持的功能：
 - 分辨率管理：set_resolution, get_resolution
@@ -11,7 +11,7 @@ Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_game_view_tools(mcp: FastMCP):
@@ -54,7 +54,7 @@ def register_game_view_tools(mcp: FastMCP):
             examples=["16:9", "16:10", "4:3", "Free", "21:9"]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。（二级工具）
+        """Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。
 
         支持多种Game窗口管理功能，适用于：
         - 分辨率管理：设置和查询Game窗口分辨率
@@ -97,5 +97,12 @@ def register_game_view_tools(mcp: FastMCP):
         9. 设置16:9宽高比：
            {"action": "set_aspect_ratio", "aspect_ratio": "16:9"}
         """
-        return get_common_call_response("game_view")
+        return send_to_unity("game_view", {
+            "action": action,
+            "width": width,
+            "height": height,
+            "vsync_count": vsync_count,
+            "target_framerate": target_framerate,
+            "aspect_ratio": aspect_ratio
+        })
 

@@ -6,7 +6,7 @@
 from typing import Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_sprite_atlas_tools(mcp: FastMCP):
@@ -129,7 +129,7 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        图集(Sprite Atlas)编辑工具（二级工具）
+        图集(Sprite Atlas)编辑工具
         
         支持的操作:
         - create: 创建新的精灵图集
@@ -157,5 +157,26 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
           platform="Android", max_texture_size=1024, 
           format="ETC2_RGBA8", compression_quality=50
         """
-        return get_common_call_response("edit_sprite_atlas")
+        return send_to_unity("edit_sprite_atlas", {
+            "action": action,
+            "atlas_path": atlas_path,
+            "sprite_paths": sprite_paths,
+            "folder_paths": folder_paths,
+            "include_subfolders": include_subfolders,
+            "filter_pattern": filter_pattern,
+            "type": type,
+            "master_atlas_path": master_atlas_path,
+            "allow_rotation": allow_rotation,
+            "tight_packing": tight_packing,
+            "padding": padding,
+            "readable": readable,
+            "generate_mip_maps": generate_mip_maps,
+            "filter_mode": filter_mode,
+            "compression": compression,
+            "platform": platform,
+            "max_texture_size": max_texture_size,
+            "format": format,
+            "compression_quality": compression_quality,
+            "override_for_platform": override_for_platform
+        })
 

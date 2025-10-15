@@ -5,7 +5,7 @@ Unity组件编辑工具
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_component_tools(mcp: FastMCP):
@@ -47,7 +47,7 @@ def register_edit_component_tools(mcp: FastMCP):
             ]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity组件编辑工具，用于获取和设置GameObject组件的属性。（二级工具）
+        """Unity组件编辑工具，用于获取和设置GameObject组件的属性。
 
         使用C#反射机制访问Unity组件的所有可序列化字段和属性，支持读取和修改组件状态。
         这是Unity编辑器Inspector面板功能的编程接口，所有修改支持Undo撤销。
@@ -81,4 +81,10 @@ def register_edit_component_tools(mcp: FastMCP):
         - 先使用get查看可用属性作为设置模板
         """
 
-        return get_common_call_response("edit_component")
+        return send_to_unity("edit_component", {
+            "instance_id": instance_id,
+            "path": path,
+            "action": action,
+            "component_type": component_type,
+            "properties": properties
+        })

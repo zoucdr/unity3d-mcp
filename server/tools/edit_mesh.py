@@ -4,7 +4,7 @@ Unity网格编辑工具，包含3D网格的导入、导出、优化和处理功�
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_mesh_tools(mcp: FastMCP):
@@ -51,4 +51,10 @@ def register_edit_mesh_tools(mcp: FastMCP):
         - UV生成：为模型自动生成UV坐标
         - 法线计算：重新计算模型的顶点法线
         """
-        return get_common_call_response("edit_mesh")
+        return send_to_unity("edit_mesh", {
+            "action": action,
+            "mesh_path": mesh_path,
+            "target_path": target_path,
+            "import_settings": import_settings,
+            "optimization_level": optimization_level
+        })

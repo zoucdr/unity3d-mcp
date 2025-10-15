@@ -4,7 +4,7 @@ Unity网络请求工具，包含HTTP请求、文件下载、API调用等功能�
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_request_http_tools(mcp: FastMCP):
@@ -132,7 +132,7 @@ def register_request_http_tools(mcp: FastMCP):
             examples=[["https://example.com/file1.zip", "https://example.com/file2.zip"]]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity网络请求工具，用于执行各种网络操作。（二级工具）
+        """Unity网络请求工具，用于执行各种网络操作。
 
         支持多种网络操作，适用于：
         - HTTP请求：GET、POST、PUT、DELETE等标准HTTP方法
@@ -142,4 +142,25 @@ def register_request_http_tools(mcp: FastMCP):
         - 批量操作：批量下载多个文件
         """
         
-        return get_common_call_response("request_http")
+        return send_to_unity("request_http", {
+            "action": action,
+            "url": url,
+            "data": data,
+            "headers": headers,
+            "save_path": save_path,
+            "file_path": file_path,
+            "timeout": timeout,
+            "method": method,
+            "content_type": content_type,
+            "user_agent": user_agent,
+            "accept_certificates": accept_certificates,
+            "follow_redirects": follow_redirects,
+            "encoding": encoding,
+            "form_data": form_data,
+            "query_params": query_params,
+            "auth_token": auth_token,
+            "basic_auth": basic_auth,
+            "retry_count": retry_count,
+            "retry_delay": retry_delay,
+            "urls": urls
+        })

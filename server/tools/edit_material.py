@@ -4,7 +4,7 @@ Unity材质编辑工具，包含材质的创建、修改和管理功能。
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_edit_material_tools(mcp: FastMCP):
@@ -58,4 +58,11 @@ def register_edit_material_tools(mcp: FastMCP):
         - 纹理管理：应用和更换材质纹理
         - 批量处理：对多个材质进行统一操作
         """
-        return get_common_call_response("edit_material")
+        return send_to_unity("edit_material", {
+            "action": action,
+            "material_path": material_path,
+            "shader_name": shader_name,
+            "properties": properties,
+            "texture_path": texture_path,
+            "texture_slot": texture_slot
+        })

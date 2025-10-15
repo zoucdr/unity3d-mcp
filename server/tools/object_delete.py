@@ -4,7 +4,7 @@ Unity对象删除工具，包含GameObject、资源和其他Unity对象的删除
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
-from .call_up import get_common_call_response
+from .call_up import send_to_unity
 
 
 def register_object_delete_tools(mcp: FastMCP):
@@ -29,7 +29,7 @@ def register_object_delete_tools(mcp: FastMCP):
             default=None
         )] = None
     ) -> Dict[str, Any]:
-        """Unity对象删除工具，用于删除GameObject、资源和其他Unity对象。（二级工具）
+        """Unity对象删除工具，用于删除GameObject、资源和其他Unity对象。
 
         支持多种删除方式和智能确认机制，适用于：
         - 场景对象删除：删除场景中的GameObject
@@ -38,4 +38,8 @@ def register_object_delete_tools(mcp: FastMCP):
         - 安全删除：带确认机制的删除操作
         """
         
-        return get_common_call_response("object_delete")
+        return send_to_unity("object_delete", {
+            "path": path,
+            "instance_id": instance_id,
+            "confirm": confirm
+        })
