@@ -7,10 +7,10 @@ namespace UnityMcp.Executer
     {
         public abstract string ToolName { get; }
         /// <summary>
-        /// Process command（Synchronous version，Remain backward compatible）
+        /// 处理命令（同步版本，保持向后兼容）
         /// </summary>
-        /// <param name="ctx">Command parameters（JSONNode Type，Can be JsonClass Or other type）</param>
-        /// <returns>Process result</returns>
+        /// <param name="ctx">命令参数（JSONNode 类型，可以是 JsonClass 或其他类型）</param>
+        /// <returns>处理结果</returns>
         public abstract void HandleCommand(JsonNode ctx, System.Action<JsonNode> callback);
     }
 }

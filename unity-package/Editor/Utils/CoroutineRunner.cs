@@ -11,7 +11,7 @@ using UnityEngine.Networking;
 namespace UnityMcp
 {
     /// <summary>
-    /// Main thread executor，Used to ensure code is inUnityExecute on main thread
+    /// 主线程执行器，用于确保代码在Unity主线程上执行
     /// </summary>
     public static class CoroutineRunner
     {
@@ -21,7 +21,7 @@ namespace UnityMcp
         private static bool _initialized = false;
 
         /// <summary>
-        /// Coroutine info structure
+        /// 协程信息结构
         /// </summary>
         private class CoroutineInfo
         {
@@ -29,24 +29,24 @@ namespace UnityMcp
             public bool IsRunning { get; set; }
             public Action<object> CompleteCallback { get; set; }
             public object Result { get; set; }
-            public bool HasResult { get; set; } // Mark if a valid result is present
-            public Exception Error { get; set; } // Store exception info
-            public CoroutineInfo SubCoroutine { get; set; } // Sub-coroutine
-            public bool WaitingForSubCoroutine { get; set; } // Whether waiting for sub-coroutine
-            public object SubCoroutineResult { get; set; } // Sub-coroutine result，Used for passing to main coroutine
-            public bool HasSubCoroutineResult { get; set; } // Whether sub-coroutine result is present
+            public bool HasResult { get; set; } // 标记是否有有效结果
+            public Exception Error { get; set; } // 存储异常信息
+            public CoroutineInfo SubCoroutine { get; set; } // 子协程
+            public bool WaitingForSubCoroutine { get; set; } // 是否在等待子协程
+            public object SubCoroutineResult { get; set; } // 子协程的结果，用于传递给主协程
+            public bool HasSubCoroutineResult { get; set; } // 是否有子协程结果
 
-            // WaitForSecondsSupport
-            public bool IsWaitingForTime { get; set; } // Whether waiting for time
-            public double WaitEndTime { get; set; } // Wait for end time（UseEditorApplication.timeSinceStartup）
+            // WaitForSeconds支持
+            public bool IsWaitingForTime { get; set; } // 是否在等待时间
+            public double WaitEndTime { get; set; } // 等待结束时间（使用EditorApplication.timeSinceStartup）
 
-            // UnityWebRequestAsyncOperationSupport
-            public bool IsWaitingForWebRequest { get; set; } // Whether waiting for network request
-            public UnityWebRequestAsyncOperation WebRequestOperation { get; set; } // Network request operation
+            // UnityWebRequestAsyncOperation支持
+            public bool IsWaitingForWebRequest { get; set; } // 是否在等待网络请求
+            public UnityWebRequestAsyncOperation WebRequestOperation { get; set; } // 网络请求操作
         }
 
         /// <summary>
-        /// Initialize main thread executor
+        /// 初始化主线程执行器
         /// </summary>
         static CoroutineRunner()
         {
@@ -59,18 +59,18 @@ namespace UnityMcp
 
             _initialized = true;
 
-            // UseEditorApplication.updateEnsure that tasks in the queue are processed every frame
+            // 使用EditorApplication.update确保在每一帧都能处理队列中的任务
             EditorApplication.update += ProcessQueue;
         }
 
         /// <summary>
-        /// Handle tasks in queue
+        /// 处理队列中的任务
         /// </summary>
         private static void ProcessQueue()
         {
             lock (_lock)
             {
-                // Handle normal task queue
+                // 处理普通任务队列
                 while (_actions.Count > 0)
                 {
                     var action = _actions.Dequeue();
@@ -84,13 +84,13 @@ namespace UnityMcp
                     }
                 }
 
-                // Process coroutine queue
+                // 处理协程队列
                 ProcessCoroutines();
             }
         }
 
         /// <summary>
-        /// Process coroutine queue
+        /// 处理协程队列
         /// </summary>
         private static void ProcessCoroutines()
         {
@@ -102,87 +102,87 @@ namespace UnityMcp
 
                 try
                 {
-                    // Check waiting status
+                    // 检查等待状态
 
-                    // 1. If waiting for network request，Check if request finished
+                    // 1. 如果正在等待网络请求，检查请求是否完成
                     if (coroutineInfo.IsWaitingForWebRequest)
                     {
                         if (coroutineInfo.WebRequestOperation != null && !coroutineInfo.WebRequestOperation.isDone)
                         {
-                            // Network request not yet completed，Continue waiting
+                            // 网络请求还未完成，继续等待
                             continue;
                         }
                         else
                         {
-                            // Network request completed，Continue executing coroutine
+                            // 网络请求完成，继续执行协程
                             coroutineInfo.IsWaitingForWebRequest = false;
                             coroutineInfo.WebRequestOperation = null;
                         }
                     }
 
-                    // 2. If waiting for time，Check if time is up
+                    // 2. 如果正在等待时间，检查时间是否到了
                     if (coroutineInfo.IsWaitingForTime)
                     {
                         if (EditorApplication.timeSinceStartup < coroutineInfo.WaitEndTime)
                         {
-                            // Still waiting for time，Continue waiting
+                            // 还在等待时间，继续等待
                             continue;
                         }
                         else
                         {
-                            // Wait time finished，Continue executing coroutine
+                            // 等待时间结束，继续执行协程
                             coroutineInfo.IsWaitingForTime = false;
                             coroutineInfo.WaitEndTime = 0;
                         }
                     }
 
-                    // 2. If waiting for sub-coroutine，Check sub-coroutine status first
+                    // 2. 如果正在等待子协程，先检查子协程状态
                     if (coroutineInfo.WaitingForSubCoroutine && coroutineInfo.SubCoroutine != null)
                     {
                         if (coroutineInfo.SubCoroutine.IsRunning)
                         {
-                            // Sub-coroutine still running，Continue waiting
+                            // 子协程还在运行，继续等待
                             continue;
                         }
                         else
                         {
-                            // Sub-coroutine completed，Get sub-coroutine result
+                            // 子协程完成，获取子协程结果
                             if (coroutineInfo.SubCoroutine.Error != null)
                             {
-                                // Sub-coroutine has exception，Propagate exception
+                                // 子协程有异常，传播异常
                                 throw coroutineInfo.SubCoroutine.Error;
                             }
 
-                            // Sub-coroutine completed normally，Set the sub-coroutine’s result as the main coroutine result
+                            // 子协程正常完成，将子协程的结果设置为主协程的结果
                             if (coroutineInfo.SubCoroutine.HasResult)
                             {
-                                // Directly set sub-coroutine result as main coroutine result
+                                // 将子协程的结果直接设置为主协程的结果
                                 coroutineInfo.Result = coroutineInfo.SubCoroutine.Result;
                                 coroutineInfo.HasResult = true;
 
-                                // Also save toSubCoroutineResult（Used for debugging）
+                                // 同时保存到SubCoroutineResult（用于调试）
                                 coroutineInfo.SubCoroutineResult = coroutineInfo.SubCoroutine.Result;
                                 coroutineInfo.HasSubCoroutineResult = true;
                             }
 
-                            // Continue main coroutine
+                            // 继续执行主协程
                             coroutineInfo.WaitingForSubCoroutine = false;
                             coroutineInfo.SubCoroutine = null;
                         }
                     }
 
-                    // 3. If not waiting for sub-coroutine、Time and network request，Execute next step of coroutine
+                    // 3. 如果不在等待子协程、时间和网络请求，执行协程的下一步
                     if (!coroutineInfo.WaitingForSubCoroutine && !coroutineInfo.IsWaitingForTime && !coroutineInfo.IsWaitingForWebRequest)
                     {
                         if (coroutineInfo.Coroutine.MoveNext())
                         {
-                            // Coroutine still running，Check return value
+                            // 协程还在运行，检查返回值
                             var current = coroutineInfo.Coroutine.Current;
 
-                            // Check if a sub-coroutine is returned（IEnumerator）
+                            // 检查是否返回了子协程（IEnumerator）
                             if (current is IEnumerator subCoroutine)
                             {
-                                // Start sub-coroutine
+                                // 启动子协程
                                 var subCoroutineInfo = new CoroutineInfo
                                 {
                                     Coroutine = subCoroutine,
@@ -201,60 +201,60 @@ namespace UnityMcp
                                     WebRequestOperation = null
                                 };
 
-                                // Add sub-coroutine to coroutine list
+                                // 将子协程添加到协程列表
                                 _coroutines.Add(subCoroutineInfo);
 
-                                // Set main coroutine to wait for sub-coroutine
+                                // 设置主协程等待子协程
                                 coroutineInfo.SubCoroutine = subCoroutineInfo;
                                 coroutineInfo.WaitingForSubCoroutine = true;
                             }
-                            // Check if returnedUnityWebRequestAsyncOperation
+                            // 检查是否返回了UnityWebRequestAsyncOperation
                             else if (current is UnityWebRequestAsyncOperation webRequestOp)
                             {
-                                // Set waiting for network request state
+                                // 设置等待网络请求状态
                                 coroutineInfo.IsWaitingForWebRequest = true;
                                 coroutineInfo.WebRequestOperation = webRequestOp;
 
-                                // Save result
+                                // 保存结果
                                 coroutineInfo.Result = current;
                                 coroutineInfo.HasResult = true;
                             }
-                            // Check if returnedWaitForSeconds
+                            // 检查是否返回了WaitForSeconds
                             else if (current is WaitForSeconds waitForSeconds)
                             {
-                                // Obtain using reflectionWaitForSecondsWait time of
+                                // 使用反射获取WaitForSeconds的等待时间
                                 var waitTime = GetWaitTimeFromWaitForSeconds(waitForSeconds);
                                 if (waitTime > 0)
                                 {
-                                    // Set waiting status
+                                    // 设置等待状态
                                     coroutineInfo.IsWaitingForTime = true;
                                     coroutineInfo.WaitEndTime = EditorApplication.timeSinceStartup + waitTime;
-                                    //Debug.Log($"[CoroutineRunner] Start waiting {waitTime} Seconds，End time: {coroutineInfo.WaitEndTime}");
+                                    //Debug.Log($"[CoroutineRunner] 开始等待 {waitTime} 秒，结束时间: {coroutineInfo.WaitEndTime}");
                                 }
                                 else
                                 {
-                                    // Unable to get wait time，Use default value
-                                    Debug.LogWarning($"[CoroutineRunner] Unable to getWaitForSecondsWait time of，Use default0.1Seconds");
+                                    // 无法获取等待时间，使用默认值
+                                    Debug.LogWarning($"[CoroutineRunner] 无法获取WaitForSeconds的等待时间，使用默认0.1秒");
                                     coroutineInfo.IsWaitingForTime = true;
                                     coroutineInfo.WaitEndTime = EditorApplication.timeSinceStartup + 0.1;
                                 }
 
-                                // Save result
+                                // 保存结果
                                 coroutineInfo.Result = current;
                                 coroutineInfo.HasResult = true;
                             }
                             else if (current != null)
                             {
-                                // Save coroutine result（Other type）
+                                // 保存协程的返回值（其他类型）
                                 coroutineInfo.Result = current;
                                 coroutineInfo.HasResult = true;
 
-                                // For other types（Such asnull），Go to next frame directly
+                                // 对于其他类型（如null），直接继续下一帧
                             }
                         }
                         else
                         {
-                            // Coroutine completed
+                            // 协程执行完毕
                             coroutineInfo.IsRunning = false;
                             completedCoroutines.Add(coroutineInfo);
                         }
@@ -278,27 +278,27 @@ namespace UnityMcp
                 }
             }
 
-            // Remove finished coroutines and call completion callbacks
+            // 移除已完成的协程并调用完成回调
             foreach (var completed in completedCoroutines)
             {
                 _coroutines.Remove(completed);
                 try
                 {
-                    // Decide the result passed to the callback
+                    // 决定传递给回调的结果
                     object resultToPass;
                     if (completed.Error != null)
                     {
-                        // If has exception，Pass exception
+                        // 如果有异常，传递异常
                         resultToPass = completed.Error;
                     }
                     else if (completed.HasResult)
                     {
-                        // If has result，Pass result
+                        // 如果有结果，传递结果
                         resultToPass = completed.Result;
                     }
                     else
                     {
-                        // Neither exception nor result，Passnull
+                        // 既没有异常也没有结果，传递null
                         resultToPass = null;
                     }
                     //Debug.Log($"[CoroutineRunner] Complete callback: {resultToPass}");
@@ -312,10 +312,10 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Start coroutine
+        /// 启动协程
         /// </summary>
-        /// <param name="coroutine">Coroutine enumerator</param>
-        /// <param name="completeCallback">Complete callback</param>
+        /// <param name="coroutine">协程枚举器</param>
+        /// <param name="completeCallback">完成回调</param>
         public static void StartCoroutine(IEnumerator coroutine, Action<object> completeCallback = null)
         {
             if (coroutine == null) return;
@@ -345,7 +345,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Stop all coroutines
+        /// 停止所有协程
         /// </summary>
         public static void StopAllCoroutines()
         {
@@ -356,15 +356,15 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Use reflection fromWaitForSecondsGet wait time from object
+        /// 使用反射从WaitForSeconds对象中获取等待时间
         /// </summary>
-        /// <param name="waitForSeconds">WaitForSecondsInstance</param>
-        /// <returns>Wait time（Seconds），Return if retrieval fails-1</returns>
+        /// <param name="waitForSeconds">WaitForSeconds实例</param>
+        /// <returns>等待时间（秒），如果获取失败返回-1</returns>
         private static float GetWaitTimeFromWaitForSeconds(WaitForSeconds waitForSeconds)
         {
             try
             {
-                // Obtain using reflectionWaitForSecondsPrivate field of m_Seconds
+                // 使用反射获取WaitForSeconds的私有字段 m_Seconds
                 var field = typeof(WaitForSeconds).GetField("m_Seconds",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -377,7 +377,7 @@ namespace UnityMcp
                     }
                 }
 
-                // If the above field name is incorrect，Try other possible field names
+                // 如果上面的字段名不对，尝试其他可能的字段名
                 var fields = typeof(WaitForSeconds).GetFields(
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -388,7 +388,7 @@ namespace UnityMcp
                         var value = f.GetValue(waitForSeconds);
                         if (value is float seconds && seconds > 0)
                         {
-                            Debug.Log($"[CoroutineRunner] Find wait time field: {f.Name} = {seconds}");
+                            Debug.Log($"[CoroutineRunner] 找到等待时间字段: {f.Name} = {seconds}");
                             return seconds;
                         }
                     }
@@ -396,10 +396,10 @@ namespace UnityMcp
             }
             catch (Exception e)
             {
-                Debug.LogError($"[CoroutineRunner] GetWaitForSecondsWait time failed: {e.Message}");
+                Debug.LogError($"[CoroutineRunner] 获取WaitForSeconds等待时间失败: {e.Message}");
             }
 
-            return -1; // Failed to obtain
+            return -1; // 获取失败
         }
     }
 }

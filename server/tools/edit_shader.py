@@ -1,6 +1,6 @@
 """
-Shadermanagement tool
-manageUnityinShaderasset，including create、modify、delete and get info
+Shader管理工具
+管理Unity中的Shader资源，包括创建、修改、删除和获取信息
 """
 
 from typing import Dict, Any, Optional, List
@@ -14,131 +14,131 @@ def register_edit_shader_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="operation type",
-            description="operation type",
+            title="操作类型",
+            description="操作类型",
             examples=["create", "modify", "delete", "get_info", "search", "duplicate", "move", "rename", "compile", "validate"]
         ),
         path: str = Field(
             ...,
-            title="Shaderpath",
-            description="Shaderpath，Unitystandard format：Assets/Shaders/MyShader.shader",
+            title="Shader路径",
+            description="Shader路径，Unity标准格式：Assets/Shaders/MyShader.shader",
             examples=["Assets/Shaders/MyShader.shader", "Assets/Materials/Shaders/CustomShader.shader"]
         ),
         shader_name: Optional[str] = Field(
             None,
-            title="Shadername",
-            description="Shadername",
+            title="Shader名称",
+            description="Shader名称",
             examples=["Custom/MyShader", "Unlit/MyShader", "Standard/MyShader"]
         ),
         shader_type: Optional[str] = Field(
             None,
-            title="Shadertype",
-            description="Shadertype",
+            title="Shader类型",
+            description="Shader类型",
             examples=["Unlit", "Standard", "Custom", "UI", "Sprite", "Particle"]
         ),
         shader_code: Optional[str] = Field(
             None,
-            title="Shadercode",
-            description="Shadercode content"
+            title="Shader代码",
+            description="Shader代码内容"
         ),
         properties: Optional[Dict[str, Any]] = Field(
             None,
-            title="property dict",
-            description="property dict，used to setShaderproperty of",
+            title="属性字典",
+            description="属性字典，用于设置Shader的属性",
             examples=[{"_MainTex": "white", "_Color": [1, 0, 0, 1], "_Metallic": 0.5}]
         ),
         destination: Optional[str] = Field(
             None,
-            title="target path",
-            description="target path（move/used when copying）",
+            title="目标路径",
+            description="目标路径（移动/复制时使用）",
             examples=["Assets/Shaders/MyShaderCopy.shader", "Assets/Backup/CustomShader.shader"]
         ),
         query: Optional[str] = Field(
             None,
-            title="search mode",
-            description="search mode，such as*.shader",
+            title="搜索模式",
+            description="搜索模式，如*.shader",
             examples=["*.shader", "Custom*", "Unlit*"]
         ),
         recursive: Optional[bool] = Field(
             True,
-            title="recursive search",
-            description="recursively search subfolders"
+            title="递归搜索",
+            description="是否递归搜索子文件夹"
         ),
         force: Optional[bool] = Field(
             False,
-            title="force execute",
-            description="whether to force execution（overwrite existing files etc）"
+            title="强制执行",
+            description="是否强制执行操作（覆盖现有文件等）"
         ),
         create_folder: Optional[bool] = Field(
             True,
-            title="create folder",
-            description="auto create missing folders"
+            title="创建文件夹",
+            description="是否自动创建不存在的文件夹"
         ),
         backup: Optional[bool] = Field(
             True,
-            title="backup",
-            description="backup original before modify"
+            title="备份",
+            description="是否在修改前备份原文件"
         ),
         validate_syntax: Optional[bool] = Field(
             True,
-            title="validate syntax",
-            description="validate or notShadersyntax"
+            title="验证语法",
+            description="是否验证Shader语法"
         ),
         compile_shader: Optional[bool] = Field(
             True,
-            title="compileShader",
-            description="compile or notShader"
+            title="编译Shader",
+            description="是否编译Shader"
         ),
         check_errors: Optional[bool] = Field(
             True,
-            title="check errors",
-            description="check compile errors"
+            title="检查错误",
+            description="是否检查编译错误"
         ),
         apply_immediately: Optional[bool] = Field(
             True,
-            title="apply immediately",
-            description="apply changes immediately"
+            title="立即应用",
+            description="是否立即应用更改"
         ),
         mark_dirty: Optional[bool] = Field(
             True,
-            title="mark as dirty",
-            description="mark asset as dirty"
+            title="标记为脏",
+            description="是否标记资源为已修改"
         ),
         save_assets: Optional[bool] = Field(
             True,
-            title="save asset",
-            description="save asset to disk"
+            title="保存资源",
+            description="是否保存资源到磁盘"
         ),
         refresh_assets: Optional[bool] = Field(
             True,
-            title="refresh assets",
-            description="refresh asset database"
+            title="刷新资源",
+            description="是否刷新资源数据库"
         ),
         include_variants: Optional[bool] = Field(
             False,
-            title="include variants",
-            description="whether to includeShadervariant"
+            title="包含变体",
+            description="是否包含Shader变体"
         ),
         platform_specific: Optional[bool] = Field(
             False,
-            title="platform specific",
-            description="generate platform specificShader"
+            title="平台特定",
+            description="是否生成平台特定的Shader"
         ),
         optimization_level: Optional[str] = Field(
             None,
-            title="optimization level",
-            description="optimization level",
+            title="优化级别",
+            description="优化级别",
             examples=["None", "Low", "Medium", "High"]
         ),
         debug_mode: Optional[bool] = Field(
             False,
-            title="debug mode",
-            description="enable debug mode"
+            title="调试模式",
+            description="是否启用调试模式"
         )
     ) -> Dict[str, Any]:
         """
-        Shadermanagement tool（secondary tool）
+        Shader管理工具（二级工具）
         
-        supported operations: create(createShader), modify(modifyShader), delete(deleteShader), get_info(getShaderinformation), search(searchShader), duplicate(copyShader), move(move/renameShader), rename(move/renameShader，andmovesame), compile(compileShader), validate(validateShader)
+        支持的操作: create(创建Shader), modify(修改Shader), delete(删除Shader), get_info(获取Shader信息), search(搜索Shader), duplicate(复制Shader), move(移动/重命名Shader), rename(移动/重命名Shader，与move相同), compile(编译Shader), validate(验证Shader)
         """
         return get_common_call_response("edit_shader")

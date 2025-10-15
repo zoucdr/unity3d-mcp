@@ -7,7 +7,7 @@ namespace UnityMcp
     public class McpUISettings
     {
         /// <summary>
-        /// Currently selectedUIType
+        /// 当前选择的UI类型
         /// </summary>
         public UIType selectedUIType
         {
@@ -16,20 +16,20 @@ namespace UnityMcp
         }
         [SerializeField] private UIType _selectedUIType = UIType.UGUI;
         /// <summary>
-        /// Common sprite folder
+        /// 通用精灵文件夹
         /// </summary>  
         [SerializeField] private List<string> _commonSpriteFolders = new List<string>();
         /// <summary>
-        /// Common texture folder
+        /// 通用纹理文件夹
         /// </summary>
         [SerializeField] private List<string> _commonTextureFolders = new List<string>();
         /// <summary>
-        /// Common font folder
+        /// 通用字体文件夹
         /// </summary>
         [SerializeField] private List<string> _commonFontFolders = new List<string>();
 
         /// <summary>
-        /// Common sprite folder
+        /// 通用精灵文件夹
         /// </summary>
         public List<string> commonSpriteFolders
         {
@@ -37,7 +37,7 @@ namespace UnityMcp
             set { _commonSpriteFolders = value; }
         }
         /// <summary>
-        /// Common texture folder
+        /// 通用纹理文件夹
         /// </summary>
         public List<string> commonTextureFolders
         {
@@ -45,7 +45,7 @@ namespace UnityMcp
             set { _commonTextureFolders = value; }
         }
         /// <summary>
-        /// Common font folder
+        /// 通用字体文件夹
         /// </summary>
         public List<string> commonFontFolders
         {
@@ -53,7 +53,7 @@ namespace UnityMcp
             set { _commonFontFolders = value; }
         }
         /// <summary>
-        /// AllUIType's data
+        /// 所有UI类型的数据
         /// </summary>
         public Dictionary<UIType, UITypeData> uiTypeDataDict
         {
@@ -67,12 +67,12 @@ namespace UnityMcp
         [System.NonSerialized] private Dictionary<UIType, UITypeData> _uiTypeDataDict;
 
         /// <summary>
-        /// SerializedUIType data list（ForUnitySerialization）
+        /// 序列化的UI类型数据列表（用于Unity序列化）
         /// </summary>
         [SerializeField] private List<UITypeDataSerializable> _serializedUITypeData = new List<UITypeDataSerializable>();
 
         /// <summary>
-        /// UIBuild steps（Return currentUIType's steps）
+        /// UI构建步骤（返回当前UI类型的步骤）
         /// </summary>
         public List<string> ui_build_steps
         {
@@ -87,7 +87,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// UIBuild environment（Return currentUIType's environment）
+        /// UI构建环境（返回当前UI类型的环境）
         /// </summary>
         public List<string> ui_build_enviroments
         {
@@ -102,19 +102,19 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// InitializationUIType data
+        /// 初始化UI类型数据
         /// </summary>
         private void InitializeUITypeData()
         {
             _uiTypeDataDict = new Dictionary<UIType, UITypeData>();
 
-            // Restore from serialized data
+            // 从序列化数据中恢复
             foreach (var serializedData in _serializedUITypeData)
             {
                 _uiTypeDataDict[serializedData.uiType] = serializedData.ToUITypeData();
             }
 
-            // Ensure allUIAll types have data
+            // 确保所有UI类型都有数据
             foreach (UIType uiType in System.Enum.GetValues(typeof(UIType)))
             {
                 if (!_uiTypeDataDict.ContainsKey(uiType))
@@ -125,7 +125,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get currentUIType's data
+        /// 获取当前UI类型的数据
         /// </summary>
         private UITypeData GetCurrentUITypeData()
         {
@@ -137,7 +137,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// SerializationUIType data
+        /// 序列化UI类型数据
         /// </summary>
         public void SerializeUITypeData()
         {
@@ -152,7 +152,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Create defaultUIType data
+        /// 创建默认的UI类型数据
         /// </summary>
         private UITypeData CreateDefaultUITypeData(UIType uiType)
         {
@@ -163,7 +163,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get the defaultUIBuild steps
+        /// 获取默认的UI构建步骤
         /// </summary>
         public static List<string> GetDefaultBuildSteps()
         {
@@ -171,7 +171,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// According toUIGet the default by typeUIBuild steps
+        /// 根据UI类型获取默认的UI构建步骤
         /// </summary>
         public static List<string> GetDefaultBuildSteps(UIType uiType)
         {
@@ -180,80 +180,80 @@ namespace UnityMcp
                 case UIType.UGUI:
                     return new List<string>
                     {
-                        "Reviewunity-mcpInstructions for tool usage",
-                        "Utilizefigma_manageDownload and analyze the structure of the design draft",
-                        "CreateCanvasAnd the root container and set the proper size",
-                        "WillGameSize andUISize matching",
-                        "Create necessary (items) according to the design draftUIComponent",
-                        "According to idealUIAdjust components by hierarchy",
-                        "Record createdUIComponent name and the original nodeidTo rule file",
-                        "Configure component properties",
-                        "Based onugui_layoutOfmcpTool and design draft information，Adjust UI layout",
-                        "Optimize screen adaptation",
-                        "Record modification method to rule file",
-                        "Download image resources required by UI controls",
-                        "Record image information to a rule file",
-                        "Downloaded images，UtilizemcpLoad to the specified (place)UIOn component"
+                        "回顾unity-mcp工具使用方法",
+                        "利用figma_manage下载并分析设计稿结构",
+                        "创建Canvas和根容器并设置好尺寸",
+                        "将Game尺寸和UI尺寸匹配",
+                        "按照设计稿创建必要的UI组件",
+                        "按理想的UI层级进行组件调整",
+                        "记录创建的UI组件名称和原来的节点id到规则文件",
+                        "配置组件属性",
+                        "基于ugui_layout的mcp工具和设计稿信息，进行界面布局调整",
+                        "优化屏幕适配",
+                        "记录更改方式到规则文件",
+                        "下载界面控件需要的图片资源",
+                        "将图片信息记录到规则文件",
+                        "将下载的图片，利用mcp加载到指定的UI组件上"
                     };
 
                 case UIType.UIToolkit:
                     return new List<string>
                     {
-                        "Reviewunity-mcpInstructions for tool usage",
-                        "AnalyzeUI ToolkitDesign requirements",
-                        "CreateUI DocumentAnd rootVisualElement",
-                        "DesignUSSStyle file",
-                        "CreateUXMLStructure file",
-                        "ConfigurationUI BuilderLayout",
-                        "BindC#Script logic",
-                        "Handle events and interactions",
-                        "Optimize responsive layout",
-                        "Test adaptation for different resolutions"
+                        "回顾unity-mcp工具使用方法",
+                        "分析UI Toolkit设计需求",
+                        "创建UI Document和根VisualElement",
+                        "设计USS样式文件",
+                        "创建UXML结构文件",
+                        "配置UI Builder布局",
+                        "绑定C#脚本逻辑",
+                        "处理事件和交互",
+                        "优化响应式布局",
+                        "测试不同分辨率适配"
                     };
 
                 case UIType.NGUI:
                     return new List<string>
                     {
-                        "Reviewunity-mcpInstructions for tool usage",
-                        "CreateNGUI RootAndCamera",
-                        "SettingUI AtlasTexture",
-                        "CreateNGUIPanel and component(s)",
-                        "Configure anchor points and layout",
-                        "ProcessNGUIEvent system",
-                        "OptimizeDraw Call",
-                        "Configure fonts and localization"
+                        "回顾unity-mcp工具使用方法",
+                        "创建NGUI Root和Camera",
+                        "设置UI Atlas纹理",
+                        "创建NGUI面板和组件",
+                        "配置锚点和布局",
+                        "处理NGUI事件系统",
+                        "优化Draw Call",
+                        "配置字体和本地化"
                     };
 
                 case UIType.FairyGUI:
                     return new List<string>
                     {
-                        "Reviewunity-mcpInstructions for tool usage",
-                        "ImportFairyGUIEditor resources",
-                        "CreateFairyGUIPackage and component(s)",
-                        "SettingUIAdaptation rule",
-                        "Configure animation and transition effects",
-                        "Bind code logic",
-                        "Optimize performance and memory",
-                        "Test multi-platform compatibility"
+                        "回顾unity-mcp工具使用方法",
+                        "导入FairyGUI编辑器资源",
+                        "创建FairyGUI包和组件",
+                        "设置UI适配规则",
+                        "配置动画和过渡效果",
+                        "绑定代码逻辑",
+                        "优化性能和内存",
+                        "测试多平台兼容性"
                     };
 
                 case UIType.Custom:
                 default:
                     return new List<string>
                     {
-                        "Analyze customizationUISystem requirements",
-                        "DesignUIArchitecture",
-                        "Core implementationUIComponent",
-                        "Configure rendering pipeline",
-                        "Handle input and events",
-                        "Optimize performance",
-                        "Testing and debugging"
+                        "分析自定义UI系统需求",
+                        "设计UI架构",
+                        "实现核心UI组件",
+                        "配置渲染管线",
+                        "处理输入和事件",
+                        "优化性能",
+                        "测试和调试"
                     };
             }
         }
 
         /// <summary>
-        /// Get the defaultUIEnvironment description
+        /// 获取默认的UI环境说明
         /// </summary>
         public static List<string> GetDefaultBuildEnvironments()
         {
@@ -261,7 +261,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// According toUIGet the default by typeUIEnvironment description
+        /// 根据UI类型获取默认的UI环境说明
         /// </summary>
         public static List<string> GetDefaultBuildEnvironments(UIType uiType)
         {
@@ -270,58 +270,58 @@ namespace UnityMcp
                 case UIType.UGUI:
                     return new List<string>
                     {
-                        "Based onUGUIInterface",
-                        "SupportTMPFont",
-                        "Text-related components must useTMP",
-                        "The coordinate system of the design draft has been unified asUnityCoordinate system，Center as origin",
-                        "Only images with rounded corners，May not need to download，Directly (put)ImageReplace withProceduralUIImage"
+                        "基于UGUI界面",
+                        "支持TMP字体",
+                        "文本相关组件必须使用TMP",
+                        "设置稿的坐标系已统一为Unity坐标系，中心为原点",
+                        "仅圆角的图片，可以不下载，直接将Image替换为ProceduralUIImage"
                     };
 
                 case UIType.UIToolkit:
                     return new List<string>
                     {
-                        "Based onUI ToolkitSystem",
-                        "UseUSSStyle sheet",
-                        "UXMLFile definition structure",
-                        "SupportFlexboxLayout",
-                        "Responsive design first",
-                        "VectorGraphics support",
-                        "ModernWebStandard compatibility"
+                        "基于UI Toolkit系统",
+                        "使用USS样式表",
+                        "UXML文件定义结构",
+                        "支持Flexbox布局",
+                        "响应式设计优先",
+                        "Vector图形支持",
+                        "现代Web标准兼容"
                     };
 
                 case UIType.NGUI:
                     return new List<string>
                     {
-                        "Based onNGUISystem",
-                        "UseAtlasTexture management",
-                        "SupportBMFontFont",
-                        "Draw CallOptimize importance",
-                        "Anchor system layout",
-                        "Independent event system",
-                        "Suitable for mobile platforms"
+                        "基于NGUI系统",
+                        "使用Atlas纹理管理",
+                        "支持BMFont字体",
+                        "Draw Call优化重要",
+                        "锚点系统布局",
+                        "事件系统独立",
+                        "适合移动平台"
                     };
 
                 case UIType.FairyGUI:
                     return new List<string>
                     {
-                        "Based onFairyGUIEditor",
-                        "VisualizationUIDesign",
-                        "Component-based development",
-                        "Richer animation support",
-                        "Multi-resolution adaptation",
-                        "Support complex interactions",
-                        "Cross-platform compatibility"
+                        "基于FairyGUI编辑器",
+                        "可视化UI设计",
+                        "组件化开发",
+                        "丰富的动画支持",
+                        "多分辨率适配",
+                        "支持复杂交互",
+                        "跨平台兼容"
                     };
 
                 case UIType.Custom:
                 default:
                     return new List<string>
                     {
-                        "CustomizeUISystem",
-                        "Customize according to project requirements",
-                        "Extensible architecture design",
-                        "Performance optimization first",
-                        "Flexible rendering pipeline"
+                        "自定义UI系统",
+                        "根据项目需求定制",
+                        "可扩展架构设计",
+                        "性能优化优先",
+                        "灵活的渲染管线"
                     };
             }
         }
@@ -329,7 +329,7 @@ namespace UnityMcp
 
 
     /// <summary>
-    /// UIType enumeration
+    /// UI类型枚举
     /// </summary>
     [System.Serializable]
     public enum UIType
@@ -342,7 +342,7 @@ namespace UnityMcp
     }
 
     /// <summary>
-    /// UIType data
+    /// UI类型数据
     /// </summary>
     [System.Serializable]
     public class UITypeData
@@ -360,7 +360,7 @@ namespace UnityMcp
     }
 
     /// <summary>
-    /// SerializableUIType data（ForUnitySerialization）
+    /// 可序列化的UI类型数据（用于Unity序列化）
     /// </summary>
     [System.Serializable]
     public class UITypeDataSerializable

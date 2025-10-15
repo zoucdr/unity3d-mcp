@@ -1,6 +1,6 @@
 """
-Unityasset management tool
-provideUnityvarious asset operations，including import、modify、move、copy etc
+Unity资产管理工具
+提供Unity资产的各种操作，包括导入、修改、移动、复制等
 """
 
 from typing import Dict, Any, Optional, List
@@ -15,55 +15,55 @@ def register_edit_asset_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="operation type",
-            description="operation type，such as import/modify/move/duplicate etc",
+            title="操作类型",
+            description="操作类型，如 import/modify/move/duplicate 等",
             examples=["import", "modify", "move", "duplicate", "search", "get_info", "create_folder"]
         ),
         path: str = Field(
             ...,
-            title="asset path",
-            description="asset path，Unitystandard format：Assets/Folder/File.extension",
+            title="资产路径",
+            description="资产路径，Unity标准格式：Assets/Folder/File.extension",
             examples=["Assets/Textures/icon.png", "Assets/Scripts/PlayerController.cs", "Assets/Materials/RedMaterial.mat"]
         ),
         properties: Optional[Dict[str, Any]] = Field(
             None,
-            title="asset properties",
-            description="asset property dict，for setting various asset properties",
+            title="资产属性",
+            description="资产属性字典，用于设置资产的各种属性",
             examples=[{"playerSpeed": 5.0, "maxHealth": 100}]
         ),
         destination: Optional[str] = Field(
             None,
-            title="target path",
-            description="target path（move/used when copying）",
+            title="目标路径",
+            description="目标路径（移动/复制时使用）",
             examples=["Assets/Scripts/NewName.cs", "Assets/Materials/RedMaterialCopy.mat"]
         ),
         query: Optional[str] = Field(
             None,
-            title="search mode",
-            description="search mode，such as*.prefab",
+            title="搜索模式",
+            description="搜索模式，如*.prefab",
             examples=["*.prefab", "Player*", "*.mat"]
         ),
         force: Optional[bool] = Field(
             False,
-            title="force execute",
-            description="whether to force execution（overwrite existing files etc）"
+            title="强制执行",
+            description="是否强制执行操作（覆盖现有文件等）"
         )
     ) -> Dict[str, Any]:
         """
-        Unityasset management tool（secondary tool）
+        Unity资产管理工具（二级工具）
         
-        supported operations:
-        - import: reimport asset
-        - modify: modify asset properties
-        - duplicate: copy asset
-        - move: move/rename asset
-        - rename: move/rename asset（andmovesame）
-        - search: search assets
-        - get_info: get asset info
-        - create_folder: create folder
+        支持的操作:
+        - import: 重新导入资产
+        - modify: 修改资产属性
+        - duplicate: 复制资产
+        - move: 移动/重命名资产
+        - rename: 移动/重命名资产（与move相同）
+        - search: 搜索资产
+        - get_info: 获取资产信息
+        - create_folder: 创建文件夹
         """
-        # ⚠️ important note：this function only provides parameter description and docs
-        # for actual calls please use single_call function
-        # example：single_call(func="edit_asset", args={...})
+        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
+        # 实际调用请使用 single_call 函数
+        # 示例：single_call(func="edit_asset", args={...})
 
         return get_common_call_response("edit_asset")

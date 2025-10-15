@@ -15,13 +15,13 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles network operations including HTTP requests, file downloads, and API calls.
-    /// Corresponding method name: request_http
+    /// 对应方法名: request_http
     /// </summary>
-    [ToolName("request_http", "Network function")]
+    [ToolName("request_http", "网络功能")]
     public class RequestHttp : StateMethodBase
     {
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -51,7 +51,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create state tree
+        /// 创建状态树
         /// </summary>
         protected override StateTree CreateStateTree()
         {
@@ -68,10 +68,10 @@ namespace UnityMcp.Tools
                     .Leaf("batch_download", HandleBatchDownload)
                 .Build();
         }
-        // --- Request processing method ---
+        // --- 请求处理方法 ---
 
         /// <summary>
-        /// HandleGETRequest
+        /// 处理GET请求
         /// </summary>
         private object HandleGetRequest(StateTreeContext ctx)
         {
@@ -80,7 +80,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// HandlePOSTRequest
+        /// 处理POST请求
         /// </summary>
         private object HandlePostRequest(StateTreeContext ctx)
         {
@@ -89,7 +89,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// HandlePUTRequest
+        /// 处理PUT请求
         /// </summary>
         private object HandlePutRequest(StateTreeContext ctx)
         {
@@ -98,7 +98,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// HandleDELETERequest
+        /// 处理DELETE请求
         /// </summary>
         private object HandleDeleteRequest(StateTreeContext ctx)
         {
@@ -107,7 +107,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle file download（Default use coroutine）
+        /// 处理文件下载（默认使用协程）
         /// </summary>
         private object HandleDownloadFile(StateTreeContext ctx)
         {
@@ -116,7 +116,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Download file with coroutine（Async）
+        /// 使用协程下载文件（异步）
         /// </summary>
         private object DownloadFileCoroutine(StateTreeContext ctx)
         {
@@ -124,7 +124,7 @@ namespace UnityMcp.Tools
             string savePath = ctx["save_path"]?.ToString();
             float timeout = ctx.TryGetValue("timeout", out int timeoutValue) ? timeoutValue : 60f;
 
-            // Parameter validation
+            // 参数验证
             if (string.IsNullOrEmpty(url))
             {
                 ctx.Complete(Response.Error("URL parameter is required"));
@@ -137,20 +137,20 @@ namespace UnityMcp.Tools
                 return null;
             }
 
-            LogInfo($"[RequestHttp] Start coroutine download: {url}");
+            LogInfo($"[RequestHttp] 启动协程下载: {url}");
 
-            // Start coroutine download
+            // 启动协程下载
             CoroutineRunner.StartCoroutine(DownloadFileAsync(url, savePath, timeout, (result) =>
             {
                 ctx.Complete(result);
             }, null, ctx));
 
-            // Returnnull，Indicates asynchronous execution
+            // 返回null，表示异步执行
             return null;
         }
 
         /// <summary>
-        /// Handle file upload
+        /// 处理文件上传
         /// </summary>
         private object HandleUploadFile(StateTreeContext ctx)
         {
@@ -159,7 +159,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// HandlePINGRequest
+        /// 处理PING请求
         /// </summary>
         private object HandlePingRequest(StateTreeContext ctx)
         {
@@ -168,7 +168,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle batch download（Default use coroutine）
+        /// 处理批量下载（默认使用协程）
         /// </summary>
         private object HandleBatchDownload(StateTreeContext ctx)
         {
@@ -177,14 +177,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Batch download via coroutine（Async）
+        /// 使用协程进行批量下载（异步）
         /// </summary>
         private object BatchDownloadCoroutine(StateTreeContext ctx)
         {
             var urlsToken = ctx["urls"];
             string saveDirectory = ctx["save_directory"]?.ToString() ?? ctx["save_path"]?.ToString();
 
-            // Parameter validation
+            // 参数验证
             if (urlsToken == null)
             {
                 ctx.Complete(Response.Error("urls parameter is required"));
@@ -197,22 +197,22 @@ namespace UnityMcp.Tools
                 return null;
             }
 
-            LogInfo($"[RequestHttp] Start batch download coroutine");
+            LogInfo($"[RequestHttp] 启动协程批量下载");
 
-            // Start batch download coroutine
+            // 启动协程批量下载
             CoroutineRunner.StartCoroutine(BatchDownloadAsync(ctx, (result) =>
             {
                 ctx.Complete(Json.FromObject(result));
             }));
 
-            // Returnnull，Indicates asynchronous execution
+            // 返回null，表示异步执行
             return null;
         }
 
-        // --- Core implementation method ---
+        // --- 核心实现方法 ---
 
         /// <summary>
-        /// ExecuteHTTPGeneral request method
+        /// 执行HTTP请求的通用方法
         /// </summary>
         private object ExecuteHttpRequest(StateTreeContext ctx, string defaultMethod)
         {
@@ -224,7 +224,7 @@ namespace UnityMcp.Tools
                     return Response.Error("URL parameter is required");
                 }
 
-                // Parse parameters
+                // 解析参数
                 string method = ctx["method"]?.ToString() ?? defaultMethod;
                 int timeout = ctx.TryGetValue<int>("timeout", out var timeoutValue) ? timeoutValue : 30;
                 string contentType = ctx["content_type"]?.ToString() ?? "application/json";
@@ -234,21 +234,21 @@ namespace UnityMcp.Tools
                 int retryCount = ctx.TryGetValue<int>("retry_count", out var retryCountValue) ? retryCountValue : 0;
                 float retryDelay = ctx.TryGetValue<float>("retry_delay", out var retryDelayValue) ? retryDelayValue : 1f;
 
-                // Build completeURL（Include query parameters）
+                // 构建完整URL（包含查询参数）
                 string fullUrl = BuildUrlWithQueryParams(url, ctx["query_params"] as JsonClass);
 
-                // Execute request（With retry mechanism）
+                // 执行请求（带重试机制）
                 return ExecuteWithRetry(() => PerformHttpRequest(fullUrl, method, ctx, timeout, contentType, userAgent, acceptCertificates, followRedirects), retryCount, retryDelay);
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] HTTPRequest execution failed: {e.Message}");
+                LogError($"[RequestHttp] HTTP请求执行失败: {e.Message}");
                 return Response.Error($"HTTP request execution failed: {e.Message}");
             }
         }
 
         /// <summary>
-        /// Execute specificHTTPRequest
+        /// 执行具体的HTTP请求
         /// </summary>
         private object PerformHttpRequest(string url, string method, StateTreeContext ctx, int timeout, string contentType, string userAgent, bool acceptCertificates, bool followRedirects)
         {
@@ -256,7 +256,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // Create request according to method type
+                // 根据方法类型创建请求
                 switch (method.ToUpper())
                 {
                     case "GET":
@@ -277,33 +277,33 @@ namespace UnityMcp.Tools
                         break;
                 }
 
-                // Configure request
+                // 配置请求
                 ConfigureRequest(request, ctx, timeout, userAgent, acceptCertificates, followRedirects);
 
-                // Synchronously execute request
+                // 同步执行请求
                 var asyncOp = request.SendWebRequest();
 
-                // Wait for request to complete（Sync wait，But do not block main thread）
+                // 等待请求完成（同步等待，但不阻塞主线程）
                 var startTime = EditorApplication.timeSinceStartup;
                 while (!asyncOp.isDone && (EditorApplication.timeSinceStartup - startTime) < timeout)
                 {
-                    // LetUnityHandle other events，Do not block main thread
+                    // 让Unity处理其他事件，不阻塞主线程
                     System.Threading.Thread.Yield();
                 }
 
-                // Check timeout
+                // 检查超时
                 if (!asyncOp.isDone)
                 {
                     request.Abort();
                     return Response.Error($"Request timeout ({timeout} seconds)");
                 }
 
-                // Handle response
+                // 处理响应
                 return ProcessHttpResponse(request);
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] Request execution error: {e.Message}");
+                LogError($"[RequestHttp] 请求执行错误: {e.Message}");
                 return Response.Error($"Request execution error: {e.Message}");
             }
             finally
@@ -313,13 +313,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CreatePOSTRequest
+        /// 创建POST请求
         /// </summary>
         private UnityWebRequest CreatePostRequest(string url, StateTreeContext ctx, string contentType)
         {
             UnityWebRequest request;
 
-            // Check if form data is used
+            // 检查是否使用表单数据
             var formData = ctx["form_data"] as JsonClass;
             if (formData != null)
             {
@@ -332,7 +332,7 @@ namespace UnityMcp.Tools
             }
             else
             {
-                // UseJSONData
+                // 使用JSON数据
                 string jsonData = GetRequestBodyData(ctx);
                 byte[] bodyRaw = string.IsNullOrEmpty(jsonData) ? null : Encoding.UTF8.GetBytes(jsonData);
                 request = new UnityWebRequest(url, "POST");
@@ -345,7 +345,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CreatePUTRequest
+        /// 创建PUT请求
         /// </summary>
         private UnityWebRequest CreatePutRequest(string url, StateTreeContext ctx, string contentType)
         {
@@ -357,24 +357,24 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Configure request parameters
+        /// 配置请求参数
         /// </summary>
         private void ConfigureRequest(UnityWebRequest request, StateTreeContext ctx, int timeout, string userAgent, bool acceptCertificates, bool followRedirects)
         {
-            // Basic config
+            // 基本配置
             request.timeout = timeout;
             request.SetRequestHeader("User-Agent", userAgent);
 
-            // Certificate validation
+            // 证书验证
             if (acceptCertificates)
             {
                 request.certificateHandler = new AcceptAllCertificatesHandler();
             }
 
-            // Redirect
+            // 重定向
             request.redirectLimit = followRedirects ? 10 : 0;
 
-            // Add custom request header
+            // 添加自定义请求头
             var headers = ctx["headers"] as JsonClass;
             if (headers != null)
             {
@@ -384,23 +384,23 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Authentication
+            // 认证
             SetAuthentication(request, ctx);
         }
 
         /// <summary>
-        /// Set authentication info
+        /// 设置认证信息
         /// </summary>
         private void SetAuthentication(UnityWebRequest request, StateTreeContext ctx)
         {
-            // Bearer TokenAuthentication
+            // Bearer Token认证
             string authToken = ctx["auth_token"]?.ToString();
             if (!string.IsNullOrEmpty(authToken))
             {
                 request.SetRequestHeader("Authorization", $"Bearer {authToken}");
             }
 
-            // BasicAuthentication
+            // Basic认证
             string basicAuth = ctx["basic_auth"]?.ToString();
             if (!string.IsNullOrEmpty(basicAuth))
             {
@@ -410,7 +410,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get request body data
+        /// 获取请求体数据
         /// </summary>
         private string GetRequestBodyData(StateTreeContext ctx)
         {
@@ -428,7 +428,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Construct with query parameters includedURL
+        /// 构建包含查询参数的URL
         /// </summary>
         private string BuildUrlWithQueryParams(string baseUrl, JsonClass queryParams)
         {
@@ -451,7 +451,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// HandleHTTPResponse
+        /// 处理HTTP响应
         /// </summary>
         private JsonClass ProcessHttpResponse(UnityWebRequest request, string filePath = null)
         {
@@ -460,7 +460,7 @@ namespace UnityMcp.Tools
             string responseText = request.downloadHandler?.text ?? "";
             byte[] responseData = request.downloadHandler?.data;
 
-            // Get response header
+            // 获取响应头
             var responseHeaders = new Dictionary<string, string>();
             if (request.GetResponseHeaders() != null)
             {
@@ -470,11 +470,11 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Determine if data is file or large content
+            // 判断是否为文件数据或大型内容
             bool isFileData = IsFileData(responseHeaders, responseData);
-            bool isLargeContent = responseData != null && responseData.Length > 1024 * 1024; // 1MBThreshold
+            bool isLargeContent = responseData != null && responseData.Length > 1024 * 1024; // 1MB阈值
 
-            // Try parsingJSONResponse（Only for non-file and non-large content）
+            // 尝试解析JSON响应（仅对非文件数据且非大型内容）
             object parsedData = null;
             if (!isFileData && !isLargeContent)
             {
@@ -500,8 +500,8 @@ namespace UnityMcp.Tools
                 success = isSuccess,
                 status_code = responseCode,
                 headers = responseHeaders,
-                data = isFileData || isLargeContent ? null : parsedData, // No return for file data or large contentdata
-                raw_text = isFileData || isLargeContent ? null : responseText, // No return for file data or large contentraw_text
+                data = isFileData || isLargeContent ? null : parsedData, // 文件数据或大型内容不返回data
+                raw_text = isFileData || isLargeContent ? null : responseText, // 文件数据或大型内容不返回raw_text
                 error = isSuccess ? null : request.error,
                 url = request.url,
                 method = request.method,
@@ -509,14 +509,14 @@ namespace UnityMcp.Tools
                 content_length = responseData?.Length ?? 0,
                 is_file_data = isFileData,
                 is_large_content = isLargeContent,
-                file_path = isFileData ? filePath : null, // If it is file data，Return file path
+                file_path = isFileData ? filePath : null, // 如果是文件数据，返回文件路径
                 file_name = isFileData && !string.IsNullOrEmpty(filePath) ? System.IO.Path.GetFileName(filePath) : null
             };
 
             if (isSuccess)
             {
                 string message = isFileData ?
-                    $"File download succeeded (status code: {responseCode})" :
+                    $"文件下载成功 (status code: {responseCode})" :
                     $"HTTP request successful (status code: {responseCode})";
                 return Response.Success(message, result);
             }
@@ -527,28 +527,28 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Check if it is file data
+        /// 判断是否为文件数据
         /// </summary>
         private bool IsFileData(Dictionary<string, string> headers, byte[] data)
         {
-            // CheckContent-TypeIs file type
+            // 检查Content-Type是否为文件类型
             if (headers.TryGetValue("Content-Type", out string contentType))
             {
                 string lowerContentType = contentType.ToLower();
 
-                // Image file
+                // 图片文件
                 if (lowerContentType.StartsWith("image/"))
                     return true;
 
-                // Video file
+                // 视频文件
                 if (lowerContentType.StartsWith("video/"))
                     return true;
 
-                // Audio file
+                // 音频文件
                 if (lowerContentType.StartsWith("audio/"))
                     return true;
 
-                // Document file
+                // 文档文件
                 if (lowerContentType.Contains("application/pdf") ||
                     lowerContentType.Contains("application/msword") ||
                     lowerContentType.Contains("application/vnd.ms-excel") ||
@@ -557,12 +557,12 @@ namespace UnityMcp.Tools
                     lowerContentType.Contains("application/octet-stream"))
                     return true;
 
-                // Font file
+                // 字体文件
                 if (lowerContentType.Contains("font/") || lowerContentType.Contains("application/font"))
                     return true;
             }
 
-            // CheckContent-DispositionHeader
+            // 检查Content-Disposition头
             if (headers.TryGetValue("Content-Disposition", out string contentDisposition))
             {
                 if (contentDisposition.ToLower().Contains("attachment") ||
@@ -570,7 +570,7 @@ namespace UnityMcp.Tools
                     return true;
             }
 
-            // If data is not empty and no explicit textContent-Type，Could be binary file
+            // 如果数据不为空且没有明确的文本Content-Type，可能是二进制文件
             if (data != null && data.Length > 0)
             {
                 if (!headers.TryGetValue("Content-Type", out string ct) ||
@@ -578,7 +578,7 @@ namespace UnityMcp.Tools
                      !ct.ToLower().Contains("application/json") &&
                      !ct.ToLower().Contains("application/xml")))
                 {
-                    // Check if data is binary（ContainnullByte）
+                    // 检查是否为二进制数据（包含null字节）
                     for (int i = 0; i < Math.Min(data.Length, 1024); i++)
                     {
                         if (data[i] == 0)
@@ -591,7 +591,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get content type
+        /// 获取内容类型
         /// </summary>
         private string GetContentType(Dictionary<string, string> headers)
         {
@@ -599,21 +599,21 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Coroutine-based file downloader
+        /// 协程版本的文件下载器
         /// </summary>
-        /// <param name="url">DownloadURL</param>
-        /// <param name="savePath">Save path</param>
-        /// <param name="timeout">Timeout（Second）</param>
-        /// <param name="callback">Completion callback</param>
-        /// <param name="progressCallback">Progress callback，Optional</param>
-        /// <param name="ctx">Context，For fetching extra config</param>
-        /// <returns>Coroutine enumerator</returns>
+        /// <param name="url">下载URL</param>
+        /// <param name="savePath">保存路径</param>
+        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="callback">完成回调</param>
+        /// <param name="progressCallback">进度回调，可选</param>
+        /// <param name="ctx">上下文，用于获取额外配置</param>
+        /// <returns>协程枚举器</returns>
         IEnumerator DownloadFileAsync(string url, string savePath, float timeout, Action<JsonClass> callback,
             Action<float> progressCallback = null, StateTreeContext ctx = null)
         {
-            LogInfo($"[RequestHttp] Start coroutine download: {url}");
+            LogInfo($"[RequestHttp] 开始协程下载: {url}");
 
-            // Parameter validation
+            // 参数验证
             if (string.IsNullOrEmpty(url))
             {
                 callback?.Invoke(Response.Error("URL parameter is required"));
@@ -626,11 +626,11 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // Normalize save path
+            // 规范化保存路径
             string fullSavePath = GetFullPath(savePath);
             string directory = Path.GetDirectoryName(fullSavePath);
 
-            // Ensure directory exists
+            // 确保目录存在
             try
             {
                 if (!Directory.Exists(directory))
@@ -644,12 +644,12 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // Create download request
+            // 创建下载请求
             using (var request = UnityWebRequest.Get(url))
             {
                 request.timeout = (int)timeout;
 
-                // If has context，Use it to configure request
+                // 如果有上下文，使用它来配置请求
                 if (ctx != null)
                 {
                     ConfigureRequest(request, ctx, (int)timeout, "Unity-MCP-Downloader/1.0", true, true);
@@ -659,14 +659,14 @@ namespace UnityMcp.Tools
                     request.SetRequestHeader("User-Agent", "Unity-MCP-Downloader/1.0");
                 }
 
-                // Send request
+                // 发送请求
                 var operation = request.SendWebRequest();
                 float startTime = Time.realtimeSinceStartup;
 
-                // Wait for download completion，Report progress simultaneously
+                // 等待下载完成，同时报告进度
                 while (!operation.isDone)
                 {
-                    // Check timeout
+                    // 检查超时
                     float elapsedTime = Time.realtimeSinceStartup - startTime;
                     if (elapsedTime > timeout)
                     {
@@ -675,25 +675,25 @@ namespace UnityMcp.Tools
                         yield break;
                     }
 
-                    // Report download progress
+                    // 报告下载进度
                     if (progressCallback != null && request.downloadHandler != null)
                     {
                         float progress = operation.progress;
                         progressCallback(progress);
                     }
 
-                    yield return null; // Wait one frame
+                    yield return null; // 等待一帧
                 }
 
-                // Check download result
+                // 检查下载结果
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     try
                     {
-                        // Save file
+                        // 保存文件
                         File.WriteAllBytes(fullSavePath, request.downloadHandler.data);
 
-                        // If isUnityResource，RefreshAssetDatabase
+                        // 如果是Unity资源，刷新AssetDatabase
                         if (fullSavePath.StartsWith(Application.dataPath))
                         {
                             string relativePath = "Assets" + fullSavePath.Substring(Application.dataPath.Length);
@@ -701,9 +701,9 @@ namespace UnityMcp.Tools
                             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                         }
 
-                        LogInfo($"[RequestHttp] Coroutine download succeeded: {Path.GetFileName(fullSavePath)}");
+                        LogInfo($"[RequestHttp] 协程下载成功: {Path.GetFileName(fullSavePath)}");
 
-                        // Success callback - UseProcessHttpResponseObtain consistent file path return
+                        // 成功回调 - 使用ProcessHttpResponse获得一致的文件路径返回
                         var response = ProcessHttpResponse(request, fullSavePath);
                         callback?.Invoke(response);
                     }
@@ -714,7 +714,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Download failed
+                    // 下载失败
                     string errorMessage = $"Download failed: {request.error}";
                     if (request.responseCode > 0)
                     {
@@ -728,18 +728,18 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Batch download files by coroutine
+        /// 批量协程下载文件
         /// </summary>
-        /// <param name="ctx">Context</param>
-        /// <param name="callback">Completion callback</param>
-        /// <returns>Coroutine enumerator</returns>
+        /// <param name="ctx">上下文</param>
+        /// <param name="callback">完成回调</param>
+        /// <returns>协程枚举器</returns>
         IEnumerator BatchDownloadAsync(StateTreeContext ctx, Action<object> callback)
         {
             var urlsToken = ctx["urls"];
             string saveDirectory = ctx["save_directory"]?.ToString() ?? ctx["save_path"]?.ToString();
             float timeout = ctx.TryGetValue("timeout", out int timeoutValue) ? timeoutValue : 60f;
 
-            // ParseURLArray
+            // 解析URL数组
             string[] urls = null;
             if (urlsToken is JsonArray urlArray)
             {
@@ -756,10 +756,10 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // Normalize save directory
+            // 规范化保存目录
             string fullSaveDirectory = GetFullPath(saveDirectory);
 
-            // Ensure directory exists
+            // 确保目录存在
             try
             {
                 if (!Directory.Exists(fullSaveDirectory))
@@ -773,28 +773,28 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            LogInfo($"[RequestHttp] Begin batch coroutine download {urls.Length} Files to: {fullSaveDirectory}");
+            LogInfo($"[RequestHttp] 开始批量协程下载 {urls.Length} 个文件到: {fullSaveDirectory}");
 
             var downloadResults = new List<object>();
             var errors = new List<string>();
             int completed = 0;
             int total = urls.Length;
 
-            // Concurrent download counter
+            // 并发下载计数器
             int activeDownloads = 0;
-            const int maxConcurrentDownloads = 3; // Max concurrent downloads
+            const int maxConcurrentDownloads = 3; // 最大并发下载数
 
             for (int i = 0; i < urls.Length; i++)
             {
                 string url = urls[i];
 
-                // Wait for idle slot
+                // 等待空闲槽位
                 while (activeDownloads >= maxConcurrentDownloads)
                 {
                     yield return null;
                 }
 
-                // FromURLGenerate filename
+                // 从URL生成文件名
                 string fileName = GetFileNameFromUrl(url);
                 if (string.IsNullOrEmpty(fileName))
                 {
@@ -803,11 +803,11 @@ namespace UnityMcp.Tools
 
                 string filePath = Path.Combine(fullSaveDirectory, fileName);
 
-                LogInfo($"[RequestHttp] Download file with coroutine {i + 1}/{total}: {url}");
+                LogInfo($"[RequestHttp] 协程下载文件 {i + 1}/{total}: {url}");
 
                 activeDownloads++;
 
-                // Start a single file download coroutine
+                // 启动单个文件下载协程
                 CoroutineRunner.StartCoroutine(DownloadFileAsync(url, filePath, timeout, (result) =>
                 {
                     lock (downloadResults)
@@ -824,7 +824,7 @@ namespace UnityMcp.Tools
 
                         if (!downloadSuccess)
                         {
-                            string errorMsg = $"File {Path.GetFileName(filePath)} Download failed";
+                            string errorMsg = $"文件 {Path.GetFileName(filePath)} 下载失败";
                             if (result != null)
                             {
                                 var errorProp = result.GetType().GetProperty("error");
@@ -839,18 +839,18 @@ namespace UnityMcp.Tools
                         completed++;
                         activeDownloads--;
 
-                        LogInfo($"[RequestHttp] Batch download progress: {completed}/{total} ({(completed * 100f / total):F1}%)");
+                        LogInfo($"[RequestHttp] 批量下载进度: {completed}/{total} ({(completed * 100f / total):F1}%)");
                     }
                 }, null, ctx));
             }
 
-            // Wait for all downloads to complete
+            // 等待所有下载完成
             while (completed < total)
             {
                 yield return null;
             }
 
-            // Produce final result
+            // 生成最终结果
             int successCount = downloadResults.Count(r =>
             {
                 var successProp = r.GetType().GetProperty("success");
@@ -858,7 +858,7 @@ namespace UnityMcp.Tools
             });
 
             var finalResult = Response.Success(
-                $"Batch download completed: {successCount}/{total} Files succeeded",
+                $"批量下载完成: {successCount}/{total} 个文件成功",
                 new
                 {
                     total_files = total,
@@ -870,12 +870,12 @@ namespace UnityMcp.Tools
                 }
             );
 
-            LogInfo($"[RequestHttp] Batch coroutine download completed: {successCount}/{total} Success");
+            LogInfo($"[RequestHttp] 批量协程下载完成: {successCount}/{total} 成功");
             callback?.Invoke(finalResult);
         }
 
         /// <summary>
-        /// Download file
+        /// 下载文件
         /// </summary>
         private object DownloadFile(StateTreeContext ctx)
         {
@@ -894,11 +894,11 @@ namespace UnityMcp.Tools
                     return Response.Error("save_path parameter is required");
                 }
 
-                // Normalize save path
+                // 规范化保存路径
                 string fullSavePath = GetFullPath(savePath);
                 string directory = Path.GetDirectoryName(fullSavePath);
 
-                // Ensure directory exists
+                // 确保目录存在
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
@@ -913,11 +913,11 @@ namespace UnityMcp.Tools
 
                     var asyncOp = request.SendWebRequest();
 
-                    // Wait for download completion（Synchronous）
+                    // 等待下载完成（同步）
                     var startTime = EditorApplication.timeSinceStartup;
                     while (!asyncOp.isDone && (EditorApplication.timeSinceStartup - startTime) < timeout)
                     {
-                        System.Threading.Thread.Yield(); // LetUnityHandle other events
+                        System.Threading.Thread.Yield(); // 让Unity处理其他事件
                     }
 
                     if (!asyncOp.isDone)
@@ -928,17 +928,17 @@ namespace UnityMcp.Tools
 
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        // Save file
+                        // 保存文件
                         File.WriteAllBytes(fullSavePath, request.downloadHandler.data);
 
-                        // If isUnityResource，RefreshAssetDatabase
+                        // 如果是Unity资源，刷新AssetDatabase
                         if (fullSavePath.StartsWith(Application.dataPath))
                         {
                             string relativePath = "Assets" + fullSavePath.Substring(Application.dataPath.Length);
                             AssetDatabase.ImportAsset(relativePath);
                         }
 
-                        // UseProcessHttpResponseObtain consistent file path return
+                        // 使用ProcessHttpResponse获得一致的文件路径返回
                         return ProcessHttpResponse(request, fullSavePath);
                     }
                     else
@@ -949,13 +949,13 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] File download failed: {e.Message}");
+                LogError($"[RequestHttp] 文件下载失败: {e.Message}");
                 return Response.Error($"File download failed: {e.Message}");
             }
         }
 
         /// <summary>
-        /// Upload file
+        /// 上传文件
         /// </summary>
         private object UploadFile(StateTreeContext ctx)
         {
@@ -986,7 +986,7 @@ namespace UnityMcp.Tools
                 var form = new WWWForm();
                 form.AddBinaryData("file", fileData, fileName);
 
-                // Add extra form fields
+                // 添加额外的表单字段
                 if (ctx["form_data"] as JsonClass != null)
                 {
                     foreach (KeyValuePair<string, JsonNode> pair in (ctx["form_data"] as JsonClass).Properties())
@@ -1004,11 +1004,11 @@ namespace UnityMcp.Tools
 
                     var asyncOp = request.SendWebRequest();
 
-                    // Wait for upload completion（Synchronous）
+                    // 等待上传完成（同步）
                     var startTime = EditorApplication.timeSinceStartup;
                     while (!asyncOp.isDone && (EditorApplication.timeSinceStartup - startTime) < timeout)
                     {
-                        System.Threading.Thread.Yield(); // LetUnityHandle other events
+                        System.Threading.Thread.Yield(); // 让Unity处理其他事件
                     }
 
                     if (!asyncOp.isDone)
@@ -1022,13 +1022,13 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] File upload failed: {e.Message}");
+                LogError($"[RequestHttp] 文件上传失败: {e.Message}");
                 return Response.Error($"File upload failed: {e.Message}");
             }
         }
 
         /// <summary>
-        /// PINGHost
+        /// PING主机
         /// </summary>
         private object PingHost(StateTreeContext ctx)
         {
@@ -1040,7 +1040,7 @@ namespace UnityMcp.Tools
                     return Response.Error("URL parameter is required");
                 }
 
-                // Simple connectivity test，UseHEADRequest
+                // 简单的连通性测试，使用HEAD请求
                 using (var request = UnityWebRequest.Head(url))
                 {
                     request.timeout = ctx.TryGetValue<int>("timeout", out var timeoutValue) ? timeoutValue : 10;
@@ -1050,7 +1050,7 @@ namespace UnityMcp.Tools
 
                     while (!asyncOp.isDone && (EditorApplication.timeSinceStartup - startTime) < request.timeout)
                     {
-                        System.Threading.Thread.Yield(); // LetUnityHandle other events
+                        System.Threading.Thread.Yield(); // 让Unity处理其他事件
                     }
 
                     if (!asyncOp.isDone)
@@ -1059,10 +1059,10 @@ namespace UnityMcp.Tools
                         return Response.Error("Ping timeout");
                     }
 
-                    double responseTime = (EditorApplication.timeSinceStartup - startTime) * 1000; // Convert to milliseconds
+                    double responseTime = (EditorApplication.timeSinceStartup - startTime) * 1000; // 转换为毫秒
 
                     return Response.Success(
-                        $"PingSuccess: {url}",
+                        $"Ping成功: {url}",
                         new
                         {
                             url = url,
@@ -1075,15 +1075,15 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] PingFailed: {e.Message}");
+                LogError($"[RequestHttp] Ping失败: {e.Message}");
                 return Response.Error($"Ping failed: {e.Message}");
             }
         }
 
-        // --- Auxiliary method ---
+        // --- 辅助方法 ---
 
         /// <summary>
-        /// Execution method with retry mechanism
+        /// 带重试机制的执行方法
         /// </summary>
         private object ExecuteWithRetry(Func<object> action, int retryCount, float retryDelay)
         {
@@ -1095,19 +1095,19 @@ namespace UnityMcp.Tools
                 {
                     lastResult = action();
 
-                    // If response is successful，Directly return
+                    // 如果是成功的响应，直接返回
                     if (IsSuccessResponse(lastResult))
                     {
                         return lastResult;
                     }
 
-                    // If last attempt，Return result
+                    // 如果是最后一次尝试，返回结果
                     if (i == retryCount)
                     {
                         return lastResult;
                     }
 
-                    // Wait and retry（Synchronous）
+                    // 等待重试（同步）
                     if (retryDelay > 0)
                     {
                         var delayStart = EditorApplication.timeSinceStartup;
@@ -1141,13 +1141,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Check if response indicates success
+        /// 检查响应对象是否表示成功
         /// </summary>
         private bool IsSuccessResponse(object response)
         {
             if (response == null) return false;
 
-            // Check anonymous object with reflectionsuccessProperty
+            // 使用反射检查匿名对象的success属性
             var successProperty = response.GetType().GetProperty("success");
             if (successProperty != null && successProperty.PropertyType == typeof(bool))
             {
@@ -1158,7 +1158,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Batch download files（Support real-time console refresh）
+        /// 批量下载文件（支持实时控制台刷新）
         /// </summary>
         private object BatchDownload(StateTreeContext ctx)
         {
@@ -1172,7 +1172,7 @@ namespace UnityMcp.Tools
                     return Response.Error("urls parameter is required");
                 }
 
-                // ParseURLArray
+                // 解析URL数组
                 string[] urls;
                 if (urlsToken is JsonArray urlArray)
                 {
@@ -1180,7 +1180,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // If it is a string，Try splitting by comma
+                    // 如果是字符串，尝试按逗号分割
                     string urlString = urlsToken.ToString();
                     urls = urlString.Split(new[] { ',', ';', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                                    .Select(url => url.Trim())
@@ -1198,7 +1198,7 @@ namespace UnityMcp.Tools
                     saveDirectory = "Assets/Downloads";
                 }
 
-                // Ensure save directory exists
+                // 确保保存目录存在
                 string fullSaveDirectory = GetFullPath(saveDirectory);
                 if (!Directory.Exists(fullSaveDirectory))
                 {
@@ -1209,15 +1209,15 @@ namespace UnityMcp.Tools
                 var downloadResults = new List<object>();
                 var errors = new List<string>();
 
-                LogInfo($"[RequestHttp] Start batch download {urls.Length} Files to {fullSaveDirectory}");
+                LogInfo($"[RequestHttp] 开始批量下载 {urls.Length} 个文件到 {fullSaveDirectory}");
 
-                // Download files one by one
+                // 逐个下载文件
                 for (int i = 0; i < urls.Length; i++)
                 {
                     string url = urls[i];
                     try
                     {
-                        // FromURLGenerate filename
+                        // 从URL生成文件名
                         string fileName = GetFileNameFromUrl(url);
                         if (string.IsNullOrEmpty(fileName))
                         {
@@ -1226,7 +1226,7 @@ namespace UnityMcp.Tools
 
                         string filePath = Path.Combine(fullSaveDirectory, fileName);
 
-                        // Create single download parameter
+                        // 创建单个下载参数
                         var downloadArgs = new JsonClass
                         {
                             ["url"] = url,
@@ -1234,15 +1234,15 @@ namespace UnityMcp.Tools
                             ["timeout"] = timeout
                         };
 
-                        // Copy authentication and request header parameters
+                        // 复制认证和请求头参数
                         if (ctx["headers"] as JsonClass != null) downloadArgs["headers"] = ctx.JsonData["headers"];
                         if (ctx["auth_token"]?.ToString() != null) downloadArgs["auth_token"] = ctx.JsonData["auth_token"];
                         if (ctx["basic_auth"]?.ToString() != null) downloadArgs["basic_auth"] = ctx.JsonData["basic_auth"];
                         if (ctx["user_agent"]?.ToString() != null) downloadArgs["user_agent"] = ctx.JsonData["user_agent"];
 
-                        LogInfo($"[RequestHttp] Download file {i + 1}/{urls.Length}: {url}");
+                        LogInfo($"[RequestHttp] 下载文件 {i + 1}/{urls.Length}: {url}");
 
-                        // Invoke single file download
+                        // 调用单个文件下载方法
                         var downloadContext = new StateTreeContext(downloadArgs);
                         var result = DownloadFile(downloadContext);
 
@@ -1257,16 +1257,16 @@ namespace UnityMcp.Tools
                             result = result
                         });
 
-                        // After each file download，Immediately output log and refresh console
-                        string statusMessage = downloadSuccess ? "✅ Success" : "❌ Failed";
-                        LogInfo($"[RequestHttp] File {i + 1}/{urls.Length} {statusMessage}: {fileName}");
+                        // 每下载完成一个文件，立即输出日志并刷新控制台
+                        string statusMessage = downloadSuccess ? "✅ 成功" : "❌ 失败";
+                        LogInfo($"[RequestHttp] 文件 {i + 1}/{urls.Length} {statusMessage}: {fileName}");
 
-                        // Force refreshUnityConsole，Allow users to see progress in real time
-                        System.Threading.Thread.Yield(); // LetUnityHave time to handle log display
+                        // 强制刷新Unity控制台，让用户实时看到进度
+                        System.Threading.Thread.Yield(); // 让Unity有时间处理日志显示
                     }
                     catch (Exception e)
                     {
-                        string error = $"Download failed {url}: {e.Message}";
+                        string error = $"下载失败 {url}: {e.Message}";
                         errors.Add(error);
                         LogError($"[RequestHttp] {error}");
 
@@ -1286,7 +1286,7 @@ namespace UnityMcp.Tools
                 }).Count();
 
                 return Response.Success(
-                    $"Batch download completed：Success {successCount}/{urls.Length} Files",
+                    $"批量下载完成：成功 {successCount}/{urls.Length} 个文件",
                     new
                     {
                         total_urls = urls.Length,
@@ -1300,13 +1300,13 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                LogError($"[RequestHttp] Batch download failed: {e.Message}");
+                LogError($"[RequestHttp] 批量下载失败: {e.Message}");
                 return Response.Error($"Batch download failed: {e.Message}");
             }
         }
 
         /// <summary>
-        /// FromURLExtract filename
+        /// 从URL提取文件名
         /// </summary>
         private string GetFileNameFromUrl(string url)
         {
@@ -1315,21 +1315,21 @@ namespace UnityMcp.Tools
                 var uri = new Uri(url);
                 string fileName = Path.GetFileName(uri.LocalPath);
 
-                // If no extension，Try to get from query parameters
+                // 如果没有扩展名，尝试从查询参数中获取
                 if (string.IsNullOrEmpty(Path.GetExtension(fileName)))
                 {
-                    // Attempt fromURLInfer file type in
+                    // 尝试从URL中推断文件类型
                     if (url.Contains("image") || url.Contains("img"))
                     {
-                        fileName += ".jpg"; // Default image format
+                        fileName += ".jpg"; // 默认图片格式
                     }
                     else
                     {
-                        fileName += ".bin"; // Default binary file
+                        fileName += ".bin"; // 默认二进制文件
                     }
                 }
 
-                // Ensure filename is valid
+                // 确保文件名合法
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     fileName = fileName.Replace(c, '_');
@@ -1344,7 +1344,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get full path
+        /// 获取完整路径
         /// </summary>
         private string GetFullPath(string path)
         {
@@ -1353,19 +1353,19 @@ namespace UnityMcp.Tools
                 return path;
             }
 
-            // If path starts withAssetsPrefix，Use project path
+            // 如果路径以Assets开头，使用项目路径
             if (path.StartsWith("Assets"))
             {
                 return Path.Combine(Directory.GetCurrentDirectory(), path);
             }
 
-            // Otherwise relative toAssetsFolder
+            // 否则相对于Assets文件夹
             return Path.Combine(Application.dataPath, path);
         }
     }
 
     /// <summary>
-    /// Handler that accepts all certificates（For development test only）
+    /// 接受所有证书的处理器（仅用于开发测试）
     /// </summary>
     public class AcceptAllCertificatesHandler : CertificateHandler
     {

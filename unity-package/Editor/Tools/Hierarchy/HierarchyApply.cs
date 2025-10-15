@@ -14,13 +14,13 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles GameObject prefab applying and connection operations.
-    /// Corresponding method name: hierarchy_apply
+    /// 对应方法名: hierarchy_apply
     /// </summary>
-    [ToolName("hierarchy_apply", "Hierarchy management")]
+    [ToolName("hierarchy_apply", "层级管理")]
     public class HierarchyApply : StateMethodBase
     {
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -54,14 +54,14 @@ namespace UnityMcp.Tools
         // --- State Tree Action Handlers ---
 
         /// <summary>
-        /// Handle connecting prefab operation
+        /// 处理链接预制体的操作
         /// </summary>
         private object HandleapplyAction(JsonClass args)
         {
             string applyType = args["apply_type"]?.Value?.ToLower();
             if (string.IsNullOrEmpty(applyType))
             {
-                applyType = "connect_to_prefab"; // Default connect to prefab
+                applyType = "connect_to_prefab"; // 默认连接到预制体
             }
 
             LogInfo($"[Hierarchyapply] Executing apply action with type: '{applyType}'");
@@ -80,7 +80,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// ConnectGameObjectTo prefab
+        /// 连接GameObject到预制体
         /// </summary>
         private object HandleConnectToPrefab(JsonClass args)
         {
@@ -89,7 +89,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply prefab changes
+        /// 应用预制体更改
         /// </summary>
         private object HandleApplyPrefabChanges(JsonClass args)
         {
@@ -98,7 +98,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Disconnect prefab connection
+        /// 断开预制体连接
         /// </summary>
         private object HandleBreakPrefabConnection(JsonClass args)
         {
@@ -109,13 +109,13 @@ namespace UnityMcp.Tools
         // --- Prefab apply Methods ---
 
         /// <summary>
-        /// ConnectGameObjectTo specified prefab
+        /// 连接GameObject到指定的预制体
         /// </summary>
         private object ConnectGameObjectToPrefab(JsonClass args)
         {
             try
             {
-                // Get targetGameObject
+                // 获取目标GameObject
                 JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
@@ -128,41 +128,41 @@ namespace UnityMcp.Tools
                     return Response.Error($"Target GameObject '{targetToken}' not found.");
                 }
 
-                // Get prefab path
+                // 获取预制体路径
                 string prefabPath = args["prefab_path"]?.Value;
                 if (string.IsNullOrEmpty(prefabPath))
                 {
                     return Response.Error("'prefab_path' parameter is required for connecting to prefab.");
                 }
 
-                // Parse prefab path
+                // 解析预制体路径
                 string resolvedPath = ResolvePrefabPath(prefabPath);
                 if (string.IsNullOrEmpty(resolvedPath))
                 {
                     return Response.Error($"Prefab not found at path: '{prefabPath}'");
                 }
 
-                // Load prefab asset
+                // 加载预制体资源
                 GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(resolvedPath);
                 if (prefabAsset == null)
                 {
                     return Response.Error($"Failed to load prefab asset at: '{resolvedPath}'");
                 }
 
-                // Check if force-link
+                // 检查是否强制链接
                 bool forceapply = args["force_apply"].AsBoolDefault(false);
 
-                // Check existing connection
+                // 检查现有连接
                 if (PrefabUtility.GetPrefabInstanceStatus(targetGo) != PrefabInstanceStatus.NotAPrefab && !forceapply)
                 {
                     return Response.Error($"GameObject '{targetGo.name}' is already connected to a prefab. Use 'force_apply': true to override.");
                 }
 
-                // Record undo operation
+                // 记录撤销操作
                 Undo.RecordObject(targetGo, $"Connect '{targetGo.name}' to prefab '{prefabAsset.name}'");
 
-                // Connect to prefab - Use modernAPI
-                // Check firstGameObjectWhether compatible with prefab
+                // 连接到预制体 - 使用现代API
+                // 先检查GameObject是否与预制体兼容
                 bool canConnect = CanGameObjectConnectToPrefab(targetGo, prefabAsset);
                 if (!canConnect && !forceapply)
                 {
@@ -172,18 +172,18 @@ namespace UnityMcp.Tools
                 GameObject connectedInstance;
                 if (forceapply)
                 {
-                    // Force connect：Create a new prefab instance first，Then replace original object
+                    // 强制连接：先创建一个新的预制体实例，然后替换原对象
                     GameObject newInstance = PrefabUtility.InstantiatePrefab(prefabAsset) as GameObject;
                     if (newInstance != null)
                     {
-                        // Copy transform info
+                        // 复制变换信息
                         newInstance.transform.SetParent(targetGo.transform.parent);
                         newInstance.transform.localPosition = targetGo.transform.localPosition;
                         newInstance.transform.localRotation = targetGo.transform.localRotation;
                         newInstance.transform.localScale = targetGo.transform.localScale;
                         newInstance.name = targetGo.name;
 
-                        // Delete original object
+                        // 删除原对象
                         Undo.DestroyObjectImmediate(targetGo);
                         connectedInstance = newInstance;
                     }
@@ -194,7 +194,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Attempt replacement of component method
+                    // 尝试使用替换组件的方式
                     connectedInstance = ReplaceWithPrefabInstance(targetGo, prefabAsset);
                     if (connectedInstance == null)
                     {
@@ -204,7 +204,7 @@ namespace UnityMcp.Tools
 
                 LogInfo($"[Hierarchyapply] Successfully connected GameObject '{targetGo.name}' to prefab '{resolvedPath}'");
 
-                // Select object after connect
+                // 选择连接后的对象
                 Selection.activeGameObject = connectedInstance;
 
                 return Response.Success(
@@ -220,13 +220,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply prefab instance changes to prefab asset
+        /// 应用预制体实例的更改到预制体资源
         /// </summary>
         private object ApplyPrefabChanges(JsonClass args)
         {
             try
             {
-                // Get targetGameObject
+                // 获取目标GameObject
                 JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
@@ -239,13 +239,13 @@ namespace UnityMcp.Tools
                     return Response.Error($"Target GameObject '{targetToken}' not found.");
                 }
 
-                // Check if it is a prefab instance
+                // 检查是否为预制体实例
                 if (PrefabUtility.GetPrefabInstanceStatus(targetGo) == PrefabInstanceStatus.NotAPrefab)
                 {
                     return Response.Error($"GameObject '{targetGo.name}' is not a prefab instance.");
                 }
 
-                // Get prefab asset
+                // 获取预制体资源
                 GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(targetGo);
                 if (prefabAsset == null)
                 {
@@ -254,7 +254,7 @@ namespace UnityMcp.Tools
 
                 string prefabPath = AssetDatabase.GetAssetPath(prefabAsset);
 
-                // Apply prefab changes
+                // 应用预制体更改
                 PrefabUtility.ApplyPrefabInstance(targetGo, InteractionMode.UserAction);
 
                 LogInfo($"[Hierarchyapply] Applied changes from instance '{targetGo.name}' to prefab '{prefabPath}'");
@@ -272,13 +272,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// DisconnectGameObjectConnection with prefab
+        /// 断开GameObject与预制体的连接
         /// </summary>
         private object BreakPrefabConnection(JsonClass args)
         {
             try
             {
-                // Get targetGameObject
+                // 获取目标GameObject
                 JsonNode targetToken = args["target_object"];
                 if (targetToken == null)
                 {
@@ -291,27 +291,27 @@ namespace UnityMcp.Tools
                     return Response.Error($"Target GameObject '{targetToken}' not found.");
                 }
 
-                // Check if it is a prefab instance
+                // 检查是否为预制体实例
                 if (PrefabUtility.GetPrefabInstanceStatus(targetGo) == PrefabInstanceStatus.NotAPrefab)
                 {
                     return Response.Error($"GameObject '{targetGo.name}' is not connected to a prefab.");
                 }
 
-                // Get prefab info（Before disconnecting）
+                // 获取预制体信息（在断开前）
                 GameObject prefabAsset = PrefabUtility.GetCorrespondingObjectFromSource(targetGo);
                 string prefabName = prefabAsset != null ? prefabAsset.name : "Unknown";
 
-                // Record undo operation
+                // 记录撤销操作
                 Undo.RecordObject(targetGo, $"Break prefab connection for '{targetGo.name}'");
 
-                // Disconnect prefab connection
-                // Note：UnpackPrefabInstance Method in someUnityMay be unavailable in version
+                // 断开预制体连接
+                // 注意：UnpackPrefabInstance 方法在某些Unity版本中可能不可用
                 // PrefabUtility.UnpackPrefabInstance(targetGo, PrefabUnpackMode.Completely, InteractionMode.UserAction);
                 LogWarning($"[Hierarchyapply] UnpackPrefabInstance method not supported in current Unity version");
 
                 LogInfo($"[Hierarchyapply] Successfully broke prefab connection for GameObject '{targetGo.name}'");
 
-                // Select objects after disconnecting
+                // 选择断开连接后的对象
                 Selection.activeGameObject = targetGo;
 
                 return Response.Success(
@@ -327,17 +327,17 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CheckGameObjectWhether can connect to specified prefab
+        /// 检查GameObject是否可以连接到指定的预制体
         /// </summary>
         private bool CanGameObjectConnectToPrefab(GameObject gameObject, GameObject prefabAsset)
         {
             try
             {
-                // Basic check：Compare component types
+                // 基本检查：比较组件类型
                 var gameObjectComponents = gameObject.GetComponents<Component>().Select(c => c.GetType()).ToArray();
                 var prefabComponents = prefabAsset.GetComponents<Component>().Select(c => c.GetType()).ToArray();
 
-                // All components of prefab inGameObjectShould all exist in
+                // 预制体的所有组件在GameObject中都应该存在
                 foreach (var prefabComponentType in prefabComponents)
                 {
                     if (!gameObjectComponents.Contains(prefabComponentType))
@@ -357,13 +357,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Replace with prefab instanceGameObject
+        /// 用预制体实例替换GameObject
         /// </summary>
         private GameObject ReplaceWithPrefabInstance(GameObject originalGo, GameObject prefabAsset)
         {
             try
             {
-                // Record transforms of original object
+                // 记录原对象的变换信息
                 Transform originalTransform = originalGo.transform;
                 Transform parentTransform = originalTransform.parent;
                 Vector3 localPosition = originalTransform.localPosition;
@@ -372,14 +372,14 @@ namespace UnityMcp.Tools
                 string originalName = originalGo.name;
                 int siblingIndex = originalTransform.GetSiblingIndex();
 
-                // Create prefab instance
+                // 创建预制体实例
                 GameObject newInstance = PrefabUtility.InstantiatePrefab(prefabAsset) as GameObject;
                 if (newInstance == null)
                 {
                     return null;
                 }
 
-                // Set transform info
+                // 设置变换信息
                 newInstance.transform.SetParent(parentTransform);
                 newInstance.transform.localPosition = localPosition;
                 newInstance.transform.localRotation = localRotation;
@@ -387,10 +387,10 @@ namespace UnityMcp.Tools
                 newInstance.name = originalName;
                 newInstance.transform.SetSiblingIndex(siblingIndex);
 
-                // Try copying compatible component properties
+                // 尝试复制兼容的组件属性
                 CopyCompatibleComponentProperties(originalGo, newInstance);
 
-                // Delete original object
+                // 删除原对象
                 Undo.DestroyObjectImmediate(originalGo);
 
                 LogInfo($"[Hierarchyapply] Replaced GameObject with prefab instance: '{originalName}'");
@@ -404,7 +404,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Copy compatible component properties
+        /// 复制兼容的组件属性
         /// </summary>
         private void CopyCompatibleComponentProperties(GameObject source, GameObject target)
         {
@@ -420,14 +420,14 @@ namespace UnityMcp.Tools
                     var targetComp = targetComponents.FirstOrDefault(tc => tc != null && tc.GetType() == sourceComp.GetType());
                     if (targetComp != null)
                     {
-                        // Copy serialized fields
+                        // 复制序列化字段
                         var serializedObject = new SerializedObject(sourceComp);
                         var targetSerializedObject = new SerializedObject(targetComp);
 
                         SerializedProperty iterator = serializedObject.GetIterator();
                         while (iterator.NextVisible(true))
                         {
-                            if (iterator.name == "m_Script") continue; // Skip script references
+                            if (iterator.name == "m_Script") continue; // 跳过脚本引用
 
                             var targetProperty = targetSerializedObject.FindProperty(iterator.propertyPath);
                             if (targetProperty != null && targetProperty.propertyType == iterator.propertyType)
@@ -449,11 +449,11 @@ namespace UnityMcp.Tools
         // --- Shared Utility Methods ---
 
         /// <summary>
-        /// Parse prefab path
+        /// 解析预制体路径
         /// </summary>
         private string ResolvePrefabPath(string prefabPath)
         {
-            // If no path separator and no.prefabExtension，Search prefab
+            // 如果没有路径分隔符且没有.prefab扩展名，搜索预制体
             if (!prefabPath.Contains("/") && !prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 string prefabNameOnly = prefabPath;
@@ -462,7 +462,7 @@ namespace UnityMcp.Tools
                 string[] guids = AssetDatabase.FindAssets($"t:Prefab {prefabNameOnly}");
                 if (guids.Length == 0)
                 {
-                    return null; // Not found
+                    return null; // 未找到
                 }
                 else if (guids.Length > 1)
                 {
@@ -476,7 +476,7 @@ namespace UnityMcp.Tools
             }
             else if (!prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
-                // Auto add.prefabExtension
+                // 自动添加.prefab扩展名
                 LogInfo($"[Hierarchyapply] Adding .prefab extension to path: '{prefabPath}'");
                 return prefabPath + ".prefab";
             }
@@ -485,7 +485,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// LookupGameObject，For linking operation
+        /// 查找GameObject，用于链接操作
         /// </summary>
         private GameObject FindObjectByIdOrNameOrPath(JsonNode targetToken)
         {
@@ -493,7 +493,7 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(searchTerm))
                 return null;
 
-            // Try byIDLookup
+            // 尝试按ID查找
             if (int.TryParse(searchTerm, out int id))
             {
                 var allObjects = GameObjectUtils.GetAllSceneObjects(true);
@@ -502,12 +502,12 @@ namespace UnityMcp.Tools
                     return objById;
             }
 
-            // Try searching by path
+            // 尝试按路径查找
             GameObject objByPath = GameObject.Find(searchTerm);
             if (objByPath != null)
                 return objByPath;
 
-            // Try to search by name
+            // 尝试按名称查找
             var allObjectsName = GameObjectUtils.GetAllSceneObjects(true);
             return allObjectsName.FirstOrDefault(go => go.name == searchTerm);
         }

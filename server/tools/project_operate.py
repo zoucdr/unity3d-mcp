@@ -1,5 +1,5 @@
 """
-UnityProject operation tool，Includes project asset management。
+Unity项目操作工具，包含项目资源管理功能。
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -12,53 +12,53 @@ def register_project_operate_tools(mcp: FastMCP):
     def project_operate(
         ctx: Context,
         action: Annotated[str, Field(
-            title="Project operation type",
-            description="Project operation to perform: refresh(Refresh project), import_asset(Import assets), export_package(Export package), create_folder(Create folders), delete_asset(Delete assets), tree(Get folder structure)",
+            title="项目操作类型",
+            description="要执行的项目操作: refresh(刷新项目), import_asset(导入资源), export_package(导出包), create_folder(创建文件夹), delete_asset(删除资源), tree(获取文件夹结构)",
             examples=["refresh", "import_asset", "export_package", "create_folder", "delete_asset", "tree"]
         )],
         path: Annotated[Optional[str], Field(
-            title="Asset path",
-            description="Asset path，UnityStandard format：Assets/Folder/File.extension，treeRoot directory path for the operation（DefaultAssets）",
+            title="资产路径",
+            description="资产路径，Unity标准格式：Assets/Folder/File.extension，tree操作时为根目录路径（默认Assets）",
             default=None,
             examples=["Assets/NewFolder", "Assets/Scripts", "Assets/Prefabs"]
         )] = None,
         target_path: Annotated[Optional[str], Field(
-            title="Target path",
-            description="Target path（Move/Used when copying）",
+            title="目标路径",
+            description="目标路径（移动/复制时使用）",
             default=None,
             examples=["Assets/NewFolder", "Assets/Models/model.fbx"]
         )] = None,
         source_path: Annotated[Optional[str], Field(
-            title="Source path",
-            description="Source file path，Only whenimport_assetUsed during operation",
+            title="源路径",
+            description="源文件路径，仅在import_asset操作时使用",
             default=None,
             examples=["D:/Models/character.fbx", "C:/Textures/grass.png"]
         )] = None,
         package_name: Annotated[Optional[str], Field(
-            title="Package name",
-            description="Name of the exported package，Only whenexport_packageUsed during operation",
+            title="包名称",
+            description="导出包的名称，仅在export_package操作时使用",
             default=None,
             examples=["MyAssets.unitypackage", "ScriptsPackage"]
         )] = None,
         include_dependencies: Annotated[bool, Field(
-            title="Include dependencies",
-            description="Whether to include asset dependencies，Suitable forexport_packageOperation",
+            title="包含依赖",
+            description="是否包含资源的依赖项，适用于export_package操作",
             default=True
         )] = True
     ) -> Dict[str, Any]:
-        """UnityProject operation tool，Used to perform various project operations。（Secondary tool）
+        """Unity项目操作工具，用于执行各种项目管理操作。（二级工具）
 
-        Supports multiple project operations，Suitable for：
-        - Asset management：Import external assets into the project
-        - Project organization：Create folder structure，Delete unnecessary assets
-        - Package management：Export packages for sharing or backup
-        - Project maintenance：Refresh project status，Clean invalid references
-        - Folder structure：ViewAssetsFolder hierarchy and file count under the directory（YAMLFormat）
+        支持多种项目操作，适用于：
+        - 资源管理：导入外部资源文件到项目中
+        - 项目组织：创建文件夹结构，删除不需要的资源
+        - 包管理：导出资源包用于分享或备份
+        - 项目维护：刷新项目状态，清理无效引用
+        - 文件夹结构：查看Assets目录下的文件夹层次结构和文件数量（YAML格式）
 
         """
         
-        # ⚠️ Important notes：This function only provides parameter docs
-        # Use in actual calls single_call Function
-        # Example：single_call(func="project_operate", args={"action": "refresh"})
+        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
+        # 实际调用请使用 single_call 函数
+        # 示例：single_call(func="project_operate", args={"action": "refresh"})
         
         return get_common_call_response("project_operate")

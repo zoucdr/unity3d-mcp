@@ -1,6 +1,6 @@
 """
-prefab management tool
-specially manageUnityprefab asset in，provide prefab creation、modify、copy、instantiate and related actions
+预制体管理工具
+专门管理Unity中的预制体资源，提供预制体的创建、修改、复制、实例化等操作
 """
 
 from typing import Dict, Any, Optional, List
@@ -15,128 +15,128 @@ def register_edit_prefab_tools(mcp: FastMCP):
         ctx: Context,
         action: str = Field(
             ...,
-            title="operation type",
-            description="operation type",
+            title="操作类型",
+            description="操作类型",
             examples=["create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack", "create_variant", "connect_to_prefab", "apply_changes", "revert_changes", "break_connection"]
         ),
         path: str = Field(
             ...,
-            title="prefab asset path",
-            description="prefab asset path，Unitystandard format：Assets/Prefabs/PrefabName.prefab",
+            title="预制体资源路径",
+            description="预制体资源路径，Unity标准格式：Assets/Prefabs/PrefabName.prefab",
             examples=["Assets/Prefabs/Player.prefab", "Assets/Prefabs/Enemy.prefab"]
         ),
         source_object: Optional[str] = Field(
             None,
-            title="sourceGameObjectname or path",
-            description="sourceGameObjectname or path（used when creating）",
+            title="源GameObject名称或路径",
+            description="源GameObject名称或路径（创建时使用）",
             examples=["Player", "Enemy", "Canvas/UI/Button"]
         ),
         destination: Optional[str] = Field(
             None,
-            title="target path",
-            description="target path（used when copying）",
+            title="目标路径",
+            description="目标路径（复制时使用）",
             examples=["Assets/Prefabs/PlayerCopy.prefab", "Assets/Prefabs/EnemyVariant.prefab"]
         ),
         query: Optional[str] = Field(
             None,
-            title="search mode",
-            description="search mode，such as*.prefab",
+            title="搜索模式",
+            description="搜索模式，如*.prefab",
             examples=["*.prefab", "Player*", "Enemy*"]
         ),
         recursive: Optional[bool] = Field(
             True,
-            title="recursive search",
-            description="recursively search subfolders"
+            title="递归搜索",
+            description="是否递归搜索子文件夹"
         ),
         force: Optional[bool] = Field(
             False,
-            title="force execute",
-            description="whether to force execution（overwrite existing files etc）"
+            title="强制执行",
+            description="是否强制执行操作（覆盖现有文件等）"
         ),
         prefab_variant: Optional[bool] = Field(
             False,
-            title="prefab variant",
-            description="create prefab variant"
+            title="预制体变体",
+            description="是否创建预制体变体"
         ),
         unpack_mode: Optional[str] = Field(
             None,
-            title="unpack mode",
-            description="unpack mode：Completely, OutermostRoot",
+            title="解包模式",
+            description="解包模式：Completely, OutermostRoot",
             examples=["Completely", "OutermostRoot"]
         ),
         pack_mode: Optional[str] = Field(
             None,
-            title="pack mode",
-            description="pack mode：Default, ReuseExisting",
+            title="打包模式",
+            description="打包模式：Default, ReuseExisting",
             examples=["Default", "ReuseExisting"]
         ),
         connect_to_prefab: Optional[bool] = Field(
             None,
-            title="connect to prefab",
-            description="connect to prefab"
+            title="连接到预制体",
+            description="是否连接到预制体"
         ),
         apply_prefab_changes: Optional[bool] = Field(
             None,
-            title="apply prefab changes",
-            description="apply prefab changes"
+            title="应用预制体更改",
+            description="是否应用预制体更改"
         ),
         revert_prefab_changes: Optional[bool] = Field(
             None,
-            title="revert prefab changes",
-            description="revert prefab changes"
+            title="还原预制体更改",
+            description="是否还原预制体更改"
         ),
         break_prefab_connection: Optional[bool] = Field(
             None,
-            title="break prefab connection",
-            description="break prefab connection"
+            title="断开预制体连接",
+            description="是否断开预制体连接"
         ),
         prefab_type: Optional[str] = Field(
             None,
-            title="prefab type",
-            description="prefab type：Regular, Variant",
+            title="预制体类型",
+            description="预制体类型：Regular, Variant",
             examples=["Regular", "Variant"]
         ),
         parent_prefab: Optional[str] = Field(
             None,
-            title="parent prefab path",
-            description="parent prefab path（used for variant）",
+            title="父预制体路径",
+            description="父预制体路径（变体时使用）",
             examples=["Assets/Prefabs/BaseEnemy.prefab"]
         ),
         scene_path: Optional[str] = Field(
             None,
-            title="scene path",
-            description="scene path（used when instantiating）",
+            title="场景路径",
+            description="场景路径（实例化时使用）",
             examples=["Assets/Scenes/MainScene.unity"]
         ),
         position: Optional[List[float]] = Field(
             None,
-            title="position coordinates",
-            description="position coordinates [x, y, z]",
+            title="位置坐标",
+            description="位置坐标 [x, y, z]",
             examples=[[0, 0, 0], [1, 2, 3]]
         ),
         rotation: Optional[List[float]] = Field(
             None,
-            title="rotation",
-            description="rotation [x, y, z]",
+            title="旋转角度",
+            description="旋转角度 [x, y, z]",
             examples=[[0, 0, 0], [0, 90, 0]]
         ),
         scale: Optional[List[float]] = Field(
             None,
-            title="scale",
-            description="scale [x, y, z]",
+            title="缩放比例",
+            description="缩放比例 [x, y, z]",
             examples=[[1, 1, 1], [2, 2, 2]]
         ),
         parent_path: Optional[str] = Field(
             None,
-            title="parent object name or path",
-            description="parent object name or path",
+            title="父对象名称或路径",
+            description="父对象名称或路径",
             examples=["Canvas", "Environment", "Player"]
         )
     ) -> Dict[str, Any]:
         """
-        prefab management tool，supported operations: 
+        预制体管理工具，支持操作: 
         
-        create(create), modify(modify), duplicate(copy), get_info(get info), search(search), instantiate(instantiate), unpack(unpack), pack(pack), create_variant(create variant), connect_to_prefab(connect), apply_changes(apply changes), revert_changes(revert changes), break_connection(disconnect)
+        create(创建), modify(修改), duplicate(复制), get_info(获取信息), search(搜索), instantiate(实例化), unpack(解包), pack(打包), create_variant(创建变体), connect_to_prefab(连接), apply_changes(应用更改), revert_changes(还原更改), break_connection(断开连接)
         """
 
         return get_common_call_response("edit_prefab")

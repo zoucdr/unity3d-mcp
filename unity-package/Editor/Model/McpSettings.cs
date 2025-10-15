@@ -6,29 +6,29 @@ using UnityMcp.Gui;
 namespace UnityMcp
 {
     /// <summary>
-    /// MCPSettings manager，Used for managementMCPRelated configuration and preferences
-    /// Save toProjectSettings/McpSettings.asset
+    /// MCP设置管理器，用于管理MCP相关的配置和偏好设置
+    /// 保存到ProjectSettings/McpSettings.asset
     /// </summary>
     [FilePath("ProjectSettings/McpSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpSettings : ScriptableSingleton<McpSettings>
     {
         /// <summary>
-        /// UISetting
+        /// UI设置
         /// </summary>
         public McpUISettings uiSettings;
 
         /// <summary>
-        /// FigmaSetting
+        /// Figma设置
         /// </summary>
         public FigmaSettings figmaSettings;
 
         /// <summary>
-        /// GetMCPSettings instance
+        /// 获取MCP设置实例
         /// </summary>
         public static McpSettings Instance => instance;
 
         /// <summary>
-        /// Save settings
+        /// 保存设置
         /// </summary>
         public void SaveSettings()
         {

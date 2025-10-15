@@ -8,33 +8,33 @@ using System.Text;
 namespace UnityMcp
 {
     /// <summary>
-    /// StateTreeExecution context wrapper class，SupportJSONSerialized fields and non-serialized object references
+    /// StateTree执行上下文包装类，支持JSON序列化字段和非序列化对象引用
     /// </summary>
     public class StateTree
     {
-        public string key;                         // Variable at current layer
+        public string key;                         // 当前层变量
         public Dictionary<object, StateTree> select = new();
-        public HashSet<string> optionalParams = new(); // Storage for optional parameterskey
-        public Func<JsonClass, object> func;     // Leaf function（Backward compatibility，Already from JsonClass Migrate to JSONClass）
-        public Func<StateTreeContext, object> contextFunc; // New context leaf function
-        public const string Default = "*";          // Wildcard identifier
-        public string ErrorMessage;//Execute error message
+        public HashSet<string> optionalParams = new(); // 存储可选参数的key
+        public Func<JsonClass, object> func;     // 叶子函数（向后兼容，已从 JsonClass 迁移到 JSONClass）
+        public Func<StateTreeContext, object> contextFunc; // 新的上下文叶子函数
+        public const string Default = "*";          // 通配标识
+        public string ErrorMessage;//执行错误信息
 
-        /* Implicit conversion：Action → Leaf node（Backward compatibility，Already from JsonClass Migrate to JSONClass） */
+        /* 隐式转换：Action → 叶子节点（向后兼容，已从 JsonClass 迁移到 JSONClass） */
         public static implicit operator StateTree(Func<JsonClass, object> a) => new() { func = a };
 
-        /* Implicit conversion：ContextAction → Leaf node（New version） */
+        /* 隐式转换：ContextAction → 叶子节点（新版本） */
         public static implicit operator StateTree(Func<StateTreeContext, object> a) => new() { contextFunc = a };
 
-        /* Run：Along the unique path of the tree（JSONClass Context，Backward compatibility） */
+        /* 运行：沿树唯一路径（JSONClass 上下文，向后兼容） */
         public object Run(JsonClass ctx, Dictionary<string, object> dict = null)
         {
-            // Convert toStateTreeContextAnd call the new version'sRunMethod
+            // 转换为StateTreeContext并调用新版本的Run方法
             StateTreeContext context = new StateTreeContext(ctx, dict ?? new Dictionary<string, object>());
             return Run(context);
         }
 
-        /* Run：Along the unique path of the tree（StateTreeContext Context） */
+        /* 运行：沿树唯一路径（StateTreeContext 上下文） */
         public object Run(StateTreeContext ctx)
         {
             var cur = this;
@@ -43,38 +43,38 @@ namespace UnityMcp
                 object keyToLookup = Default;
                 StateTree next = null;
 
-                // First check if there is a regular (matching)keyMatch
+                // 首先检查是否有常规的key匹配
                 if (!string.IsNullOrEmpty(cur.key) && ctx != null && ctx.TryGetJsonValue(cur.key, out JsonNode token))
                 {
                     keyToLookup = ConvertTokenToKey(token);
                     cur.select.TryGetValue(keyToLookup, out next);
                 }
 
-                // If no regular match is found，Check optional parameters
+                // 如果没有找到常规匹配，检查可选参数
                 if (next == null && ctx != null)
                 {
-                    // Find all optional parameter keys
+                    // 查找所有可选参数键
                     foreach (var kvp in cur.select)
                     {
-                        if (kvp.Key == null) continue; // SkipnullKey
+                        if (kvp.Key == null) continue; // 跳过null键
 
                         string key = kvp.Key.ToString();
                         if (!string.IsNullOrEmpty(key) && cur.optionalParams.Contains(key))
                         {
-                            // Check if parameter exists and is not empty
+                            // 检查参数是否存在且不为空
                             if (ctx.TryGetJsonValue(key, out JsonNode paramToken) &&
                                 paramToken != null &&
                                 paramToken.type != JsonNodeType.Null &&
                                 !string.IsNullOrEmpty(paramToken.Value))
                             {
                                 next = kvp.Value;
-                                break; // Use the first matching optional parameter found
+                                break; // 找到第一个匹配的可选参数就使用它
                             }
                         }
                     }
                 }
 
-                // If still not found，Try default branch
+                // 如果还是没有找到，尝试默认分支
                 if (next == null && !cur.select.TryGetValue(Default, out next))
                 {
                     var supportedKeys = cur.select.Keys
@@ -82,7 +82,7 @@ namespace UnityMcp
                         .Select(k => k?.ToString() ?? "null")
                         .ToList();
 
-                    // Add optional parameter to supported key list
+                    // 添加可选参数到支持的键列表
                     var optionalKeys = cur.select.Keys
                         .Where(k => k != null && cur.optionalParams.Contains(k.ToString()))
                         .Select(k => k.ToString() + " (optional)")
@@ -100,7 +100,7 @@ namespace UnityMcp
                 cur = next;
             }
 
-            // Prefer to use new versioncontextFunc，If notfunc
+            // 优先使用新版本的contextFunc，如果没有则回退到旧版本的func
             if (cur.contextFunc != null)
             {
                 return cur.contextFunc.Invoke(ctx);
@@ -143,7 +143,7 @@ namespace UnityMcp
                 return token.Value;
             }
 
-            // JsonData Type directly returns value
+            // JsonData 类型直接返回值
             if (token is JsonData jsonData && !string.IsNullOrEmpty(jsonData.Value))
             {
                 return jsonData.Value;
@@ -152,16 +152,16 @@ namespace UnityMcp
             return token.Value;
         }
 
-        /* Beautified print（Unicode Box line） */
+        /* 美化打印（Unicode 框线） */
         public void Print(StringBuilder sb, string indent = "", bool last = true, string parentEdgeLabel = null)
         {
-            // Root node：Print title
+            // 根节点：打印标题
             if (string.IsNullOrEmpty(indent))
             {
                 sb.AppendLine($"{indent}StateTree");
             }
 
-            // If current node has key，Print node once key（Avoid duplicating parent edge tag）
+            // 若当前节点有 key，打印一次节点 key（避免与父边标签重复）
             string edgesIndent = indent;
             if (!string.IsNullOrEmpty(key) && key != parentEdgeLabel)
             {
@@ -169,7 +169,7 @@ namespace UnityMcp
                 edgesIndent = indent + "   ";
             }
 
-            // Enumerate and print the edges of the current node（entry.Key As edge tag）
+            // 枚举并打印当前节点的边（entry.Key 为边标签）
             var entries = select.ToList();
             for (int i = 0; i < entries.Count; i++)
             {
@@ -178,7 +178,7 @@ namespace UnityMcp
                 string connector = isLastChild ? "└─" : "├─";
                 string label = entry.Key?.ToString() == Default ? "*" : entry.Key?.ToString();
 
-                // If it is an optional parameter，Add(option)Identifier
+                // 如果是可选参数，添加(option)标识
                 if (!string.IsNullOrEmpty(label) && optionalParams.Contains(label))
                 {
                     label = label + "(option)";
@@ -199,16 +199,16 @@ namespace UnityMcp
                 }
                 else
                 {
-                    // Print edge tag
+                    // 打印边标签
                     sb.AppendLine($"{edgesIndent}{connector} {label}");
-                    // Recursively to child nodes；If the child node's key Different from the edge tag，Then print it in the subhierarchy key
+                    // 递归到子节点；如果子节点的 key 与边标签不同，则在子层级打印该 key
                     string nextIndent = edgesIndent + (isLastChild ? "   " : "│  ");
                     entry.Value.Print(sb, nextIndent, isLastChild, label);
                 }
             }
         }
         /// <summary>
-        /// OverrideToStringMethod，Used to print state tree
+        /// 重写ToString方法，用于打印状态树
         /// </summary>
         /// <returns></returns>
         public override string ToString()

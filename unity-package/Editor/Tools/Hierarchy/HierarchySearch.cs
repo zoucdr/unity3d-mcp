@@ -15,13 +15,13 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles GameObject search and find operations in the scene hierarchy.
-    /// Corresponding method name: hierarchy_search
+    /// 对应方法名: hierarchy_search
     /// </summary>
-    [ToolName("hierarchy_search", "Hierarchy management")]
+    [ToolName("hierarchy_search", "层级管理")]
     public class HierarchySearch : StateMethodBase
     {
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -47,18 +47,18 @@ namespace UnityMcp.Tools
                     .Leaf("by_layer", HandleSearchByLayer)
                     .Leaf("by_component", HandleSearchByComponent)
                     .Leaf("by_query", HandleSearchByquery)
-                .DefaultLeaf(HandleDefaultSearch) // Add default handler
+                .DefaultLeaf(HandleDefaultSearch) // 添加默认处理函数
                 .Build();
         }
 
         /// <summary>
-        /// Default search handler - When not specifiedsearch_typeUse name-based search for
+        /// 默认搜索处理函数 - 当没有指定search_type时使用按名称搜索
         /// </summary>
         private object HandleDefaultSearch(JsonClass args)
         {
             string query = args["query"]?.Value;
 
-            // If hasqueryParameter，Default to name-based search
+            // 如果有query参数，默认使用按名称搜索
             if (!string.IsNullOrEmpty(query))
             {
                 return HandleSearchByName(args);
@@ -70,7 +70,7 @@ namespace UnityMcp.Tools
         // --- State Tree Action Handlers ---
 
         /// <summary>
-        /// Name-based searchGameObject
+        /// 按名称搜索GameObject
         /// </summary>
         private object HandleSearchByName(JsonClass args)
         {
@@ -86,7 +86,7 @@ namespace UnityMcp.Tools
 
             List<GameObject> foundObjects = new List<GameObject>();
 
-            // Exact name search - UseUnityBuiltinAPI
+            // 精确名称搜索 - 使用Unity内置API
             GameObject exactMatch = GameObject.Find(query);
             if (exactMatch != null && (searchInInactive || exactMatch.activeInHierarchy))
             {
@@ -95,16 +95,16 @@ namespace UnityMcp.Tools
 
             if (findAll || foundObjects.Count == 0)
             {
-                // Search all from current sceneGameObject
+                // 从当前场景搜索所有GameObject
                 GameObject[] allObjects = GetAllGameObjectsInActiveScene(searchInInactive);
 
-                // Check if wildcard present
+                // 检查是否包含通配符
                 bool hasWildcards = query.Contains('*');
                 Regex regex = null;
 
                 if (hasWildcards)
                 {
-                    // Convert wildcard to regex
+                    // 将通配符转换为正则表达式
                     string regexPattern = ConvertWildcardToRegex(query);
                     try
                     {
@@ -112,7 +112,7 @@ namespace UnityMcp.Tools
                     }
                     catch (ArgumentException)
                     {
-                        // If regex invalid，Fallback to normal search
+                        // 如果正则表达式无效，回退到普通搜索
                         hasWildcards = false;
                     }
                 }
@@ -143,7 +143,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// ByIDSearchGameObject
+        /// 按ID搜索GameObject
         /// </summary>
         private object HandleSearchById(JsonClass args)
         {
@@ -157,7 +157,7 @@ namespace UnityMcp.Tools
 
             List<GameObject> foundObjects = new List<GameObject>();
 
-            // Attempt parseIDAnd lookup
+            // 尝试解析ID并查找
             if (int.TryParse(query, out int instanceId))
             {
                 GameObject found = EditorUtility.InstanceIDToObject(instanceId) as GameObject;
@@ -171,7 +171,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Tag-based searchGameObject
+        /// 按标签搜索GameObject
         /// </summary>
         private object HandleSearchByTag(JsonClass args)
         {
@@ -186,13 +186,13 @@ namespace UnityMcp.Tools
 
             List<GameObject> foundObjects = new List<GameObject>();
 
-            // UseUnityBuiltinFindGameObjectsWithTagMethod
+            // 使用Unity内置的FindGameObjectsWithTag方法
             GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(searchTerm);
             foundObjects.AddRange(taggedObjects);
 
             if (searchInInactive)
             {
-                // Search inactive objects - Get from current scene
+                // 搜索非激活对象 - 从当前场景获取
                 GameObject[] allObjects = GetAllGameObjectsInActiveScene(true);
                 foreach (GameObject go in allObjects)
                 {
@@ -207,7 +207,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Hierarchy-based searchGameObject
+        /// 按层级搜索GameObject
         /// </summary>
         private object HandleSearchByLayer(JsonClass args)
         {
@@ -222,14 +222,14 @@ namespace UnityMcp.Tools
 
             List<GameObject> foundObjects = new List<GameObject>();
 
-            // Get hierarchy index
+            // 获取层级索引
             int layerIndex = LayerMask.NameToLayer(searchTerm);
             if (layerIndex == -1)
             {
                 return Response.Error($"Layer '{searchTerm}' not found.");
             }
 
-            // Search current sceneGameObject
+            // 从当前场景搜索GameObject
             GameObject[] allObjects = GetAllGameObjectsInActiveScene(searchInInactive);
 
             foreach (GameObject go in allObjects)
@@ -244,7 +244,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Component-based searchGameObject
+        /// 按组件搜索GameObject
         /// </summary>
         private object HandleSearchByComponent(JsonClass args)
         {
@@ -259,14 +259,14 @@ namespace UnityMcp.Tools
 
             List<GameObject> foundObjects = new List<GameObject>();
 
-            // Try to get component type
+            // 尝试获取组件类型
             Type componentType = GetComponentType(searchTerm);
             if (componentType == null)
             {
                 return Response.Error($"Component type '{searchTerm}' not found.");
             }
 
-            // Search specified component from current sceneGameObject
+            // 从当前场景搜索包含指定组件的GameObject
             GameObject[] allObjects = GetAllGameObjectsInActiveScene(searchInInactive);
 
             foreach (GameObject go in allObjects)
@@ -281,7 +281,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Search by general termGameObject
+        /// 按通用术语搜索GameObject
         /// </summary>
         private object HandleSearchByquery(JsonClass args)
         {
@@ -296,7 +296,7 @@ namespace UnityMcp.Tools
                 return Response.Error("Search term is required for by_query search.");
             }
 
-            // Check if type-based search（t:TypeName Format）
+            // 检查是否是类型搜索（t:TypeName 格式）
             bool isTypeSearch = false;
             string typeName = null;
             if (searchTerm.StartsWith("t:", StringComparison.OrdinalIgnoreCase))
@@ -309,18 +309,18 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Handle search mode：Wildcard、Regex or normal text
+            // 处理搜索模式：通配符、正则表达式或普通文本
             Regex regex = null;
             bool isPatternMatch = false;
 
             if (!isTypeSearch)
             {
-                // Check if wildcard present
+                // 检查是否包含通配符
                 bool hasWildcards = searchTerm.Contains('*');
 
                 if (useRegex)
                 {
-                    // Directly use regex
+                    // 直接使用正则表达式
                     try
                     {
                         regex = new Regex(searchTerm, RegexOptions.IgnoreCase);
@@ -333,7 +333,7 @@ namespace UnityMcp.Tools
                 }
                 else if (hasWildcards)
                 {
-                    // Convert wildcard to regex
+                    // 将通配符转换为正则表达式
                     string regexPattern = ConvertWildcardToRegex(searchTerm);
                     try
                     {
@@ -348,9 +348,9 @@ namespace UnityMcp.Tools
             }
 
             List<GameObject> foundObjects = new List<GameObject>();
-            HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(); // Avoid duplication
+            HashSet<GameObject> uniqueObjects = new HashSet<GameObject>(); // 避免重复
 
-            // If type-based search，Directly useFindObjectsOfType
+            // 如果是类型搜索，直接使用FindObjectsOfType
             if (isTypeSearch)
             {
                 Type queryType = GetComponentType(typeName);
@@ -375,14 +375,14 @@ namespace UnityMcp.Tools
                 return CreateSearchResult(foundObjects, "type");
             }
 
-            // Search all from current sceneGameObject
+            // 从当前场景搜索所有GameObject
             GameObject[] allObjects = GetAllGameObjectsInActiveScene(searchInInactive);
 
             foreach (GameObject go in allObjects)
             {
                 bool matches = false;
 
-                // 1. Check name match
+                // 1. 检查名称匹配
                 if (isPatternMatch && regex != null)
                 {
                     if (regex.IsMatch(go.name))
@@ -398,7 +398,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 2. Check tag match
+                // 2. 检查标签匹配
                 if (!matches)
                 {
                     if (isPatternMatch && regex != null)
@@ -410,7 +410,7 @@ namespace UnityMcp.Tools
                     }
                     else
                     {
-                        // Safely check tag，Avoid undefined tag errors
+                        // 安全地检查标签，避免未定义标签的错误
                         try
                         {
                             if (go.CompareTag(searchTerm) || go.tag.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
@@ -420,12 +420,12 @@ namespace UnityMcp.Tools
                         }
                         catch (UnityException)
                         {
-                            // Tag not defined，Skip tag match
+                            // 标签未定义，跳过标签匹配
                         }
                     }
                 }
 
-                // 3. Check hierarchy match
+                // 3. 检查层级匹配
                 if (!matches)
                 {
                     string layerName = LayerMask.LayerToName(go.layer);
@@ -448,7 +448,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 4. Check component match
+                // 4. 检查组件匹配
                 if (!matches)
                 {
                     Component[] components = go.GetComponents<Component>();
@@ -477,7 +477,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // 5. Check child object name match（Default enabled）
+                // 5. 检查子对象名称匹配（默认启用）
                 if (!matches)
                 {
                     Transform[] children = go.GetComponentsInChildren<Transform>();
@@ -517,13 +517,13 @@ namespace UnityMcp.Tools
         // --- Helper Methods ---
 
         /// <summary>
-        /// Get all in active sceneGameObject
+        /// 获取当前激活场景中的所有GameObject
         /// </summary>
         private GameObject[] GetAllGameObjectsInActiveScene(bool includeInactive)
         {
             List<GameObject> allObjects = new List<GameObject>();
 
-            // Get root objects in active scene
+            // 获取当前激活场景的根对象
             Scene activeScene = SceneManager.GetActiveScene();
             if (!activeScene.IsValid())
             {
@@ -536,7 +536,7 @@ namespace UnityMcp.Tools
             {
                 if (includeInactive)
                 {
-                    // Include inactive objects，Get all child objects（Including inactives）
+                    // 包含非激活对象，获取所有子对象（包括非激活的）
                     Transform[] allTransforms = rootObj.GetComponentsInChildren<Transform>(true);
                     foreach (Transform t in allTransforms)
                     {
@@ -545,7 +545,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Active objects only
+                    // 只包含激活对象
                     if (rootObj.activeInHierarchy)
                     {
                         Transform[] activeTransforms = rootObj.GetComponentsInChildren<Transform>(false);
@@ -561,14 +561,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create search result
+        /// 创建搜索结果
         /// </summary>
         private object CreateSearchResult(List<GameObject> foundObjects, string searchType)
         {
-            // Build result data
+            // 构建结果数据
             var results = foundObjects.Select(go => Json.FromObject(GameObjectUtils.GetGameObjectData(go))).ToList();
 
-            // Build Chinese message
+            // 构建中文消息
             string message;
             if (results.Count == 0)
             {
@@ -579,7 +579,7 @@ namespace UnityMcp.Tools
                 message = $"Found {results.Count} GameObjects using {searchType}.";
             }
 
-            // Build result object，Include execution time、Success flag、Message and data
+            // 构建响应对象，包含执行时间、成功标志、消息和数据
             var response = new JsonClass
             {
                 ["success"] = true,
@@ -593,16 +593,16 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create search result containing full hierarchy
+        /// 创建包含完整层级信息的搜索结果
         /// </summary>
         private object CreateHierarchySearchResult(List<GameObject> foundObjects, string searchType, bool includeHierarchy)
         {
-            // Build result data - UseJObjectEnsure correct serialization
+            // 构建结果数据 - 使用JObject确保正确序列化
             var results = new List<JsonClass>();
 
             if (includeHierarchy)
             {
-                // Get full hierarchy data
+                // 获取完整的层级数据
                 foreach (var go in foundObjects)
                 {
                     var hierarchyData = GetCompleteHierarchyData(go);
@@ -611,14 +611,14 @@ namespace UnityMcp.Tools
             }
             else
             {
-                // Use standardGameObjectData
+                // 使用标准的GameObject数据
                 foreach (var go in foundObjects)
                 {
                     results.Add(GameObjectUtils.GetGameObjectData(go));
                 }
             }
 
-            // Build message
+            // 构建消息
             string message;
             if (results.Count == 0)
             {
@@ -630,7 +630,7 @@ namespace UnityMcp.Tools
                 message = $"Found {results.Count} GameObjects using {searchType}{hierarchyInfo}.";
             }
 
-            // Build result object，Ensure correct serialization
+            // 构建响应对象，确保正确序列化
             var response = new JsonClass
             {
                 ["success"] = true,
@@ -644,21 +644,21 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameObjectFull hierarchy data of（Full info of all child objects）
+        /// 获取GameObject的完整层级数据（包含所有子对象的完整信息）
         /// </summary>
         private JsonClass GetCompleteHierarchyData(GameObject go)
         {
             if (go == null)
                 return null;
 
-            // Get current object's basicYAMLData
+            // 获取当前对象的基本YAML数据
             var baseYaml = GameObjectUtils.GetGameObjectDataYaml(go);
 
-            // Create resultJSONClass
+            // 创建结果JSONClass
             JsonClass result = new JsonClass();
             result["yaml"] = baseYaml;
 
-            // Recursively obtain complete data for all child objects
+            // 递归获取所有子对象的完整数据
             if (go.transform.childCount > 0)
             {
                 JsonArray childrenArray = new JsonArray();
@@ -684,11 +684,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get component type
+        /// 获取组件类型
         /// </summary>
         private Type GetComponentType(string typeName)
         {
-            // Try from commonUnityGet by namespace
+            // 尝试从常见的Unity命名空间获取
             string[] commonNamespaces = {
                 "UnityEngine",
                 "UnityEngine.UI",
@@ -703,22 +703,22 @@ namespace UnityMcp.Tools
                     return type;
             }
 
-            // Try get type directly
+            // 尝试直接获取类型
             Type directType = Type.GetType(typeName);
             if (directType != null && typeof(UnityEngine.Object).IsAssignableFrom(directType))
                 return directType;
 
-            // Try searching from all loaded assemblies
+            // 尝试从所有已加载的程序集中查找
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
-                    // Try full name match first
+                    // 先尝试全名匹配
                     Type type = assembly.GetType(typeName);
                     if (type != null && typeof(UnityEngine.Object).IsAssignableFrom(type))
                         return type;
 
-                    // Then iterate all types，Try short name match
+                    // 再遍历所有类型，尝试短名匹配
                     foreach (var t in assembly.GetTypes())
                     {
                         if ((t.Name == typeName || t.FullName == typeName) &&
@@ -728,7 +728,7 @@ namespace UnityMcp.Tools
                 }
                 catch
                 {
-                    // Ignore inaccessible assemblies
+                    // 忽略无法访问的程序集
                     continue;
                 }
             }
@@ -737,22 +737,22 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Convert wildcard pattern to regex
+        /// 将通配符模式转换为正则表达式
         /// </summary>
-        /// <param name="wildcardPattern">Contains wildcard*Pattern of</param>
-        /// <returns>Regex string</returns>
+        /// <param name="wildcardPattern">包含通配符*的模式</param>
+        /// <returns>正则表达式字符串</returns>
         private string ConvertWildcardToRegex(string wildcardPattern)
         {
             if (string.IsNullOrEmpty(wildcardPattern))
                 return string.Empty;
 
-            // Escape special chars in regex，But keep wildcard*
+            // 转义正则表达式中的特殊字符，但保留通配符*
             string escaped = Regex.Escape(wildcardPattern);
 
-            // Escaped\*Replace as.*（Match any char）
+            // 将转义后的\*替换为.*（匹配任意字符）
             string regexPattern = escaped.Replace("\\*", ".*");
 
-            // Add anchor to ensure full match
+            // 添加锚点以确保完整匹配
             return $"^{regexPattern}$";
         }
     }

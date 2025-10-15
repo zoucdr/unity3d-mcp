@@ -17,9 +17,9 @@ namespace UnityMcp.Tools
     /// Handles GameObject modification operations using dual state tree architecture.
     /// First tree: Target location (using GameObjectSelector)
     /// Second tree: Property modification operations
-    /// Corresponding method name: gameobject_modify
+    /// 对应方法名: gameobject_modify
     /// </summary>
-    [ToolName("edit_gameobject", "Resource management")]
+    [ToolName("edit_gameobject", "资源管理")]
     public class EditGameObject : DualStateMethodBase
     {
         private HierarchyCreate hierarchyCreate;
@@ -32,18 +32,18 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                   // Target search parameters
+                   // 目标查找参数
                 new MethodKey("path", "Object Hierarchy path", false),
                 new MethodKey("instance_id", "Object InstanceID", true),
-                // Operation parameter
+                // 操作参数
                 new MethodKey("action", "Operation type: create, modify, get_components, add_component, remove_component, set_parent", false),
-                // Basic modification parameters
+                // 基本修改参数
                 new MethodKey("name", "GameObject name", true),
                 new MethodKey("tag", "GameObject tag", true),
                 new MethodKey("layer", "GameObject layer", true),
@@ -53,14 +53,14 @@ namespace UnityMcp.Tools
                 new MethodKey("rotation", "Rotation angles [x, y, z]", true),
                 new MethodKey("scale", "Scale ratios [x, y, z]", true),
                 new MethodKey("active", "Set active state", true),
-                // Component operation parameters
+                // 组件操作参数
                 new MethodKey("component_type", "Component name", true),
                 new MethodKey("component_properties", "Component properties dictionary", true),
             };
         }
 
         /// <summary>
-        /// Create target locating state tree（UseGameObjectDynamicSelector）
+        /// 创建目标定位状态树（使用GameObjectDynamicSelector）
         /// </summary>
         protected override StateTree CreateTargetTree()
         {
@@ -68,7 +68,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create operation execution state tree
+        /// 创建操作执行状态树
         /// </summary>
         protected override StateTree CreateActionTree()
         {
@@ -86,7 +86,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle create operation
+        /// 处理创建操作
         /// </summary>
         private object HandleCreateAction(StateTreeContext args)
         {
@@ -95,7 +95,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle modification operation
+        /// 处理修改操作
         /// </summary>
         private object HandleModifyAction(StateTreeContext args)
         {
@@ -107,18 +107,18 @@ namespace UnityMcp.Tools
 
             if (targets.Length == 1)
             {
-                // Single object modification
+                // 单个对象修改
                 return ApplyModifications(targets[0], args);
             }
             else
             {
-                // Batch modification
+                // 批量修改
                 return ApplyModificationsToMultiple(targets, args);
             }
         }
 
         /// <summary>
-        /// Default operation handling（Compatibility，Not specifiedactionUse whenmodify）
+        /// 默认操作处理（兼容性，不指定action时使用modify）
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
         {
@@ -131,11 +131,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Extract target from execution contextGameObjectArray
+        /// 从执行上下文中提取目标GameObject数组
         /// </summary>
         private GameObject[] ExtractTargetsFromContext(StateTreeContext context)
         {
-            // First try fromObjectReferencesGet（Avoid serialization issues）
+            // 先尝试从ObjectReferences获取（避免序列化问题）
             if (context.TryGetObjectReference("_resolved_targets", out object targetsObj))
             {
                 if (targetsObj is GameObject[] gameObjectArray)
@@ -161,7 +161,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Extract the first from target arrayGameObject（For actions requiring single target）
+        /// 从目标数组中提取第一个GameObject（用于需要单个目标的操作）
         /// </summary>
         private GameObject ExtractFirstTargetFromContext(StateTreeContext context)
         {
@@ -170,7 +170,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Check if batch operation is needed
+        /// 检查是否应该进行批量操作
         /// </summary>
         private bool ShouldSelectMany(StateTreeContext context)
         {
@@ -181,11 +181,11 @@ namespace UnityMcp.Tools
                 if (bool.TryParse(selectManyObj?.ToString(), out bool parsedSelectMany))
                     return parsedSelectMany;
             }
-            return false; // Default isfalse
+            return false; // 默认为false
         }
 
         /// <summary>
-        /// According toselect_manyGet target object from parameters（Single or multiple）
+        /// 根据select_many参数获取目标对象（单个或多个）
         /// </summary>
         private GameObject[] GetTargetsBasedOnSelectMany(StateTreeContext context)
         {
@@ -193,17 +193,17 @@ namespace UnityMcp.Tools
 
             if (ShouldSelectMany(context))
             {
-                return targets; // Return all matching objects
+                return targets; // 返回所有匹配的对象
             }
             else
             {
-                // Only return the first object（If exists）
+                // 只返回第一个对象（如果存在）
                 return targets.Length > 0 ? new GameObject[] { targets[0] } : new GameObject[0];
             }
         }
 
         /// <summary>
-        /// Handle set parent operation
+        /// 处理设置父级操作
         /// </summary>
         private object HandleSetParentAction(StateTreeContext args)
         {
@@ -225,7 +225,7 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// Apply modification toGameObject
+        /// 应用修改到GameObject
         /// </summary>
         private object ApplyModifications(GameObject targetGo, StateTreeContext args)
         {
@@ -235,22 +235,22 @@ namespace UnityMcp.Tools
 
             bool modified = false;
 
-            // Apply name modification
+            // 应用名称修改
             modified |= ApplyNameModification(targetGo, args);
 
-            // Apply parent object modification
+            // 应用父对象修改
             modified |= ApplyParentModification(targetGo, args);
 
-            // Apply active state modification
+            // 应用激活状态修改
             modified |= ApplyActiveStateModification(targetGo, args);
 
-            // Apply tag modification
+            // 应用标签修改
             modified |= ApplyTagModification(targetGo, args);
 
-            // Apply hierarchy modification
+            // 应用层级修改
             modified |= ApplyLayerModification(targetGo, args);
 
-            // Apply transform modification
+            // 应用变换修改
             modified |= ApplyTransformModifications(targetGo, args);
 
             if (!modified)
@@ -269,7 +269,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply modifications to multipleGameObject
+        /// 应用修改到多个GameObject
         /// </summary>
         private object ApplyModificationsToMultiple(GameObject[] targets, StateTreeContext args)
         {
@@ -294,7 +294,7 @@ namespace UnityMcp.Tools
                         }
                         else
                         {
-                            // GetGameObjectDataNow returnYAMLFormat，Needs adaptation
+                            // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
                             results.Add(new Dictionary<string, object>
                             {
@@ -315,7 +315,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Build response message
+            // 构建响应消息
             string message;
             if (successCount == targets.Length)
             {
@@ -343,7 +343,7 @@ namespace UnityMcp.Tools
                 responseData["errors"] = errors;
             }
 
-            // If there are successful modifications，Return success response
+            // 如果有成功的修改，返回成功响应
             if (successCount > 0)
             {
                 return Response.Success(message, responseData);
@@ -355,7 +355,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply name modification
+        /// 应用名称修改
         /// </summary>
         private bool ApplyNameModification(GameObject targetGo, StateTreeContext args)
         {
@@ -372,7 +372,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply parent object modification
+        /// 应用父对象修改
         /// </summary>
         private bool ApplyParentModification(GameObject targetGo, StateTreeContext args)
         {
@@ -400,7 +400,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply active state modification
+        /// 应用激活状态修改
         /// </summary>
         private bool ApplyActiveStateModification(GameObject targetGo, StateTreeContext args)
         {
@@ -428,7 +428,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply tag modification
+        /// 应用标签修改
         /// </summary>
         private bool ApplyTagModification(GameObject targetGo, StateTreeContext args)
         {
@@ -487,7 +487,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply hierarchy modification
+        /// 应用层级修改
         /// </summary>
         private bool ApplyLayerModification(GameObject targetGo, StateTreeContext args)
         {
@@ -513,13 +513,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply transform modification
+        /// 应用变换修改
         /// </summary>
         private bool ApplyTransformModifications(GameObject targetGo, StateTreeContext args)
         {
             bool modified = false;
 
-            // GettransformParameters and convert toJSONArray（If needed）
+            // 获取transform参数并转换为JSONArray（如果需要）
             JsonArray positionArray = null;
             JsonArray rotationArray = null;
             JsonArray scaleArray = null;
@@ -564,10 +564,10 @@ namespace UnityMcp.Tools
 
 
 
-        #region Parent setting method
+        #region 父级设置方法
 
         /// <summary>
-        /// Set parent on single target
+        /// 在单个目标上设置父级
         /// </summary>
         private object SetParentOnSingleTarget(GameObject target, StateTreeContext args)
         {
@@ -575,12 +575,12 @@ namespace UnityMcp.Tools
             {
                 GameObject newParent = null;
 
-                // Only handleparent_idParameter
+                // 只处理parent_id参数
                 if (args.TryGetValue("parent_id", out object parentIdObj) && parentIdObj != null)
                 {
-                    // ThroughGameObjectUtils.FindObjectByIdOrPathFind parent
+                    // 通过GameObjectUtils.FindObjectByIdOrPath查找父级
                     newParent = GameObjectUtils.FindObjectByIdOrPath(Json.FromObject(parentIdObj));
-                    // Ifparent_idAs0Or not found，newParentAsnull，Indicates set as root object
+                    // 如果parent_id为0或找不到，newParent为null，表示设置为根对象
                 }
                 else if (args.TryGetValue("parent_path", out object parentPathObj) && parentPathObj != null)
                 {
@@ -591,13 +591,13 @@ namespace UnityMcp.Tools
                     return Response.Error("parent_id or parent_path is required for set_parent action.");
                 }
 
-                // Check circular references
+                // 检查循环引用
                 if (newParent != null && newParent.transform.IsChildOf(target.transform))
                 {
                     return Response.Error($"Cannot parent '{target.name}' to '{newParent.name}', as it would create a hierarchy loop.");
                 }
 
-                // Record undo operation
+                // 记录撤销操作
                 Undo.RecordObject(target.transform, "Set Parent");
 
                 if (newParent != null)
@@ -625,7 +625,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Set parent on multiple targets
+        /// 在多个目标上设置父级
         /// </summary>
         private object SetParentOnMultipleTargets(GameObject[] targets, StateTreeContext args)
         {
@@ -673,10 +673,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Component operation methods
+        #region 组件操作方法
 
         /// <summary>
-        /// Handle get component operation
+        /// 处理获取组件的操作
         /// </summary>
         private object HandleGetComponentsAction(StateTreeContext args)
         {
@@ -697,7 +697,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle add component operation
+        /// 处理添加组件的操作
         /// </summary>
         private object HandleAddComponentAction(StateTreeContext args)
         {
@@ -718,7 +718,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle remove component operation
+        /// 处理移除组件的操作
         /// </summary>
         private object HandleRemoveComponentAction(StateTreeContext args)
         {
@@ -739,7 +739,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle setting component property operation
+        /// 处理设置组件属性的操作
         /// </summary>
         private object HandleSetComponentPropertyAction(StateTreeContext args)
         {
@@ -761,7 +761,7 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Core method for component operation
+        #region 组件操作核心方法
 
         private object GetComponentsFromTarget(GameObject targetGo)
         {
@@ -783,7 +783,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// From multiplesGameObjectGet component
+        /// 从多个GameObject获取组件
         /// </summary>
         private object GetComponentsFromMultipleTargets(GameObject[] targets)
         {
@@ -960,7 +960,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Batch add component to multiplesGameObject
+        /// 批量添加组件到多个GameObject
         /// </summary>
         private object AddComponentToMultipleTargets(StateTreeContext cmd, GameObject[] targets)
         {
@@ -985,7 +985,7 @@ namespace UnityMcp.Tools
                         }
                         else
                         {
-                            // GetGameObjectDataNow returnYAMLFormat，Needs adaptation
+                            // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
                             results.Add(new Dictionary<string, object>
                             {
@@ -1010,7 +1010,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Batch remove component from multiplesGameObject
+        /// 批量移除组件从多个GameObject
         /// </summary>
         private object RemoveComponentFromMultipleTargets(StateTreeContext cmd, GameObject[] targets)
         {
@@ -1035,7 +1035,7 @@ namespace UnityMcp.Tools
                         }
                         else
                         {
-                            // GetGameObjectDataNow returnYAMLFormat，Needs adaptation
+                            // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
                             results.Add(new Dictionary<string, object>
                             {
@@ -1060,7 +1060,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Set component property in batch over multiplesGameObjectOn
+        /// 批量设置组件属性在多个GameObject上
         /// </summary>
         private object SetComponentPropertyOnMultipleTargets(StateTreeContext cmd, GameObject[] targets)
         {
@@ -1085,7 +1085,7 @@ namespace UnityMcp.Tools
                         }
                         else
                         {
-                            // GetGameObjectDataNow returnYAMLFormat，Needs adaptation
+                            // GetGameObjectData现在返回YAML格式，需要适配
                             var gameObjectData = GetGameObjectData(targetGo);
                             results.Add(new Dictionary<string, object>
                             {
@@ -1110,7 +1110,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CheckResponseWhether object indicates success
+        /// 检查Response对象是否表示成功
         /// </summary>
         private bool IsSuccessResponse(object response, out object data, out string message)
         {
@@ -1133,7 +1133,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create batch operation response
+        /// 创建批量操作响应
         /// </summary>
         private object CreateBatchOperationResponse(string operation, int successCount, int totalCount,
             List<Dictionary<string, object>> results, List<string> errors)
@@ -1178,7 +1178,7 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Component helper methods
+        #region 组件辅助方法
 
         /// <summary>
         /// Removes a component by type name.
@@ -1886,10 +1886,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Helper search methods
+        #region 辅助查找方法
 
         /// <summary>
-        /// Find parentGameObject（For setting parent relationships）
+        /// 查找父GameObject（用于设置父级关系）
         /// </summary>
         private GameObject FindParentGameObject(JsonNode parentToken)
         {
@@ -1900,7 +1900,7 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(parentIdentifier))
                 return null;
 
-            // UseGameObjectDynamicSelectorTo find parent object
+            // 使用GameObjectDynamicSelector来查找父对象
             var selector = new ObjectSelector<GameObject>();
             JsonClass findArgs = new JsonClass();
             findArgs["id"] = parentIdentifier;
@@ -1910,24 +1910,24 @@ namespace UnityMcp.Tools
 
             if (result is GameObject[] gameObjects && gameObjects.Length > 0)
             {
-                return gameObjects[0]; // Return the first object found
+                return gameObjects[0]; // 返回找到的第一个对象
             }
 
             return null;
         }
 
         /// <summary>
-        /// Find component type
+        /// 查找组件类型
         /// </summary>
         /// <summary>
-        /// Find component type，Iterate all loaded assemblies，Name or fullname match and inherits fromComponentSufficient
+        /// 查找组件类型，遍历所有已加载的程序集，名字或全名匹配且继承自Component即可
         /// </summary>
         private Type FindComponentType(string componentName)
         {
             if (string.IsNullOrEmpty(componentName))
                 return null;
 
-            // Iterate all loaded assemblies
+            // 遍历所有已加载的程序集
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies)
             {
@@ -1938,7 +1938,7 @@ namespace UnityMcp.Tools
                 }
                 catch
                 {
-                    // Some dynamic assemblies may throw exception，Ignore
+                    // 某些动态程序集可能抛异常，忽略
                     continue;
                 }
 
@@ -1947,7 +1947,7 @@ namespace UnityMcp.Tools
                     if (!typeof(Component).IsAssignableFrom(type))
                         continue;
 
-                    // Match by name or full name
+                    // 名字或全名匹配即可
                     if (type.Name == componentName || type.FullName == componentName)
                     {
                         return type;
@@ -1958,7 +1958,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Add component toGameObjectInternal implementation
+        /// 添加组件到GameObject的内部实现
         /// </summary>
         private object AddComponentInternal(GameObject targetGo, string typeName, JsonClass properties)
         {
@@ -1968,7 +1968,7 @@ namespace UnityMcp.Tools
                 return Response.Error($"Component type '{typeName}' not found.");
             }
 
-            // Check if component already exists（For non-duplicable components）
+            // 检查是否已经存在该组件（对于不允许重复的组件）
             if (componentType == typeof(Transform) || componentType == typeof(RectTransform))
             {
                 return Response.Error($"Cannot add component '{typeName}' because it already exists or is not allowed to be duplicated.");
@@ -1996,13 +1996,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameObjectData representation - Use optimizedYAMLFormat
+        /// 获取GameObject的数据表示 - 使用优化的YAML格式
         /// </summary>
         private object GetGameObjectData(GameObject go)
         {
             if (go == null) return null;
 
-            // Use unifiedYAMLFormat，Greatly reducetokenUsage
+            // 使用统一的YAML格式，大幅减少token使用量
             var yamlData = GameObjectUtils.GetGameObjectDataYaml(go);
             return new { yaml = yamlData };
         }

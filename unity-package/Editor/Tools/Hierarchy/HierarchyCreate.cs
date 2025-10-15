@@ -15,34 +15,34 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles GameObject creation operations in the scene hierarchy.
-    /// Corresponding method name: hierarchy_create
-    /// Support: menu, primitive, prefab, empty, copy
+    /// 对应方法名: hierarchy_create
+    /// 支持: menu, primitive, prefab, empty, copy
     /// </summary>
-    [ToolName("hierarchy_create", "Hierarchy management")]
+    [ToolName("hierarchy_create", "层级管理")]
     public class HierarchyCreate : StateMethodBase
     {
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("name", "GameObjectName", false),
-                new MethodKey("source", "Operation type：menu, primitive, prefab, empty, copy", false),
-                new MethodKey("tag", "GameObjectTag", true),
-                new MethodKey("layer", "GameObjectLayer", true),
-                new MethodKey("parent", "Parent object name or path", true),
-                new MethodKey("parent_id", "Parent object uniqueid", true),
-                new MethodKey("position", "Position coordinate [x, y, z]", true),
-                new MethodKey("rotation", "Rotation angle [x, y, z]", true),
-                new MethodKey("scale", "Scale factor [x, y, z]", true),
-                new MethodKey("primitive_type", "Primitive type：Cube, Sphere, Cylinder, Capsule, Plane, Quad", true),
-                new MethodKey("prefab_path", "Prefab path", true),
-                new MethodKey("menu_path", "Menu path", true),
-                new MethodKey("copy_source", "To be copiedGameObjectName", true),
-                new MethodKey("save_as_prefab", "Whether to save as prefab", true),
-                new MethodKey("set_active", "Set activation state", true),
+                new MethodKey("name", "GameObject名称", false),
+                new MethodKey("source", "操作类型：menu, primitive, prefab, empty, copy", false),
+                new MethodKey("tag", "GameObject标签", true),
+                new MethodKey("layer", "GameObject所在层", true),
+                new MethodKey("parent", "父对象名称或路径", true),
+                new MethodKey("parent_id", "父对象唯一id", true),
+                new MethodKey("position", "位置坐标 [x, y, z]", true),
+                new MethodKey("rotation", "旋转角度 [x, y, z]", true),
+                new MethodKey("scale", "缩放比例 [x, y, z]", true),
+                new MethodKey("primitive_type", "基元类型：Cube, Sphere, Cylinder, Capsule, Plane, Quad", true),
+                new MethodKey("prefab_path", "预制体路径", true),
+                new MethodKey("menu_path", "菜单路径", true),
+                new MethodKey("copy_source", "要复制的GameObject名称", true),
+                new MethodKey("save_as_prefab", "是否保存为预制体", true),
+                new MethodKey("set_active", "设置激活状态", true),
             };
         }
 
@@ -71,7 +71,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Async download 
+        /// 异步下载 
         /// </summary>
         /// <param name="ctx"></param>
         /// <returns></returns>
@@ -92,14 +92,14 @@ namespace UnityMcp.Tools
                 LogInfo($"[HierarchyCreate] Menu path adjusted: '{menuPath}'");
             }
 
-            // Record selected object before creating
+            // 记录创建前的选中对象
             GameObject previousSelection = Selection.activeGameObject;
             int previousSelectionID = previousSelection != null ? previousSelection.GetInstanceID() : 0;
 
-            // Execute menu item
+            // 执行菜单项
             JsonClass menuResult = MenuUtils.TryExecuteMenuItem(menuPath);
 
-            // Check menu execution result
+            // 检查菜单执行结果
             if (!menuResult["success"].AsBoolDefault(false))
             {
                 LogInfo($"[HierarchyCreate] Menu execution failed: {menuResult}");
@@ -107,7 +107,7 @@ namespace UnityMcp.Tools
                 yield break;
             }
 
-            // Try detecting newly created object multiple times，Menu creation may take time
+            // 多次尝试检测新创建的对象，因为菜单创建可能需要时间
             GameObject newObject = null;
             int maxRetries = 10;
             int retryCount = 0;
@@ -116,7 +116,7 @@ namespace UnityMcp.Tools
             {
                 newObject = Selection.activeGameObject;
 
-                // Check if a new object was found
+                // 检查是否找到了新对象
                 if (newObject != null &&
                     (previousSelection == null || newObject.GetInstanceID() != previousSelectionID))
                 {
@@ -127,37 +127,37 @@ namespace UnityMcp.Tools
                 retryCount++;
                 if (retryCount < maxRetries)
                 {
-                    // Optimize coroutine call：Between each retryyield return null，Wait one frame
+                    // 优化携程调用：每次重试之间yield return null，等待一帧
                     yield return null;
                 }
             }
 
-            // If found a new object，Perform settings
+            // 如果找到了新对象，进行设置
             if (newObject != null &&
                 (previousSelection == null || newObject.GetInstanceID() != previousSelectionID))
             {
-                // Wait another frame，Ensure object is fully initialized
+                // 再次等待一帧，确保对象完全初始化
                 yield return null;
 
                 LogInfo($"[HierarchyCreate] Finalizing newly created object: '{newObject.name}' (ID: {newObject.GetInstanceID()})");
 
-                // Deselect first to exit rename mode
+                // 先取消选中以退出重命名模式
                 Selection.activeGameObject = null;
 
-                // Force quit edit mode
+                // 强制退出编辑状态
                 EditorGUIUtility.editingTextField = false;
                 GUIUtility.keyboardControl = 0;
                 EditorGUIUtility.keyboardControl = 0;
 
-                // SendESCKey event
+                // 发送ESC键事件
                 Event escapeEvent = new Event();
                 escapeEvent.type = EventType.KeyDown;
                 escapeEvent.keyCode = KeyCode.Escape;
                 EditorWindow.focusedWindow?.SendEvent(escapeEvent);
 
-                yield return null; // Wait one frame
+                yield return null; // 等待一帧
 
-                // Apply other settings（Name、Location etc.）
+                // 应用其他设置（名称、位置等）
                 var finalizeResult = FinalizeGameObjectCreation(ctx.JsonData, newObject, false);
                 LogInfo($"[HierarchyCreate] Finalization result: {finalizeResult}");
                 yield return finalizeResult;
@@ -165,7 +165,7 @@ namespace UnityMcp.Tools
             }
             else
             {
-                // If no new object found，But menu executed successfully
+                // 如果没有找到新对象，但菜单执行成功
                 LogInfo($"[HierarchyCreate] Menu executed but no new object was detected after {maxRetries} retries. Previous: {previousSelection?.name}, Current: {newObject?.name}");
                 yield return Response.Success($"Menu item '{menuPath}' executed successfully, but no new GameObject was detected.");
                 yield break;
@@ -173,7 +173,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creation from menuGameObjectOperation of
+        /// 处理从菜单创建GameObject的操作
         /// </summary>
         private object HandleCreateFromMenu(StateTreeContext ctx)
         {
@@ -181,7 +181,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creation from prefabGameObjectOperation of
+        /// 处理从预制体创建GameObject的操作
         /// </summary>
         private object HandleCreateFromPrefab(JsonClass args)
         {
@@ -196,14 +196,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creation from primitive typeGameObjectOperation of
+        /// 处理从基元类型创建GameObject的操作
         /// </summary>
         private object HandleCreateFromPrimitive(JsonClass args)
         {
             string primitiveType = args["primitive_type"]?.Value;
             if (string.IsNullOrEmpty(primitiveType))
             {
-                // Default useCubeAs primitive type
+                // 默认使用Cube作为基元类型
                 primitiveType = "Cube";
                 LogInfo("[HierarchyCreate] No primitive_type specified, using default: Cube");
             }
@@ -213,7 +213,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationCubeOperation of
+        /// 处理创建Cube的操作
         /// </summary>
         private object HandleCreateCube(JsonClass args)
         {
@@ -222,7 +222,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationSphereOperation of
+        /// 处理创建Sphere的操作
         /// </summary>
         private object HandleCreateSphere(JsonClass args)
         {
@@ -231,7 +231,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationCylinderOperation of
+        /// 处理创建Cylinder的操作
         /// </summary>
         private object HandleCreateCylinder(JsonClass args)
         {
@@ -240,7 +240,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationCapsuleOperation of
+        /// 处理创建Capsule的操作
         /// </summary>
         private object HandleCreateCapsule(JsonClass args)
         {
@@ -249,7 +249,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationPlaneOperation of
+        /// 处理创建Plane的操作
         /// </summary>
         private object HandleCreatePlane(JsonClass args)
         {
@@ -258,7 +258,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle creationQuadOperation of
+        /// 处理创建Quad的操作
         /// </summary>
         private object HandleCreateQuad(JsonClass args)
         {
@@ -267,7 +267,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle create emptyGameObjectOperation of（Create via code directly，Smart handlingUI/NonUIObject）
+        /// 处理创建空GameObject的操作（直接代码创建，智能处理UI/非UI对象）
         /// </summary>
         private object HandleCreateEmpty(JsonClass args)
         {
@@ -282,13 +282,13 @@ namespace UnityMcp.Tools
 
             try
             {
-                // Preselect parent object（If specified）
+                // 预先选中父对象（如果指定了）
                 GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
 
-                // Get parent object
+                // 获取父对象
                 GameObject parentObject = Selection.activeGameObject;
 
-                // Check if parent object hasRectTransform（UIElement）
+                // 检查父对象是否有RectTransform（UI元素）
                 bool parentIsUI = parentObject != null && parentObject.GetComponent<RectTransform>() != null;
 
                 LogInfo($"[HierarchyCreate] Parent is UI: {parentIsUI}, creating appropriate empty object");
@@ -297,10 +297,10 @@ namespace UnityMcp.Tools
 
                 if (parentIsUI)
                 {
-                    // InUICreate under parent object，Need to addRectTransform
+                    // 在UI父对象下创建，需要添加RectTransform
                     newGo = new GameObject(name, typeof(RectTransform));
 
-                    // Set parent object（Second parameterfalseIndicate to keep local coordinates）
+                    // 设置父对象（第二个参数false表示保持本地坐标）
                     if (parentObject != null)
                     {
                         newGo.transform.SetParent(parentObject.transform, false);
@@ -310,10 +310,10 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Normal object，Create directly
+                    // 普通对象，直接创建
                     newGo = new GameObject(name);
 
-                    // Set parent object（If has）
+                    // 设置父对象（如果有）
                     if (parentObject != null)
                     {
                         newGo.transform.SetParent(parentObject.transform, true);
@@ -322,12 +322,12 @@ namespace UnityMcp.Tools
                     LogInfo($"[HierarchyCreate] Created standard GameObject: '{newGo.name}'");
                 }
 
-                // Register undo action
+                // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Create Empty GameObject '{newGo.name}'");
 
                 LogInfo($"[HierarchyCreate] Finalizing empty object: '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
-                // Apply other settings（Name、Location etc.）
+                // 应用其他设置（名称、位置等）
                 return FinalizeGameObjectCreation(args, newGo, true);
             }
             catch (Exception e)
@@ -338,7 +338,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle operations copied from existing objects
+        /// 处理从现有对象复制的操作
         /// </summary>
         private object HandleCreateFromCopy(JsonClass args)
         {
@@ -355,16 +355,16 @@ namespace UnityMcp.Tools
         // --- Core Creation Methods ---
 
         /// <summary>
-        /// Create from prefabGameObject
+        /// 从预制体创建GameObject
         /// </summary>
         private object CreateGameObjectFromPrefab(JsonClass args, string prefabPath)
         {
             try
             {
-                // Preselect parent object（If specified）
+                // 预先选中父对象（如果指定了）
                 GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
 
-                // Handle prefab path lookup logic
+                // 处理预制体路径查找逻辑
                 string resolvedPath = ResolvePrefabPath(prefabPath);
                 if (string.IsNullOrEmpty(resolvedPath))
                 {
@@ -379,7 +379,7 @@ namespace UnityMcp.Tools
                     return Response.Error($"Failed to load prefab asset at: '{resolvedPath}'");
                 }
 
-                // Instantiate prefab
+                // 实例化预制体
                 GameObject newGo = PrefabUtility.InstantiatePrefab(prefabAsset) as GameObject;
                 if (newGo == null)
                 {
@@ -387,17 +387,17 @@ namespace UnityMcp.Tools
                     return Response.Error($"Failed to instantiate prefab: '{resolvedPath}'");
                 }
 
-                // WaitUnityComplete object initialization
+                // 等待Unity完成对象初始化
                 //Thread.Sleep(10);
 
-                // Set name
+                // 设置名称
                 string name = args["name"]?.Value;
                 if (!string.IsNullOrEmpty(name))
                 {
                     newGo.name = name;
                 }
 
-                // Register undo action
+                // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Instantiate Prefab '{prefabAsset.name}' as '{newGo.name}'");
                 LogInfo($"[HierarchyCreate] Instantiated prefab '{prefabAsset.name}' source path '{resolvedPath}' as '{newGo.name}'");
 
@@ -411,22 +411,22 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create from primitiveGameObject
+        /// 从基元类型创建GameObject
         /// </summary>
         private object CreateGameObjectFromPrimitive(JsonClass args, string primitiveType)
         {
             try
             {
-                // Preselect parent object（If specified）
+                // 预先选中父对象（如果指定了）
                 GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
 
                 PrimitiveType type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), primitiveType, true);
                 GameObject newGo = GameObject.CreatePrimitive(type);
 
-                // WaitUnityComplete object initialization
+                // 等待Unity完成对象初始化
                 //Thread.Sleep(10);
 
-                // Set name
+                // 设置名称
                 string name = args["name"]?.Value;
                 if (!string.IsNullOrEmpty(name))
                 {
@@ -437,7 +437,7 @@ namespace UnityMcp.Tools
                     LogInfo("[HierarchyCreate] 'name' parameter is recommended when creating a primitive.");
                 }
 
-                // Register undo action
+                // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Create GameObject '{newGo.name}'");
                 return FinalizeGameObjectCreation(args, newGo, true);
             }
@@ -455,20 +455,20 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// From existingGameObjectCopy and create new object
+        /// 从现有GameObject复制创建新对象
         /// </summary>
         private object CreateGameObjectFromCopy(JsonClass args, string copySource)
         {
             try
             {
-                // Preselect parent object（If specified）
+                // 预先选中父对象（如果指定了）
                 GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
 
-                // Find source object
+                // 查找源对象
                 GameObject sourceObject = GameObject.Find(copySource);
                 if (sourceObject == null)
                 {
-                    // If direct search failed，Try searching in scene
+                    // 如果直接查找失败，尝试在场景中搜索
                     GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
                     sourceObject = allObjects.FirstOrDefault(go =>
                         go.name.Equals(copySource, StringComparison.OrdinalIgnoreCase));
@@ -482,7 +482,7 @@ namespace UnityMcp.Tools
 
                 LogInfo($"[HierarchyCreate] Found source object: '{sourceObject.name}' (ID: {sourceObject.GetInstanceID()})");
 
-                // Copy object
+                // 复制对象
                 GameObject newGo = UnityEngine.Object.Instantiate(sourceObject);
 
                 if (newGo == null)
@@ -491,10 +491,10 @@ namespace UnityMcp.Tools
                     return Response.Error($"Failed to instantiate copy of '{copySource}'");
                 }
 
-                // WaitUnityComplete object initialization
+                // 等待Unity完成对象初始化
                 //Thread.Sleep(10);
 
-                // Set name
+                // 设置名称
                 string name = args["name"]?.Value;
                 if (!string.IsNullOrEmpty(name))
                 {
@@ -502,11 +502,11 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Default to use source object's name（UnityWill auto add(Clone)Suffix）
+                    // 默认使用源对象名称（Unity会自动添加(Clone)后缀）
                     LogInfo($"[HierarchyCreate] No name specified, copied object named: '{newGo.name}'");
                 }
 
-                // Register undo action
+                // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Copy GameObject '{sourceObject.name}' as '{newGo.name}'");
 
                 LogInfo($"[HierarchyCreate] Successfully copied '{sourceObject.name}' to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
@@ -521,11 +521,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Parse prefab path
+        /// 解析预制体路径
         /// </summary>
         private string ResolvePrefabPath(string prefabPath)
         {
-            // If no path separator and no.prefabExtension name，Search prefab
+            // 如果没有路径分隔符且没有.prefab扩展名，搜索预制体
             if (!prefabPath.Contains("/") && !prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 string prefabNameOnly = prefabPath;
@@ -534,7 +534,7 @@ namespace UnityMcp.Tools
                 string[] guids = AssetDatabase.FindAssets($"t:Prefab {prefabNameOnly}");
                 if (guids.Length == 0)
                 {
-                    return null; // Not found
+                    return null; // 未找到
                 }
                 else if (guids.Length > 1)
                 {
@@ -548,7 +548,7 @@ namespace UnityMcp.Tools
             }
             else if (!prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
-                // Auto add.prefabExtension name
+                // 自动添加.prefab扩展名
                 LogInfo($"[HierarchyCreate] Adding .prefab extension to path: '{prefabPath}'");
                 return prefabPath + ".prefab";
             }
@@ -557,7 +557,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CompleteGameObjectGeneric settings for creation
+        /// 完成GameObject创建的通用设置
         /// </summary>
         private object FinalizeGameObjectCreation(JsonClass args, GameObject newGo, bool createdNewObject)
         {
@@ -570,16 +570,16 @@ namespace UnityMcp.Tools
             {
                 LogInfo($"[HierarchyCreate] Starting finalization for '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
-                // Record changes of transform and property
+                // 记录变换和属性的变更
                 Undo.RecordObject(newGo.transform, "Set GameObject Transform");
                 Undo.RecordObject(newGo, "Set GameObject Properties");
 
-                // Apply generic settings（Including name setting）
+                // 应用通用设置（包括名称设置）
                 GameObjectUtils.ApplyCommonGameObjectSettings(args, newGo, LogInfo);
 
                 LogInfo($"[HierarchyCreate] Applied settings to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
-                // Handle prefab save
+                // 处理预制体保存
                 GameObject finalInstance = newGo;
                 bool saveAsPrefab = args["save_as_prefab"].AsBoolDefault(false);
 
@@ -592,27 +592,27 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Deselect and exit rename mode
+                // 取消选中并退出重命名模式
                 Selection.activeGameObject = null;
 
-                // Delay call to ensure exit rename mode
+                // 延迟调用确保退出重命名状态
                 EditorApplication.delayCall += () =>
                 {
-                    // Attempt to exit edit status by multiple methods
+                    // 多种方法尝试退出编辑状态
                     Selection.activeGameObject = null;
                     EditorGUIUtility.editingTextField = false;
 
-                    // SendESCKey event to exit editing
+                    // 发送ESC键事件来退出编辑
                     Event escapeEvent = new Event();
                     escapeEvent.type = EventType.KeyDown;
                     escapeEvent.keyCode = KeyCode.Escape;
                     EditorWindow.focusedWindow?.SendEvent(escapeEvent);
 
-                    // Force end editing status
+                    // 强制结束编辑状态
                     GUIUtility.keyboardControl = 0;
                     EditorGUIUtility.keyboardControl = 0;
 
-                    // Refresh related windows
+                    // 刷新相关窗口
                     EditorApplication.RepaintHierarchyWindow();
                     if (EditorWindow.focusedWindow != null)
                     {
@@ -622,14 +622,14 @@ namespace UnityMcp.Tools
 
                 LogInfo($"[HierarchyCreate] Finalized '{finalInstance.name}' (ID: {finalInstance.GetInstanceID()})");
 
-                // Generate success message
+                // 生成成功消息
                 string successMessage = GenerateCreationSuccessMessage(args, finalInstance, createdNewObject, saveAsPrefab);
                 return Response.Success(successMessage, GameObjectUtils.GetGameObjectData(finalInstance));
             }
             catch (Exception e)
             {
                 LogError($"[HierarchyCreate] Error finalizing GameObject creation: {e.Message}");
-                // Clear failed objects
+                // 清理失败的对象
                 if (newGo != null)
                 {
                     UnityEngine.Object.DestroyImmediate(newGo);
@@ -641,7 +641,7 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// Handle prefab save
+        /// 处理预制体保存
         /// </summary>
         private GameObject HandlePrefabSaving(JsonClass args, GameObject newGo)
         {
@@ -661,7 +661,7 @@ namespace UnityMcp.Tools
 
             try
             {
-                // Ensure directory exists
+                // 确保目录存在
                 string directoryPath = System.IO.Path.GetDirectoryName(finalPrefabPath);
                 if (!string.IsNullOrEmpty(directoryPath) && !System.IO.Directory.Exists(directoryPath))
                 {
@@ -669,11 +669,11 @@ namespace UnityMcp.Tools
                     AssetDatabase.Refresh();
                     LogInfo($"[HierarchyCreate] Created directory for prefab: {directoryPath}");
 
-                    // WaitUnityComplete directory creation
+                    // 等待Unity完成目录创建
                     //Thread.Sleep(50);
                 }
 
-                // Save as prefab
+                // 保存为预制体
                 GameObject finalInstance = PrefabUtility.SaveAsPrefabAssetAndConnect(
                     newGo,
                     finalPrefabPath,
@@ -686,7 +686,7 @@ namespace UnityMcp.Tools
                     return null;
                 }
 
-                // Wait until prefab save completed
+                // 等待预制体保存完成
                 //Thread.Sleep(10);
 
                 LogInfo($"[HierarchyCreate] GameObject '{newGo.name}' saved as prefab to '{finalPrefabPath}' and instance connected.");
@@ -701,7 +701,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Generate create success message
+        /// 生成创建成功消息
         /// </summary>
         private string GenerateCreationSuccessMessage(JsonClass args, GameObject finalInstance, bool createdNewObject, bool saveAsPrefab)
         {

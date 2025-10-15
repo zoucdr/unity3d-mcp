@@ -5,17 +5,17 @@ using UnityMcp.Models;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// UnityObject selector interface
-    /// Define unified object search method
+    /// Unity对象选择器接口
+    /// 定义统一的对象查找方法
     /// </summary>
     public interface IObjectSelector
     {
         /// <summary>
-        /// Create list of parameter keys supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         MethodKey[] CreateKeys();
         /// <summary>
-        /// Build object search state tree
+        /// 构建对象查找状态树
         /// </summary>
         StateTree BuildStateTree();
     }

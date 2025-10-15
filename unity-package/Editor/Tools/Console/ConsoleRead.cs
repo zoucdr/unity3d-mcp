@@ -14,25 +14,25 @@ namespace UnityMcp.Tools
     /// <summary>
     /// Handles reading and clearing Unity Editor console log entries.
     /// Uses reflection to access internal LogEntry methods/properties.
-    /// Corresponding method name: console_reader
+    /// 对应方法名: console_reader
     /// </summary>
-    [ToolName("console_read", "Development tool")]
+    [ToolName("console_read", "开发工具")]
     public class ConsoleRead : StateMethodBase
     {
-        // Note：Actual console operation features have been moved to ConsoleController
+        // 注意：实际的控制台操作功能已移至 ConsoleController
 
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("action", "Operation type：get(No stack trace), get_full(Include stack trace), clear(Clear console)", false),
-                new MethodKey("types", "Message type list：error, warning, log，Default to all types", true),
-                new MethodKey("count", "Maximum number of messages returned，Fetch all if not set", true),
-                new MethodKey("filterText", "Text filter，Filter logs containing specified text", true),
-                new MethodKey("format", "Output format：plain, detailed, json，Defaultdetailed", true)
+                new MethodKey("action", "操作类型：get(无堆栈跟踪), get_full(包含堆栈跟踪), clear(清空控制台)", false),
+                new MethodKey("types", "消息类型列表：error, warning, log，默认全部类型", true),
+                new MethodKey("count", "最大返回消息数，不设置则获取全部", true),
+                new MethodKey("filterText", "文本过滤器，过滤包含指定文本的日志", true),
+                new MethodKey("format", "输出格式：plain, detailed, json，默认detailed", true)
             };
         }
 
@@ -60,10 +60,10 @@ namespace UnityMcp.Tools
                     .Leaf("clear", HandleClearAction)
                 .Build();
         }
-        // --- State Tree Action Handlers for GET (Stack trace not included) ---
+        // --- State Tree Action Handlers for GET (不包含堆栈跟踪) ---
 
         /// <summary>
-        /// Handle retrieving all console logs（No filter，Stack trace not included）Operation of
+        /// 处理获取全部控制台日志（无过滤，不包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetAllWithoutFilter(JsonClass args)
         {
@@ -71,7 +71,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving all console logs（With filter，Stack trace not included）Operation of
+        /// 处理获取全部控制台日志（有过滤，不包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetAllWithFilter(JsonClass args)
         {
@@ -80,7 +80,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving partial console logs（No filter，Stack trace not included）Operation of
+        /// 处理获取部分控制台日志（无过滤，不包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetPartialWithoutFilter(JsonClass args)
         {
@@ -89,7 +89,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving partial console logs（With filter，Stack trace not included）Operation of
+        /// 处理获取部分控制台日志（有过滤，不包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetPartialWithFilter(JsonClass args)
         {
@@ -98,10 +98,10 @@ namespace UnityMcp.Tools
             return GetConsoleEntriesInternal(args, count, filterText, false, $"{count} log entries (filtered by '{filterText}', no stacktrace)");
         }
 
-        // --- State Tree Action Handlers for GET_FULL (Include stack trace) ---
+        // --- State Tree Action Handlers for GET_FULL (包含堆栈跟踪) ---
 
         /// <summary>
-        /// Handle retrieving all console logs（No filter，Include stack trace）Operation of
+        /// 处理获取全部控制台日志（无过滤，包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetFullAllWithoutFilter(JsonClass args)
         {
@@ -109,7 +109,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving all console logs（With filter，Include stack trace）Operation of
+        /// 处理获取全部控制台日志（有过滤，包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetFullAllWithFilter(JsonClass args)
         {
@@ -118,7 +118,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving partial console logs（No filter，Include stack trace）Operation of
+        /// 处理获取部分控制台日志（无过滤，包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetFullPartialWithoutFilter(JsonClass args)
         {
@@ -127,7 +127,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle retrieving partial console logs（With filter，Include stack trace）Operation of
+        /// 处理获取部分控制台日志（有过滤，包含堆栈跟踪）的操作
         /// </summary>
         private object HandleGetFullPartialWithFilter(JsonClass args)
         {
@@ -137,11 +137,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Unified console log fetching logic
+        /// 统一的控制台日志获取逻辑
         /// </summary>
         private object GetConsoleEntriesInternal(JsonClass args, int? count, string filterText, bool includeStacktrace, string description)
         {
-            // Check ConsoleController Whether correctly initialized
+            // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
             {
                 if (McpConnect.EnableLog) Debug.LogError(
@@ -154,13 +154,13 @@ namespace UnityMcp.Tools
 
             try
             {
-                // Extract parameter
+                // 提取参数
                 var types = ExtractTypes(args);
                 string format = ExtractFormat(args);
 
                 LogInfo($"[ReadConsole] Getting {description}");
 
-                // Use ConsoleController Get console entries
+                // 使用 ConsoleController 获取控制台条目
                 var entries = ConsoleUtils.GetConsoleEntries(types, count, filterText, format, includeStacktrace);
                 return Response.Success(
                     $"Retrieved {entries.Count} log entries ({description}).",
@@ -175,11 +175,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle clearing of console
+        /// 处理清空控制台的操作
         /// </summary>
         private object HandleClearAction(JsonClass args)
         {
-            // Check ConsoleController Whether correctly initialized
+            // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
             {
                 if (McpConnect.EnableLog) Debug.LogError(
@@ -206,7 +206,7 @@ namespace UnityMcp.Tools
         // --- Parameter Extraction Helper Methods ---
 
         /// <summary>
-        /// Extract message type parameter
+        /// 提取消息类型参数
         /// </summary>
         private List<string> ExtractTypes(JsonClass args)
         {
@@ -235,7 +235,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Extract format parameter
+        /// 提取格式参数
         /// </summary>
         private string ExtractFormat(JsonClass args)
         {
@@ -245,7 +245,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Callback for handling unknown operations
+        /// 处理未知操作的回调方法
         /// </summary>
         private object HandleUnknownAction(JsonClass args)
         {
@@ -256,7 +256,7 @@ namespace UnityMcp.Tools
 
         // --- Internal Helper Methods ---
 
-        // Note：Original console operations have been relocated to ConsoleController In
+        // 注意：原来的控制台操作实现已移动到 ConsoleController 中
     }
 }
 

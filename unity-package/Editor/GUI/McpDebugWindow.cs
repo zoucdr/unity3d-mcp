@@ -10,7 +10,7 @@ using UnityMcp.Executer;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// MCPDebug client window - For testing and debuggingMCPFunction call
+    /// MCP调试客户端窗口 - 用于测试和调试MCP函数调用
     /// </summary>
     public class McpDebugWindow : EditorWindow
     {
@@ -23,9 +23,9 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Open debug window and prefill with specifiedJSONContent
+        /// 打开调试窗口并预填充指定的JSON内容
         /// </summary>
-        /// <param name="jsonContent">To prefillJSONContent</param>
+        /// <param name="jsonContent">要预填充的JSON内容</param>
         public static void ShowWindowWithContent(string jsonContent)
         {
             McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");
@@ -36,65 +36,65 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Set for input boxJSONContent
+        /// 设置输入框的JSON内容
         /// </summary>
-        /// <param name="jsonContent">JSONContent</param>
+        /// <param name="jsonContent">JSON内容</param>
         public void SetInputJson(string jsonContent)
         {
             if (!string.IsNullOrEmpty(jsonContent))
             {
                 inputJson = jsonContent;
-                ClearResults(); // Clear previous result
-                Repaint(); // Refresh UI
+                ClearResults(); // 清空之前的结果
+                Repaint(); // 刷新界面
             }
         }
 
-        // UIStatus variable
+        // UI状态变量
         private Vector2 inputScrollPosition;
         private Vector2 resultScrollPosition;
         private string inputJson = "{\n  \"func\": \"hierarchy_create\",\n  \"args\": {\n    \"from\": \"primitive\",\n    \"primitive_type\": \"Cube\",\n    \"name\": \"RedCube\",\n    \"position\": [\n      0,\n      0,\n      0\n    ]\n  }\n}";
         private string resultText = "";
         private bool showResult = false;
         private bool isExecuting = false;
-        private int currentExecutionIndex = 0; // Current executing task index
-        private int totalExecutionCount = 0; // Total task count
+        private int currentExecutionIndex = 0; // 当前执行的任务索引
+        private int totalExecutionCount = 0; // 总任务数
 
-        private JsonNode currentResult = null; // Store current execution result
+        private JsonNode currentResult = null; // 存储当前执行结果
 
-        // Execution record related variable
+        // 执行记录相关变量
         private ReorderableList recordList;
         private int selectedRecordIndex = -1;
-        private Vector2 recordScrollPosition; // Record list scroll position
+        private Vector2 recordScrollPosition; // 记录列表滚动位置
 
-        // Group related variables
-        private bool showGroupManager = false; // Whether to show group management UI
-        private string newGroupName = ""; // New group name
-        private string newGroupDescription = ""; // New group description
-        private Vector2 groupScrollPosition; // Group list scroll position
-        private int selectedGroupIndex = -1; // Selected group index
+        // 分组相关变量
+        private bool showGroupManager = false; // 是否显示分组管理界面
+        private string newGroupName = ""; // 新分组名称
+        private string newGroupDescription = ""; // 新分组描述
+        private Vector2 groupScrollPosition; // 分组列表滚动位置
+        private int selectedGroupIndex = -1; // 选中的分组索引
 
-        // Edit related variable
-        private int editingRecordIndex = -1; // Index of currently editing record
-        private string editingText = ""; // Editing text
-        private double lastClickTime = 0; // Last click time，For detecting double-click
-        private int lastClickedIndex = -1; // Last clicked index
-        private bool editingStarted = false; // Flag whether editing just started
+        // 编辑相关变量
+        private int editingRecordIndex = -1; // 当前正在编辑的记录索引
+        private string editingText = ""; // 编辑中的文本
+        private double lastClickTime = 0; // 上次点击时间，用于检测双击
+        private int lastClickedIndex = -1; // 上次点击的索引
+        private bool editingStarted = false; // 标记编辑是否刚开始
 
-        // Column layout related variable
-        private float splitterPos = 0.3f; // Default take left30%
+        // 分栏布局相关变量
+        private float splitterPos = 0.3f; // 默认左侧占30%
         private bool isDraggingSplitter = false;
         private const float SplitterWidth = 4f;
 
-        // Layout parameter
+        // 布局参数
         private const float MinInputHeight = 100f;
         private const float MaxInputHeight = 300f;
         private const float LineHeight = 16f;
         private const float ResultAreaHeight = 200f;
 
-        // Style
+        // 样式
         private GUIStyle headerStyle;
         private GUIStyle codeStyle;
-        private GUIStyle inputStyle;  // Style dedicated to input box
+        private GUIStyle inputStyle;  // 专门用于输入框的样式
         private GUIStyle resultStyle;
         private ToolsCall methodsCall = new ToolsCall();
         private void InitializeStyles()
@@ -113,11 +113,11 @@ namespace UnityMcp.Gui
             {
                 codeStyle = new GUIStyle(EditorStyles.textArea)
                 {
-                    wordWrap = true,  // Enable word wrap
+                    wordWrap = true,  // 启用自动换行
                     fontSize = 12,
                     fontStyle = FontStyle.Normal,
-                    stretchWidth = false,  // Do not auto stretch，Use fixed width
-                    stretchHeight = true   // Stretch to fit container height
+                    stretchWidth = false,  // 不自动拉伸，使用固定宽度
+                    stretchHeight = true   // 拉伸以适应容器高度
                 };
             }
 
@@ -125,14 +125,14 @@ namespace UnityMcp.Gui
             {
                 inputStyle = new GUIStyle(EditorStyles.textArea)
                 {
-                    wordWrap = true,        // Force enable word wrap
+                    wordWrap = true,        // 强制启用自动换行
                     fontSize = 12,
                     fontStyle = FontStyle.Normal,
                     normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.9f, 0.9f, 0.9f) : Color.black },
-                    stretchWidth = false,   // Do not auto stretch width
-                    stretchHeight = true,   // Allow height stretch
-                    fixedWidth = 0,         // Not fixed width
-                    fixedHeight = 0,        // Not fixed height
+                    stretchWidth = false,   // 不自动拉伸宽度
+                    stretchHeight = true,   // 允许高度拉伸
+                    fixedWidth = 0,         // 不使用固定宽度
+                    fixedHeight = 0,        // 不使用固定高度
                     margin = new RectOffset(2, 2, 2, 2),
                     padding = new RectOffset(4, 4, 4, 4)
                 };
@@ -142,15 +142,15 @@ namespace UnityMcp.Gui
             {
                 resultStyle = new GUIStyle(EditorStyles.textArea)
                 {
-                    wordWrap = true,        // Enable word wrap
-                    fontSize = 12,          // Keep font size consistent with input box
+                    wordWrap = true,        // 启用自动换行
+                    fontSize = 12,          // 与输入框保持一致的字体大小
                     fontStyle = FontStyle.Normal,
                     normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.9f, 0.9f, 0.9f) : Color.black },
-                    richText = true,        // Support rich text，Easy to display formatted content
-                    stretchWidth = false,   // Consistent with input box，Do not auto stretch width
-                    stretchHeight = true,   // Stretch to fit container height
-                    margin = new RectOffset(2, 2, 2, 2),    // Margin consistent with input box
-                    padding = new RectOffset(4, 4, 4, 4)    // Keep padding consistent with input box
+                    richText = true,        // 支持富文本，方便显示格式化内容
+                    stretchWidth = false,   // 与输入框保持一致，不自动拉伸宽度
+                    stretchHeight = true,   // 拉伸以适应容器高度
+                    margin = new RectOffset(2, 2, 2, 2),    // 与输入框保持一致的边距
+                    padding = new RectOffset(4, 4, 4, 4)    // 与输入框保持一致的内边距
                 };
             }
 
@@ -161,7 +161,7 @@ namespace UnityMcp.Gui
         {
             if (recordList == null)
             {
-                // Get records of current group（Group feature auto-initializes）
+                // 获取当前分组的记录（分组功能会自动初始化）
                 var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                 recordList = new ReorderableList(records, typeof(McpExecuteRecordObject.McpExecuteRecord), false, true, false, true);
 
@@ -172,15 +172,15 @@ namespace UnityMcp.Gui
                     int errorCount = records.Count - successCount;
                     var recordObject = McpExecuteRecordObject.instance;
 
-                    // Group dropdown used directly as title
+                    // 分组下拉框直接作为标题
                     var groups = recordObject.recordGroups;
                     if (groups.Count == 0)
                     {
-                        EditorGUI.LabelField(rect, "No group");
+                        EditorGUI.LabelField(rect, "暂无分组");
                     }
                     else
                     {
-                        // Build group options（Contain stats info）
+                        // 构建分组选项（包含统计信息）
                         string[] groupNames = groups.Select(g =>
                         {
                             string stats = recordObject.GetGroupStatistics(g.id);
@@ -210,7 +210,7 @@ namespace UnityMcp.Gui
                     var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                     if (index >= 0 && index < records.Count)
                     {
-                        var record = records[records.Count - 1 - index]; // Reverse order display
+                        var record = records[records.Count - 1 - index]; // 倒序显示
                         DrawRecordElement(rect, record, records.Count - 1 - index, isActive, isFocused);
                     }
                 };
@@ -220,7 +220,7 @@ namespace UnityMcp.Gui
                     var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                     if (list.index >= 0 && list.index < records.Count)
                     {
-                        int actualIndex = records.Count - 1 - list.index; // Convert to actual index
+                        int actualIndex = records.Count - 1 - list.index; // 转换为实际索引
                         SelectRecord(actualIndex);
                     }
                 };
@@ -231,7 +231,7 @@ namespace UnityMcp.Gui
                     if (list.index >= 0 && list.index < records.Count)
                     {
                         int actualIndex = records.Count - 1 - list.index;
-                        if (EditorUtility.DisplayDialog("Confirm deletion", $"Are you sure to delete this execution record?？\nFunction: {records[actualIndex].name}", "Delete", "Cancel"))
+                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除这条执行记录吗？\n函数: {records[actualIndex].name}", "删除", "取消"))
                         {
                             records.RemoveAt(actualIndex);
                             McpExecuteRecordObject.instance.saveRecords();
@@ -243,64 +243,64 @@ namespace UnityMcp.Gui
                     }
                 };
 
-                recordList.elementHeight = 40f; // Set element height
+                recordList.elementHeight = 40f; // 设置元素高度
             }
         }
 
         /// <summary>
-        /// Dynamically calculate input box height based on text（Consider word wrap and fixed width）
+        /// 根据文本内容动态计算输入框高度（考虑自动换行和固定宽度）
         /// </summary>
         private float CalculateInputHeight()
         {
             if (string.IsNullOrEmpty(inputJson))
                 return MinInputHeight;
 
-            // Base line number calculation
+            // 基础行数计算
             int basicLineCount = inputJson.Split('\n').Length;
 
-            // Estimate line break by fixed width，Consider font size and width limit
-            // Estimate characters per line（Based on12pxFont and available width）
-            const int avgCharsPerLine = 60; // Conservative estimate，Fits narrow panel
+            // 根据固定宽度估算换行，考虑字体大小和宽度限制
+            // 估算每行可显示的字符数（基于12px字体和可用宽度）
+            const int avgCharsPerLine = 60; // 保守估计，适应较窄的面板
             int totalChars = inputJson.Length;
             int estimatedWrappedLines = Mathf.CeilToInt((float)totalChars / avgCharsPerLine);
 
-            // Take the larger value as line count estimate，But give line break more weight
+            // 取较大值作为实际行数估算，但给换行更多权重
             int estimatedLineCount = Mathf.Max(basicLineCount, (int)(estimatedWrappedLines * 0.8f));
 
-            // Calculate height by line count，Add properpadding
-            float calculatedHeight = estimatedLineCount * LineHeight + 40f; // Appropriatepadding
+            // 根据行数计算高度，加上适当的padding
+            float calculatedHeight = estimatedLineCount * LineHeight + 40f; // 适当的padding
 
-            // Limit between minimum and maximum height
+            // 限制在最小和最大高度之间
             return Mathf.Clamp(calculatedHeight, MinInputHeight, MaxInputHeight);
         }
 
         /// <summary>
-        /// Calculate actual height of title area
+        /// 计算标题区域的实际高度
         /// </summary>
         private float CalculateHeaderHeight()
         {
-            // Title text height（Based onheaderStyleOffontSize）
+            // 标题文字高度（基于headerStyle的fontSize）
             float titleHeight = headerStyle?.fontSize ?? 14;
-            titleHeight += 16; // Title vertical margin，Add more space
+            titleHeight += 16; // 标题的上下边距，增加更多空间
 
-            // Spacing
-            float spacing = 10; // Increase spacing
+            // 间距
+            float spacing = 10; // 增加间距
 
-            // Total height，Ensure enough space for title
-            return titleHeight + spacing + 10; // Add extra margin
+            // 总高度，确保有足够空间显示标题
+            return titleHeight + spacing + 10; // 增加额外边距
         }
 
         private void OnGUI()
         {
             InitializeStyles();
 
-            // Calculate actual height of title area
+            // 计算标题区域的实际高度
             float headerHeight = CalculateHeaderHeight();
 
-            // Column layout
+            // 分栏布局
             DrawSplitView(headerHeight);
 
-            // Handle column dragging
+            // 处理分栏拖拽
             HandleSplitterEvents(headerHeight);
         }
 
@@ -310,46 +310,46 @@ namespace UnityMcp.Gui
             float leftWidth = windowRect.width * splitterPos;
             float rightWidth = windowRect.width * (1 - splitterPos) - SplitterWidth;
 
-            // Left area - Execution record
+            // 左侧区域 - 执行记录
             Rect leftRect = new Rect(windowRect.x, windowRect.y, leftWidth, windowRect.height);
             DrawLeftPanel(leftRect);
 
-            // Separator
+            // 分隔条
             Rect splitterRect = new Rect(leftRect.xMax, windowRect.y, SplitterWidth, windowRect.height);
             DrawSplitter(splitterRect);
 
-            // Right area - Existing functionality
+            // 右侧区域 - 原有功能
             Rect rightRect = new Rect(splitterRect.xMax, windowRect.y, rightWidth, windowRect.height);
             DrawRightPanel(headerHeight, rightRect);
         }
 
         private void DrawLeftPanel(Rect rect)
         {
-            // Use more precise vertical layout
-            float currentY = 5; // Revert to original start position
-            float padding = 5;  // Revert to original padding
+            // 使用更精确的垂直布局
+            float currentY = 5; // 恢复原来的起始位置
+            float padding = 5;  // 恢复原来的内边距
 
-            // Button region for record list actions
+            // 记录列表操作按钮区域
             Rect buttonRect = new Rect(padding, currentY, rect.width - padding * 2, 28);
             GUI.BeginGroup(buttonRect);
             GUILayout.BeginArea(new Rect(0, 0, buttonRect.width, buttonRect.height));
 
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("Refresh", GUILayout.Width(50)))
+            if (GUILayout.Button("刷新", GUILayout.Width(50)))
             {
                 recordList = null;
                 InitializeRecordList();
                 Repaint();
             }
 
-            if (GUILayout.Button("Clear current group", GUILayout.Width(100)))
+            if (GUILayout.Button("清空当前分组", GUILayout.Width(100)))
             {
-                string confirmMessage = $"Confirm to clear current group '{GetCurrentGroupDisplayName()}' All records of？\nThis action does not affect other groups。";
+                string confirmMessage = $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。";
 
-                if (EditorUtility.DisplayDialog("Confirm clear", confirmMessage, "Confirm", "Cancel"))
+                if (EditorUtility.DisplayDialog("确认清空", confirmMessage, "确定", "取消"))
                 {
-                    // Clear only current group，Prohibit clearing all
+                    // 仅清空当前分组，禁止清空全部
                     McpExecuteRecordObject.instance.ClearCurrentGroupRecords();
                     McpExecuteRecordObject.instance.saveRecords();
                     selectedRecordIndex = -1;
@@ -358,7 +358,7 @@ namespace UnityMcp.Gui
                 }
             }
 
-            if (GUILayout.Button(showGroupManager ? "Hide" : "Manage", GUILayout.Width(60)))
+            if (GUILayout.Button(showGroupManager ? "隐藏" : "管理", GUILayout.Width(60)))
             {
                 showGroupManager = !showGroupManager;
             }
@@ -369,7 +369,7 @@ namespace UnityMcp.Gui
             currentY += 30;
 
 
-            // Group management area
+            // 分组管理区域
             if (showGroupManager)
             {
                 float groupManagerHeight = CalculateGroupManagerHeight();
@@ -382,7 +382,7 @@ namespace UnityMcp.Gui
                 currentY += groupManagerHeight + padding;
             }
 
-            // Record list area
+            // 记录列表区域
             if (recordList != null)
             {
                 var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
@@ -391,7 +391,7 @@ namespace UnityMcp.Gui
                 float listContentHeight = recordList.GetHeight();
                 float availableHeight = rect.height - currentY - padding;
 
-                // Ensure minimum height
+                // 确保有最小高度
                 if (availableHeight < 100)
                 {
                     availableHeight = 100;
@@ -408,11 +408,11 @@ namespace UnityMcp.Gui
 
         private void DrawRightPanel(float headerHeight, Rect rect)
         {
-            // Draw title at the top and center first
+            // 先绘制标题在顶部居中
             Rect titleRect = new Rect(rect.x, 0, position.width, headerHeight);
             GUI.BeginGroup(titleRect);
             GUILayout.BeginArea(new Rect(0, 0, titleRect.width, titleRect.height));
-            GUILayout.Space(8); // Top margin
+            GUILayout.Space(8); // 顶部间距
             GUILayout.Label("Unity MCP Debug Client", headerStyle);
             GUILayout.EndArea();
             GUI.EndGroup();
@@ -420,28 +420,28 @@ namespace UnityMcp.Gui
 
             GUILayout.BeginArea(rect);
 
-            // Use vertical layout group to control overall width
+            // 使用垂直布局组来控制整体宽度
             GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width));
 
-            // Description
+            // 说明文字
             EditorGUILayout.HelpBox(
-                "Input single function call:\n{\"func\": \"function_name\", \"args\": {...}}\n\n" +
-                "Or batch call (Sequential execution):\n{\"funcs\": [{\"func\": \"...\", \"args\": {...}}, ...]}",
+                "输入单个函数调用:\n{\"func\": \"function_name\", \"args\": {...}}\n\n" +
+                "或批量调用 (顺序执行):\n{\"funcs\": [{\"func\": \"...\", \"args\": {...}}, ...]}",
                 MessageType.Info);
 
             GUILayout.Space(5);
 
-            // JSONInput box area
+            // JSON输入框区域
             DrawInputArea(rect.width);
 
             GUILayout.Space(10);
 
-            // Operation button area
+            // 操作按钮区域
             DrawControlButtons();
 
             GUILayout.Space(10);
 
-            // Result display area
+            // 结果显示区域
             if (showResult)
             {
                 DrawResultArea(rect.width);
@@ -482,7 +482,7 @@ namespace UnityMcp.Gui
                     if (isDraggingSplitter)
                     {
                         float newSplitterPos = e.mousePosition.x / position.width;
-                        splitterPos = Mathf.Clamp(newSplitterPos, 0.2f, 0.8f); // Limit to20%-80%Between
+                        splitterPos = Mathf.Clamp(newSplitterPos, 0.2f, 0.8f); // 限制在20%-80%之间
                         Repaint();
                         e.Use();
                     }
@@ -502,22 +502,22 @@ namespace UnityMcp.Gui
         {
             Color originalColor = GUI.color;
 
-            // Addpadding - Each element haspadding
+            // 添加padding - 每个元素都有padding
             const float padding = 6f;
             Rect paddedRect = new Rect(rect.x + padding, rect.y + padding, rect.width - padding * 2, rect.height - padding * 2);
 
-            // Handle mouse event（Double-click detection）
+            // 处理鼠标事件（双击检测）
             HandleRecordElementMouseEvents(rect, index);
 
             if (isActive || selectedRecordIndex == index)
             {
-                // Show background color when selected（In originalrectDraw above，Not subject topaddingImpact）
-                GUI.color = new Color(0.3f, 0.7f, 1f, 0.3f); // Blue highlight
+                // 选中时显示背景颜色（在原始rect上绘制，不受padding影响）
+                GUI.color = new Color(0.3f, 0.7f, 1f, 0.3f); // 蓝色高亮
                 GUI.DrawTexture(rect, EditorGUIUtility.whiteTexture);
             }
             else
             {
-                // Draw when not selectedboxBorder
+                // 未选中时绘制box边框
                 Color boxColor = EditorGUIUtility.isProSkin ? new Color(0.4f, 0.4f, 0.4f) : new Color(0.7f, 0.7f, 0.7f);
                 GUI.color = boxColor;
                 GUI.Box(paddedRect, "", EditorStyles.helpBox);
@@ -525,18 +525,18 @@ namespace UnityMcp.Gui
 
             GUI.color = originalColor;
 
-            // Draw content（AtboxInternal）
-            const float numberWidth = 24f; // Serial width
+            // 绘制内容（在box内部）
+            const float numberWidth = 24f; // 序号宽度
             const float iconWidth = 20f;
-            const float boxMargin = 4f; // boxInternal padding
+            const float boxMargin = 4f; // box内部边距
 
-            // CalculateboxInternal draw area
+            // 计算box内部的绘制区域
             Rect contentRect = new Rect(paddedRect.x + boxMargin, paddedRect.y + boxMargin,
                 paddedRect.width - boxMargin * 2, paddedRect.height - boxMargin * 2);
 
-            // Show serial number（Top left，AtboxInternal）
+            // 序号显示（左上角，在box内部）
             var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
-            int displayIndex = index + 1; // Show serial in order，From1Start
+            int displayIndex = index + 1; // 正序显示序号，从1开始
             Rect numberRect = new Rect(contentRect.x, contentRect.y, numberWidth, 14f);
             Color numberColor = EditorGUIUtility.isProSkin ? new Color(0.6f, 0.6f, 0.6f) : new Color(0.5f, 0.5f, 0.5f);
             Color originalContentColor = GUI.contentColor;
@@ -544,53 +544,53 @@ namespace UnityMcp.Gui
             GUI.Label(numberRect, $"#{displayIndex}", EditorStyles.miniLabel);
             GUI.contentColor = originalContentColor;
 
-            // Status icon（AtboxInternal）
+            // 状态图标（在box内部）
             string statusIcon = record.success ? "●" : "×";
             Rect iconRect = new Rect(contentRect.x + numberWidth + 2f, contentRect.y, iconWidth, 16f);
 
-            // Set color for status icon
+            // 为状态图标设置颜色
             Color iconColor = record.success ? Color.green : Color.red;
             GUI.contentColor = iconColor;
             GUI.Label(iconRect, statusIcon, EditorStyles.boldLabel);
             GUI.contentColor = originalContentColor;
 
-            // Function name（First row）- AtboxInternal，Reserve space for number and icon
+            // 函数名（第一行）- 在box内部，为序号和图标留出空间
             Rect funcRect = new Rect(contentRect.x + numberWidth + iconWidth + 4f, contentRect.y,
                 contentRect.width - numberWidth - iconWidth - 4f, 16f);
 
-            // Check if editing this record
+            // 检查是否正在编辑此记录
             if (editingRecordIndex == index)
             {
-                // Edit mode：Show text input box
+                // 编辑模式：显示文本输入框
                 GUI.SetNextControlName($"RecordEdit_{index}");
 
-                // Handle keyboard event first，Ensure priority
+                // 先处理键盘事件，确保优先级
                 if (Event.current.type == EventType.KeyDown)
                 {
                     if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
                     {
-                        // Enter to confirm edit
+                        // 回车确认编辑
                         FinishEditing(index, editingText);
                         Event.current.Use();
-                        return; // Directly return，Avoid further handling of other events
+                        return; // 直接返回，避免继续处理其他事件
                     }
                     else if (Event.current.keyCode == KeyCode.Escape)
                     {
-                        // ESCCancel editing
+                        // ESC取消编辑
                         CancelEditing();
                         Event.current.Use();
-                        return; // Directly return，Avoid further handling of other events
+                        return; // 直接返回，避免继续处理其他事件
                     }
                 }
 
-                // Set focus（Only set at start of editing）
+                // 设置焦点（只在刚开始编辑时设置）
                 if (editingStarted)
                 {
                     GUI.FocusControl($"RecordEdit_{index}");
                     editingStarted = false;
                 }
 
-                // UseBeginChangeCheckTo detect text change
+                // 使用BeginChangeCheck来检测文本变化
                 EditorGUI.BeginChangeCheck();
                 string newName = EditorGUI.TextField(funcRect, editingText);
                 if (EditorGUI.EndChangeCheck())
@@ -598,13 +598,13 @@ namespace UnityMcp.Gui
                     editingText = newName;
                 }
 
-                // Detect focus loss
+                // 检测失去焦点
                 if (Event.current.type == EventType.Repaint)
                 {
                     string focusedControl = GUI.GetNameOfFocusedControl();
                     if (string.IsNullOrEmpty(focusedControl) || focusedControl != $"RecordEdit_{index}")
                     {
-                        // Delay check by one frame，Avoid detecting focus loss immediately after setting focus
+                        // 延迟一帧检查，避免刚设置焦点就检测到失去焦点
                         EditorApplication.delayCall += () =>
                         {
                             if (editingRecordIndex == index && GUI.GetNameOfFocusedControl() != $"RecordEdit_{index}")
@@ -617,11 +617,11 @@ namespace UnityMcp.Gui
             }
             else
             {
-                // Normal mode：Show function name
+                // 正常模式：显示函数名
                 GUI.Label(funcRect, record.name, EditorStyles.boldLabel);
             }
 
-            // Time and source（Second row）- AtboxInternal
+            // 时间和来源（第二行）- 在box内部
             Rect timeRect = new Rect(contentRect.x + numberWidth + iconWidth + 4f, contentRect.y + 18f,
                 contentRect.width - numberWidth - iconWidth - 4f, 14f);
             string timeInfo = $"{record.timestamp} | [{record.source}]";
@@ -630,7 +630,7 @@ namespace UnityMcp.Gui
                 timeInfo += $" | {record.duration:F1}ms";
             }
 
-            // Set lighter color for time info
+            // 为时间信息设置较淡的颜色
             Color timeColor = EditorGUIUtility.isProSkin ? new Color(0.8f, 0.8f, 0.8f) : new Color(0.4f, 0.4f, 0.4f);
             GUI.contentColor = timeColor;
             GUI.Label(timeRect, timeInfo, EditorStyles.miniLabel);
@@ -638,71 +638,71 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Draw input area（With scroll and dynamic height）
+        /// 绘制输入区域（带滚动和动态高度）
         /// </summary>
         private void DrawInputArea(float availableWidth)
         {
-            GUILayout.Label("MCPCall (JSONFormat):");
+            GUILayout.Label("MCP调用 (JSON格式):");
 
             float inputHeight = CalculateInputHeight();
-            float textAreaWidth = availableWidth; // Minus margin and scrollbar width
+            float textAreaWidth = availableWidth; // 减去边距和滚动条宽度
 
-            // Create scroll area for input box，Limit width to avoid horizontal scroll
+            // 创建输入框的滚动区域，限制宽度避免水平滚动
             GUILayout.BeginVertical(EditorStyles.helpBox);
             inputScrollPosition = EditorGUILayout.BeginScrollView(
                 inputScrollPosition,
-                false, true,  // Disable horizontal scrollbar，Enable vertical scrollbar
+                false, true,  // 禁用水平滚动条，启用垂直滚动条
                 GUILayout.Height(inputHeight),
                 GUILayout.ExpandWidth(true)
             );
 
-            // Input box，Use a dedicated input style for automatic wrapping
+            // 输入框，使用专门的输入样式确保自动换行
             inputJson = EditorGUILayout.TextArea(
                 inputJson,
                 inputStyle,
                 GUILayout.ExpandHeight(true),
                 GUILayout.Width(textAreaWidth),
-                GUILayout.MaxWidth(textAreaWidth)  // Ensure not to exceed specified width
+                GUILayout.MaxWidth(textAreaWidth)  // 确保不会超过指定宽度
             );
 
             EditorGUILayout.EndScrollView();
             GUILayout.EndVertical();
 
-            // Show line number info
+            // 显示行数信息
             int lineCount = inputJson?.Split('\n').Length ?? 0;
-            GUILayout.Label($"Line count: {lineCount} | Height: {inputHeight:F0}px", EditorStyles.miniLabel);
+            GUILayout.Label($"行数: {lineCount} | 高度: {inputHeight:F0}px", EditorStyles.miniLabel);
         }
 
         /// <summary>
-        /// Draw control button region
+        /// 绘制控制按钮区域
         /// </summary>
         private void DrawControlButtons()
         {
-            // Get clipboard availability
+            // 获取剪贴板可用性
             bool clipboardAvailable = IsClipboardAvailable();
 
-            // First row button
+            // 第一行按钮
             GUILayout.BeginHorizontal();
 
             GUI.enabled = !isExecuting;
-            if (GUILayout.Button("Execute", GUILayout.Height(30), GUILayout.Width(100)))
+            if (GUILayout.Button("执行", GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteCall();
             }
 
             GUI.enabled = !isExecuting && clipboardAvailable;
-            if (GUILayout.Button("Execute clipboard", GUILayout.Height(30), GUILayout.Width(100)))
+            if (GUILayout.Button("执行剪贴板", GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteClipboard();
             }
             GUI.enabled = true;
 
-            if (GUILayout.Button("FormatJSON", GUILayout.Height(30), GUILayout.Width(120)))
+            if (GUILayout.Button("格式化JSON", GUILayout.Height(30), GUILayout.Width(120)))
             {
                 FormatJson();
             }
 
-            if (GUILayout.Button("Clear", GUILayout.Height(30), GUILayout.Width(60)))
+            if (GUILayout.Button("清空", GUILayout.Height(30), GUILayout.Width(60)))
             {
                 inputJson = "{}";
                 ClearResults();
@@ -712,57 +712,57 @@ namespace UnityMcp.Gui
             {
                 if (totalExecutionCount > 1)
                 {
-                    GUILayout.Label($"Executing... ({currentExecutionIndex}/{totalExecutionCount})", GUILayout.Width(150));
+                    GUILayout.Label($"执行中... ({currentExecutionIndex}/{totalExecutionCount})", GUILayout.Width(150));
                 }
                 else
                 {
-                    GUILayout.Label("Executing...", GUILayout.Width(100));
+                    GUILayout.Label("执行中...", GUILayout.Width(100));
                 }
             }
 
             GUILayout.EndHorizontal();
 
-            // Second row button（Clipboard operation）
+            // 第二行按钮（剪贴板操作）
             GUILayout.BeginHorizontal();
 
-            // Clipboard operation button - Enable dynamically based on clipboard content/Disable
+            // 剪贴板操作按钮 - 根据剪贴板内容动态启用/禁用
             GUI.enabled = clipboardAvailable;
-            if (GUILayout.Button("Paste to input box", GUILayout.Height(25), GUILayout.Width(100)))
+            if (GUILayout.Button("粘贴到输入框", GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PasteFromClipboard();
             }
 
-            if (GUILayout.Button("Preview clipboard", GUILayout.Height(25), GUILayout.Width(100)))
+            if (GUILayout.Button("预览剪贴板", GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PreviewClipboard();
             }
             GUI.enabled = true;
 
-            // Show clipboard state - With color indicator
+            // 显示剪贴板状态 - 带颜色指示
             DrawClipboardStatus();
 
             GUILayout.EndHorizontal();
         }
 
         /// <summary>
-        /// Draw result display area（With scroll）
+        /// 绘制结果显示区域（带滚动）
         /// </summary>
         private void DrawResultArea(float availableWidth)
         {
-            EditorGUILayout.LabelField("Execution result", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("执行结果", EditorStyles.boldLabel);
 
-            float textAreaWidth = availableWidth - 40; // Minus margin and scrollbar width
+            float textAreaWidth = availableWidth - 40; // 减去边距和滚动条宽度
 
-            // Create scrolling region for result display，Limit width to avoid horizontal scroll
+            // 创建结果显示的滚动区域，限制宽度避免水平滚动
             GUILayout.BeginVertical(EditorStyles.helpBox);
             resultScrollPosition = EditorGUILayout.BeginScrollView(
                 resultScrollPosition,
-                false, true,  // Disable horizontal scrollbar，Enable vertical scrollbar
+                false, true,  // 禁用水平滚动条，启用垂直滚动条
                 GUILayout.Height(ResultAreaHeight),
                 GUILayout.MaxWidth(availableWidth)
             );
 
-            // Result text area，Limit width to prevent horizontal overflow
+            // 结果文本区域，限制宽度以防止水平溢出
             EditorGUILayout.TextArea(
                 resultText,
                 resultStyle,
@@ -773,36 +773,36 @@ namespace UnityMcp.Gui
             EditorGUILayout.EndScrollView();
             GUILayout.EndVertical();
 
-            // Result action button
+            // 结果操作按钮
             GUILayout.BeginHorizontal();
 
-            // Record result button - Only displayed if there is an execution result and not loaded from history
+            // 记录结果按钮 - 只有当有执行结果且不是从历史记录加载时才显示
             if (currentResult != null && !string.IsNullOrEmpty(inputJson))
             {
-                if (GUILayout.Button("Record result", GUILayout.Width(80)))
+                if (GUILayout.Button("记录结果", GUILayout.Width(80)))
                 {
                     RecordCurrentResult();
                 }
             }
 
-            // Format result button - Only show when there is result text
+            // 格式化结果按钮 - 只有当有结果文本时才显示
             if (!string.IsNullOrEmpty(resultText))
             {
-                if (GUILayout.Button("Format result", GUILayout.Width(80)))
+                if (GUILayout.Button("格式化结果", GUILayout.Width(80)))
                 {
                     FormatResultText();
                 }
             }
 
-            // Check if batch result，Show extra operations if yes
+            // 检查是否为批量结果，如果是则显示额外操作
             if (IsBatchResultDisplayed())
             {
-                if (GUILayout.Button("Copy statistics", GUILayout.Width(80)))
+                if (GUILayout.Button("复制统计", GUILayout.Width(80)))
                 {
                     CopyBatchStatistics();
                 }
 
-                if (GUILayout.Button("Show only error", GUILayout.Width(80)))
+                if (GUILayout.Button("仅显示错误", GUILayout.Width(80)))
                 {
                     ShowOnlyErrors();
                 }
@@ -820,18 +820,18 @@ namespace UnityMcp.Gui
             }
             catch (System.Exception e)
             {
-                EditorUtility.DisplayDialog("JSONFormat error", $"Unable to parseJSON: {e.Message}", "Confirm");
+                EditorUtility.DisplayDialog("JSON格式错误", $"无法解析JSON: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Format result text，SupportJSONAndYAML
+        /// 格式化结果文本，支持JSON和YAML
         /// </summary>
         private void FormatResultText()
         {
             if (string.IsNullOrEmpty(resultText))
             {
-                EditorUtility.DisplayDialog("Prompt", "No result to format", "Confirm");
+                EditorUtility.DisplayDialog("提示", "没有可格式化的结果", "确定");
                 return;
             }
 
@@ -850,15 +850,15 @@ namespace UnityMcp.Gui
                         continue;
                     }
 
-                    // Check if current line is Json Start of object or array
+                    // 检查当前行是否是 Json 对象或数组的开始
                     string trimmedLine = line.TrimStart();
 
                     if (trimmedLine.StartsWith("{") || trimmedLine.StartsWith("["))
                     {
-                        // Collect complete Json Block
+                        // 收集完整的 Json 块
                         string jsonBlock = CollectJsonBlock(lines, ref i);
 
-                        // Try to format Json
+                        // 尝试格式化 Json
                         string formattedJson = TryFormatJson(jsonBlock);
                         if (formattedJson != null)
                         {
@@ -866,20 +866,20 @@ namespace UnityMcp.Gui
                         }
                         else
                         {
-                            // Formatting failed，Keep as is
+                            // 格式化失败，保持原样
                             formattedResult.AppendLine(jsonBlock);
                         }
                     }
                     else if (!string.IsNullOrEmpty(line))
                     {
-                        // Non Json Line，Check for embedded Json
+                        // 非 Json 行，检查是否包含内嵌 Json
                         string processedLine = ProcessLineWithEmbeddedJson(line);
                         formattedResult.AppendLine(processedLine);
                         i++;
                     }
                     else
                     {
-                        // Empty line，Keep as is
+                        // 空行，保持原样
                         formattedResult.AppendLine(line);
                         i++;
                     }
@@ -890,13 +890,13 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[McpDebugWindow] Error occurred while formatting result: {e.Message}");
-                EditorUtility.DisplayDialog("Formatting failed", $"Unable to format result: {e.Message}", "Confirm");
+                Debug.LogWarning($"[McpDebugWindow] 格式化结果时发生错误: {e.Message}");
+                EditorUtility.DisplayDialog("格式化失败", $"无法格式化结果: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Collect complete Json Block（Handle multiline JSON）
+        /// 收集完整的 Json 块（处理多行 JSON）
         /// </summary>
         private string CollectJsonBlock(string[] lines, ref int startIndex)
         {
@@ -911,7 +911,7 @@ namespace UnityMcp.Gui
                 string line = lines[i];
                 jsonBlock.AppendLine(line);
 
-                // Calculate bracket balance
+                // 计算括号平衡
                 foreach (char c in line)
                 {
                     if (c == '"' && (jsonBlock.Length == 0 || jsonBlock[jsonBlock.Length - 2] != '\\'))
@@ -928,7 +928,7 @@ namespace UnityMcp.Gui
                     }
                 }
 
-                // Check if completed
+                // 检查是否完成
                 if (!isFirstLine && braceCount == 0 && bracketCount == 0)
                 {
                     startIndex = i + 1;
@@ -943,11 +943,11 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Handle embedded Json Row of（Such as "Execution result: {...}"）
+        /// 处理包含内嵌 Json 的行（如 "执行结果: {...}"）
         /// </summary>
         private string ProcessLineWithEmbeddedJson(string line)
         {
-            // Find first { Or [ Position of
+            // 查找第一个 { 或 [ 的位置
             int jsonStartIndex = -1;
             for (int i = 0; i < line.Length; i++)
             {
@@ -960,15 +960,15 @@ namespace UnityMcp.Gui
 
             if (jsonStartIndex > 0)
             {
-                // Has prefix text and Json
+                // 有前缀文本和 Json
                 string prefix = line.Substring(0, jsonStartIndex);
                 string jsonPart = line.Substring(jsonStartIndex);
 
-                // Try to format Json Partial
+                // 尝试格式化 Json 部分
                 string formattedJson = TryFormatJson(jsonPart);
                 if (formattedJson != null)
                 {
-                    // Format successful，Return prefix + Formatted JSON（Indent align）
+                    // 成功格式化，返回前缀 + 格式化后的 JSON（缩进对齐）
                     string[] jsonLines = formattedJson.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                     StringBuilder result = new StringBuilder();
                     result.AppendLine(prefix);
@@ -984,7 +984,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Try to format text asJSON
+        /// 尝试将文本格式化为JSON
         /// </summary>
         private string TryFormatJson(string text)
         {
@@ -993,42 +993,42 @@ namespace UnityMcp.Gui
 
             try
             {
-                // Try asJObjectParse
+                // 尝试作为JObject解析
                 try
                 {
                     JsonClass jsonObj = Json.Parse(text) as JsonClass;
                     string formatted = Json.FromObject(jsonObj).ToPrettyString();
 
-                    // Expand after serialization yaml In field \n
+                    // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
                 }
                 catch
                 {
-                    // Try asJArrayParse
+                    // 尝试作为JArray解析
                     JsonArray jsonArray = Json.Parse(text) as JsonArray;
                     string formatted = Json.FromObject(jsonArray).ToPrettyString();
 
-                    // Expand after serialization yaml In field \n
+                    // 序列化后展开 yaml 字段中的 \n
                     return ExpandYamlInFormattedJson(formatted);
                 }
             }
             catch
             {
-                // Not validJSON
+                // 不是有效的JSON
                 return null;
             }
         }
 
         /// <summary>
-        /// In formatted Json Expand all newline characters in string fields within text
+        /// 在格式化后的 Json 文本中展开所有字符串字段的换行符
         /// </summary>
         private string ExpandYamlInFormattedJson(string formattedJson)
         {
             if (string.IsNullOrEmpty(formattedJson))
                 return formattedJson;
 
-            // Match all "fieldName": "value" Mode，No limit on field name
-            // Match any field name and its string value
+            // 匹配所有的 "fieldName": "value" 模式，不限定字段名
+            // 匹配任意字段名和其字符串值
             string pattern = @"""([^""]+)"":\s*""([^""\\]*(\\.[^""\\]*)*)""";
 
             return System.Text.RegularExpressions.Regex.Replace(formattedJson, pattern, match =>
@@ -1036,18 +1036,18 @@ namespace UnityMcp.Gui
                 string fieldName = match.Groups[1].Value;
                 string fieldValue = match.Groups[2].Value;
 
-                // Only contains \r\n Or \n Process only then
+                // 只有包含 \r\n 或 \n 才处理
                 if (!fieldValue.Contains("\\r\\n") && !fieldValue.Contains("\\n"))
                     return match.Value;
 
-                // Expand \r\n And \n For actual line break，And keep Json Indent of
+                // 展开 \r\n 和 \n 为实际换行，并保持 Json 的缩进
                 string expandedValue = fieldValue.Replace("\\r\\n", "\n").Replace("\\n", "\n");
 
-                // Get current indent level
+                // 获取当前的缩进级别
                 int indentLevel = GetIndentLevel(formattedJson, match.Index);
-                string indent = new string(' ', indentLevel + 2); // +2 Because string content needs extra indentation
+                string indent = new string(' ', indentLevel + 2); // +2 是因为字符串内容需要额外缩进
 
-                // Add proper indentation to each content line（Except first line）
+                // 为内容的每一行添加适当的缩进（除了第一行）
                 string[] lines = expandedValue.Split('\n');
                 for (int i = 1; i < lines.Length; i++)
                 {
@@ -1055,31 +1055,31 @@ namespace UnityMcp.Gui
                 }
                 expandedValue = string.Join("\n", lines);
 
-                // Return the formatted result
+                // 返回格式化后的结果
                 return $"\"{fieldName}\": \"{expandedValue}\"";
             });
         }
 
         /// <summary>
-        /// Get indent level for specified position
+        /// 获取指定位置的缩进级别
         /// </summary>
         private int GetIndentLevel(string text, int position)
         {
-            // Move forward to line start
+            // 向前查找到行首
             int lineStart = position;
             while (lineStart > 0 && text[lineStart - 1] != '\n' && text[lineStart - 1] != '\r')
             {
                 lineStart--;
             }
 
-            // Calculate indent spaces
+            // 计算缩进空格数
             int indent = 0;
             for (int i = lineStart; i < position && i < text.Length; i++)
             {
                 if (text[i] == ' ')
                     indent++;
                 else if (text[i] == '\t')
-                    indent += 4; // Tab counts as4Spaces
+                    indent += 4; // 制表符算作4个空格
                 else
                     break;
             }
@@ -1088,7 +1088,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Try to formatYAMLText
+        /// 尝试格式化YAML文本
         /// </summary>
         private string TryFormatYaml(string text)
         {
@@ -1097,11 +1097,11 @@ namespace UnityMcp.Gui
 
             try
             {
-                // DetectYAMLFeature：Contains colon and line break，But notJSONFormat
+                // 检测YAML特征：包含冒号和换行，但不是JSON格式
                 if (!text.Contains(":") || text.TrimStart().StartsWith("{") || text.TrimStart().StartsWith("["))
                     return null;
 
-                // SimpleYAMLFormat：Ensure each key-value pair is in a separate line，Proper indent
+                // 简单的YAML格式化：确保每个键值对单独一行，适当缩进
                 string[] lines = text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 StringBuilder formatted = new StringBuilder();
 
@@ -1112,17 +1112,17 @@ namespace UnityMcp.Gui
                     if (string.IsNullOrWhiteSpace(trimmedLine))
                         continue;
 
-                    // Detect indent change
+                    // 检测缩进变化
                     if (trimmedLine.Contains(":"))
                     {
-                        // Key-value pair
+                        // 键值对
                         string[] parts = trimmedLine.Split(new[] { ':' }, 2);
                         if (parts.Length == 2)
                         {
                             string key = parts[0].Trim();
                             string value = parts[1].Trim();
 
-                            // If value is empty or list/Object start，May need extra indentation
+                            // 如果值为空或是列表/对象开始，可能需要增加缩进
                             if (string.IsNullOrEmpty(value) || value == "[" || value == "{")
                             {
                                 formatted.AppendLine($"{new string(' ', indentLevel * 2)}{key}:");
@@ -1148,7 +1148,7 @@ namespace UnityMcp.Gui
                     }
                     else if (trimmedLine.StartsWith("-"))
                     {
-                        // Item in list
+                        // 列表项
                         formatted.AppendLine($"{new string(' ', indentLevel * 2)}{trimmedLine}");
                     }
                     else
@@ -1159,7 +1159,7 @@ namespace UnityMcp.Gui
 
                 string result = formatted.ToString().TrimEnd();
 
-                // If formatted text differs greatly from original，May not beYAML，Returnnull
+                // 如果格式化后与原文本差异很大，可能不是YAML，返回null
                 if (result.Length > text.Length * 2 || result.Length < text.Length / 2)
                     return null;
 
@@ -1175,30 +1175,30 @@ namespace UnityMcp.Gui
         {
             if (string.IsNullOrWhiteSpace(inputJson))
             {
-                EditorUtility.DisplayDialog("Error", "Please enterJSONContent", "Confirm");
+                EditorUtility.DisplayDialog("错误", "请输入JSON内容", "确定");
                 return;
             }
 
             isExecuting = true;
             showResult = true;
-            resultText = "Executing...";
+            resultText = "正在执行...";
 
             try
             {
                 DateTime startTime = DateTime.Now;
                 JsonNode result = ExecuteJsonCall(startTime);
 
-                // If result isnull，Indicate async execution
+                // 如果结果为null，表示异步执行
                 if (result == null)
                 {
-                    resultText = "Async executing...";
-                    // Refresh UI to show async state
+                    resultText = "异步执行中...";
+                    // 刷新界面显示异步状态
                     Repaint();
-                    // Note：isExecutingKeep astrue，Wait for asynchronous callback to complete
+                    // 注意：isExecuting保持为true，等待异步回调完成
                 }
                 else
                 {
-                    // Synchronous execution finished
+                    // 同步执行完成
                     DateTime endTime = DateTime.Now;
                     TimeSpan duration = endTime - startTime;
                     CompleteExecution(result, duration);
@@ -1206,7 +1206,7 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                string errorResult = $"Execution error:\n{e.Message}\n\nStack trace:\n{e.StackTrace}";
+                string errorResult = $"执行错误:\n{e.Message}\n\n堆栈跟踪:\n{e.StackTrace}";
                 resultText = errorResult;
                 isExecuting = false;
 
@@ -1215,19 +1215,19 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Finish execution and updateUIShow
+        /// 完成执行并更新UI显示
         /// </summary>
         private void CompleteExecution(JsonNode result, TimeSpan duration)
         {
 
             try
             {
-                // Store and format current result
+                // 存储当前结果并格式化
                 currentResult = result;
                 string formattedResult = FormatResult(result, duration);
                 resultText = formattedResult;
 
-                // Refresh UI
+                // 刷新界面
                 Repaint();
             }
             catch (Exception e)
@@ -1249,18 +1249,18 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// ExecuteJSONInternal general method called
+        /// 执行JSON调用的内部通用方法
         /// </summary>
         private JsonNode ExecuteJsonCallInternal(string jsonString, DateTime startTime, System.Action<JsonNode, TimeSpan> onSingleComplete)
         {
             JsonNode inputObj = Json.Parse(jsonString);
             if (inputObj == null)
-                return Response.Error("Unable to parseJSONInput");
+                return Response.Error("无法解析JSON输入");
 
-            // Check if batch call
+            // 检查是否为批量调用
             if (inputObj is JsonArray jArray)
             {
-                // Batch function call
+                // 批量函数调用
                 var functionsCall = new BatchCall();
                 JsonNode callResult = null;
                 bool callbackExecuted = false;
@@ -1269,7 +1269,7 @@ namespace UnityMcp.Gui
                     callResult = result;
                     callbackExecuted = true;
 
-                    // If async callback，UpdateUI
+                    // 如果是异步回调，更新UI
                     if (isExecuting)
                     {
                         DateTime endTime = DateTime.Now;
@@ -1277,12 +1277,12 @@ namespace UnityMcp.Gui
                         onSingleComplete?.Invoke(result, duration);
                     }
                 });
-                // If callback executes immediately，Return result；Otherwise returnnullIndicate async execution
+                // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
             else if (inputObj is JsonClass inputObjClass && inputObjClass.ContainsKey("func"))
             {
-                // Single function call
+                // 单个函数调用
                 var functionCall = new SingleCall();
                 JsonNode callResult = null;
                 bool callbackExecuted = false;
@@ -1292,7 +1292,7 @@ namespace UnityMcp.Gui
                     callResult = result;
                     callbackExecuted = true;
 
-                    // If async callback，UpdateUI
+                    // 如果是异步回调，更新UI
                     if (isExecuting)
                     {
                         DateTime endTime = DateTime.Now;
@@ -1301,21 +1301,21 @@ namespace UnityMcp.Gui
                     }
                 });
 
-                // If callback executes immediately，Return result；Otherwise returnnullIndicate async execution
+                // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
             else
             {
-                throw new ArgumentException("InputJSONMust contain 'func' Field（Single call）Or 'funcs' Field（Batch call）");
+                throw new ArgumentException("输入的JSON必须包含 'func' 字段（单个调用）或 'funcs' 字段（批量调用）");
             }
         }
 
 
         private string FormatResult(JsonNode result, TimeSpan duration)
         {
-            string formattedResult = $"Execution time: {duration.TotalMilliseconds:F2}ms\n\n";
+            string formattedResult = $"执行时间: {duration.TotalMilliseconds:F2}ms\n\n";
 
-            // Judge result's status
+            // 判断结果的 status
             string status = "success";
             if (result != null && result is JsonClass resultObj)
             {
@@ -1326,14 +1326,14 @@ namespace UnityMcp.Gui
                 }
             }
 
-            // Create wrapped result object
+            // 创建包装后的结果对象
             JsonClass wrappedResult = new JsonClass();
             wrappedResult["status"] = status;
             wrappedResult["result"] = result;
 
             if (result != null)
             {
-                // No longer reflect to determine type，Direct use JsonNode Determine if structure is batch call result
+                // 不再反射判断类型，直接使用 JsonNode 的结构判断是否为批量调用结果
                 if (IsBatchCallResult(result))
                 {
                     formattedResult += FormatBatchCallResult(wrappedResult);
@@ -1352,13 +1352,13 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Check if it is a batch call result
+        /// 检查是否为批量调用结果
         /// </summary>
         private bool IsBatchCallResult(JsonNode result)
         {
             try
             {
-                // Directly determineresultOwn structure（Avoid twiceParseThe caused issues）
+                // 直接判断result本身的结构（避免二次Parse带来的问题）
                 if (result is JsonClass obj)
                 {
                     return obj.ContainsKey("results") &&
@@ -1375,7 +1375,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Format batch call result，Display line by line
+        /// 格式化批量调用结果，分条显示
         /// </summary>
         private string FormatBatchCallResult(object result)
         {
@@ -1384,7 +1384,7 @@ namespace UnityMcp.Gui
                 var resultJson = Json.FromObject(result);
                 var wrappedObj = Json.Parse(resultJson) as JsonClass;
 
-                // Extract actual result from wrapped object
+                // 从包装对象中提取实际的结果
                 var actualResult = wrappedObj["result"];
                 var actualResultJson = Json.FromObject(actualResult);
                 var resultObj = Json.Parse(actualResultJson) as JsonClass;
@@ -1398,28 +1398,28 @@ namespace UnityMcp.Gui
 
                 var output = new StringBuilder();
 
-                // Show overall stats
-                output.AppendLine("=== Batch call results ===");
-                output.AppendLine($"Total calls: {totalCalls}");
-                output.AppendLine($"Success: {successfulCalls}");
-                output.AppendLine($"Failure: {failedCalls}");
-                output.AppendLine($"Overall status: {(overallSuccess ? "Success" : "Partial failure")}");
+                // 显示总体统计
+                output.AppendLine("=== 批量调用执行结果 ===");
+                output.AppendLine($"总调用数: {totalCalls}");
+                output.AppendLine($"成功: {successfulCalls}");
+                output.AppendLine($"失败: {failedCalls}");
+                output.AppendLine($"整体状态: {(overallSuccess ? "成功" : "部分失败")}");
                 output.AppendLine();
 
-                // Show each result in list
+                // 分条显示每个结果
                 if (results != null)
                 {
                     for (int i = 0; i < results.Count; i++)
                     {
-                        output.AppendLine($"--- Call #{i + 1} ---");
+                        output.AppendLine($"--- 调用 #{i + 1} ---");
 
                         var singleResult = results[i];
 
-                        // Determine success state of single result：Check success Field
+                        // 判断单个结果的成功状态：检查 success 字段
                         bool isSuccess = false;
                         if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
                         {
-                            // If result is JsonClass，Check its success Field
+                            // 如果结果是 JsonClass，检查其 success 字段
                             if (singleResult is JsonClass resultObj2)
                             {
                                 var successNode = resultObj2["success"];
@@ -1427,14 +1427,14 @@ namespace UnityMcp.Gui
                             }
                             else
                             {
-                                // If not JsonClass，Default is success（Non null And result not empty）
+                                // 如果不是 JsonClass，默认为成功（非 null 且非空结果）
                                 isSuccess = true;
                             }
                         }
 
                         if (isSuccess)
                         {
-                            output.AppendLine("✅ Success");
+                            output.AppendLine("✅ 成功");
                             try
                             {
                                 string formattedSingleResult = Json.FromObject(singleResult);
@@ -1447,15 +1447,15 @@ namespace UnityMcp.Gui
                         }
                         else
                         {
-                            output.AppendLine("❌ Failure");
+                            output.AppendLine("❌ 失败");
 
-                            // Show result（If any）
+                            // 显示结果（如果有）
                             if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
                             {
                                 try
                                 {
                                     string formattedSingleResult = Json.FromObject(singleResult);
-                                    output.AppendLine("Result details:");
+                                    output.AppendLine("结果详情:");
                                     output.AppendLine(formattedSingleResult);
                                 }
                                 catch
@@ -1464,20 +1464,20 @@ namespace UnityMcp.Gui
                                 }
                             }
 
-                            // Show error info
+                            // 显示错误信息
                             if (errors != null && i < errors.Count && errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                             {
-                                output.AppendLine($"Error info: {errors[i]}");
+                                output.AppendLine($"错误信息: {errors[i]}");
                             }
                         }
                         output.AppendLine();
                     }
                 }
 
-                // Show all error summary
+                // 显示所有错误汇总
                 if (errors != null && errors.Count > 0)
                 {
-                    output.AppendLine("=== Error summary ===");
+                    output.AppendLine("=== 错误汇总 ===");
                     for (int i = 0; i < errors.Count; i++)
                     {
                         if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
@@ -1491,12 +1491,12 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                return $"Failed to format batch result: {e.Message}\n\nOriginal result:\n{Json.FromObject(result)}";
+                return $"批量结果格式化失败: {e.Message}\n\n原始结果:\n{Json.FromObject(result)}";
             }
         }
 
         /// <summary>
-        /// Clear all results
+        /// 清理所有结果
         /// </summary>
         private void ClearResults()
         {
@@ -1508,7 +1508,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Check if current display is batch result
+        /// 检查当前显示的是否为批量结果
         /// </summary>
         private bool IsBatchResultDisplayed()
         {
@@ -1516,7 +1516,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Copy batch call statistics
+        /// 复制批量调用的统计信息
         /// </summary>
         private void CopyBatchStatistics()
         {
@@ -1533,23 +1533,23 @@ namespace UnityMcp.Gui
                 var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
                 var overallSuccess = resultObj["success"]?.AsBool ?? false;
 
-                var statistics = $"Batch call statistics:\n" +
-                               $"Total calls: {totalCalls}\n" +
-                               $"Success: {successfulCalls}\n" +
-                               $"Failure: {failedCalls}\n" +
-                               $"Overall status: {(overallSuccess ? "Success" : "Partial failure")}";
+                var statistics = $"批量调用统计:\n" +
+                               $"总调用数: {totalCalls}\n" +
+                               $"成功: {successfulCalls}\n" +
+                               $"失败: {failedCalls}\n" +
+                               $"整体状态: {(overallSuccess ? "成功" : "部分失败")}";
 
                 EditorGUIUtility.systemCopyBuffer = statistics;
-                EditorUtility.DisplayDialog("Copied", "Stats have been copied to clipboard", "Confirm");
+                EditorUtility.DisplayDialog("已复制", "统计信息已复制到剪贴板", "确定");
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Copy failed", $"Unable to copy stats: {e.Message}", "Confirm");
+                EditorUtility.DisplayDialog("复制失败", $"无法复制统计信息: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Only show error info
+        /// 仅显示错误信息
         /// </summary>
         private void ShowOnlyErrors()
         {
@@ -1565,8 +1565,8 @@ namespace UnityMcp.Gui
                 var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
 
                 var output = new StringBuilder();
-                output.AppendLine("=== Error message summary ===");
-                output.AppendLine($"Failed call count: {failedCalls}");
+                output.AppendLine("=== 错误信息汇总 ===");
+                output.AppendLine($"失败调用数: {failedCalls}");
                 output.AppendLine();
 
                 if (errors != null && errors.Count > 0)
@@ -1575,7 +1575,7 @@ namespace UnityMcp.Gui
                     {
                         if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                         {
-                            output.AppendLine($"Error #{i + 1}:");
+                            output.AppendLine($"错误 #{i + 1}:");
                             output.AppendLine($"  {errors[i]}");
                             output.AppendLine();
                         }
@@ -1583,19 +1583,19 @@ namespace UnityMcp.Gui
                 }
                 else
                 {
-                    output.AppendLine("No error info found。");
+                    output.AppendLine("没有发现错误信息。");
                 }
 
                 resultText = output.ToString();
             }
             catch (Exception e)
             {
-                resultText = $"Failed to display error message: {e.Message}";
+                resultText = $"显示错误信息失败: {e.Message}";
             }
         }
 
         /// <summary>
-        /// Execute from clipboardJSONContent
+        /// 执行剪贴板中的JSON内容
         /// </summary>
         private void ExecuteClipboard()
         {
@@ -1605,57 +1605,57 @@ namespace UnityMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("Error", "Clipboard empty", "Confirm");
+                    EditorUtility.DisplayDialog("错误", "剪贴板为空", "确定");
                     return;
                 }
 
-                // ValidateJSONFormat
+                // 验证JSON格式
                 if (!ValidateClipboardJson(clipboardContent, out string errorMessage))
                 {
-                    EditorUtility.DisplayDialog("JSONFormat error", $"Clipboard content is not validJSON:\n{errorMessage}", "Confirm");
+                    EditorUtility.DisplayDialog("JSON格式错误", $"剪贴板内容不是有效的JSON:\n{errorMessage}", "确定");
                     return;
                 }
 
-                // Execute clipboard content
+                // 执行剪贴板内容
                 isExecuting = true;
                 showResult = true;
-                resultText = "Executing clipboard content...";
+                resultText = "正在执行剪贴板内容...";
 
                 try
                 {
                     DateTime startTime = DateTime.Now;
                     JsonNode result = ExecuteJsonCallFromString(clipboardContent, startTime);
 
-                    // If result isnull，Indicate async execution
+                    // 如果结果为null，表示异步执行
                     if (result == null)
                     {
-                        resultText = "Async execution of clipboard content...";
-                        // Refresh UI to show async state
+                        resultText = "异步执行剪贴板内容中...";
+                        // 刷新界面显示异步状态
                         Repaint();
-                        // Note：isExecutingKeep astrue，Wait for asynchronous callback to complete
+                        // 注意：isExecuting保持为true，等待异步回调完成
                     }
                     else
                     {
-                        // Synchronous execution finished
+                        // 同步执行完成
                         DateTime endTime = DateTime.Now;
                         TimeSpan duration = endTime - startTime;
 
-                        // Store and format current result
+                        // 存储当前结果并格式化
                         currentResult = result;
                         string formattedResult = FormatResult(result, duration);
-                        resultText = $"📋 Execute from clipboard\nOriginalJSON:\n{clipboardContent}\n\n{formattedResult}";
+                        resultText = $"📋 从剪贴板执行\n原始JSON:\n{clipboardContent}\n\n{formattedResult}";
 
-                        // Refresh UI
+                        // 刷新界面
                         Repaint();
                         isExecuting = false;
                     }
                 }
                 catch (Exception e)
                 {
-                    string errorResult = $"Error executing clipboard content:\n{e.Message}\n\nStack trace:\n{e.StackTrace}";
+                    string errorResult = $"执行剪贴板内容错误:\n{e.Message}\n\n堆栈跟踪:\n{e.StackTrace}";
                     resultText = errorResult;
 
-                    Debug.LogError($"[McpDebugWindow] Error occurred while executing clipboard content: {e}");
+                    Debug.LogError($"[McpDebugWindow] 执行剪贴板内容时发生错误: {e}");
                 }
                 finally
                 {
@@ -1664,24 +1664,24 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Execution failed", $"Unable to execute clipboard content: {e.Message}", "Confirm");
+                EditorUtility.DisplayDialog("执行失败", $"无法执行剪贴板内容: {e.Message}", "确定");
                 isExecuting = false;
             }
         }
 
         /// <summary>
-        /// Execute from stringJSONCall，Support async callback
+        /// 从字符串执行JSON调用，支持异步回调
         /// </summary>
         private JsonNode ExecuteJsonCallFromString(string jsonString, DateTime startTime)
         {
             return ExecuteJsonCallInternal(jsonString, startTime, (result, duration) =>
             {
-                // Clipboard format ofUIUpdate
+                // 剪贴板格式的UI更新
                 currentResult = result;
                 string formattedResult = FormatResult(result, duration);
-                resultText = $"📋 Execute from clipboard\nOriginalJSON:\n{jsonString}\n\n{formattedResult}";
+                resultText = $"📋 从剪贴板执行\n原始JSON:\n{jsonString}\n\n{formattedResult}";
 
-                // Refresh UI
+                // 刷新界面
                 Repaint();
                 isExecuting = false;
             });
@@ -1690,7 +1690,7 @@ namespace UnityMcp.Gui
 
 
         /// <summary>
-        /// Paste clipboard content to input box
+        /// 粘贴剪贴板内容到输入框
         /// </summary>
         private void PasteFromClipboard()
         {
@@ -1700,31 +1700,31 @@ namespace UnityMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("Prompt", "Clipboard empty", "Confirm");
+                    EditorUtility.DisplayDialog("提示", "剪贴板为空", "确定");
                     return;
                 }
 
-                // ValidateJSONFormat
+                // 验证JSON格式
                 if (!ValidateClipboardJson(clipboardContent, out string errorMessage))
                 {
-                    bool proceed = EditorUtility.DisplayDialog("JSONFormat warning",
-                        $"Clipboard content may be invalidJSON:\n{errorMessage}\n\nStill paste?？",
-                        "Still paste", "Cancel");
+                    bool proceed = EditorUtility.DisplayDialog("JSON格式警告",
+                        $"剪贴板内容可能不是有效的JSON:\n{errorMessage}\n\n是否仍要粘贴？",
+                        "仍要粘贴", "取消");
 
                     if (!proceed) return;
                 }
 
                 inputJson = clipboardContent;
-                EditorUtility.DisplayDialog("Success", "Clipboard content pasted to input box", "Confirm");
+                EditorUtility.DisplayDialog("成功", "已粘贴剪贴板内容到输入框", "确定");
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Paste failed", $"Cannot paste clipboard content: {e.Message}", "Confirm");
+                EditorUtility.DisplayDialog("粘贴失败", $"无法粘贴剪贴板内容: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Preview clipboard content
+        /// 预览剪贴板内容
         /// </summary>
         private void PreviewClipboard()
         {
@@ -1734,33 +1734,33 @@ namespace UnityMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("Clipboard preview", "Clipboard empty", "Confirm");
+                    EditorUtility.DisplayDialog("剪贴板预览", "剪贴板为空", "确定");
                     return;
                 }
 
-                // Limit preview length
+                // 限制预览长度
                 string preview = clipboardContent;
                 if (preview.Length > 500)
                 {
-                    preview = preview.Substring(0, 500) + "\n...(Content too long，Truncated)";
+                    preview = preview.Substring(0, 500) + "\n...(内容过长，已截断)";
                 }
 
-                // ValidateJSONFormat
+                // 验证JSON格式
                 string jsonStatus = ValidateClipboardJson(clipboardContent, out string errorMessage)
-                    ? "✅ ValidJSONFormat"
-                    : $"❌ JSONFormat error: {errorMessage}";
+                    ? "✅ 有效的JSON格式"
+                    : $"❌ JSON格式错误: {errorMessage}";
 
-                EditorUtility.DisplayDialog("Clipboard preview",
-                    $"Format state: {jsonStatus}\n\nContent preview:\n{preview}", "Confirm");
+                EditorUtility.DisplayDialog("剪贴板预览",
+                    $"格式状态: {jsonStatus}\n\n内容预览:\n{preview}", "确定");
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Preview failed", $"Cannot preview clipboard content: {e.Message}", "Confirm");
+                EditorUtility.DisplayDialog("预览失败", $"无法预览剪贴板内容: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Check if clipboard is available（Has validJSONContent）
+        /// 检查剪贴板是否可用（包含有效JSON内容）
         /// </summary>
         private bool IsClipboardAvailable()
         {
@@ -1780,7 +1780,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Draw clipboard state with color indicator
+        /// 绘制带颜色指示的剪贴板状态
         /// </summary>
         private void DrawClipboardStatus()
         {
@@ -1793,7 +1793,7 @@ namespace UnityMcp.Gui
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
                     statusColor = Color.red;
-                    statusText = "Clipboard: Empty";
+                    statusText = "剪切板: 空";
                 }
                 else
                 {
@@ -1801,16 +1801,16 @@ namespace UnityMcp.Gui
                     if (isValidJson)
                     {
                         statusColor = Color.green;
-                        statusText = $"Clipboard: ✅ Json ({clipboardContent.Length} Character)";
+                        statusText = $"剪切板: ✅ Json ({clipboardContent.Length} 字符)";
                     }
                     else
                     {
-                        statusColor = new Color(1f, 0.5f, 0f); // Orange
-                        statusText = $"Clipboard: ❌ NonJSON ({clipboardContent.Length} Character)";
+                        statusColor = new Color(1f, 0.5f, 0f); // 橙色
+                        statusText = $"剪切板: ❌ 非JSON ({clipboardContent.Length} 字符)";
                     }
                 }
 
-                // Show colored state
+                // 显示带颜色的状态
                 Color originalColor = GUI.color;
                 GUI.color = statusColor;
                 GUILayout.Label(statusText, EditorStyles.miniLabel);
@@ -1820,13 +1820,13 @@ namespace UnityMcp.Gui
             {
                 Color originalColor = GUI.color;
                 GUI.color = Color.red;
-                GUILayout.Label("Clipboard: Read failed", EditorStyles.miniLabel);
+                GUILayout.Label("剪切板: 读取失败", EditorStyles.miniLabel);
                 GUI.color = originalColor;
             }
         }
 
         /// <summary>
-        /// Validate clipboardJSONFormat
+        /// 验证剪贴板JSON格式
         /// </summary>
         private bool ValidateClipboardJson(string content, out string errorMessage)
         {
@@ -1834,7 +1834,7 @@ namespace UnityMcp.Gui
 
             if (string.IsNullOrWhiteSpace(content))
             {
-                errorMessage = "Content empty";
+                errorMessage = "内容为空";
                 return false;
             }
 
@@ -1851,7 +1851,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Check if result is error response
+        /// 检查结果是否为错误响应
         /// </summary>
         private bool IsErrorResponse(object result)
         {
@@ -1862,13 +1862,13 @@ namespace UnityMcp.Gui
                 var resultJson = Json.FromObject(result);
                 var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                // Check if there issuccessField and isfalse
+                // 检查是否有success字段且为false
                 if (resultObj.ContainsKey("success"))
                 {
                     return !resultObj["success"]?.AsBool ?? true;
                 }
 
-                // Check if there iserrorField
+                // 检查是否有error字段
                 return resultObj.ContainsKey("error");
             }
             catch
@@ -1878,27 +1878,27 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Extract error message from error response
+        /// 从错误响应中提取错误消息
         /// </summary>
         private string ExtractErrorMessage(object result)
         {
-            if (result == null) return "Result is empty";
+            if (result == null) return "结果为空";
 
             try
             {
                 var resultJson = Json.FromObject(result);
                 var resultObj = Json.Parse(resultJson) as JsonClass;
 
-                // Try fromerrorField get error info
+                // 尝试从error字段获取错误信息
                 if (resultObj.ContainsKey("error"))
                 {
-                    return resultObj["error"]?.Value ?? "Unknown error";
+                    return resultObj["error"]?.Value ?? "未知错误";
                 }
 
-                // Try frommessageField get error info
+                // 尝试从message字段获取错误信息
                 if (resultObj.ContainsKey("message"))
                 {
-                    return resultObj["message"]?.Value ?? "Unknown error";
+                    return resultObj["message"]?.Value ?? "未知错误";
                 }
 
                 return result.ToString();
@@ -1910,53 +1910,53 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Manually record current execution result
+        /// 手动记录当前执行结果
         /// </summary>
         private void RecordCurrentResult()
         {
             if (currentResult == null || string.IsNullOrEmpty(inputJson))
             {
-                EditorUtility.DisplayDialog("Unable to record", "No executable result to record", "Confirm");
+                EditorUtility.DisplayDialog("无法记录", "没有可记录的执行结果", "确定");
                 return;
             }
 
             try
             {
-                // Parse inputJSONTo get function name and parameters
+                // 解析输入的JSON来获取函数名和参数
                 JsonClass inputObj = Json.Parse(inputJson) as JsonClass;
 
-                // Check if batch call
+                // 检查是否为批量调用
                 if (inputObj.ContainsKey("funcs"))
                 {
-                    // Batch call record
+                    // 批量调用记录
                     RecordBatchResult(inputObj, currentResult);
                 }
                 else if (inputObj.ContainsKey("func"))
                 {
-                    // Single function call record
+                    // 单个函数调用记录
                     RecordSingleResult(inputObj, currentResult);
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("Record failed", "Unable to parse inputJSONFormat", "Confirm");
+                    EditorUtility.DisplayDialog("记录失败", "无法解析输入的JSON格式", "确定");
                     return;
                 }
 
-                EditorUtility.DisplayDialog("Record success", "Execution result has been saved to records", "Confirm");
+                EditorUtility.DisplayDialog("记录成功", "执行结果已保存到记录中", "确定");
 
-                // Refresh record list
+                // 刷新记录列表
                 recordList = null;
                 InitializeRecordList();
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("Record failed", $"Error occurred when recording execution result: {e.Message}", "Confirm");
-                Debug.LogError($"[McpDebugWindow] Error occurred when manually recording result: {e}");
+                EditorUtility.DisplayDialog("记录失败", $"记录执行结果时发生错误: {e.Message}", "确定");
+                Debug.LogError($"[McpDebugWindow] 手动记录结果时发生错误: {e}");
             }
         }
 
         /// <summary>
-        /// Record single function call result
+        /// 记录单个函数调用结果
         /// </summary>
         private void RecordSingleResult(JsonClass inputObj, object result)
         {
@@ -1973,12 +1973,12 @@ namespace UnityMcp.Gui
                 resultJson = Json.FromObject(result);
                 if (result is JsonClass resultObj && resultObj["success"] != null && resultObj["success"].type == JsonNodeType.Boolean && resultObj["success"].AsBool == false)
                 {
-                    errorMsg = resultObj["error"]?.Value ?? "Execution failed";
+                    errorMsg = resultObj["error"]?.Value ?? "执行失败";
                 }
             }
             else
             {
-                errorMsg = result != null ? ExtractErrorMessage(result) : "Execution failed，Returnnull";
+                errorMsg = result != null ? ExtractErrorMessage(result) : "执行失败，返回null";
                 resultJson = result != null ? Json.FromObject(result) : "";
             }
 
@@ -1987,14 +1987,14 @@ namespace UnityMcp.Gui
                 argsJson,
                 resultJson,
                 errorMsg,
-                0, // No execution time for manual record
-                "Debug Window (Manual record)"
+                0, // 手动记录时没有执行时间
+                "Debug Window (手动记录)"
             );
             recordObject.saveRecords();
         }
 
         /// <summary>
-        /// Record batch function call result
+        /// 记录批量函数调用结果
         /// </summary>
         private void RecordBatchResult(JsonClass inputObj, object result)
         {
@@ -2036,7 +2036,7 @@ namespace UnityMcp.Gui
                             }
                             else
                             {
-                                errorMsg = "This item failed in batch call";
+                                errorMsg = "批量调用中此项失败";
                             }
                         }
 
@@ -2045,8 +2045,8 @@ namespace UnityMcp.Gui
                             argsJson,
                             singleResultJson,
                             errorMsg,
-                            0, // No execution time for manual record
-                            $"Debug Window (Manual record {i + 1}/{funcsArray.Count})"
+                            0, // 手动记录时没有执行时间
+                            $"Debug Window (手动记录 {i + 1}/{funcsArray.Count})"
                         );
                     }
 
@@ -2055,13 +2055,13 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                throw new Exception($"Error occurred when recording batch result: {e.Message}", e);
+                throw new Exception($"记录批量结果时发生错误: {e.Message}", e);
             }
         }
 
 
         /// <summary>
-        /// Select record and refresh UI
+        /// 选择记录并刷新到界面
         /// </summary>
         private void SelectRecord(int index)
         {
@@ -2073,49 +2073,49 @@ namespace UnityMcp.Gui
 
             inputJson = record.cmd;
 
-            // Refresh execution result to result area
+            // 将执行结果刷新到结果区域
             if (!string.IsNullOrEmpty(record.result) || !string.IsNullOrEmpty(record.error))
             {
                 showResult = true;
                 var resultBuilder = new StringBuilder();
-                resultBuilder.AppendLine($"📋 Load from execution record (Index: {index})");
-                resultBuilder.AppendLine($"Function: {record.name}");
-                resultBuilder.AppendLine($"Time: {record.timestamp}");
-                resultBuilder.AppendLine($"Source: {record.source}");
-                resultBuilder.AppendLine($"Status: {(record.success ? "Success" : "Failure")}");
+                resultBuilder.AppendLine($"📋 从执行记录加载 (索引: {index})");
+                resultBuilder.AppendLine($"函数: {record.name}");
+                resultBuilder.AppendLine($"时间: {record.timestamp}");
+                resultBuilder.AppendLine($"来源: {record.source}");
+                resultBuilder.AppendLine($"状态: {(record.success ? "成功" : "失败")}");
                 if (record.duration > 0)
                 {
-                    resultBuilder.AppendLine($"Execution time: {record.duration:F2}ms");
+                    resultBuilder.AppendLine($"执行时间: {record.duration:F2}ms");
                 }
                 resultBuilder.AppendLine();
 
                 if (!string.IsNullOrEmpty(record.result))
                 {
-                    resultBuilder.AppendLine("Execution result:");
+                    resultBuilder.AppendLine("执行结果:");
                     resultBuilder.AppendLine(record.result);
                 }
 
                 if (!string.IsNullOrEmpty(record.error))
                 {
-                    resultBuilder.AppendLine("Error info:");
+                    resultBuilder.AppendLine("错误信息:");
                     resultBuilder.AppendLine(record.error);
                 }
 
                 resultText = resultBuilder.ToString();
-                currentResult = null; // Clear current result，Because this is history record
+                currentResult = null; // 清空当前结果，因为这是历史记录
             }
 
             Repaint();
         }
 
         /// <summary>
-        /// Handle mouse events for record elements（Double-click detection）
+        /// 处理记录元素的鼠标事件（双击检测）
         /// </summary>
         private void HandleRecordElementMouseEvents(Rect rect, int index)
         {
             Event e = Event.current;
 
-            // Detect double click only in function name area，Avoid conflict with selection of the entire element
+            // 只在函数名区域检测双击，避免与整个元素的选择冲突
             const float numberWidth = 24f;
             const float iconWidth = 20f;
             const float padding = 6f;
@@ -2132,16 +2132,16 @@ namespace UnityMcp.Gui
             {
                 double currentTime = EditorApplication.timeSinceStartup;
 
-                // Detect double-click
-                if (lastClickedIndex == index && (currentTime - lastClickTime) < 0.5) // 500msInner double-click
+                // 检测双击
+                if (lastClickedIndex == index && (currentTime - lastClickTime) < 0.5) // 500ms内的双击
                 {
-                    // Start editing
+                    // 开始编辑
                     StartEditing(index);
                     e.Use();
                 }
                 else
                 {
-                    // Click，Record time and index
+                    // 单击，记录时间和索引
                     lastClickTime = currentTime;
                     lastClickedIndex = index;
                 }
@@ -2149,7 +2149,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Start editing record name
+        /// 开始编辑记录名称
         /// </summary>
         private void StartEditing(int index)
         {
@@ -2165,7 +2165,7 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Finish editing and save
+        /// 完成编辑并保存
         /// </summary>
         private void FinishEditing(int index, string newName)
         {
@@ -2174,55 +2174,55 @@ namespace UnityMcp.Gui
                 var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                 if (index >= 0 && index < records.Count)
                 {
-                    // Update record name
+                    // 更新记录名称
                     records[index].name = newName.Trim();
                     McpExecuteRecordObject.instance.saveRecords();
 
-                    // Show success prompt（Optional）
-                    Debug.Log($"[McpDebugWindow] Record name updated: {newName.Trim()}");
+                    // 显示成功提示（可选）
+                    Debug.Log($"[McpDebugWindow] 记录名称已更新: {newName.Trim()}");
                 }
             }
 
-            // Exit edit mode
+            // 退出编辑模式
             editingRecordIndex = -1;
             editingText = "";
             editingStarted = false;
-            GUI.FocusControl(null); // Clear focus
+            GUI.FocusControl(null); // 清除焦点
             Repaint();
         }
 
         /// <summary>
-        /// Cancel editing
+        /// 取消编辑
         /// </summary>
         private void CancelEditing()
         {
             editingRecordIndex = -1;
             editingText = "";
             editingStarted = false;
-            GUI.FocusControl(null); // Clear focus
+            GUI.FocusControl(null); // 清除焦点
             Repaint();
         }
 
-        #region Group managementUI
+        #region 分组管理UI
 
         /// <summary>
-        /// Draw group management UI
+        /// 绘制分组管理界面
         /// </summary>
         private void DrawGroupManager(float width)
         {
             var recordObject = McpExecuteRecordObject.instance;
 
             GUILayout.BeginVertical(EditorStyles.helpBox);
-            GUILayout.Label("Group management", EditorStyles.boldLabel);
+            GUILayout.Label("分组管理", EditorStyles.boldLabel);
 
-            // Create new group
-            GUILayout.Label("Create new group:");
-            newGroupName = EditorGUILayout.TextField("Name", newGroupName);
-            newGroupDescription = EditorGUILayout.TextField("Description", newGroupDescription);
+            // 创建新分组
+            GUILayout.Label("创建新分组:");
+            newGroupName = EditorGUILayout.TextField("名称", newGroupName);
+            newGroupDescription = EditorGUILayout.TextField("描述", newGroupDescription);
 
             GUILayout.BeginHorizontal();
             GUI.enabled = !string.IsNullOrWhiteSpace(newGroupName);
-            if (GUILayout.Button("Create group", GUILayout.Width(80)))
+            if (GUILayout.Button("创建分组", GUILayout.Width(80)))
             {
                 string groupId = System.Guid.NewGuid().ToString("N")[..8];
                 string groupNameTrimmed = newGroupName.Trim();
@@ -2230,23 +2230,23 @@ namespace UnityMcp.Gui
                 {
                     newGroupName = "";
                     newGroupDescription = "";
-                    EditorUtility.DisplayDialog("Success", $"Group '{groupNameTrimmed}' Created successfully！", "Confirm");
+                    EditorUtility.DisplayDialog("成功", $"分组 '{groupNameTrimmed}' 创建成功！", "确定");
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("Failure", "Create group failed，Please check for duplicate name。", "Confirm");
+                    EditorUtility.DisplayDialog("失败", "创建分组失败，请检查名称是否重复。", "确定");
                 }
             }
             GUI.enabled = true;
             GUILayout.EndHorizontal();
 
-            // Group list（Reduce height）
+            // 分组列表（缩小高度）
             if (recordObject.recordGroups.Count > 0)
             {
                 GUILayout.Space(5);
-                GUILayout.Label("Existing group:");
+                GUILayout.Label("现有分组:");
 
-                // Use fixed-height scroll region
+                // 使用固定高度的滚动区域
                 groupScrollPosition = GUILayout.BeginScrollView(groupScrollPosition, GUILayout.Height(120));
 
                 for (int i = 0; i < recordObject.recordGroups.Count; i++)
@@ -2257,7 +2257,7 @@ namespace UnityMcp.Gui
 
                     GUILayout.BeginHorizontal();
 
-                    // Group info（Simplify display）
+                    // 分组信息（简化显示）
                     GUILayout.BeginVertical();
                     GUILayout.Label($"{group.name}", EditorStyles.boldLabel);
                     GUILayout.Label($"{recordObject.GetGroupStatistics(group.id)}", EditorStyles.miniLabel);
@@ -2265,8 +2265,8 @@ namespace UnityMcp.Gui
 
                     GUILayout.FlexibleSpace();
 
-                    // Operation button（Horizontal arrangement）
-                    if (GUILayout.Button("Switch", GUILayout.Width(50), GUILayout.Height(20)))
+                    // 操作按钮（水平排列）
+                    if (GUILayout.Button("切换", GUILayout.Width(50), GUILayout.Height(20)))
                     {
                         recordObject.SwitchToGroup(group.id);
                         recordList = null;
@@ -2274,11 +2274,11 @@ namespace UnityMcp.Gui
                     }
 
                     GUI.enabled = !group.isDefault;
-                    if (GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(20)))
+                    if (GUILayout.Button("删除", GUILayout.Width(50), GUILayout.Height(20)))
                     {
-                        if (EditorUtility.DisplayDialog("Confirm deletion",
-                            $"Confirm to delete group '{group.name}' ?？\n\nAll records in this group will be moved to the default group。",
-                            "Delete", "Cancel"))
+                        if (EditorUtility.DisplayDialog("确认删除",
+                            $"确定要删除分组 '{group.name}' 吗？\n\n该分组的所有记录将被移动到默认分组。",
+                            "删除", "取消"))
                         {
                             recordObject.DeleteGroup(group.id);
                             recordList = null;
@@ -2298,29 +2298,29 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Calculate height of group management area
+        /// 计算分组管理区域的高度
         /// </summary>
         private float CalculateGroupManagerHeight()
         {
             var recordObject = McpExecuteRecordObject.instance;
-            float baseHeight = 120; // Basic height（Title + Create area）
+            float baseHeight = 120; // 基本高度（标题 + 创建区域）
 
             if (recordObject.recordGroups.Count > 0)
             {
-                baseHeight += 140; // Group list area（Title + Fixed height scroll area）
+                baseHeight += 140; // 分组列表区域（标题 + 固定高度的滚动区域）
             }
 
             return baseHeight;
         }
 
         /// <summary>
-        /// Get display name of current group
+        /// 获取当前分组的显示名称
         /// </summary>
         private string GetCurrentGroupDisplayName()
         {
             var recordObject = McpExecuteRecordObject.instance;
             var currentGroup = recordObject.GetCurrentGroup();
-            return currentGroup?.name ?? "Unknown group";
+            return currentGroup?.name ?? "未知分组";
         }
 
         #endregion

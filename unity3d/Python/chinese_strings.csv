@@ -1,0 +1,1241 @@
+文件,中文字符串,替换值
+config.py,配合新的端口切换逻辑,align with new port switching logic
+config.py,端口失败后的冷却时间,cooldown after port failure
+config.py,最大的失败端口记录数,max failed port records
+config.py,重新启用智能端口发现,re enable smart port discovery
+config.py,命令的单独超时设置,per command timeout setting
+config.py,端口扫描超时时间,port scan timeout
+config.py,启用自动端口切换,enable automatic port switching
+config.py,连接健康检查间隔,connection health check interval
+config.py,连接重试延迟,connection retry delay
+config.py,减少连接问题,reduce connection issues
+config.py,增加到,increase to
+config.py,秒超时,seconds timeout
+config.py,秒,seconds
+server.py,工具函数将在需要时动态获取连接,utility will fetch a connection on demand
+server.py,但不要让启动失败,but do not fail startup
+server.py,始终提供连接对象,always provide a connection object
+server.py,清理连接资源,clean up connection resources
+server.py,尝试连接,attempt to connect
+server.py,即使是,even if
+unity_connection.py,将失败的端口添加到失败列表并记录时间戳,add failed port to list with timestamp
+unity_connection.py,标记当前端口为失败并尝试其他端口,mark current port failed and try others
+unity_connection.py,成功连接后从失败列表中移除,remove from failure list after successful connect
+unity_connection.py,如果有现有连接且不强制重连,if a connection exists and reconnect is not forced
+unity_connection.py,带智能端口切换的重试机制,retry with smart port switching
+unity_connection.py,清理过期的失败端口记录,purge expired failed port entries
+unity_connection.py,验证现有连接是否还有效,verify existing connection is still valid
+unity_connection.py,解析失败但连接可能还在,parse failed but connection may still be alive
+unity_connection.py,只在严重错误时关闭连接,close connection only on critical errors
+unity_connection.py,强制重新连接到不同端口,force reconnect to a different port
+unity_connection.py,如果不是最后一次尝试,if not the last attempt
+unity_connection.py,支持字典和列表类型的,supports dict and list types
+unity_connection.py,如果所有端口都失败过,if all ports have failed
+unity_connection.py,清空失败记录重新开始,clear failure records and restart
+unity_connection.py,网络错误时才关闭连接,close connection only on network errors
+unity_connection.py,仍然尝试使用这个连接,still try using this connection
+unity_connection.py,限制失败端口记录数量,limit number of failed port entries
+unity_connection.py,获取可尝试的端口列表,get list of ports to try
+unity_connection.py,移除最早的失败记录,remove oldest failure record
+unity_connection.py,如果是连接相关错误,if it is a connection related error
+unity_connection.py,标记当前端口为失败,mark current port as failed
+unity_connection.py,排除最近失败的端口,exclude recently failed ports
+unity_connection.py,会自动添加失败端口,will auto add failed ports
+unity_connection.py,避免过于频繁的清理,avoid cleaning too frequently
+unity_connection.py,检查是否需要清理,check if cleanup is needed
+unity_connection.py,先验证连接有效性,validate connection first
+unity_connection.py,所有重试都失败了,all retries have failed
+unity_connection.py,不要立即关闭连接,do not close the connection immediately
+unity_connection.py,清理并重新创建,clean up and recreate
+unity_connection.py,如果是连接问题,if it is a connection issue
+unity_connection.py,现有连接不可用,existing connection is unavailable
+unity_connection.py,增加超时时间到,increase timeout to
+unity_connection.py,失败但连接存在,failed but connection persists
+unity_connection.py,先验证其可用性,first verify its availability
+unity_connection.py,如果已存在连接,if a connection already exists
+unity_connection.py,断开当前连接,disconnect current connection
+unity_connection.py,记录连接时间,record connection time
+unity_connection.py,检查是否包含,check whether contains
+unity_connection.py,设置连接超时,set connection timeout
+unity_connection.py,更宽松的检查,more lenient check
+unity_connection.py,更宽松的验证,more lenient validation
+unity_connection.py,尝试继续使用,attempt to continue using
+unity_connection.py,验证新连接,verify new connection
+unity_connection.py,给一次机会,give it one chance
+unity_connection.py,秒清理一次,clean once every
+unity_connection.py,创建新连接,create a new connection
+unity_connection.py,非连接问题,non connection issue
+unity_connection.py,准备重试,prepare to retry
+unity_connection.py,如果存在,if present
+unity_connection.py,只要包含,as long as it contains
+unity_connection.py,就认为是,considered as
+unity_connection.py,秒后重试,retry after seconds
+unity_connection.py,稍作等待,wait briefly
+unity_connection.py,更宽松的,more lenient
+unity_connection.py,服务器,server
+unity_connection.py,验证,validate
+unity_connection.py,等待,wait
+unity_connection.py,如果,if
+unity_connection.py,参数,parameters
+unity_connection.py,尝试,attempt
+unity_connection.py,秒,seconds
+unity_connection.py,或,or
+tools\base_editor.py,操作获取指定路径下的所有菜单项,fetch all menu items under the given path
+tools\base_editor.py,是否验证每个菜单项是否真实存在,whether to verify each menu item exists
+tools\base_editor.py,用于编辑器状态查询和菜单管理,for editor state query and menu management
+tools\base_editor.py,标签和层级管理功能已移至,tag and layer management has moved to
+tools\base_editor.py,获取当前选择的对象,get current selection
+tools\base_editor.py,编辑器基础管理工具,basic editor management utilities
+tools\base_editor.py,要执行的编辑器操作,editor action to perform
+tools\base_editor.py,支持反射动态获取,supports reflection based retrieval
+tools\base_editor.py,编辑器操作类型,editor action type
+tools\base_editor.py,获取编辑器状态,get editor state
+tools\base_editor.py,是否包含子菜单,whether to include submenus
+tools\base_editor.py,执行菜单命令,execute menu command
+tools\base_editor.py,执行菜单创建,execute menu creation
+tools\base_editor.py,验证菜单存在,verify menu exists
+tools\base_editor.py,获取窗口列表,get window list
+tools\base_editor.py,获取菜单列表,get menu list
+tools\base_editor.py,下的所有菜单,all menus under
+tools\base_editor.py,当前选择等,current selection etc
+tools\base_editor.py,支持的功能,supported features
+tools\base_editor.py,根菜单路径,root menu path
+tools\base_editor.py,包含子菜单,include submenus
+tools\base_editor.py,状态查询,status query
+tools\base_editor.py,获取状态,get state
+tools\base_editor.py,获取选择,get selection
+tools\base_editor.py,二级工具,secondary tool
+tools\base_editor.py,菜单管理,menu management
+tools\base_editor.py,菜单路径,menu path
+tools\base_editor.py,示例用法,example usage
+tools\base_editor.py,执行菜单,execute menu
+tools\base_editor.py,窗口列表,window list
+tools\base_editor.py,适用于,suitable for
+tools\base_editor.py,工具,tool
+tools\base_editor.py,用于,for
+tools\base_editor.py,注意,notes
+tools\base_editor.py,操作,operation
+tools\base_editor.py,获取,fetch
+tools\call_up.py,参数格式必须严格按照目标函数的定义,argument format must strictly follow target function definition
+tools\call_up.py,所有其他工具函数都通过这里转发到,all other tool functions are forwarded here to
+tools\call_up.py,处理器返回的结果已经是完整的格式,handler returns results in complete format
+tools\call_up.py,都必须通过此文件中的函数调用,all must be called via functions in this file
+tools\call_up.py,参数传递该函数所需的所有参数,parameters pass all arguments required by the function
+tools\call_up.py,使用带重试机制的命令发送到,send with retry mechanism to
+tools\call_up.py,支持事务性操作和批量处理,supports transactional and batch operations
+tools\call_up.py,个函数调用必须是对象类型,each function call must be an object
+tools\call_up.py,每个函数调用元素必须包含,each function call item must include
+tools\call_up.py,使用带重试机制的命令发送,send command with retry mechanism
+tools\call_up.py,基本的函数调用格式验证,basic function call format validation
+tools\call_up.py,参数指定要调用的函数名,parameter specifies function name to call
+tools\call_up.py,支持的函数包括但不限于,supported functions include but are not limited to
+tools\call_up.py,获取公共的错误响应格式,get common error response format
+tools\call_up.py,如果返回格式不符合预期,if return format is unexpected
+tools\call_up.py,传递该函数的所有参数,pass all parameters for the function
+tools\call_up.py,都必须通过此函数调用,must be invoked via this function
+tools\call_up.py,函数并收集所有返回值,invoke functions and collect all returns
+tools\call_up.py,函数名称无效或为空,function name invalid or empty
+tools\call_up.py,标准的错误响应字典,standard error response dict
+tools\call_up.py,公共的错误提示文本,common error message text
+tools\call_up.py,字段必须是对象类型,field must be an object
+tools\call_up.py,函数名必须是有效的,function name must be valid
+tools\call_up.py,参数必须是数组类型,arguments must be an array
+tools\call_up.py,参数必须是对象类型,argument must be an object
+tools\call_up.py,系统的核心调用入口,core invocation entry of the system
+tools\call_up.py,创建多个不同类型的,create multiple different types of
+tools\call_up.py,所有参数都通过此,all parameters go through this
+tools\call_up.py,确保返回结果包含,ensure result contains
+tools\call_up.py,单个函数调用工具,single function call utility
+tools\call_up.py,每个元素必须包含,each element must include
+tools\call_up.py,批量调用转发失败,batch call forwarding failed
+tools\call_up.py,批量函数调用工具,batch function call utility
+tools\call_up.py,进行单个函数调用,perform a single function call
+tools\call_up.py,字段无效或为空,field invalid or empty
+tools\call_up.py,包装成标准格式,wrap into standard format
+tools\call_up.py,函数的参数字典,parameter dict of the function
+tools\call_up.py,参数序列化失败,parameter serialization failed
+tools\call_up.py,可以按顺序调用,can be called in sequence
+tools\call_up.py,包含单个和批量,include single and batch
+tools\call_up.py,连接实例,connection instance
+tools\call_up.py,参数字典,parameter dict
+tools\call_up.py,函数调用,function call
+tools\call_up.py,字典传递,pass as dict
+tools\call_up.py,重要说明,important notes
+tools\call_up.py,设置布局,set layout
+tools\call_up.py,无法获取,unable to obtain
+tools\call_up.py,设置属性,set property
+tools\call_up.py,一级工具,primary tool
+tools\call_up.py,函数名称,function name
+tools\call_up.py,连接错误,connection error
+tools\call_up.py,必须通过,must go through
+tools\call_up.py,批量创建,batch create
+tools\call_up.py,工具函数,utility function
+tools\call_up.py,直接返回,return directly
+tools\call_up.py,场景管理,scene management
+tools\call_up.py,要调用的,to call
+tools\call_up.py,添加组件,add component
+tools\call_up.py,函数名,function name
+tools\call_up.py,处理器,handler
+tools\call_up.py,等函数,and functions
+tools\call_up.py,或使用,or use
+tools\call_up.py,的参数,parameters of
+tools\call_up.py,传递给,pass to
+tools\call_up.py,请使用,please use
+tools\call_up.py,函数,function
+tools\call_up.py,播放,play
+tools\call_up.py,获取,get
+tools\call_up.py,连接,connection
+tools\call_up.py,截图,screenshot
+tools\call_up.py,停止,stop
+tools\call_up.py,字段,field
+tools\call_up.py,部分,section
+tools\call_up.py,标志,flag
+tools\call_up.py,元素,element
+tools\call_up.py,这是,this is
+tools\call_up.py,创建,create
+tools\call_up.py,所有,all
+tools\call_up.py,编辑,edit
+tools\call_up.py,重要,important
+tools\call_up.py,外,outside
+tools\call_up.py,除,except
+tools\call_up.py,的,of
+tools\call_up.py,如,such as
+tools\call_up.py,等,etc
+tools\call_up.py,和,and
+tools\call_up.py,第,No
+tools\console.py,编辑器控制台写入不同类型的日志消息,write different log message types to the editor console
+tools\console.py,支持多种操作模式和灵活的过滤选项,supports multiple modes and flexible filters
+tools\console.py,支持多种日志级别和丰富的标签功能,supports multiple log levels and rich tags
+tools\console.py,控制台中有不同的显示效果和颜色,different display effects and colors in console
+tools\console.py,此函数仅用于提供参数说明和文档,this function only provides parameter description and docs
+tools\console.py,便于在控制台中筛选相关消息,helps filter related messages in console
+tools\console.py,过滤包含指定文本的日志消息,filter log messages containing specified text
+tools\console.py,记录程序运行状态和变量值,record runtime state and variables
+tools\console.py,包含控制台读取和写入功能,includes console read and write
+tools\console.py,记录关键操作的时间和状态,record time and status of key actions
+tools\console.py,用于分类和过滤日志的标签,tags for classifying and filtering logs
+tools\console.py,显示游戏状态和提示信息,display game state and tips
+tools\console.py,用于描述断言失败的条件,describe conditions for assertion failures
+tools\console.py,要写入的日志消息类型,log message type to write
+tools\console.py,不设置则获取全部消息,fetch all messages if not set
+tools\console.py,控制台的具体消息内容,concrete console message content
+tools\console.py,获取错误和警告消息,get error and warning messages
+tools\console.py,控制台输出格式类型,console output format type
+tools\console.py,限制返回的消息数量,limit number of returned messages
+tools\console.py,输出异常和错误信息,output exceptions and errors
+tools\console.py,可选择多种类型组合,allow combinations of multiple types
+tools\console.py,过滤特定内容的消息,filter messages with specific content
+tools\console.py,清空控制台历史记录,clear console history
+tools\console.py,要获取的消息类型,message types to get
+tools\console.py,中高亮显示该对象,highlight the object in
+tools\console.py,控制台写入工具,console write utility
+tools\console.py,可以读取或清空,can read or clear
+tools\console.py,控制台读取工具,console read utility
+tools\console.py,控制台操作工具,console operation tool
+tools\console.py,实际调用请使用,for actual calls please use
+tools\console.py,包含堆栈跟踪,include stack trace
+tools\console.py,支持模糊匹配,supports fuzzy match
+tools\console.py,调试信息收集,debug info collection
+tools\console.py,消息类型列表,list of message types
+tools\console.py,无堆栈跟踪,no stack trace
+tools\console.py,上下文对象,context object
+tools\console.py,不同类型在,different types in
+tools\console.py,最大消息数,max message count
+tools\console.py,清空控制台,clear console
+tools\console.py,控制台管理,console management
+tools\console.py,文本过滤器,text filter
+tools\console.py,要写入到,to write to
+tools\console.py,调试输出,debug output
+tools\console.py,日志分析,log analysis
+tools\console.py,重要提示,important note
+tools\console.py,操作类型,operation type
+tools\console.py,日志标签,log tags
+tools\console.py,日志类型,log types
+tools\console.py,性能监控,performance monitoring
+tools\console.py,二级工具,secondary tool
+tools\console.py,错误报告,error report
+tools\console.py,输出格式,output format
+tools\console.py,日志消息,log message
+tools\console.py,断言条件,assertion condition
+tools\console.py,用户反馈,user feedback
+tools\console.py,获取日志,get logs
+tools\console.py,时使用,used when
+tools\console.py,相关的,related
+tools\console.py,适用于,suitable for
+tools\console.py,可以向,can write to
+tools\console.py,函数,function
+tools\console.py,名称,name
+tools\console.py,示例,example
+tools\console.py,仅在,only when
+tools\console.py,为,as
+tools\edit_asset.py,此函数仅用于提供参数说明和文档,this function only provides parameter description and docs
+tools\edit_asset.py,用于设置资产的各种属性,for setting various asset properties
+tools\edit_asset.py,是否强制执行操作,whether to force execution
+tools\edit_asset.py,资产的各种操作,various asset operations
+tools\edit_asset.py,覆盖现有文件等,overwrite existing files etc
+tools\edit_asset.py,实际调用请使用,for actual calls please use
+tools\edit_asset.py,资产管理工具,asset management tool
+tools\edit_asset.py,重新导入资产,reimport asset
+tools\edit_asset.py,资产属性字典,asset property dict
+tools\edit_asset.py,获取资产信息,get asset info
+tools\edit_asset.py,修改资产属性,modify asset properties
+tools\edit_asset.py,复制时使用,used when copying
+tools\edit_asset.py,重命名资产,rename asset
+tools\edit_asset.py,创建文件夹,create folder
+tools\edit_asset.py,支持的操作,supported operations
+tools\edit_asset.py,搜索模式,search mode
+tools\edit_asset.py,资产路径,asset path
+tools\edit_asset.py,重要提示,important note
+tools\edit_asset.py,复制资产,copy asset
+tools\edit_asset.py,操作类型,operation type
+tools\edit_asset.py,资产属性,asset properties
+tools\edit_asset.py,强制执行,force execute
+tools\edit_asset.py,标准格式,standard format
+tools\edit_asset.py,包括导入,including import
+tools\edit_asset.py,搜索资产,search assets
+tools\edit_asset.py,二级工具,secondary tool
+tools\edit_asset.py,目标路径,target path
+tools\edit_asset.py,复制等,copy etc
+tools\edit_asset.py,函数,function
+tools\edit_asset.py,示例,example
+tools\edit_asset.py,修改,modify
+tools\edit_asset.py,移动,move
+tools\edit_asset.py,相同,same
+tools\edit_asset.py,提供,provide
+tools\edit_asset.py,如,such as
+tools\edit_asset.py,等,etc
+tools\edit_asset.py,与,and
+tools\edit_component.py,组件的所有可序列化字段和属性,all serializable fields and properties of a component
+tools\edit_component.py,组件类型的反射访问和修改,reflection based access and modification for component types
+tools\edit_component.py,查看可用属性作为设置模板,view available properties as templates
+tools\edit_component.py,支持读取和修改组件状态,support reading and modifying component state
+tools\edit_component.py,面板功能的编程接口,programmatic interface for inspector panels
+tools\edit_component.py,专门用于获取和设置,specialized for get and set
+tools\edit_component.py,反射操作有性能开销,reflection has performance overhead
+tools\edit_component.py,批量设置组件属性,batch set component properties
+tools\edit_component.py,会创建实例的属性,properties that create instances
+tools\edit_component.py,要设置的属性字典,property dict to set
+tools\edit_component.py,以及所有自定义,and all custom
+tools\edit_component.py,避免在每帧调用,avoid calling every frame
+tools\edit_component.py,的层次结构路径,hierarchy path of
+tools\edit_component.py,确保值类型匹配,ensure value types match
+tools\edit_component.py,用于获取和设置,used for get and set
+tools\edit_component.py,反射机制访问,reflection based access
+tools\edit_component.py,所有修改支持,all modifications supported
+tools\edit_component.py,属性访问规则,property access rules
+tools\edit_component.py,组件编辑工具,component editing tool
+tools\edit_component.py,数据类型支持,data type support
+tools\edit_component.py,自动类型转换,automatic type conversion
+tools\edit_component.py,设置组件属性,set component properties
+tools\edit_component.py,支持组件类型,supported component types
+tools\edit_component.py,组件类型名称,component type name
+tools\edit_component.py,获取组件属性,get component properties
+tools\edit_component.py,的类型名称,type name of
+tools\edit_component.py,快捷访问器,quick accessor
+tools\edit_component.py,组件的属性,component properties
+tools\edit_component.py,对象路径,object path
+tools\edit_component.py,基本类型,primitive types
+tools\edit_component.py,操作类型,operation type
+tools\edit_component.py,引用类型,reference types
+tools\edit_component.py,私有字段,private fields
+tools\edit_component.py,注意事项,notes
+tools\edit_component.py,二级工具,secondary tool
+tools\edit_component.py,属性字典,property dict
+tools\edit_component.py,支持所有,supports all
+tools\edit_component.py,格式数据,formatted data
+tools\edit_component.py,组件类型,component type
+tools\edit_component.py,主要操作,main operations
+tools\edit_component.py,可读写的,readable and writable
+tools\edit_component.py,集合类型,collection types
+tools\edit_component.py,个元素,items
+tools\edit_component.py,编辑器,editor
+tools\edit_component.py,的实例,instance of
+tools\edit_component.py,继承自,inherits from
+tools\edit_component.py,先使用,use first
+tools\edit_component.py,这是,this is
+tools\edit_component.py,实例,instance
+tools\edit_component.py,动画,animation
+tools\edit_component.py,用于,for
+tools\edit_component.py,字段,field
+tools\edit_component.py,属性,property
+tools\edit_component.py,返回,return
+tools\edit_component.py,类型,type
+tools\edit_component.py,包含,include
+tools\edit_component.py,操作,operation
+tools\edit_component.py,渲染,rendering
+tools\edit_component.py,排除,exclude
+tools\edit_component.py,撤销,undo
+tools\edit_component.py,需要,need
+tools\edit_component.py,物理,physics
+tools\edit_component.py,光照,lighting
+tools\edit_component.py,音频,audio
+tools\edit_component.py,使用,use
+tools\edit_component.py,脚本,script
+tools\edit_component.py,等,etc
+tools\edit_gameobject.py,此函数仅用于提供参数说明和文档,this function only provides parameter description and docs
+tools\edit_gameobject.py,要添加或移除的组件类型名称,component type name to add or remove
+tools\edit_gameobject.py,父对象的层次结构路径,hierarchy path of the parent
+tools\edit_gameobject.py,移除和获取组件,remove and get components
+tools\edit_gameobject.py,的层次结构路径,hierarchy path of
+tools\edit_gameobject.py,实际调用请使用,for actual calls please use
+tools\edit_gameobject.py,组件管理等功能,component management features
+tools\edit_gameobject.py,父对象的实例,parent object instance
+tools\edit_gameobject.py,设置父子关系,set parent child relationship
+tools\edit_gameobject.py,修改和管理,modify and manage
+tools\edit_gameobject.py,的静态标志,static flags of
+tools\edit_gameobject.py,的缩放比例,scale of
+tools\edit_gameobject.py,的位置坐标,position coordinates of
+tools\edit_gameobject.py,设置父对象,set parent
+tools\edit_gameobject.py,父对象路径,parent path
+tools\edit_gameobject.py,的旋转角度,rotation of
+tools\edit_gameobject.py,的基本属性,basic properties of
+tools\edit_gameobject.py,的激活状态,active state of
+tools\edit_gameobject.py,对象路径,object path
+tools\edit_gameobject.py,属性修改,property modification
+tools\edit_gameobject.py,重要提示,important note
+tools\edit_gameobject.py,操作类型,operation type
+tools\edit_gameobject.py,用于创建,used to create
+tools\edit_gameobject.py,二级工具,secondary tool
+tools\edit_gameobject.py,对象创建,object creation
+tools\edit_gameobject.py,移除组件,remove component
+tools\edit_gameobject.py,创建新的,create new
+tools\edit_gameobject.py,获取组件,get component
+tools\edit_gameobject.py,组件管理,component management
+tools\edit_gameobject.py,组件类型,component type
+tools\edit_gameobject.py,变换操作,transform operations
+tools\edit_gameobject.py,层次结构,hierarchy
+tools\edit_gameobject.py,支持多种,supports multiple
+tools\edit_gameobject.py,编辑工具,editing tool
+tools\edit_gameobject.py,设置位置,set position
+tools\edit_gameobject.py,添加组件,add component
+tools\edit_gameobject.py,激活状态,active state
+tools\edit_gameobject.py,静态标志,static flags
+tools\edit_gameobject.py,的标签,tag of
+tools\edit_gameobject.py,的图层,layer of
+tools\edit_gameobject.py,父对象,parent
+tools\edit_gameobject.py,的创建,creation of
+tools\edit_gameobject.py,的名称,name of
+tools\edit_gameobject.py,适用于,suitable for
+tools\edit_gameobject.py,的实例,instance of
+tools\edit_gameobject.py,创建,create
+tools\edit_gameobject.py,实例,instance
+tools\edit_gameobject.py,函数,function
+tools\edit_gameobject.py,名称,name
+tools\edit_gameobject.py,缩放,scale
+tools\edit_gameobject.py,添加,add
+tools\edit_gameobject.py,位置,position
+tools\edit_gameobject.py,包含,include
+tools\edit_gameobject.py,旋转,rotation
+tools\edit_gameobject.py,操作,operation
+tools\edit_gameobject.py,标签,tag
+tools\edit_gameobject.py,图层,layer
+tools\edit_gameobject.py,示例,example
+tools\edit_gameobject.py,修改,modify
+tools\edit_material.py,要设置的材质属性键值对,material property key values to set
+tools\edit_material.py,支持完整的材质编辑功能,full featured material editing
+tools\edit_material.py,对多个材质进行统一操作,apply to multiple materials
+tools\edit_material.py,修改材质的各种属性参数,modify various material parameters
+tools\edit_material.py,要应用的纹理文件路径,texture file path to apply
+tools\edit_material.py,要应用纹理的插槽名称,texture slot name to apply
+tools\edit_material.py,要使用的着色器名称,shader name to use
+tools\edit_material.py,修改和管理材质资源,modify and manage material assets
+tools\edit_material.py,应用和更换材质纹理,apply or replace material textures
+tools\edit_material.py,从零开始创建新材质,create new material from scratch
+tools\edit_material.py,要执行的材质操作,material operation to perform
+tools\edit_material.py,修改和管理功能,modify and manage features
+tools\edit_material.py,包含材质的创建,includes material creation
+tools\edit_material.py,材质操作类型,material operation type
+tools\edit_material.py,材质编辑工具,material editing tool
+tools\edit_material.py,材质文件的,of the material file
+tools\edit_material.py,操作时使用,used during operation
+tools\edit_material.py,着色器名称,shader name
+tools\edit_material.py,材质路径,material path
+tools\edit_material.py,纹理路径,texture path
+tools\edit_material.py,应用纹理,apply texture
+tools\edit_material.py,用于创建,used to create
+tools\edit_material.py,纹理插槽,texture slot
+tools\edit_material.py,纹理管理,texture management
+tools\edit_material.py,属性调整,property adjustment
+tools\edit_material.py,批量处理,batch processing
+tools\edit_material.py,修改属性,modify properties
+tools\edit_material.py,材质属性,material properties
+tools\edit_material.py,材质创建,material creation
+tools\edit_material.py,适用于,suitable for
+tools\edit_material.py,创建,create
+tools\edit_material.py,删除,delete
+tools\edit_material.py,复制,copy
+tools\edit_material.py,仅在,only when
+tools\edit_material.py,路径,path
+tools\edit_material.py,和,and
+tools\edit_mesh.py,重新计算模型的顶点法线,recalculate vertex normals
+tools\edit_mesh.py,支持多种网格处理功能,supports various mesh operations
+tools\edit_mesh.py,内路径或外部文件路径,internal or external file path
+tools\edit_mesh.py,网格导入时的设置参数,settings for mesh import
+tools\edit_mesh.py,导入或导出的目标路径,target path for import or export
+tools\edit_mesh.py,减少面数和提升性能,reduce faces and improve performance
+tools\edit_mesh.py,要执行的网格操作,mesh operation to perform
+tools\edit_mesh.py,网格文件的路径,mesh file path
+tools\edit_mesh.py,优化和处理功能,optimization and processing features
+tools\edit_mesh.py,为模型自动生成,auto generate for model
+tools\edit_mesh.py,网格优化的级别,level of mesh optimization
+tools\edit_mesh.py,从外部文件导入,import from external file
+tools\edit_mesh.py,网格文件路径,mesh file path
+tools\edit_mesh.py,模型到项目中,model into project
+tools\edit_mesh.py,网格编辑工具,mesh editing tool
+tools\edit_mesh.py,网格操作类型,mesh operation type
+tools\edit_mesh.py,网格的导入,mesh import
+tools\edit_mesh.py,优化和处理,optimization and processing
+tools\edit_mesh.py,导入设置,import settings
+tools\edit_mesh.py,法线计算,normal calculation
+tools\edit_mesh.py,网格资源,mesh asset
+tools\edit_mesh.py,用于导入,used to import
+tools\edit_mesh.py,模型导入,model import
+tools\edit_mesh.py,目标路径,target path
+tools\edit_mesh.py,优化级别,optimization level
+tools\edit_mesh.py,网格优化,mesh optimization
+tools\edit_mesh.py,计算法线,compute normals
+tools\edit_mesh.py,可以是,can be
+tools\edit_mesh.py,适用于,suitable for
+tools\edit_mesh.py,生成,generate
+tools\edit_mesh.py,包含,include
+tools\edit_mesh.py,导入,import
+tools\edit_mesh.py,优化,optimize
+tools\edit_mesh.py,导出,export
+tools\edit_mesh.py,坐标,coordinates
+tools\edit_mesh.py,低,low
+tools\edit_mesh.py,高,high
+tools\edit_mesh.py,中,medium
+tools\edit_particle_system.py,实时调整粒子系统的各种参数,adjust particle system parameters in real time
+tools\edit_particle_system.py,设置粒子的线性和轨道速度,set linear and orbital velocity
+tools\edit_particle_system.py,初始化或添加粒子系统组件,initialize or add particle system component
+tools\edit_particle_system.py,是否启用生命周期颜色变化,enable color over lifetime
+tools\edit_particle_system.py,是否启用生命周期大小变化,enable size over lifetime
+tools\edit_particle_system.py,是否启用生命周期速度模块,enable velocity over lifetime
+tools\edit_particle_system.py,精确控制粒子系统的播放,control particle playback precisely
+tools\edit_particle_system.py,模拟粒子系统的运行状态,simulate particle system state
+tools\edit_particle_system.py,粒子大小随生命周期变化,particle size changes over lifetime
+tools\edit_particle_system.py,粒子颜色随生命周期变化,particle color changes over lifetime
+tools\edit_particle_system.py,提供完整的粒子系统创建,provide full particle system creation
+tools\edit_particle_system.py,操作是否包含子粒子系统,whether to include sub particle systems
+tools\edit_particle_system.py,快速创建和配置粒子特效,quickly create and configure effects
+tools\edit_particle_system.py,获取粒子系统当前属性,get current particle system properties
+tools\edit_particle_system.py,是否在唤醒时自动播放,play on awake
+tools\edit_particle_system.py,是否启用生命周期旋转,enable rotation over lifetime
+tools\edit_particle_system.py,支持多种粒子系统操作,supports various particle operations
+tools\edit_particle_system.py,每单位距离发射粒子数,emission per distance unit
+tools\edit_particle_system.py,创建简单的火焰效果,create a simple flame effect
+tools\edit_particle_system.py,是否启用纹理表动画,enable texture sheet animation
+tools\edit_particle_system.py,产生拖尾的粒子比率,trail particle ratio
+tools\edit_particle_system.py,粒子系统持续时间,particle system duration
+tools\edit_particle_system.py,控制粒子渲染方式,control particle rendering mode
+tools\edit_particle_system.py,启用生命周期大小,enable size over lifetime
+tools\edit_particle_system.py,粒子材质资源路径,particle material path
+tools\edit_particle_system.py,模拟粒子系统运行,simulate particle system
+tools\edit_particle_system.py,启用生命周期颜色,enable color over lifetime
+tools\edit_particle_system.py,启用生命周期旋转,enable rotation over lifetime
+tools\edit_particle_system.py,粒子系统编辑工具,particle system editing tool
+tools\edit_particle_system.py,启用生命周期速度,enable velocity over lifetime
+tools\edit_particle_system.py,是否启用碰撞模块,enable collision module
+tools\edit_particle_system.py,粒子初始旋转角度,initial rotation angle
+tools\edit_particle_system.py,控制粒子发射速率,control emission rate
+tools\edit_particle_system.py,是否启用噪声模块,enable noise module
+tools\edit_particle_system.py,是否启用形状模块,enable shape module
+tools\edit_particle_system.py,设置粒子系统属性,set particle system properties
+tools\edit_particle_system.py,定义粒子发射形状,define emission shape
+tools\edit_particle_system.py,是否启用发射模块,enable emission module
+tools\edit_particle_system.py,是否启用拖尾模块,enable trail module
+tools\edit_particle_system.py,启用纹理表动画,enable texture sheet animation
+tools\edit_particle_system.py,渲染排序层名称,render sorting layer name
+tools\edit_particle_system.py,配置和控制功能,configuration and control
+tools\edit_particle_system.py,纹理表动画帧率,texture sheet frame rate
+tools\edit_particle_system.py,模拟前进的时间,simulate forward time
+tools\edit_particle_system.py,播放控制等操作,playback control operations
+tools\edit_particle_system.py,颜色等基础属性,basic properties such as color
+tools\edit_particle_system.py,纹理表分块数,texture sheet tiles
+tools\edit_particle_system.py,发射形状的半径,emission shape radius
+tools\edit_particle_system.py,粒子与场景碰撞,particle scene collisions
+tools\edit_particle_system.py,仅循环模式有效,only valid in loop mode
+tools\edit_particle_system.py,每秒发射粒子数,particles per second
+tools\edit_particle_system.py,的层次结构路径,hierarchy path of
+tools\edit_particle_system.py,圆环的弧度角度,arc angle
+tools\edit_particle_system.py,粒子系统的创建,creation of particle system
+tools\edit_particle_system.py,排序层内的顺序,order in sorting layer
+tools\edit_particle_system.py,主要功能模块,main modules
+tools\edit_particle_system.py,发射形状类型,emission shape type
+tools\edit_particle_system.py,粒子初始颜色,initial color
+tools\edit_particle_system.py,播放粒子系统,play particle system
+tools\edit_particle_system.py,碰撞反弹系数,bounce coefficient
+tools\edit_particle_system.py,粒子生命周期,particle lifetime
+tools\edit_particle_system.py,暂停粒子系统,pause particle system
+tools\edit_particle_system.py,清除所有粒子,clear all particles
+tools\edit_particle_system.py,粒子旋转效果,rotation effect
+tools\edit_particle_system.py,纹理表分块数,texture sheet tiles
+tools\edit_particle_system.py,模拟速度倍率,simulation speed multiplier
+tools\edit_particle_system.py,重启粒子系统,restart particle system
+tools\edit_particle_system.py,粒子初始速度,initial speed
+tools\edit_particle_system.py,碰撞衰减系数,damping coefficient
+tools\edit_particle_system.py,粒子拖尾效果,trail effect
+tools\edit_particle_system.py,是否循环播放,loop playback
+tools\edit_particle_system.py,播放粒子特效,play particle effect
+tools\edit_particle_system.py,调整粒子大小,adjust particle size
+tools\edit_particle_system.py,锥体发射角度,cone angle
+tools\edit_particle_system.py,噪声扰动强度,noise strength
+tools\edit_particle_system.py,最大粒子数量,max particles
+tools\edit_particle_system.py,添加噪声扰动,add noise
+tools\edit_particle_system.py,重力修正系数,gravity modifier
+tools\edit_particle_system.py,粒子初始大小,initial size
+tools\edit_particle_system.py,停止粒子系统,stop particle system
+tools\edit_particle_system.py,开始延迟时间,start delay
+tools\edit_particle_system.py,拖尾生命周期,trail lifetime
+tools\edit_particle_system.py,旋转角速度,angular velocity
+tools\edit_particle_system.py,最大粒子数,max particle count
+tools\edit_particle_system.py,初始化组件,initialize component
+tools\edit_particle_system.py,距离发射率,distance emission rate
+tools\edit_particle_system.py,主模块属性,main module properties
+tools\edit_particle_system.py,包含子粒子,include sub particles
+tools\edit_particle_system.py,序列帧动画,sprite sheet animation
+tools\edit_particle_system.py,纹理表分块,texture sheet tiles
+tools\edit_particle_system.py,随机方向量,random direction amount
+tools\edit_particle_system.py,唤醒时播放,play on awake
+tools\edit_particle_system.py,纹理表动画模块,texture sheet module
+tools\edit_particle_system.py,时间发射率,time emission rate
+tools\edit_particle_system.py,形状模块,shape module
+tools\edit_particle_system.py,启用拖尾,enable trails
+tools\edit_particle_system.py,重力修正,gravity modifier
+tools\edit_particle_system.py,初始旋转,initial rotation
+tools\edit_particle_system.py,初始速度,initial velocity
+tools\edit_particle_system.py,拖尾比率,trail ratio
+tools\edit_particle_system.py,二级工具,secondary tool
+tools\edit_particle_system.py,示例用法,example usage
+tools\edit_particle_system.py,获取属性,get properties
+tools\edit_particle_system.py,随机方向,random direction
+tools\edit_particle_system.py,噪声模块,noise module
+tools\edit_particle_system.py,模拟空间,simulation space
+tools\edit_particle_system.py,生命周期,lifetime
+tools\edit_particle_system.py,缩放模式,scaling mode
+tools\edit_particle_system.py,排序顺序,sorting order
+tools\edit_particle_system.py,渲染模块,renderer module
+tools\edit_particle_system.py,循环播放,loop
+tools\edit_particle_system.py,碰撞反弹,collision bounce
+tools\edit_particle_system.py,拖尾模块,trail module
+tools\edit_particle_system.py,形状类型,shape type
+tools\edit_particle_system.py,碰撞模块,collision module
+tools\edit_particle_system.py,碰撞衰减,collision damping
+tools\edit_particle_system.py,启用形状,enable shape
+tools\edit_particle_system.py,设置属性,set properties
+tools\edit_particle_system.py,颜色模块,color module
+tools\edit_particle_system.py,特效创建,effect creation
+tools\edit_particle_system.py,对象路径,object path
+tools\edit_particle_system.py,渲染模式,render mode
+tools\edit_particle_system.py,形状半径,shape radius
+tools\edit_particle_system.py,模拟速度,simulation speed
+tools\edit_particle_system.py,初始颜色,initial color
+tools\edit_particle_system.py,旋转模块,rotation module
+tools\edit_particle_system.py,专门用于,specially for
+tools\edit_particle_system.py,开始延迟,start delay
+tools\edit_particle_system.py,属性调整,property tuning
+tools\edit_particle_system.py,启用碰撞,enable collision
+tools\edit_particle_system.py,是否预热,prewarm
+tools\edit_particle_system.py,轨道速度,orbital velocity
+tools\edit_particle_system.py,大小模块,size module
+tools\edit_particle_system.py,圆弧角度,arc angle
+tools\edit_particle_system.py,模拟调试,simulation debug
+tools\edit_particle_system.py,模拟时间,simulation time
+tools\edit_particle_system.py,碰撞类型,collision type
+tools\edit_particle_system.py,材质路径,material path
+tools\edit_particle_system.py,锥体角度,cone angle
+tools\edit_particle_system.py,操作类型,operation type
+tools\edit_particle_system.py,速度模块,velocity module
+tools\edit_particle_system.py,动画帧率,animation frame rate
+tools\edit_particle_system.py,噪声强度,noise intensity
+tools\edit_particle_system.py,初始大小,initial size
+tools\edit_particle_system.py,线性速度,linear velocity
+tools\edit_particle_system.py,噪声频率,noise frequency
+tools\edit_particle_system.py,启用噪声,enable noise
+tools\edit_particle_system.py,启用发射,enable emission
+tools\edit_particle_system.py,持续时间,duration
+tools\edit_particle_system.py,播放控制,playback control
+tools\edit_particle_system.py,发射模块,emission module
+tools\edit_particle_system.py,主模块,main module
+tools\edit_particle_system.py,排序层,sorting layer
+tools\edit_particle_system.py,盒子等,box etc
+tools\edit_particle_system.py,角速度,angular speed
+tools\edit_particle_system.py,适用于,suitable for
+tools\edit_particle_system.py,的实例,instance of
+tools\edit_particle_system.py,圆形,circle
+tools\edit_particle_system.py,循环,loop
+tools\edit_particle_system.py,播放,play
+tools\edit_particle_system.py,球体,sphere
+tools\edit_particle_system.py,暂停,pause
+tools\edit_particle_system.py,停止,stop
+tools\edit_particle_system.py,速度,speed
+tools\edit_particle_system.py,实例,instance
+tools\edit_particle_system.py,用于,for
+tools\edit_particle_system.py,模拟,simulate
+tools\edit_particle_system.py,操作,operation
+tools\edit_particle_system.py,锥体,cone
+tools\edit_particle_system.py,预热,prewarm
+tools\edit_particle_system.py,配置,configuration
+tools\edit_particle_system.py,重启,restart
+tools\edit_particle_system.py,大小,size
+tools\edit_particle_system.py,清除,clear
+tools\edit_particle_system.py,度,degrees
+tools\edit_particle_system.py,秒,seconds
+tools\edit_prefab.py,是否递归搜索子文件夹,recursively search subfolders
+tools\edit_prefab.py,是否应用预制体更改,apply prefab changes
+tools\edit_prefab.py,是否还原预制体更改,revert prefab changes
+tools\edit_prefab.py,是否断开预制体连接,break prefab connection
+tools\edit_prefab.py,是否创建预制体变体,create prefab variant
+tools\edit_prefab.py,是否连接到预制体,connect to prefab
+tools\edit_prefab.py,父对象名称或路径,parent object name or path
+tools\edit_prefab.py,提供预制体的创建,provide prefab creation
+tools\edit_prefab.py,是否强制执行操作,whether to force execution
+tools\edit_prefab.py,预制体资源路径,prefab asset path
+tools\edit_prefab.py,中的预制体资源,prefab asset in
+tools\edit_prefab.py,应用预制体更改,apply prefab changes
+tools\edit_prefab.py,断开预制体连接,break prefab connection
+tools\edit_prefab.py,还原预制体更改,revert prefab changes
+tools\edit_prefab.py,覆盖现有文件等,overwrite existing files etc
+tools\edit_prefab.py,预制体管理工具,prefab management tool
+tools\edit_prefab.py,连接到预制体,connect to prefab
+tools\edit_prefab.py,实例化时使用,used when instantiating
+tools\edit_prefab.py,实例化等操作,instantiate and related actions
+tools\edit_prefab.py,父预制体路径,parent prefab path
+tools\edit_prefab.py,创建时使用,used when creating
+tools\edit_prefab.py,预制体类型,prefab type
+tools\edit_prefab.py,预制体变体,prefab variant
+tools\edit_prefab.py,变体时使用,used for variant
+tools\edit_prefab.py,复制时使用,used when copying
+tools\edit_prefab.py,名称或路径,name or path
+tools\edit_prefab.py,搜索模式,search mode
+tools\edit_prefab.py,缩放比例,scale
+tools\edit_prefab.py,断开连接,disconnect
+tools\edit_prefab.py,操作类型,operation type
+tools\edit_prefab.py,还原更改,revert changes
+tools\edit_prefab.py,专门管理,specially manage
+tools\edit_prefab.py,强制执行,force execute
+tools\edit_prefab.py,创建变体,create variant
+tools\edit_prefab.py,标准格式,standard format
+tools\edit_prefab.py,解包模式,unpack mode
+tools\edit_prefab.py,场景路径,scene path
+tools\edit_prefab.py,位置坐标,position coordinates
+tools\edit_prefab.py,支持操作,supported operations
+tools\edit_prefab.py,目标路径,target path
+tools\edit_prefab.py,旋转角度,rotation
+tools\edit_prefab.py,获取信息,get info
+tools\edit_prefab.py,递归搜索,recursive search
+tools\edit_prefab.py,应用更改,apply changes
+tools\edit_prefab.py,打包模式,pack mode
+tools\edit_prefab.py,实例化,instantiate
+tools\edit_prefab.py,创建,create
+tools\edit_prefab.py,连接,connect
+tools\edit_prefab.py,复制,copy
+tools\edit_prefab.py,解包,unpack
+tools\edit_prefab.py,打包,pack
+tools\edit_prefab.py,搜索,search
+tools\edit_prefab.py,修改,modify
+tools\edit_prefab.py,如,such as
+tools\edit_prefab.py,源,source
+tools\edit_scene.py,创建和获取层级结构,create and fetch hierarchy
+tools\edit_scene.py,场景管理工具,scene management tool
+tools\edit_scene.py,获取场景层级,get scene hierarchy
+tools\edit_scene.py,支持的操作,supported operations
+tools\edit_scene.py,场景名称,scene name
+tools\edit_scene.py,二级工具,secondary tool
+tools\edit_scene.py,构建索引,build index
+tools\edit_scene.py,资产路径,asset path
+tools\edit_scene.py,包括加载,including load
+tools\edit_scene.py,操作类型,operation type
+tools\edit_scene.py,创建场景,create scene
+tools\edit_scene.py,加载场景,load scene
+tools\edit_scene.py,保存场景,save scene
+tools\edit_scene.py,场景,scene
+tools\edit_scene.py,管理,management
+tools\edit_scene.py,保存,save
+tools\edit_script.py,删除等完整的脚本管理功能,full script management including delete
+tools\edit_script.py,可自定义代码或使用模板,custom code or use templates
+tools\edit_script.py,返回完整文本和按行数组,return full text and line array
+tools\edit_script.py,用于创建时自动生成模板,auto generate template on create
+tools\edit_script.py,不提供则自动生成模板,auto generate if not provided
+tools\edit_script.py,换行分割的字符串数组,lines split by newline
+tools\edit_script.py,创建时会自动生成符合,auto generate compliant on create
+tools\edit_script.py,自动创建不存在的目录,auto create missing directories
+tools\edit_script.py,并进行基础语法验证,with basic syntax validation
+tools\edit_script.py,删除操作使用回收站,use recycle bin for delete
+tools\edit_script.py,脚本所在目录路径,script directory path
+tools\edit_script.py,脚本生命周期管理,script lifecycle management
+tools\edit_script.py,自动触发重新编译,auto trigger recompile
+tools\edit_script.py,不能以数字开头,cannot start with a digit
+tools\edit_script.py,必须与类名匹配,must match class name
+tools\edit_script.py,更新和删除操作,update and delete operations
+tools\edit_script.py,规范的代码模板,standard code template
+tools\edit_script.py,会自动重新编译,will recompile automatically
+tools\edit_script.py,路径支持相对于,path supports relative to
+tools\edit_script.py,更新脚本内容,update script content
+tools\edit_script.py,安全删除脚本,safely delete script
+tools\edit_script.py,脚本基类类型,script base class type
+tools\edit_script.py,数字和下划线,digits and underscores
+tools\edit_script.py,只能包含字母,letters only
+tools\edit_script.py,必须是有效的,must be valid
+tools\edit_script.py,脚本名称规则,script naming rules
+tools\edit_script.py,读取脚本内容,read script content
+tools\edit_script.py,脚本编辑工具,script editing tool
+tools\edit_script.py,移到回收站,move to recycle bin
+tools\edit_script.py,支持完整的,full support for
+tools\edit_script.py,创建新脚本,create new script
+tools\edit_script.py,创建时使用,used when creating
+tools\edit_script.py,创建时可选,optional on create
+tools\edit_script.py,修改脚本后,after script modified
+tools\edit_script.py,项目中的,in project
+tools\edit_script.py,脚本类型,script type
+tools\edit_script.py,命名空间,namespace
+tools\edit_script.py,操作类型,operation type
+tools\edit_script.py,专门管理,specially manage
+tools\edit_script.py,代码内容,code content
+tools\edit_script.py,注意事项,notes
+tools\edit_script.py,提供创建,provide creation
+tools\edit_script.py,二级工具,secondary tool
+tools\edit_script.py,脚本路径,script path
+tools\edit_script.py,用于管理,used to manage
+tools\edit_script.py,默认路径,default path
+tools\edit_script.py,括号匹配,bracket matching
+tools\edit_script.py,主要操作,main operations
+tools\edit_script.py,可以恢复,can be restored
+tools\edit_script.py,脚本名称,script name
+tools\edit_script.py,脚本文件,script file
+tools\edit_script.py,标识符,identifier
+tools\edit_script.py,的路径,path of
+tools\edit_script.py,扩展名,extension
+tools\edit_script.py,相对于,relative to
+tools\edit_script.py,默认为,defaults to
+tools\edit_script.py,支持的,supported
+tools\edit_script.py,创建,create
+tools\edit_script.py,更新,update
+tools\edit_script.py,要求,requirements
+tools\edit_script.py,删除,delete
+tools\edit_script.py,读取,read
+tools\edit_script.py,不含,without
+tools\edit_script.py,等,etc
+tools\edit_scriptableobject.py,动态修改已存在资源的属性值,dynamically modify properties of existing assets
+tools\edit_scriptableobject.py,获取资源的详细信息和元数据,get detailed info and metadata of assets
+tools\edit_scriptableobject.py,如不提供则自动生成唯一路径,auto generate unique path if not provided
+tools\edit_scriptableobject.py,快速复制现有配置创建变体,quickly copy config to create variant
+tools\edit_scriptableobject.py,中的属性名不区分大小写,property names are case insensitive
+tools\edit_scriptableobject.py,资源生命周期管理功能,asset lifecycle management
+tools\edit_scriptableobject.py,是否递归搜索子文件夹,recursively search subfolders
+tools\edit_scriptableobject.py,角色属性等的数据容器,data containers such as character stats
+tools\edit_scriptableobject.py,搜索结果每页的数量,items per page in search
+tools\edit_scriptableobject.py,不需要包含命名空间,namespace not required
+tools\edit_scriptableobject.py,属性设置支持的类型,supported types for property set
+tools\edit_scriptableobject.py,建议仅在需要时启用,recommended only when needed
+tools\edit_scriptableobject.py,按条件搜索项目中的,conditional search in project
+tools\edit_scriptableobject.py,是否生成资源预览图,whether to generate preview
+tools\edit_scriptableobject.py,中用于存储游戏配置,used to store game config
+tools\edit_scriptableobject.py,搜索模式或关键词,search mode or keyword
+tools\edit_scriptableobject.py,修改会自动标记为,modifications auto mark as
+tools\edit_scriptableobject.py,搜索所有玩家数据,search all player data
+tools\edit_scriptableobject.py,中的数据资源管理,data asset management
+tools\edit_scriptableobject.py,预览生成可能较慢,preview generation may be slow
+tools\edit_scriptableobject.py,不提供则自动生成,auto generate if not provided
+tools\edit_scriptableobject.py,从脚本类创建新的,create new from script class
+tools\edit_scriptableobject.py,本工具提供完整的,tool provides complete
+tools\edit_scriptableobject.py,是否强制执行操作,whether to force execution
+tools\edit_scriptableobject.py,搜索范围文件夹,search scope folder
+tools\edit_scriptableobject.py,工具会自动搜索,tool will search automatically
+tools\edit_scriptableobject.py,覆盖现有文件等,overwrite existing files etc
+tools\edit_scriptableobject.py,搜索结果的页码,page number of results
+tools\edit_scriptableobject.py,不需要命名空间,namespace not needed
+tools\edit_scriptableobject.py,使用字符串名称,use string name
+tools\edit_scriptableobject.py,使用资源路径,use asset path
+tools\edit_scriptableobject.py,创建玩家数据,create player data
+tools\edit_scriptableobject.py,更新游戏设置,update game settings
+tools\edit_scriptableobject.py,游戏配置管理,game config management
+tools\edit_scriptableobject.py,支持基础类型,supports primitive types
+tools\edit_scriptableobject.py,查看资源详情,view asset details
+tools\edit_scriptableobject.py,并保存到磁盘,save to disk
+tools\edit_scriptableobject.py,操作类型详解,operation types in detail
+tools\edit_scriptableobject.py,复制关卡配置,duplicate level config
+tools\edit_scriptableobject.py,搜索等操作,search and related operations
+tools\edit_scriptableobject.py,初始属性值,initial property values
+tools\edit_scriptableobject.py,语言本地化,language localization
+tools\edit_scriptableobject.py,物品数据库,item database
+tools\edit_scriptableobject.py,搜索时使用,used when searching
+tools\edit_scriptableobject.py,复制时使用,used when duplicating
+tools\edit_scriptableobject.py,创建时必需,required on creation
+tools\edit_scriptableobject.py,属性键值对,property key values
+tools\edit_scriptableobject.py,信息查询,information query
+tools\edit_scriptableobject.py,资源复制,asset duplication
+tools\edit_scriptableobject.py,可选参数,optional parameters
+tools\edit_scriptableobject.py,属性修改,property modification
+tools\edit_scriptableobject.py,关卡设置,level settings
+tools\edit_scriptableobject.py,专门管理,specially manage
+tools\edit_scriptableobject.py,注意事项,notes
+tools\edit_scriptableobject.py,二级工具,secondary tool
+tools\edit_scriptableobject.py,波次配置,wave configuration
+tools\edit_scriptableobject.py,资源搜索,asset search
+tools\edit_scriptableobject.py,获取信息,get information
+tools\edit_scriptableobject.py,标准格式,standard format
+tools\edit_scriptableobject.py,资源路径,asset path
+tools\edit_scriptableobject.py,基础类型,primitive types
+tools\edit_scriptableobject.py,生成预览,generate preview
+tools\edit_scriptableobject.py,目标路径,target path
+tools\edit_scriptableobject.py,主题设置,theme settings
+tools\edit_scriptableobject.py,技能配置,skill configuration
+tools\edit_scriptableobject.py,关卡编辑,level editing
+tools\edit_scriptableobject.py,管理工具,management tool
+tools\edit_scriptableobject.py,难度配置,difficulty configuration
+tools\edit_scriptableobject.py,提供创建,provide creation
+tools\edit_scriptableobject.py,专门用于,specially used for
+tools\edit_scriptableobject.py,关卡参数,level parameters
+tools\edit_scriptableobject.py,关卡数据,level data
+tools\edit_scriptableobject.py,资源引用,asset reference
+tools\edit_scriptableobject.py,使用场景,use cases
+tools\edit_scriptableobject.py,敌人配置,enemy configuration
+tools\edit_scriptableobject.py,资源创建,asset creation
+tools\edit_scriptableobject.py,搜索模式,search mode
+tools\edit_scriptableobject.py,玩家属性,player attributes
+tools\edit_scriptableobject.py,操作类型,operation type
+tools\edit_scriptableobject.py,强制执行,force execute
+tools\edit_scriptableobject.py,必需参数,required parameter
+tools\edit_scriptableobject.py,枚举类型,enum types
+tools\edit_scriptableobject.py,属性字典,property dict
+tools\edit_scriptableobject.py,页面大小,page size
+tools\edit_scriptableobject.py,主要功能,main features
+tools\edit_scriptableobject.py,角色数据,character data
+tools\edit_scriptableobject.py,递归搜索,recursive search
+tools\edit_scriptableobject.py,脚本类名,script class name
+tools\edit_scriptableobject.py,要设置的,to set
+tools\edit_scriptableobject.py,值范围,value range
+tools\edit_scriptableobject.py,四元数,quaternion
+tools\edit_scriptableobject.py,编码的,encoded
+tools\edit_scriptableobject.py,中的,in
+tools\edit_scriptableobject.py,示例,example
+tools\edit_scriptableobject.py,路径,path
+tools\edit_scriptableobject.py,修改,modify
+tools\edit_scriptableobject.py,获取,get
+tools\edit_scriptableobject.py,信息,information
+tools\edit_scriptableobject.py,数据,data
+tools\edit_scriptableobject.py,装备,equipment
+tools\edit_scriptableobject.py,资源,asset
+tools\edit_scriptableobject.py,颜色,color
+tools\edit_scriptableobject.py,属性,property
+tools\edit_scriptableobject.py,默认,default
+tools\edit_scriptableobject.py,复制,copy
+tools\edit_scriptableobject.py,操作,operation
+tools\edit_scriptableobject.py,道具,item
+tools\edit_scriptableobject.py,开始,start
+tools\edit_scriptableobject.py,支持,support
+tools\edit_scriptableobject.py,创建,create
+tools\edit_scriptableobject.py,类型,type
+tools\edit_scriptableobject.py,搜索,search
+tools\edit_scriptableobject.py,向量,vector
+tools\edit_scriptableobject.py,页码,page
+tools\edit_scriptableobject.py,配置,configuration
+tools\edit_scriptableobject.py,是,is
+tools\edit_scriptableobject.py,从,from
+tools\edit_scriptableobject.py,如,such as
+tools\edit_scriptableobject.py,等,etc
+tools\edit_shader.py,是否自动创建不存在的文件夹,auto create missing folders
+tools\edit_shader.py,是否在修改前备份原文件,backup original before modify
+tools\edit_shader.py,是否递归搜索子文件夹,recursively search subfolders
+tools\edit_shader.py,是否标记资源为已修改,mark asset as dirty
+tools\edit_shader.py,是否刷新资源数据库,refresh asset database
+tools\edit_shader.py,是否生成平台特定的,generate platform specific
+tools\edit_shader.py,是否保存资源到磁盘,save asset to disk
+tools\edit_shader.py,是否立即应用更改,apply changes immediately
+tools\edit_shader.py,是否检查编译错误,check compile errors
+tools\edit_shader.py,是否强制执行操作,whether to force execution
+tools\edit_shader.py,是否启用调试模式,enable debug mode
+tools\edit_shader.py,删除和获取信息,delete and get info
+tools\edit_shader.py,覆盖现有文件等,overwrite existing files etc
+tools\edit_shader.py,复制时使用,used when copying
+tools\edit_shader.py,创建文件夹,create folder
+tools\edit_shader.py,支持的操作,supported operations
+tools\edit_shader.py,搜索模式,search mode
+tools\edit_shader.py,检查错误,check errors
+tools\edit_shader.py,平台特定,platform specific
+tools\edit_shader.py,操作类型,operation type
+tools\edit_shader.py,验证语法,validate syntax
+tools\edit_shader.py,刷新资源,refresh assets
+tools\edit_shader.py,标记为脏,mark as dirty
+tools\edit_shader.py,代码内容,code content
+tools\edit_shader.py,强制执行,force execute
+tools\edit_shader.py,管理工具,management tool
+tools\edit_shader.py,立即应用,apply immediately
+tools\edit_shader.py,标准格式,standard format
+tools\edit_shader.py,用于设置,used to set
+tools\edit_shader.py,二级工具,secondary tool
+tools\edit_shader.py,属性字典,property dict
+tools\edit_shader.py,包括创建,including create
+tools\edit_shader.py,包含变体,include variants
+tools\edit_shader.py,目标路径,target path
+tools\edit_shader.py,是否编译,compile or not
+tools\edit_shader.py,优化级别,optimization level
+tools\edit_shader.py,是否验证,validate or not
+tools\edit_shader.py,保存资源,save asset
+tools\edit_shader.py,调试模式,debug mode
+tools\edit_shader.py,递归搜索,recursive search
+tools\edit_shader.py,是否包含,whether to include
+tools\edit_shader.py,重命名,rename
+tools\edit_shader.py,的属性,property of
+tools\edit_shader.py,资源,asset
+tools\edit_shader.py,创建,create
+tools\edit_shader.py,编译,compile
+tools\edit_shader.py,变体,variant
+tools\edit_shader.py,管理,manage
+tools\edit_shader.py,验证,validate
+tools\edit_shader.py,名称,name
+tools\edit_shader.py,中的,in
+tools\edit_shader.py,删除,delete
+tools\edit_shader.py,类型,type
+tools\edit_shader.py,信息,information
+tools\edit_shader.py,复制,copy
+tools\edit_shader.py,搜索,search
+tools\edit_shader.py,语法,syntax
+tools\edit_shader.py,路径,path
+tools\edit_shader.py,代码,code
+tools\edit_shader.py,修改,modify
+tools\edit_shader.py,移动,move
+tools\edit_shader.py,相同,same
+tools\edit_shader.py,备份,backup
+tools\edit_shader.py,获取,get
+tools\edit_shader.py,如,such as
+tools\edit_shader.py,与,and
+tools\edit_sprite_atlas.py,是否允许旋转精灵以获得更好的打包效果,allow sprite rotation for better packing
+tools\edit_sprite_atlas.py,要添加或移除的文件夹路径数组,folder path array to add or remove
+tools\edit_sprite_atlas.py,要添加或移除的精灵路径数组,sprite path array to add or remove
+tools\edit_sprite_atlas.py,可以设置平台特定的纹理配置,allow platform specific texture config
+tools\edit_sprite_atlas.py,将使用平台推荐的默认格式,use platform recommended defaults
+tools\edit_sprite_atlas.py,向图集添加精灵或文件夹,add sprites or folders to atlas
+tools\edit_sprite_atlas.py,从图集移除精灵或文件夹,remove sprites or folders from atlas
+tools\edit_sprite_atlas.py,是否覆盖平台默认设置,override platform defaults
+tools\edit_sprite_atlas.py,自动使用平台推荐格式,auto use platform defaults
+tools\edit_sprite_atlas.py,该平台的最大纹理尺寸,max texture size for platform
+tools\edit_sprite_atlas.py,中精灵图集的创建,creation of sprite atlas in
+tools\edit_sprite_atlas.py,平台最大纹理尺寸,platform max texture size
+tools\edit_sprite_atlas.py,是否使用紧凑排列,use tight packing
+tools\edit_sprite_atlas.py,是否包含子文件夹,include subfolders
+tools\edit_sprite_atlas.py,创建新的精灵图集,create new sprite atlas
+tools\edit_sprite_atlas.py,仅对某些格式有效,valid only for some formats
+tools\edit_sprite_atlas.py,包括平台特定设置,include platform specific settings
+tools\edit_sprite_atlas.py,覆盖平台默认设置,override platform defaults
+tools\edit_sprite_atlas.py,编辑和管理操作,edit and manage operations
+tools\edit_sprite_atlas.py,文件夹路径数组,folder path array
+tools\edit_sprite_atlas.py,平衡质量和大小,balance quality and size
+tools\edit_sprite_atlas.py,获取图集参数,get atlas parameters
+tools\edit_sprite_atlas.py,平台特定设置,platform specific settings
+tools\edit_sprite_atlas.py,设置图集参数,set atlas parameters
+tools\edit_sprite_atlas.py,图集资源路径,atlas asset path
+tools\edit_sprite_atlas.py,平台纹理格式,platform texture format
+tools\edit_sprite_atlas.py,精灵路径数组,sprite path array
+tools\edit_sprite_atlas.py,目标平台名称,target platform name
+tools\edit_sprite_atlas.py,包含子文件夹,include subfolders
+tools\edit_sprite_atlas.py,主图集路径,main atlas path
+tools\edit_sprite_atlas.py,支持的操作,supported operations
+tools\edit_sprite_atlas.py,使用默认值,use defaults
+tools\edit_sprite_atlas.py,如果未指定,if not specified
+tools\edit_sprite_atlas.py,筛选模式,filter mode
+tools\edit_sprite_atlas.py,平台配置,platform config
+tools\edit_sprite_atlas.py,完整设置,full settings
+tools\edit_sprite_atlas.py,二级工具,secondary tool
+tools\edit_sprite_atlas.py,获取参数,get parameters
+tools\edit_sprite_atlas.py,过滤模式,filtering mode
+tools\edit_sprite_atlas.py,移除精灵,remove sprites
+tools\edit_sprite_atlas.py,默认使用,default to
+tools\edit_sprite_atlas.py,打包图集,pack atlas
+tools\edit_sprite_atlas.py,压缩质量,compression quality
+tools\edit_sprite_atlas.py,最大尺寸,max size
+tools\edit_sprite_atlas.py,图像间距,texture padding
+tools\edit_sprite_atlas.py,紧凑排列,tight packing
+tools\edit_sprite_atlas.py,平台名称,platform name
+tools\edit_sprite_atlas.py,编辑工具,editing tool
+tools\edit_sprite_atlas.py,图集类型,atlas type
+tools\edit_sprite_atlas.py,是否生成,generate or not
+tools\edit_sprite_atlas.py,是否可读,readable or not
+tools\edit_sprite_atlas.py,操作类型,operation type
+tools\edit_sprite_atlas.py,允许旋转,allow rotation
+tools\edit_sprite_atlas.py,压缩格式,compression format
+tools\edit_sprite_atlas.py,设置参数,set parameters
+tools\edit_sprite_atlas.py,纹理格式,texture format
+tools\edit_sprite_atlas.py,添加精灵,add sprites
+tools\edit_sprite_atlas.py,主图集,main atlas
+tools\edit_sprite_atlas.py,相对于,relative to
+tools\edit_sprite_atlas.py,参数时,when setting parameters
+tools\edit_sprite_atlas.py,仅设置,set only
+tools\edit_sprite_atlas.py,当提供此参数时,when this parameter is provided
+tools\edit_sprite_atlas.py,默认为,defaults to
+tools\edit_sprite_atlas.py,时有效,effective when
+tools\edit_sprite_atlas.py,贴图,textures
+tools\edit_sprite_atlas.py,示例,example
+tools\edit_sprite_atlas.py,变体,variant
+tools\edit_sprite_atlas.py,生成,generate
+tools\edit_sprite_atlas.py,例如,for example
+tools\edit_sprite_atlas.py,可读,readable
+tools\edit_sprite_atlas.py,图集,atlas
+tools\edit_sprite_atlas.py,默认,default
+tools\edit_sprite_atlas.py,处理,process
+tools\edit_sprite_atlas.py,像素,pixels
+tools\edit_sprite_atlas.py,创建,create
+tools\edit_sprite_atlas.py,仅当,only when
+tools\edit_sprite_atlas.py,推荐,recommended
+tools\edit_sprite_atlas.py,等,etc
+tools\edit_sprite_atlas.py,和,and
+tools\edit_sprite_atlas.py,为,as
+tools\edit_terrain.py,平滑地形时的平滑强度,smoothing strength for terrain
+tools\edit_terrain.py,要操作的纹理层索引,texture layer index to operate
+tools\edit_terrain.py,平坦化时的目标高度,target height for flatten
+tools\edit_terrain.py,高度图数据二维数组,heightmap data 2D array
+tools\edit_terrain.py,要执行的地形操作,terrain operation to perform
+tools\edit_terrain.py,高度图导入导出等,heightmap import export etc
+tools\edit_terrain.py,是否强制执行操作,whether to force execution
+tools\edit_terrain.py,高度图文件路径,heightmap file path
+tools\edit_terrain.py,高度图导出格式,heightmap export format
+tools\edit_terrain.py,对象的层级路径,object hierarchy path
+tools\edit_terrain.py,地形的编辑操作,terrain editing operations
+tools\edit_terrain.py,覆盖现有文件等,overwrite existing files etc
+tools\edit_terrain.py,纹理层配置字典,texture layer config dict
+tools\edit_terrain.py,高度图分辨率,heightmap resolution
+tools\edit_terrain.py,地形编辑工具,terrain editing tool
+tools\edit_terrain.py,设置地形高度,set terrain height
+tools\edit_terrain.py,获取地形信息,get terrain info
+tools\edit_terrain.py,设置地形尺寸,set terrain size
+tools\edit_terrain.py,纹理层索引,texture layer index
+tools\edit_terrain.py,移除纹理层,remove texture layer
+tools\edit_terrain.py,导入高度图,import heightmap
+tools\edit_terrain.py,高度图文件,heightmap file
+tools\edit_terrain.py,纹理层配置,texture layer config
+tools\edit_terrain.py,高度图数据,heightmap data
+tools\edit_terrain.py,添加纹理层,add texture layer
+tools\edit_terrain.py,导出高度图,export heightmap
+tools\edit_terrain.py,平坦化地形,flatten terrain
+tools\edit_terrain.py,支持的操作,supported operations
+tools\edit_terrain.py,对象路径,object path
+tools\edit_terrain.py,要修改的,to modify
+tools\edit_terrain.py,绘制纹理,paint texture
+tools\edit_terrain.py,操作类型,operation type
+tools\edit_terrain.py,地形尺寸,terrain size
+tools\edit_terrain.py,强制执行,force execute
+tools\edit_terrain.py,清除树木,clear trees
+tools\edit_terrain.py,地形属性,terrain properties
+tools\edit_terrain.py,用于创建,used to create
+tools\edit_terrain.py,二级工具,secondary tool
+tools\edit_terrain.py,属性字典,property dict
+tools\edit_terrain.py,包括创建,including create
+tools\edit_terrain.py,创建新的,create new
+tools\edit_terrain.py,位置坐标,position coordinates
+tools\edit_terrain.py,资源路径,asset path
+tools\edit_terrain.py,清除细节,clear details
+tools\edit_terrain.py,导出格式,export format
+tools\edit_terrain.py,平滑因子,smoothing factor
+tools\edit_terrain.py,平滑地形,smooth terrain
+tools\edit_terrain.py,必须是,must be
+tools\edit_terrain.py,值范围,value range
+tools\edit_terrain.py,高度值,height value
+tools\edit_terrain.py,的实例,instance of
+tools\edit_terrain.py,导出用,for export
+tools\edit_terrain.py,场景中,in scene
+tools\edit_terrain.py,实例,instance
+tools\edit_terrain.py,属性,property
+tools\edit_terrain.py,位置,position
+tools\edit_terrain.py,尺寸,size
+tools\edit_terrain.py,处理,process
+tools\edit_terrain.py,草等,grass etc
+tools\edit_terrain.py,导入,import
+tools\edit_terrain.py,路径,path
+tools\edit_terrain.py,修改,modify
+tools\edit_terrain.py,的幂,power of
+tools\edit_terrain.py,时,when
+tools\edit_texture.py,纹理导入设置修改工具,texture import settings editor
+tools\edit_texture.py,中纹理资源的导入设置,import settings of texture assets
+tools\edit_texture.py,获取当前纹理设置,get current texture settings
+tools\edit_texture.py,调整压缩质量等,adjust compression quality etc
+tools\edit_texture.py,生成物理形状,generate physics shape
+tools\edit_texture.py,每单位像素数,pixels per unit
+tools\edit_texture.py,最大纹理尺寸,max texture size
+tools\edit_texture.py,纹理资源路径,texture asset path
+tools\edit_texture.py,设置纹理类型,set texture type
+tools\edit_texture.py,包括设置为,including set to
+tools\edit_texture.py,支持的操作,supported operations
+tools\edit_texture.py,过滤模式,filter mode
+tools\edit_texture.py,操作类型,operation type
+tools\edit_texture.py,包装模式,wrap mode
+tools\edit_texture.py,压缩格式,compression format
+tools\edit_texture.py,二级工具,secondary tool
+tools\edit_texture.py,纹理类型,texture type
+tools\edit_texture.py,网格类型,mesh type
+tools\edit_texture.py,详细参数,detailed parameters
+tools\edit_texture.py,轴心点,pivot
+tools\edit_texture.py,可读写,read write
+tools\edit_texture.py,相对于,relative to
+tools\edit_texture.py,模式,mode
+tools\edit_texture.py,贴图,texture
+tools\edit_texture.py,生成,generate
+tools\edit_texture.py,类型,type
+tools\edit_texture.py,纹理,texture
+tools\edit_texture.py,设置,set
+tools\edit_texture.py,修改,modify
+tools\figma_manage.py,用于从指定节点开始扫描所有可下载的子节点,scan downloadable children from given node
+tools\figma_manage.py,从根节点递归扫描所有可下载的图片节点,recursively scan all downloadable image nodes from root
+tools\figma_manage.py,智能扫描该节点及其所有子节点,intelligently scan the node and its children
+tools\figma_manage.py,是否自动将下载的图片转换为,auto convert downloaded images to
+tools\figma_manage.py,自动转换和管理下载的资源,auto convert and manage downloaded assets
+tools\figma_manage.py,直接使用指定的文件名下载,download using the specified filename
+tools\figma_manage.py,自动识别需要下载的图片,auto detect images to download
+tools\figma_manage.py,将直接使用指定的文件名,will use the specified filename directly
+tools\figma_manage.py,是否包含子节点数据,include child node data
+tools\figma_manage.py,节点数据拉取等功能,node data fetching and more
+tools\figma_manage.py,下载单张或批量图片,download single or batch images
+tools\figma_manage.py,智能下载时的根节点,root node for smart download
+tools\figma_manage.py,文件的节点结构数据,node structure data of the file
+tools\figma_manage.py,节点数据拉取的深度,depth for node data fetch
+tools\figma_manage.py,格式的节点名称映射,node name mapping of format
+tools\figma_manage.py,高效处理多个节点,efficiently handle multiple nodes
+tools\figma_manage.py,用于智能扫描下载,for smart scan and download
+tools\figma_manage.py,自动获取节点名称,auto obtain node names
+tools\figma_manage.py,格式的节点映射,node mapping of format
+tools\figma_manage.py,当提供此参数时,when this parameter is provided
+tools\figma_manage.py,预览图片并返回,preview images and return
+tools\figma_manage.py,直接指定文件名,directly specify filename
+tools\figma_manage.py,数据包含完整的,data includes full
+tools\figma_manage.py,逗号分隔的节点,comma separated nodes
+tools\figma_manage.py,下载图片并返回,download images and return
+tools\figma_manage.py,节点图片映射,node image mapping
+tools\figma_manage.py,节点参数说明,node parameter description
+tools\figma_manage.py,获取节点名称,get node names
+tools\figma_manage.py,提高下载效率,improve download efficiency
+tools\figma_manage.py,智能扫描下载,smart scan download
+tools\figma_manage.py,获取节点数据,get node data
+tools\figma_manage.py,无需保存文件,no need to save files
+tools\figma_manage.py,拉取节点数据,fetch node data
+tools\figma_manage.py,批量下载图片,batch download images
+tools\figma_manage.py,只使用第一个,use the first only
+tools\figma_manage.py,图片保存路径,image save path
+tools\figma_manage.py,下载单张图片,download a single image
+tools\figma_manage.py,图片缩放比例,image scale
+tools\figma_manage.py,包含子节点,include child nodes
+tools\figma_manage.py,或绝对路径,or absolute path
+tools\figma_manage.py,资源和数据,assets and data
+tools\figma_manage.py,文件的密钥,file key
+tools\figma_manage.py,节点数据,node data
+tools\figma_manage.py,二级工具,secondary tool
+tools\figma_manage.py,图片格式,image format
+tools\figma_manage.py,智能扫描,smart scan
+tools\figma_manage.py,用于管理,for management
+tools\figma_manage.py,使用方式,usage
+tools\figma_manage.py,自动调用,auto invoke
+tools\figma_manage.py,要执行的,to execute
+tools\figma_manage.py,文件密钥,file key
+tools\figma_manage.py,资源管理,asset management
+tools\figma_manage.py,图片预览,image preview
+tools\figma_manage.py,然后下载,then download
+tools\figma_manage.py,无需额外,no extra
+tools\figma_manage.py,缩放比例,scale
+tools\figma_manage.py,管理工具,management tool
+tools\figma_manage.py,文件路径,file path
+tools\figma_manage.py,批量处理,batch processing
+tools\figma_manage.py,支持多种,supports multiple
+tools\figma_manage.py,无需调用,no need to call
+tools\figma_manage.py,效率更高,more efficient
+tools\figma_manage.py,操作类型,operation type
+tools\figma_manage.py,保存路径,save path
+tools\figma_manage.py,高效下_

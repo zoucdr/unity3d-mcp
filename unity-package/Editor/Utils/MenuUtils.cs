@@ -11,18 +11,18 @@ namespace UnityMcp
     public class MenuUtils
     {
         /// <summary>
-        /// UGUIWidget menu path mapping
+        /// UGUI控件菜单路径映射
         /// </summary>
         private static readonly Dictionary<string, string[]> UIMenuPaths = new Dictionary<string, string[]>
         {
-            // NeedLegacyWidget of path
+            // 需要Legacy路径的控件
             { "gameobject/ui/text", new[] { "GameObject/UI/Text", "GameObject/UI/Legacy/Text" } },
             { "gameobject/ui/input_field", new[] { "GameObject/UI/Input Field", "GameObject/UI/Legacy/Input Field" } },
             { "gameobject/ui/inputfield", new[] { "GameObject/UI/Input Field", "GameObject/UI/Legacy/Input Field" } },
             { "gameobject/ui/dropdown", new[] { "GameObject/UI/Dropdown", "GameObject/UI/Legacy/Dropdown" } },
             { "gameobject/ui/button", new[] { "GameObject/UI/Button", "GameObject/UI/Legacy/Button" } },
             
-            // Unchanged widget
+            // 没有变化的控件
             { "gameobject/ui/toggle", new[] { "GameObject/UI/Toggle" } },
             { "gameobject/ui/slider", new[] { "GameObject/UI/Slider" } },
             { "gameobject/ui/scrollbar", new[] { "GameObject/UI/Scrollbar" } },
@@ -35,46 +35,46 @@ namespace UnityMcp
         };
 
         /// <summary>
-        /// Check whether isUnity 2021.2+（NeedLegacyPath）
+        /// 检查是否为Unity 2021.2+（需要Legacy路径）
         /// </summary>
         private static bool IsLegacyVersion()
         {
             string version = Application.unityVersion;
 
-            // Parse major version
+            // 解析主版本号
             var parts = version.Split('.');
-            if (parts.Length < 2) return true; // For safety，Assume new version
+            if (parts.Length < 2) return true; // 安全起见，假设是新版本
 
             if (int.TryParse(parts[0], out int major))
             {
-                // 2022Year and later versions definitely needLegacy
+                // 2022年及以后的版本肯定需要Legacy
                 if (major >= 2022) return true;
 
-                // 2021Year version needs to check subversion number
+                // 2021年版本需要检查次版本号
                 if (major == 2021 && int.TryParse(parts[1], out int minor))
                 {
-                    return minor >= 2; // 2021.2And later requiredLegacy
+                    return minor >= 2; // 2021.2及以后需要Legacy
                 }
             }
 
-            return false; // 2020And earlier versions not neededLegacy
+            return false; // 2020及更早版本不需要Legacy
         }
 
         /// <summary>
-        /// Try execute menu item，Automatic compatibility handling
+        /// 尝试执行菜单项，自动处理兼容性
         /// 
-        /// Function enhancement：
-        /// 1. Automatic handlingUnityMenu path difference of different versions（LegacySupport）
-        /// 2. Automatically return all available parent menu list on execution failure
-        /// 3. Provide detailed error info and suggestions，Help user find correct menu path
+        /// 功能增强：
+        /// 1. 自动处理Unity不同版本的菜单路径差异（Legacy支持）
+        /// 2. 执行失败时自动返回父级菜单的所有可用菜单列表
+        /// 3. 提供详细的错误信息和建议，帮助用户找到正确的菜单路径
         /// 
-        /// Return data structure（When failed）：
-        /// - failed_menu_path: Failed menu path
-        /// - tried_paths: All tried paths
-        /// - unity_version: UnityVersion
-        /// - parent_path: Parent menu path
-        /// - available_menus_count: Available menu count
-        /// - available_menus: Available menu list
+        /// 返回数据结构（失败时）：
+        /// - failed_menu_path: 失败的菜单路径
+        /// - tried_paths: 尝试过的所有路径
+        /// - unity_version: Unity版本
+        /// - parent_path: 父级菜单路径
+        /// - available_menus_count: 可用菜单数量
+        /// - available_menus: 可用菜单列表
         /// </summary>
         public static JsonClass TryExecuteMenuItem(string menuPath)
         {
@@ -83,27 +83,27 @@ namespace UnityMcp
                 return Response.Error("Menu path is missing or empty.");
             }
 
-            // Normalize menu key name
+            // 标准化菜单键名
             string normalizedKey = menuPath.ToLower().Replace(" ", "_").Replace("-", "_");
             bool isLegacy = IsLegacyVersion();
 
-            // Get possible path
+            // 获取可能的路径
             var tryPaths = new List<string>();
 
             if (UIMenuPaths.TryGetValue(normalizedKey, out string[] knownPaths))
             {
-                // If is known widget，Choose path by version
+                // 如果是已知控件，按版本选择路径
                 if (knownPaths.Length > 1)
                 {
                     if (isLegacy)
                     {
-                        tryPaths.Add(knownPaths[1]); // LegacyPath first
-                        tryPaths.Add(knownPaths[0]); // Backup path
+                        tryPaths.Add(knownPaths[1]); // Legacy路径优先
+                        tryPaths.Add(knownPaths[0]); // 备用路径
                     }
                     else
                     {
-                        tryPaths.Add(knownPaths[0]); // Original path first
-                        tryPaths.Add(knownPaths[1]); // LegacyBackup path
+                        tryPaths.Add(knownPaths[0]); // 原始路径优先
+                        tryPaths.Add(knownPaths[1]); // Legacy备用路径
                     }
                 }
                 else
@@ -116,13 +116,13 @@ namespace UnityMcp
                 tryPaths.Add(menuPath);
             }
 
-            // Try execute in sequence
+            // 依次尝试执行
             foreach (string path in tryPaths)
             {
                 bool success = false;
                 try
                 {
-                    // Capture execution result
+                    // 捕获执行结果
                     success = EditorApplication.ExecuteMenuItem(path);
                     if (success)
                     {
@@ -136,12 +136,12 @@ namespace UnityMcp
                 }
                 catch (System.Exception ex)
                 {
-                    // Log exception details
+                    // 详细记录异常信息
                     Debug.LogError($"[MenuUtils] Exception when executing menu item '{path}': {ex.Message}\nStackTrace: {ex.StackTrace}");
                 }
             }
 
-            // Execution failed，Get sibling menu list as suggestion
+            // 执行失败，获取同级菜单列表作为建议
             string parentPath = GetParentMenuPath(menuPath);
             List<string> availableMenus = new List<string>();
 
@@ -150,7 +150,7 @@ namespace UnityMcp
                 availableMenus = GetMenuItems(parentPath, true);
             }
 
-            // Build error message and data
+            // 构建错误消息和数据
             var errorData = new JsonClass();
             errorData["failed_menu_path"] = menuPath;
             errorData["tried_paths"] = new JsonArray();
@@ -186,7 +186,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get parent menu path
+        /// 获取父级菜单路径
         /// </summary>
         private static string GetParentMenuPath(string menuPath)
         {
@@ -203,7 +203,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Handle menu execute command
+        /// 处理菜单执行命令
         /// </summary>
         public static JsonClass HandleExecuteMenu(JsonClass cmd)
         {
@@ -218,31 +218,31 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get all menu items under specified root path（Use reflection）
+        /// 获取指定根路径下的所有菜单项（使用反射）
         /// </summary>
-        /// <param name="rootPath">Root path，Such as "GameObject/UI"</param>
-        /// <param name="includeSubmenus">Whether contains submenu</param>
-        /// <returns>Menu list</returns>
+        /// <param name="rootPath">根路径，如 "GameObject/UI"</param>
+        /// <param name="includeSubmenus">是否包含子菜单</param>
+        /// <returns>菜单列表</returns>
         public static List<string> GetMenuItems(string rootPath, bool includeSubmenus = true)
         {
             var menuItems = new List<string>();
 
             try
             {
-                // Access via reflection Unity Internal menu system
+                // 使用反射访问 Unity 内部的菜单系统
                 var menuType = typeof(Menu);
 
-                // Try to get GetMenuItems Function（Different versions may have different signatures）
+                // 尝试获取 GetMenuItems 方法（不同版本可能有不同签名）
                 MethodInfo getMenuItemsMethod = null;
 
-                // Try signatures1: GetMenuItems(string, bool, bool)
+                // 尝试签名1: GetMenuItems(string, bool, bool)
                 getMenuItemsMethod = menuType.GetMethod("GetMenuItems",
                     BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
                     null,
                     new[] { typeof(string), typeof(bool), typeof(bool) },
                     null);
 
-                // If not found，Try signatures2: GetMenuItems(string)
+                // 如果没找到，尝试签名2: GetMenuItems(string)
                 if (getMenuItemsMethod == null)
                 {
                     getMenuItemsMethod = menuType.GetMethod("GetMenuItems",
@@ -257,7 +257,7 @@ namespace UnityMcp
                     object result = null;
                     var parameters = getMenuItemsMethod.GetParameters();
 
-                    // Call according to parameter count
+                    // 根据参数数量调用
                     if (parameters.Length == 3)
                     {
                         result = getMenuItemsMethod.Invoke(null, new object[] { rootPath, false, false });
@@ -267,7 +267,7 @@ namespace UnityMcp
                         result = getMenuItemsMethod.Invoke(null, new object[] { rootPath });
                     }
 
-                    // Handle return result
+                    // 处理返回结果
                     if (result != null)
                     {
                         if (result is System.Collections.IEnumerable enumerable)
@@ -276,17 +276,17 @@ namespace UnityMcp
                             {
                                 if (item != null)
                                 {
-                                    // Try multiple ways to get path
+                                    // 尝试多种方式获取路径
                                     string path = null;
 
-                                    // Method1: Through path Property
+                                    // 方式1: 通过 path 属性
                                     var pathProperty = item.GetType().GetProperty("path", BindingFlags.Public | BindingFlags.Instance);
                                     if (pathProperty != null)
                                     {
                                         path = pathProperty.GetValue(item) as string;
                                     }
 
-                                    // Method2: Through menuPath Field
+                                    // 方式2: 通过 menuPath 字段
                                     if (string.IsNullOrEmpty(path))
                                     {
                                         var menuPathField = item.GetType().GetField("menuPath", BindingFlags.Public | BindingFlags.Instance);
@@ -296,7 +296,7 @@ namespace UnityMcp
                                         }
                                     }
 
-                                    // Method3: Convert directly to string
+                                    // 方式3: 直接转换为字符串
                                     if (string.IsNullOrEmpty(path))
                                     {
                                         path = item.ToString();
@@ -325,7 +325,7 @@ namespace UnityMcp
                 Debug.LogError($"Failed to get menu items via reflection: {e.Message}\nStackTrace: {e.StackTrace}");
             }
 
-            // Filter submenu
+            // 过滤子菜单
             if (!includeSubmenus && !string.IsNullOrEmpty(rootPath))
             {
                 string prefix = rootPath.EndsWith("/") ? rootPath : rootPath + "/";
@@ -344,18 +344,18 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Validate if menu item exists
+        /// 验证菜单项是否存在
         /// </summary>
-        /// <param name="menuPath">Menu path</param>
-        /// <returns>Whether menu exists</returns>
+        /// <param name="menuPath">菜单路径</param>
+        /// <returns>菜单是否存在</returns>
         public static bool MenuItemExists(string menuPath)
         {
             try
             {
-                // Try execute menu（Do not actually create object）
+                // 尝试执行菜单（不实际创建对象）
                 bool result = EditorApplication.ExecuteMenuItem(menuPath);
 
-                // Log details to help debugging
+                // 记录详细日志以帮助调试
                 if (result)
                 {
                     Debug.Log($"[MenuUtils] Menu item exists: '{menuPath}'");
@@ -369,14 +369,14 @@ namespace UnityMcp
             }
             catch (System.Exception ex)
             {
-                // Log exception details
+                // 详细记录异常信息
                 Debug.LogError($"[MenuUtils] Exception when checking menu item '{menuPath}': {ex.Message}");
                 return false;
             }
         }
 
         /// <summary>
-        /// Handle get menu list command
+        /// 处理获取菜单列表命令
         /// </summary>
         public static object HandleGetMenuItems(JsonClass cmd)
         {

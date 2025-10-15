@@ -13,7 +13,7 @@ namespace UnityMcp.Executer
         public override string ToolName => "single_call";
 
         /// <summary>
-        /// Main handler for function calls (Synchronous version).
+        /// Main handler for function calls (同步版本).
         /// </summary>
         public override void HandleCommand(JsonNode cmd, Action<JsonNode> callback)
         {
@@ -39,7 +39,7 @@ namespace UnityMcp.Executer
         }
 
         /// <summary>
-        /// Executes a specific function by routing to the appropriate method (Synchronous version).
+        /// Executes a specific function by routing to the appropriate method (同步版本).
         /// </summary>
         private void ExecuteFunction(string functionName, JsonClass args, Action<JsonNode> callback)
         {
@@ -47,9 +47,9 @@ namespace UnityMcp.Executer
                 Debug.Log($"[FunctionCall] Executing function: {functionName}->{args}");
             try
             {
-                // Ensure method is registered
+                // 确保方法已注册
                 ToolsCall.EnsureMethodsRegisteredStatic();
-                // Find the corresponding tool method
+                // 查找对应的工具方法
                 var method = ToolsCall.GetRegisteredMethod(functionName);
                 if (method == null)
                 {
@@ -57,7 +57,7 @@ namespace UnityMcp.Executer
                     return;
                 }
 
-                // Call tool'sExecuteMethodMethod
+                // 调用工具的ExecuteMethod方法
                 var state = new StateTreeContext(args, new System.Collections.Generic.Dictionary<string, object>());
                 method.ExecuteMethod(state);
                 state.RegistComplete(callback);

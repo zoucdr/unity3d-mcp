@@ -12,23 +12,23 @@ using UnityMcp;
 namespace UnityMcp.Tools
 {
     /// <summary>
-    /// GamePlayGame window manager tool，Support input simulation、Window operation、Screenshot and image processing
-    /// Corresponding method name: gameplay
+    /// GamePlay游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理
+    /// 对应方法名: gameplay
     /// </summary>
-    [ToolName("gameplay", "Game control")]
+    [ToolName("gameplay", "游戏控制")]
     public class GamePlay : StateMethodBase
     {
-        // GameReflection types and methods related to window
+        // Game窗口相关的反射类型和方法
         private static Type gameViewType;
         private static MethodInfo repaintMethod;
         private static PropertyInfo targetSizeProperty;
         private static PropertyInfo selectedSizeIndexProperty;
 
-        // Related to input simulation
+        // 输入模拟相关
         private static bool isInputSimulationActive = false;
         private static List<SimulatedInput> inputQueue = new List<SimulatedInput>();
 
-        // Screenshot related
+        // 截图相关
         private static RenderTexture screenshotRenderTexture;
         private static Camera screenshotCamera;
 
@@ -38,13 +38,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Initialize types and methods related to reflection
+        /// 初始化反射相关的类型和方法
         /// </summary>
         private static void InitializeReflection()
         {
             try
             {
-                // GetGameViewType
+                // 获取GameView类型
                 gameViewType = Type.GetType("UnityEditor.GameView,UnityEditor");
                 if (gameViewType != null)
                 {
@@ -60,7 +60,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create list of parameter keys supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -68,7 +68,7 @@ namespace UnityMcp.Tools
             {
                 new MethodKey("action", "Operation type: play, pause, stop, screenshot, simulate_click, simulate_drag, set_size, get_info, compress_image", false),
                 
-                // Related to input simulation
+                // 输入模拟相关
                 new MethodKey("x", "X coordinate for input simulation", true),
                 new MethodKey("y", "Y coordinate for input simulation", true),
                 new MethodKey("duration", "Duration for drag operations (seconds)", true),
@@ -77,12 +77,12 @@ namespace UnityMcp.Tools
                 new MethodKey("button", "Mouse button (0=left, 1=right, 2=middle)", true),
                 new MethodKey("key_code", "Key code for keyboard simulation", true),
                 
-                // Related to window management
+                // 窗口管理相关
                 new MethodKey("width", "Game window width", true),
                 new MethodKey("height", "Game window height", true),
                 new MethodKey("size_name", "Predefined size name", true),
                 
-                // Related to screenshot and image processing
+                // 截图和图像处理相关
                 new MethodKey("save_path", "Path to save screenshot/image", true),
                 new MethodKey("format", "Image format (PNG, JPG)", true),
                 new MethodKey("quality", "Image quality (1-100 for JPG)", true),
@@ -90,7 +90,7 @@ namespace UnityMcp.Tools
                 new MethodKey("compress_ratio", "Compression ratio (0.1-1.0)", true),
                 new MethodKey("source_path", "Source image path for compression", true),
                 
-                // Advanced feature
+                // 高级功能
                 new MethodKey("region_x", "Screenshot region X coordinate", true),
                 new MethodKey("region_y", "Screenshot region Y coordinate", true),
                 new MethodKey("region_width", "Screenshot region width", true),
@@ -104,51 +104,51 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create state tree
+        /// 创建状态树
         /// </summary>
         protected override StateTree CreateStateTree()
         {
             return StateTreeBuilder
                 .Create()
                 .Key("action")
-                    // Playback control
+                    // 播放控制
                     .Leaf("play", HandlePlayAction)
                     .Leaf("pause", HandlePauseAction)
                     .Leaf("stop", HandleStopAction)
 
-                    // Screenshot feature
+                    // 截图功能
                     .Leaf("screenshot", HandleScreenshotAction)
                     .Leaf("screenshot_region", HandleScreenshotRegionAction)
 
-                    // Input simulation
+                    // 输入模拟
                     .Leaf("simulate_click", HandleSimulateClickAction)
                     .Leaf("simulate_drag", HandleSimulateDragAction)
                     .Leaf("simulate_key", HandleSimulateKeyAction)
                     .Leaf("simulate_scroll", HandleSimulateScrollAction)
 
-                    // Window management
+                    // 窗口管理
                     .Leaf("set_size", HandleSetSizeAction)
                     .Leaf("get_info", HandleGetInfoAction)
                     .Leaf("focus_window", HandleFocusWindowAction)
                     .Leaf("maximize", HandleMaximizeAction)
                     .Leaf("minimize", HandleMinimizeAction)
 
-                    // Image processing
+                    // 图像处理
                     .Leaf("compress_image", HandleCompressImageAction)
                     .Leaf("resize_image", HandleResizeImageAction)
                     .Leaf("convert_format", HandleConvertFormatAction)
 
-                    // Advanced feature
+                    // 高级功能
                     .Leaf("batch_screenshot", HandleBatchScreenshotAction)
                     .Leaf("start_recording", HandleStartRecordingAction)
                     .Leaf("stop_recording", HandleStopRecordingAction)
                 .Build();
         }
 
-        // --- Playback control feature ---
+        // --- 播放控制功能 ---
 
         /// <summary>
-        /// Handle the operation of entering play mode
+        /// 处理进入播放模式的操作
         /// </summary>
         private object HandlePlayAction(StateTreeContext ctx)
         {
@@ -170,7 +170,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle pause/Restore play mode operation
+        /// 处理暂停/恢复播放模式的操作
         /// </summary>
         private object HandlePauseAction(StateTreeContext ctx)
         {
@@ -193,7 +193,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle the operation of stopping play mode
+        /// 处理停止播放模式的操作
         /// </summary>
         private object HandleStopAction(StateTreeContext ctx)
         {
@@ -214,10 +214,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- Screenshot feature ---
+        // --- 截图功能 ---
 
         /// <summary>
-        /// Handle screenshot operation
+        /// 处理截图操作
         /// </summary>
         private object HandleScreenshotAction(StateTreeContext ctx)
         {
@@ -249,34 +249,34 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Perform screenshot operation
+        /// 执行截图操作
         /// </summary>
         private object ExecuteScreenshot(string savePath, string format, int quality, float scale)
         {
             try
             {
-                // Ensure directory exists
+                // 确保目录存在
                 var directory = Path.GetDirectoryName(savePath);
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
 
-                // GetGameWindow
+                // 获取Game窗口
                 var gameView = GetGameView();
                 if (gameView == null)
                 {
                     return Response.Error("No Game window found");
                 }
 
-                // GetGameWindow'sRenderTexture
+                // 获取Game窗口的RenderTexture
                 var renderTexture = GetGameViewRenderTexture();
                 if (renderTexture == null)
                 {
                     return Response.Error("Failed to get Game window render texture");
                 }
 
-                // CreateTexture2DAnd read pixels
+                // 创建Texture2D并读取像素
                 var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
                 var activeRT = RenderTexture.active;
                 RenderTexture.active = renderTexture;
@@ -284,10 +284,10 @@ namespace UnityMcp.Tools
                 texture.Apply();
                 RenderTexture.active = activeRT;
 
-                // Fix up-down flip issue
+                // 修正上下反转的问题
                 texture = FlipTextureVertically(texture);
 
-                // If scaling is needed
+                // 如果需要缩放
                 if (Math.Abs(scale - 1.0f) > 0.001f)
                 {
                     var scaledWidth = Mathf.RoundToInt(texture.width * scale);
@@ -295,7 +295,7 @@ namespace UnityMcp.Tools
                     texture = ScaleTexture(texture, scaledWidth, scaledHeight);
                 }
 
-                // Save image
+                // 保存图像
                 byte[] imageData;
                 if (format.ToUpper() == "JPG" || format.ToUpper() == "JPEG")
                 {
@@ -327,7 +327,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle region screenshot
+        /// 处理区域截图
         /// </summary>
         private object HandleScreenshotRegionAction(StateTreeContext ctx)
         {
@@ -349,10 +349,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- Input simulation feature ---
+        // --- 输入模拟功能 ---
 
         /// <summary>
-        /// Handle simulated click operation
+        /// 处理模拟点击操作
         /// </summary>
         private object HandleSimulateClickAction(StateTreeContext ctx)
         {
@@ -396,7 +396,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle simulated drag operation
+        /// 处理模拟拖拽操作
         /// </summary>
         private object HandleSimulateDragAction(StateTreeContext ctx)
         {
@@ -445,7 +445,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle key simulation
+        /// 处理按键模拟
         /// </summary>
         private object HandleSimulateKeyAction(StateTreeContext ctx)
         {
@@ -485,7 +485,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle mouse wheel simulation
+        /// 处理滚轮模拟
         /// </summary>
         private object HandleSimulateScrollAction(StateTreeContext ctx)
         {
@@ -528,10 +528,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- Window management function ---
+        // --- 窗口管理功能 ---
 
         /// <summary>
-        /// Handle operation to set window size
+        /// 处理设置窗口大小操作
         /// </summary>
         private object HandleSetSizeAction(StateTreeContext ctx)
         {
@@ -550,13 +550,13 @@ namespace UnityMcp.Tools
 
                 if (!string.IsNullOrEmpty(sizeName))
                 {
-                    // Use predefined size
+                    // 使用预定义大小
                     SetGameViewSize(sizeName);
                     return Response.Success($"Game window size set to {sizeName}");
                 }
                 else
                 {
-                    // Use custom size
+                    // 使用自定义大小
                     SetGameViewSize(width, height);
                     return Response.Success($"Game window size set to {width}x{height}", new
                     {
@@ -572,7 +572,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle operation to get window information
+        /// 处理获取窗口信息操作
         /// </summary>
         private object HandleGetInfoAction(StateTreeContext ctx)
         {
@@ -594,7 +594,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle focus window operation
+        /// 处理聚焦窗口操作
         /// </summary>
         private object HandleFocusWindowAction(StateTreeContext ctx)
         {
@@ -616,7 +616,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle operation to maximize window
+        /// 处理最大化窗口操作
         /// </summary>
         private object HandleMaximizeAction(StateTreeContext ctx)
         {
@@ -642,7 +642,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle operation to minimize window
+        /// 处理最小化窗口操作
         /// </summary>
         private object HandleMinimizeAction(StateTreeContext ctx)
         {
@@ -672,10 +672,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- Image processing function ---
+        // --- 图像处理功能 ---
 
         /// <summary>
-        /// Handle image compression operation
+        /// 处理图像压缩操作
         /// </summary>
         private object HandleCompressImageAction(StateTreeContext ctx)
         {
@@ -694,7 +694,7 @@ namespace UnityMcp.Tools
 
                 if (string.IsNullOrEmpty(savePath))
                 {
-                    savePath = sourcePath; // Overwrite original file
+                    savePath = sourcePath; // 覆盖原文件
                 }
 
                 return CompressImage(sourcePath, savePath, ratio, quality);
@@ -706,7 +706,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle image resize operation
+        /// 处理图像缩放操作
         /// </summary>
         private object HandleResizeImageAction(StateTreeContext ctx)
         {
@@ -737,7 +737,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle format conversion operation
+        /// 处理格式转换操作
         /// </summary>
         private object HandleConvertFormatAction(StateTreeContext ctx)
         {
@@ -769,10 +769,10 @@ namespace UnityMcp.Tools
             }
         }
 
-        // --- Advanced feature ---
+        // --- 高级功能 ---
 
         /// <summary>
-        /// Handle batch screenshot operation
+        /// 处理批量截图操作
         /// </summary>
         private object HandleBatchScreenshotAction(StateTreeContext ctx)
         {
@@ -799,27 +799,27 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle start recording operation
+        /// 处理开始录制操作
         /// </summary>
         private object HandleStartRecordingAction(StateTreeContext ctx)
         {
-            // This feature requires a more complex implementation，May require third-party library
+            // 此功能需要更复杂的实现，可能需要第三方库
             return Response.Error("Recording feature not implemented yet");
         }
 
         /// <summary>
-        /// Handle stop recording operation
+        /// 处理停止录制操作
         /// </summary>
         private object HandleStopRecordingAction(StateTreeContext ctx)
         {
-            // This feature requires a more complex implementation，May require third-party library
+            // 此功能需要更复杂的实现，可能需要第三方库
             return Response.Error("Recording feature not implemented yet");
         }
 
-        // --- Auxiliary method ---
+        // --- 辅助方法 ---
 
         /// <summary>
-        /// GetGameWindow instance
+        /// 获取Game窗口实例
         /// </summary>
         private object GetGameView()
         {
@@ -830,20 +830,20 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameWindow'sRenderTexture
+        /// 获取Game窗口的RenderTexture
         /// </summary>
         private RenderTexture GetGameViewRenderTexture()
         {
             var gameView = GetGameView();
             if (gameView == null) return null;
 
-            // Get via reflectionRenderTexture
+            // 通过反射获取RenderTexture
             var renderTextureField = gameViewType.GetField("m_RenderTexture", BindingFlags.NonPublic | BindingFlags.Instance);
             return renderTextureField?.GetValue(gameView) as RenderTexture;
         }
 
         /// <summary>
-        /// SetGameWindow size
+        /// 设置Game窗口大小
         /// </summary>
         private void SetGameViewSize(int width, int height)
         {
@@ -855,11 +855,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// SetGamePredefined window size
+        /// 设置Game窗口预定义大小
         /// </summary>
         private void SetGameViewSize(string sizeName)
         {
-            // Implement logic to set predefined size
+            // 实现预定义大小的设置逻辑
             var sizes = new Dictionary<string, Vector2>
             {
                 { "HD", new Vector2(1920, 1080) },
@@ -878,7 +878,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameWindow information
+        /// 获取Game窗口信息
         /// </summary>
         private object GetGameViewInfo(object gameView)
         {
@@ -916,7 +916,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Perform input simulation
+        /// 执行输入模拟
         /// </summary>
         private void ExecuteInputSimulation(SimulatedInput input)
         {
@@ -945,11 +945,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simulate click
+        /// 模拟点击
         /// </summary>
         private void SimulateClick(Vector2 position, int button)
         {
-            // While running the game viaEventSystem simulated click
+            // 在游戏运行时通过Event系统模拟点击
             if (EditorApplication.isPlaying)
             {
                 var mouseEvent = Event.current;
@@ -959,7 +959,7 @@ namespace UnityMcp.Tools
                     mouseEvent.mousePosition = position;
                     mouseEvent.button = button;
 
-                    // Send mouse down and up events
+                    // 发送鼠标按下和松开事件
                     EditorApplication.delayCall += () =>
                     {
                         mouseEvent.type = EventType.MouseUp;
@@ -971,11 +971,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simulate drag
+        /// 模拟拖拽
         /// </summary>
         private void SimulateDrag(Vector2 start, Vector2 end, float duration)
         {
-            // Implement drag simulation logic
+            // 实现拖拽模拟逻辑
             var steps = Mathf.Max(10, Mathf.RoundToInt(duration * 60)); // 60fps
             var stepDuration = duration / steps;
 
@@ -986,7 +986,7 @@ namespace UnityMcp.Tools
 
                 EditorApplication.delayCall += () =>
                 {
-                    // Send mouse move events
+                    // 发送鼠标移动事件
                     if (Event.current != null)
                     {
                         Event.current.type = EventType.MouseDrag;
@@ -999,7 +999,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simulate key press
+        /// 模拟按键
         /// </summary>
         private void SimulateKey(string keyCode)
         {
@@ -1008,11 +1008,11 @@ namespace UnityMcp.Tools
                 Event.current.type = EventType.KeyDown;
                 if (Enum.TryParse<KeyCode>(keyCode, out KeyCode key))
                 {
-                    // Set key event
+                    // 设置按键事件
                     var keyEvent = Event.KeyboardEvent(keyCode);
                     if (keyEvent != null)
                     {
-                        // Send key event
+                        // 发送按键事件
                         EditorApplication.delayCall += () =>
                         {
                             keyEvent.type = EventType.KeyUp;
@@ -1025,7 +1025,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Simulate mouse wheel
+        /// 模拟滚轮
         /// </summary>
         private void SimulateScroll(Vector2 position, float delta)
         {
@@ -1040,7 +1040,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Perform region screenshot
+        /// 执行区域截图
         /// </summary>
         private object ExecuteRegionScreenshot(int x, int y, int width, int height, string savePath)
         {
@@ -1052,13 +1052,13 @@ namespace UnityMcp.Tools
                     return Response.Error("Failed to get Game window render texture");
                 }
 
-                // Ensure the area is within valid range
+                // 确保区域在有效范围内
                 x = Mathf.Clamp(x, 0, renderTexture.width - 1);
                 y = Mathf.Clamp(y, 0, renderTexture.height - 1);
                 width = Mathf.Clamp(width, 1, renderTexture.width - x);
                 height = Mathf.Clamp(height, 1, renderTexture.height - y);
 
-                // Create region texture
+                // 创建区域纹理
                 var regionTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
                 var activeRT = RenderTexture.active;
                 RenderTexture.active = renderTexture;
@@ -1066,10 +1066,10 @@ namespace UnityMcp.Tools
                 regionTexture.Apply();
                 RenderTexture.active = activeRT;
 
-                // Fix up-down flip issue
+                // 修正上下反转的问题
                 regionTexture = FlipTextureVertically(regionTexture);
 
-                // Save image
+                // 保存图像
                 var imageData = regionTexture.EncodeToPNG();
                 File.WriteAllBytes(savePath, imageData);
                 UnityEngine.Object.DestroyImmediate(regionTexture);
@@ -1093,7 +1093,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Vertical flip texture（Fix upside-down screenshot issue）
+        /// 垂直翻转纹理（修正截图上下颠倒的问题）
         /// </summary>
         private Texture2D FlipTextureVertically(Texture2D original)
         {
@@ -1108,12 +1108,12 @@ namespace UnityMcp.Tools
             }
 
             flipped.Apply();
-            UnityEngine.Object.DestroyImmediate(original); // Clear original texture
+            UnityEngine.Object.DestroyImmediate(original); // 清理原始纹理
             return flipped;
         }
 
         /// <summary>
-        /// Scale texture
+        /// 缩放纹理
         /// </summary>
         private Texture2D ScaleTexture(Texture2D source, int newWidth, int newHeight)
         {
@@ -1136,7 +1136,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Compress image
+        /// 压缩图像
         /// </summary>
         private object CompressImage(string sourcePath, string savePath, float ratio, int quality)
         {
@@ -1147,19 +1147,19 @@ namespace UnityMcp.Tools
                     return Response.Error("Source file not found");
                 }
 
-                // Load texture
+                // 加载纹理
                 var imageData = File.ReadAllBytes(sourcePath);
                 var texture = new Texture2D(2, 2);
                 texture.LoadImage(imageData);
 
-                // Calculate new size
+                // 计算新尺寸
                 var newWidth = Mathf.RoundToInt(texture.width * ratio);
                 var newHeight = Mathf.RoundToInt(texture.height * ratio);
 
-                // Scale texture
+                // 缩放纹理
                 var scaledTexture = ScaleTexture(texture, newWidth, newHeight);
 
-                // Save compressed image
+                // 保存压缩后的图像
                 byte[] compressedData;
                 var extension = Path.GetExtension(savePath).ToLower();
                 if (extension == ".jpg" || extension == ".jpeg")
@@ -1195,7 +1195,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Resize image
+        /// 调整图像大小
         /// </summary>
         private object ResizeImage(string sourcePath, string savePath, int width, int height)
         {
@@ -1234,7 +1234,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Convert image format
+        /// 转换图像格式
         /// </summary>
         private object ConvertImageFormat(string sourcePath, string savePath, string format, int quality)
         {
@@ -1278,7 +1278,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Start batch screenshot
+        /// 开始批量截图
         /// </summary>
         private void StartBatchScreenshot(int count, float interval, string basePath)
         {
@@ -1302,7 +1302,7 @@ namespace UnityMcp.Tools
     }
 
     /// <summary>
-    /// Simulated input data structure
+    /// 模拟输入的数据结构
     /// </summary>
     public class SimulatedInput
     {
@@ -1317,7 +1317,7 @@ namespace UnityMcp.Tools
     }
 
     /// <summary>
-    /// Input type enumeration
+    /// 输入类型枚举
     /// </summary>
     public enum InputType
     {

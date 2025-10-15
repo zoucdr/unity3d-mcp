@@ -1,27 +1,27 @@
 """
-Unity UGUILayout tool，Used to modify and getRectTransformLayout properties of。（Secondary tool）
+Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。（二级工具）
 
-Use dual-state tree architectureRectTransformModify operations：
-- First tree：Target positioning（UseGameObjectSelector）
-- Second tree：Based onactionType of layout operation
+使用双状态树架构处理RectTransform修改操作：
+- 第一棵树：目标定位（使用GameObjectSelector）
+- 第二棵树：基于action类型的布局操作
 
-Primary operations：
-- do_layout: Perform comprehensive layout changes（Set multiple properties at once，Without anchor presets）
-- get_layout: GetRectTransformProperty（Get all property info）
-- tattoo: Set anchor preset（Specially handlestattoo_preset、tattoo_self、preserve_visual_position）
+主要操作：
+- do_layout: 执行综合布局修改（可同时设置多个属性，不包含锚点预设）
+- get_layout: 获取RectTransform属性（获取所有属性信息）
+- tattoo: 设置锚点预设（专门处理tattoo_preset、tattoo_self、preserve_visual_position）
 
-Special parameters：
-- tattoo_self: When it istrueWhen，Anchor presets are based on the element’s current position
-  * stretch_all + tattoo_self = tattooFunction（Equivalent toUGUIUtil.AnchorsToCorners）
-  * top_center + tattoo_self = Set anchors to the element’s own top-center
-  * Other presets + tattoo_self = Set anchors to the element’s corresponding self position
-- preserve_visual_position: Whether to keep visual position when changing presets（Default：true）
+特殊参数：
+- tattoo_self: 当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置
+  * stretch_all + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
+  * top_center + tattoo_self = 将锚点设置到元素自己的顶部中心位置
+  * 其他预设 + tattoo_self = 将锚点设置到元素自身对应的位置
+- preserve_visual_position: 是否在更改锚点预设时保持视觉位置（默认：true）
 
-Applicable scenarios：
-- UILayout design：Precise controlUIElement position and size
-- Responsive layout：Use anchor presets to adapt to resolutions
-- DynamicUIAdjust：Runtime modificationsUIElement layout
-- Batch layout operations：Uniformly adjust multipleUIElement
+适用场景：
+- UI布局设计：精确控制UI元素的位置和尺寸
+- 响应式布局：使用锚点预设适配不同分辨率
+- 动态UI调整：运行时修改UI元素布局
+- 批量布局操作：统一调整多个UI元素
 """
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
@@ -34,105 +34,105 @@ def register_ugui_layout_tools(mcp: FastMCP):
     def ugui_layout(
         ctx: Context,
         instance_id: Annotated[Optional[int], Field(
-            title="InstanceID",
-            description="GameObjectInstance ofID",
+            title="实例ID",
+            description="GameObject的实例ID",
             default=None,
             examples=[12345, 67890]
         )] = None,
         path: Annotated[Optional[str], Field(
-            title="Object path",
-            description="GameObjectHierarchy path of",
+            title="对象路径",
+            description="GameObject的层次结构路径",
             default=None,
             examples=["Canvas/UI/Button", "Canvas/Panel/Text"]
         )] = None,
         action: Annotated[Optional[str], Field(
-            title="Operation type",
-            description="Operation type: do_layout(Composite layout,Without anchor presets), get_layout(Get properties), tattoo(Set anchor preset)",
+            title="操作类型",
+            description="操作类型: do_layout(综合布局,不包含锚点预设), get_layout(获取属性), tattoo(设置锚点预设)",
             default="do_layout",
             examples=["do_layout", "get_layout", "tattoo"]
         )] = "do_layout",
         anchored_position: Annotated[Optional[List[float]], Field(
-            title="Anchor position",
-            description="Anchor position [x, y]",
+            title="锚点位置",
+            description="锚点位置 [x, y]",
             default=None,
             examples=[[0, 0], [100, -50], [200, 100]]
         )] = None,
         size_delta: Annotated[Optional[List[float]], Field(
-            title="Size delta",
-            description="Size delta [width, height]",
+            title="尺寸增量",
+            description="尺寸增量 [width, height]",
             default=None,
             examples=[[0, 0], [200, 100], [400, 200]]
         )] = None,
         anchor_min: Annotated[Optional[List[float]], Field(
-            title="Anchor min",
-            description="Anchor min [x, y]",
+            title="锚点最小值",
+            description="锚点最小值 [x, y]",
             default=None,
             examples=[[0, 0], [0.5, 0.5], [1, 1]]
         )] = None,
         anchor_max: Annotated[Optional[List[float]], Field(
-            title="Anchor max",
-            description="Anchor max [x, y]",
+            title="锚点最大值",
+            description="锚点最大值 [x, y]",
             default=None,
             examples=[[0, 0], [0.5, 0.5], [1, 1]]
         )] = None,
         tattoo_preset: Annotated[Optional[str], Field(
-            title="Anchor presets",
-            description="Anchor preset type: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all",
+            title="锚点预设",
+            description="锚点预设类型: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all",
             default=None,
             examples=["stretch_all", "top_center", "middle_center", "bottom_center"]
         )] = None,
         tattoo_self: Annotated[Optional[bool], Field(
-            title="Anchor self",
-            description="When it istrueWhen，Anchor presets are based on the element’s current position（Default：false）",
+            title="锚点自身",
+            description="当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置（默认：false）",
             default=False
         )] = False,
         preserve_visual_position: Annotated[Optional[bool], Field(
-            title="Keep visual position",
-            description="Whether to keep visual position when changing presets（Default：true）",
+            title="保持视觉位置",
+            description="是否在更改锚点预设时保持视觉位置（默认：true）",
             default=True
         )] = True,
         pivot: Annotated[Optional[List[float]], Field(
-            title="Pivot",
-            description="Pivot [x, y]",
+            title="轴心点",
+            description="轴心点 [x, y]",
             default=None,
             examples=[[0.5, 0.5], [0, 0], [1, 1]]
         )] = None,
         sibling_index: Annotated[Optional[int], Field(
-            title="Hierarchy index",
-            description="Child index in parent",
+            title="层级索引",
+            description="在父对象中的子对象索引",
             default=None,
             examples=[0, 1, 2]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity UGUILayout tool，Used to modify and getRectTransformLayout properties of。（Secondary tool）
+        """Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。（二级工具）
 
-        Supports multiple layout operations，Suitable for：
-        - Layout modifications：SetUIElement position、Size、Anchor and related properties（Note：do_layoutNot supportedtattoo_preset）
-        - Property retrieval：GetUICurrent layout properties of the element
-        - Anchor presets：Use predefined anchor configs（UsetattooOperation）
-        - Smart layout：Set anchors based on current position
-        - TattooFunction：stretch_all + tattoo_self Pin anchors to all four corners
+        支持多种布局操作，适用于：
+        - 布局修改：设置UI元素的位置、大小、锚点等属性（注意：do_layout不支持tattoo_preset）
+        - 属性获取：获取UI元素的当前布局属性
+        - 锚点预设：使用预定义的锚点配置（使用tattoo操作）
+        - 智能布局：基于元素当前位置设置锚点
+        - Tattoo功能：stretch_all + tattoo_self 实现锚点钉到四角
         
-        Example usage：
-        1. Set fixed position and size（Do not use anchor presets）：
+        示例用法：
+        1. 设置固定位置和大小（不使用锚点预设）：
            {"action": "do_layout", "path": "Canvas/Button", "anchored_position": [0, -50], "size_delta": [200, 80]}
         
-        2. Use anchor preset to stretch and fill parent：
+        2. 使用锚点预设拉伸填充父容器：
            {"action": "tattoo", "path": "Canvas/Background", "tattoo_preset": "stretch_all"}
         
-        3. TattooFunction（Anchors to corners）：
+        3. Tattoo功能（锚点钉到四角）：
            {"action": "tattoo", "path": "Canvas/Panel", "tattoo_preset": "stretch_all", "tattoo_self": true}
         
-        4. Set anchor preset to top-center：
+        4. 设置锚点预设到顶部中心：
            {"action": "tattoo", "path": "Canvas/Title", "tattoo_preset": "top_center", "tattoo_self": true}
         
-        5. Get layout properties：
+        5. 获取布局属性：
            {"action": "get_layout", "path": "Canvas/Button"}
            
-        Note：do_layoutOperation not supportedtattoo_presetParameters，To set anchor presetstattooOperation。
+        注意：do_layout操作不支持tattoo_preset参数，如需设置锚点预设请使用tattoo操作。
         """
-        # ⚠️ Important notes：This function only provides parameter docs
-        # Use in actual calls single_call Function
-        # Example：single_call(func="ugui_layout", args={...})
+        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
+        # 实际调用请使用 single_call 函数
+        # 示例：single_call(func="ugui_layout", args={...})
         
         return get_common_call_response("ugui_layout")

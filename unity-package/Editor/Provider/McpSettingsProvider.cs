@@ -4,7 +4,7 @@ using UnityEditor;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// MCPSettings provider，Used inUnityOfProjectSettingsDisplay in windowMCPSetting
+    /// MCP设置提供器，用于在Unity的ProjectSettings窗口中显示MCP设置
     /// </summary>
     public static class McpSettingsProvider
     {
@@ -22,7 +22,7 @@ namespace UnityMcp.Gui
                 },
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    // Initialize on activationGUIStatus
+                    // 在激活时初始化GUI状态
                     if (!isInitialized)
                     {
                         McpConnectGUI.Initialize();
@@ -41,16 +41,16 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.LabelField("MCP (Model Context Protocol)", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "MCPIs a powerfulUnityExtension tool，Provides intelligentUIGenerate、Code management and project optimization features。" +
-                "Through andAIDeep integration of models，MCPCan help developers quickly create high-qualityUnityProject。",
+                "MCP是一个强大的Unity扩展工具，提供了智能的UI生成、代码管理和项目优化功能。" +
+                "通过与AI模型的深度集成，MCP能够帮助开发者快速创建高质量的Unity项目。",
                 MessageType.Info);
 
             EditorGUILayout.Space(10);
 
-            // Draw completeMCPManagementGUI
+            // 绘制完整的MCP管理GUI
             McpConnectGUI.DrawGUI();
 
-            // Auto save
+            // 自动保存
             if (GUI.changed)
             {
                 settings.SaveSettings();

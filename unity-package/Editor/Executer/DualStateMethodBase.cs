@@ -6,32 +6,32 @@ using System.Text;
 namespace UnityMcp
 {
     /// <summary>
-    /// Dual state tree method base class，Provides a method invocation framework based on two state trees。
-    /// The first tree is for target location，The second tree is for operation execution。
-    /// All tool method classes requiring dual-phase processing should inherit from this class。
+    /// 双状态树方法基类，提供基于两棵状态树的方法调用框架。
+    /// 第一棵树用于目标定位，第二棵树用于执行操作。
+    /// 所有需要双阶段处理的工具方法类应继承此类。
     /// </summary>
     public abstract class DualStateMethodBase : IToolMethod
     {
         /// <summary>
-        /// Target locating state tree instance，For locating operation target。
-        /// Lazy loading mode：Create only on first access。
+        /// 目标定位状态树实例，用于定位操作目标。
+        /// 懒加载模式：首次访问时才创建。
         /// </summary>
         private StateTree _targetTree;
 
         /// <summary>
-        /// Operation execution state tree instance，For performing specific operations。
-        /// Lazy loading mode：Create only on first access。
+        /// 执行操作状态树实例，用于执行具体操作。
+        /// 懒加载模式：首次访问时才创建。
         /// </summary>
         private StateTree _actionTree;
 
         /// <summary>
-        /// KeysCached field of，Avoid duplicate creation
+        /// Keys的缓存字段，避免重复创建
         /// </summary>
         private MethodKey[] _keys;
 
         /// <summary>
-        /// List of parameter keys supported by this method，Used forAPIDocumentation generation and parameter validation。
-        /// Subclass must implement this property，Define all possible parameter keys accepted by this method。
+        /// 当前方法支持的参数键列表，用于API文档生成和参数验证。
+        /// 子类必须实现此属性，定义该方法接受的所有可能参数键。
         /// </summary>
         public MethodKey[] Keys
         {
@@ -46,30 +46,30 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Abstract method to create parameter key list，Subclass must implement this method to define parameter keys。
+        /// 创建参数键列表的抽象方法，子类必须实现此方法来定义参数键。
         /// </summary>
-        /// <returns>MethodKeyArray</returns>
+        /// <returns>MethodKey数组</returns>
         protected abstract MethodKey[] CreateKeys();
 
         /// <summary>
-        /// Abstract method for creating the target locating state tree，Subclass must implement this method for target location logic。
+        /// 创建目标定位状态树的抽象方法，子类必须实现此方法来定义目标定位逻辑。
         /// </summary>
-        /// <returns>Configured target locating state tree instance</returns>
+        /// <returns>配置好的目标定位状态树实例</returns>
         protected abstract StateTree CreateTargetTree();
 
         /// <summary>
-        /// Abstract method for creating the operation execution state tree，Subclass must implement this method for operation execution logic。
+        /// 创建执行操作状态树的抽象方法，子类必须实现此方法来定义操作执行逻辑。
         /// </summary>
-        /// <returns>Configured operation execution state tree instance</returns>
+        /// <returns>配置好的执行操作状态树实例</returns>
         protected abstract StateTree CreateActionTree();
 
         /// <summary>
-        /// Preview dual state tree structure，For debugging and visualizing the state routing logic。
+        /// 预览双状态树结构，用于调试和可视化状态路由逻辑。
         /// </summary>
-        /// <returns>Text representation of dual state trees</returns>
+        /// <returns>双状态树的文本表示</returns>
         public virtual string Preview()
         {
-            // Ensure that state trees are initialized
+            // 确保状态树已初始化
             _targetTree = _targetTree ?? CreateTargetTree();
             _actionTree = _actionTree ?? CreateActionTree();
 
@@ -88,15 +88,15 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Execute tool method，Implement IToolMethod Interface。
-        /// In two phases：First locate the target via the target state tree，Then perform operations through the execution state tree。
+        /// 执行工具方法，实现 IToolMethod 接口。
+        /// 分两个阶段：首先通过目标定位树找到目标，然后通过执行操作树执行操作。
         /// </summary>
-        /// <param name="args">Parameter object for method invocation</param>
+        /// <param name="args">方法调用的参数对象</param>
         public virtual void ExecuteMethod(StateTreeContext args)
         {
             try
             {
-                // Ensure that state trees are initialized
+                // 确保状态树已初始化
                 _targetTree = _targetTree ?? CreateTargetTree();
                 _actionTree = _actionTree ?? CreateActionTree();
                 ExecuteTargetTree(args);
@@ -108,17 +108,17 @@ namespace UnityMcp
             }
         }
         /// <summary>
-        /// Execute target tree
+        /// 执行目标树
         /// </summary>
         /// <param name="args"></param>
         protected virtual void ExecuteTargetTree(StateTreeContext args)
         {
             var copyContext = new StateTreeContext(args.JsonData, args.ObjectReferences);
-            // First phase：Use the target state tree to find target
+            // 第一阶段：使用目标定位树找到目标
             LogInfo("[DualStateMethodBase] Phase 1: Target Location");
             var targetResult = _targetTree.Run(copyContext);
 
-            // Check errors in target locating phase
+            // 检查目标定位阶段的错误
             if (targetResult == null && !string.IsNullOrEmpty(_targetTree.ErrorMessage))
             {
                 Debug.LogError($"[DualStateMethodBase] Target location failed: {_targetTree.ErrorMessage}");
@@ -134,13 +134,13 @@ namespace UnityMcp
             }
         }
         /// <summary>
-        /// Execute operation tree
+        /// 执行操作树
         /// </summary>
         /// <param name="targetResult"></param>
         /// <param name="args"></param>
         protected virtual void ExecuteActiontTree(object targetResult, StateTreeContext args)
         {
-            // Handle results of target location
+            // 处理目标定位结果
             var processedTarget = ProcessTargetResult(targetResult);
             if (processedTarget == null)
             {
@@ -150,13 +150,13 @@ namespace UnityMcp
             }
 
             LogInfo($"[DualStateMethodBase] Target located successfully: {processedTarget?.GetType()?.Name ?? "Unknown"}");
-            // Second phase：Create execution context and perform operation
+            // 第二阶段：创建执行上下文并执行操作
             LogInfo("[DualStateMethodBase] Phase 2: Action Execution");
             args.SetObjectReference("_resolved_targets", processedTarget);
 
             var actionResult = _actionTree.Run(args);
 
-            // Check errors in operation execution phase
+            // 检查执行操作阶段的错误
             if (actionResult == null && !string.IsNullOrEmpty(_actionTree.ErrorMessage))
             {
                 Debug.LogError($"[DualStateMethodBase] Action execution failed: {_actionTree.ErrorMessage}");
@@ -170,26 +170,26 @@ namespace UnityMcp
                 Debug.LogError($"[DualStateMethodBase] Action execution failed: {_actionTree.ErrorMessage}");
                 args.Complete(Response.Error($"Action execution failed: {_actionTree.ErrorMessage}"));
             }
-            // Execution finished
+            // 完成执行
             else if (actionResult != null && actionResult != args)
             {
                 args.Complete(Json.FromObject(actionResult));
             }
             else
             {
-                // Asynchronous execution completed
+                // 异步执行完成
                 LogInfo("[DualStateMethodBase] Execution completed!");
             }
         }
 
 
         /// <summary>
-        /// Handle results of target location。If target result isResponseType（That includessuccessField），Then return directly，Indicates final response。
-        /// Otherwise return original target result，For subsequent operation tree processing。
+        /// 处理目标定位结果。如果目标结果是Response类型（即包含success字段），则直接返回，表示已是最终响应。
+        /// 否则返回原始目标结果，供后续操作树处理。
         /// </summary>
         protected virtual object ProcessTargetResult(object targetResult)
         {
-            // Determine if isResponseType（That includessuccessField's anonymous object）
+            // 判断是否为Response类型（即包含success字段的匿名对象）
             if (targetResult != null)
             {
                 var type = targetResult.GetType();
@@ -199,15 +199,15 @@ namespace UnityMcp
                     return null;
                 }
             }
-            // Otherwise return original target result
+            // 否则返回原始目标结果
             return targetResult;
         }
 
         /// <summary>
-        /// Log informational message，Only at McpConnect.EnableLog As true Output when。
-        /// Subclass can use this method to log information during execution。
+        /// 记录信息日志，仅在 McpConnect.EnableLog 为 true 时输出。
+        /// 子类可用此方法记录执行过程中的信息。
         /// </summary>
-        /// <param name="message">Log message to record</param>
+        /// <param name="message">要记录的日志消息</param>
         public virtual void LogInfo(string message)
         {
             if (McpConnect.EnableLog) Debug.Log(message);

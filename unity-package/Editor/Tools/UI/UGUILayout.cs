@@ -14,64 +14,64 @@ namespace UnityMcp.Tools
     /// First tree: Target location (using GameObjectSelector)
     /// Second tree: Layout operations based on action type
     /// 
-    /// Usage：
-    /// - do_layout: Perform integrated layout modification (Can set multiple properties at once，Does not contain anchor preset)
-    /// - get_layout: GetRectTransformAttribute (Get all attribute information)
-    /// - tattoo: Set anchor preset (Specifically handletattoo_preset、tattoo_self、preserve_visual_position)
+    /// 使用方式：
+    /// - do_layout: 执行综合布局修改 (可同时设置多个属性，不包含锚点预设)
+    /// - get_layout: 获取RectTransform属性 (获取所有属性信息)
+    /// - tattoo: 设置锚点预设 (专门处理tattoo_preset、tattoo_self、preserve_visual_position)
     /// 
-    /// Special parameter：
-    /// - tattoo_self: When istrueWhen，Anchor presets will be based on the element's current position instead of the parent's preset position
-    ///   * stretch_all + tattoo_self = tattooFunction（Equivalent toUGUIUtil.AnchorsToCorners）
-    ///   * top_center + tattoo_self = Set the anchor to the element's own top-center position
-    ///   * Other presets + tattoo_self = Set the anchor to the corresponding position of the element itself
+    /// 特殊参数：
+    /// - tattoo_self: 当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置
+    ///   * stretch_all + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
+    ///   * top_center + tattoo_self = 将锚点设置到元素自己的顶部中心位置
+    ///   * 其他预设 + tattoo_self = 将锚点设置到元素自身对应的位置
     /// 
-    /// For example：
-    /// action="do_layout", anchored_pos=[100, -50], size_delta=[200, 100]  // Do not use anchor preset
-    /// action="tattoo", tattoo_preset="stretch_all", tattoo_self=true  // tattooEffect
-    /// action="tattoo", tattoo_preset="top_center", tattoo_self=true   // Pin to the top center of the element
+    /// 例如：
+    /// action="do_layout", anchored_pos=[100, -50], size_delta=[200, 100]  // 不使用锚点预设
+    /// action="tattoo", tattoo_preset="stretch_all", tattoo_self=true  // tattoo效果
+    /// action="tattoo", tattoo_preset="top_center", tattoo_self=true   // 钉在元素顶部中心
     /// action="get_layout"
     /// 
-    /// Note：do_layoutOperation not supportedtattoo_presetParameter，Use to set anchor presets if neededtattooOperation。
+    /// 注意：do_layout操作不支持tattoo_preset参数，如需设置锚点预设请使用tattoo操作。
     /// 
-    /// Note：GameWindow resolution setting feature has been moved to game_view Tool
+    /// 注意：Game窗口分辨率设置功能已迁移到 game_view 工具
     /// 
-    /// Corresponding method name: ugui_layout
+    /// 对应方法名: ugui_layout
     /// </summary>
-    [ToolName("ugui_layout", "UIManage")]
+    [ToolName("ugui_layout", "UI管理")]
     public class UGUILayout : DualStateMethodBase
     {
         /// <summary>
-        /// Create a list of parameter keys supported by the current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                // Target search parameter
+                // 目标查找参数
                 new MethodKey("instance_id", "Object InstanceID", true),
                 new MethodKey("path", "Object Hierarchy path", false),
                 
-                // Operation parameter
-                new MethodKey("action", "Operation type: do_layout(Integrated layout,Does not contain anchor preset), get_layout(Get attribute), tattoo(Set anchor preset)", true),
+                // 操作参数
+                new MethodKey("action", "Operation type: do_layout(综合布局,不包含锚点预设), get_layout(获取属性), tattoo(设置锚点预设)", true),
                 
-                // RectTransformBasic property
+                // RectTransform基本属性
                 new MethodKey("anchored_pos", "Anchor position [x, y]", true),
                 new MethodKey("size_delta", "Size delta [width, height]", true),
                 new MethodKey("anchor_min", "Minimum anchor [x, y]", true),
                 new MethodKey("anchor_max", "Maximum anchor [x, y]", true),
-                      // Preset anchor type
+                      // 预设锚点类型
                 new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all", true),
                 new MethodKey("tattoo_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
                 new MethodKey("preserve_visual_position", "Whether to preserve visual position when changing anchor preset (default: true)", true),
                 new MethodKey("pivot", "Pivot point [x, y]", true),
                 
-                // Hierarchy control
+                // 层级控制
                 new MethodKey("sibling_index", "Sibling index in parent hierarchy", true)
             };
         }
 
         /// <summary>
-        /// Create target positioning status tree（UseGameObjectSelector）
+        /// 创建目标定位状态树（使用GameObjectSelector）
         /// </summary>
         protected override StateTree CreateTargetTree()
         {
@@ -79,7 +79,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create operation execution status tree
+        /// 创建操作执行状态树
         /// </summary>
         protected override StateTree CreateActionTree()
         {
@@ -94,7 +94,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle layout operation（ExecuteRectTransformModify）
+        /// 处理布局操作（执行RectTransform修改）
         /// </summary>
         private object HandleDoLayoutAction(StateTreeContext args)
         {
@@ -104,7 +104,7 @@ namespace UnityMcp.Tools
                 return Response.Error("No target GameObjects found in execution context.");
             }
 
-            // Otherwise execute according to the incoming attribute parameters RectTransform Modify
+            // 否则根据传入的各种属性参数执行 RectTransform 修改
             if (targets.Length == 1)
             {
                 return ApplyRectTransformModifications(targets[0], args);
@@ -116,7 +116,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle get layout info operation
+        /// 处理获取布局信息操作
         /// </summary>
         private object HandleGetLayoutAction(StateTreeContext args)
         {
@@ -125,7 +125,7 @@ namespace UnityMcp.Tools
             {
                 return Response.Error("No target GameObjects found in execution context.");
             }
-            // Otherwise get all RectTransform Attribute information
+            // 否则获取所有 RectTransform 属性信息
             if (targets.Length == 1)
             {
                 return GetAllRectTransformProperties(targets[0]);
@@ -137,7 +137,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle anchor preset operation
+        /// 处理锚点预设操作
         /// </summary>
         private object HandleSetAnchorPresetAction(StateTreeContext args)
         {
@@ -147,7 +147,7 @@ namespace UnityMcp.Tools
                 return Response.Error("No target GameObjects found in execution context.");
             }
 
-            // Specially handle anchor presets
+            // 专门处理锚点预设
             if (targets.Length == 1)
             {
                 return ApplyAnchorPresetToSingle(targets[0], args);
@@ -159,7 +159,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Default operation handling（Not specified action Default when do_layout）
+        /// 默认操作处理（不指定 action 时默认为 do_layout）
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
         {
@@ -169,10 +169,10 @@ namespace UnityMcp.Tools
 
 
 
-        #region Core modification method
+        #region 核心修改方法
 
         /// <summary>
-        /// ApplyRectTransformModify to singleGameObject
+        /// 应用RectTransform修改到单个GameObject
         /// </summary>
         private object ApplyRectTransformModifications(GameObject targetGo, StateTreeContext args)
         {
@@ -186,14 +186,14 @@ namespace UnityMcp.Tools
 
             bool modified = false;
 
-            // ApplyRectTransformSpecific property（Does not contain anchor preset）
+            // 应用RectTransform特有属性（不包含锚点预设）
             modified |= ApplyAnchoredPosition(rectTransform, args);
             modified |= ApplySizeDelta(rectTransform, args);
             modified |= ApplyAnchorMin(rectTransform, args);
             modified |= ApplyAnchorMax(rectTransform, args);
             modified |= ApplyPivot(rectTransform, args);
 
-            // Apply hierarchy control
+            // 应用层级控制
             modified |= ApplySetSiblingIndex(rectTransform, args);
             if (!modified)
             {
@@ -211,7 +211,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// ApplyRectTransformModify to multipleGameObject
+        /// 应用RectTransform修改到多个GameObject
         /// </summary>
         private object ApplyRectTransformModificationsToMultiple(GameObject[] targets, StateTreeContext args)
         {
@@ -259,10 +259,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Method dedicated to anchor presets
+        #region 锚点预设专用方法
 
         /// <summary>
-        /// Apply anchor preset to singleGameObject
+        /// 应用锚点预设到单个GameObject
         /// </summary>
         private object ApplyAnchorPresetToSingle(GameObject targetGo, StateTreeContext args)
         {
@@ -274,7 +274,7 @@ namespace UnityMcp.Tools
 
             Undo.RecordObject(rectTransform, "Set Anchor Preset");
 
-            // Only process anchor preset related parameters
+            // 只处理锚点预设相关参数
             bool modified = ApplyAnchorPreset(rectTransform, args);
 
             if (!modified)
@@ -293,7 +293,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply anchor preset to multipleGameObject
+        /// 应用锚点预设到多个GameObject
         /// </summary>
         private object ApplyAnchorPresetToMultiple(GameObject[] targets, StateTreeContext args)
         {
@@ -341,10 +341,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region RectTransformAttribute apply method
+        #region RectTransform属性应用方法
 
         /// <summary>
-        /// Apply anchor preset（Keep visual position unchanged）
+        /// 应用锚点预设（保持视觉位置不变）
         /// </summary>
         private bool ApplyAnchorPreset(RectTransform rectTransform, StateTreeContext args)
         {
@@ -419,7 +419,7 @@ namespace UnityMcp.Tools
                         return false;
                 }
 
-                // Check whether to usetattoo_selfPattern
+                // 检查是否使用tattoo_self模式
                 bool anchorSelf = false;
                 if (args.TryGetValue("tattoo_self", out object anchorSelfObj))
                 {
@@ -429,22 +429,22 @@ namespace UnityMcp.Tools
                         anchorSelf = parsedAnchorSelf;
                 }
 
-                // If usetattoo_selfPattern，Recalculate anchor based on the element's current position
+                // 如果使用tattoo_self模式，基于元素当前位置重新计算锚点
                 if (anchorSelf)
                 {
                     return ApplyAnchorSelfPreset(rectTransform, preset, args);
                 }
 
-                // Check if modification is needed
+                // 检查是否需要修改
                 if (rectTransform.anchorMin == targetAnchorMin &&
                     rectTransform.anchorMax == targetAnchorMax &&
                     rectTransform.pivot == targetPivot)
                 {
-                    return false; // Already at target anchor，No modification required
+                    return false; // 已经是目标锚点，无需修改
                 }
 
-                // Check whether to keep the visual position
-                bool preserveVisualPosition = true; // Keep visual position by default
+                // 检查是否需要保持视觉位置
+                bool preserveVisualPosition = true; // 默认保持视觉位置
                 if (args.TryGetValue("preserve_visual_position", out object preserveObj))
                 {
                     if (preserveObj is bool preserveBool)
@@ -453,14 +453,14 @@ namespace UnityMcp.Tools
                         preserveVisualPosition = parsedPreserve;
                 }
 
-                // Apply anchor preset
+                // 应用锚点预设
                 if (preserveVisualPosition)
                 {
                     return ApplyAnchorPresetWithVisualPositionPreserved(rectTransform, targetAnchorMin, targetAnchorMax, targetPivot);
                 }
                 else
                 {
-                    // Set anchor directly，Do not keep visual position
+                    // 直接设置锚点，不保持视觉位置
                     rectTransform.anchorMin = targetAnchorMin;
                     rectTransform.anchorMax = targetAnchorMax;
                     rectTransform.pivot = targetPivot;
@@ -471,22 +471,22 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply anchor preset and keep visual position unchanged（ReferenceUGUIUtil.AnchorsToCornersImplement）
+        /// 应用锚点预设并保持视觉位置不变（参考UGUIUtil.AnchorsToCorners实现）
         /// </summary>
         private bool ApplyAnchorPresetWithVisualPositionPreserved(RectTransform rectTransform, Vector2 targetAnchorMin, Vector2 targetAnchorMax, Vector2 targetPivot)
         {
-            // Get parent container'sRectTransform
+            // 获取父容器的RectTransform
             RectTransform parentRect = rectTransform.parent as RectTransform;
             if (parentRect == null)
             {
-                // If there is no parentRectTransform，Set anchor directly
+                // 如果没有父RectTransform，直接设置锚点
                 rectTransform.anchorMin = targetAnchorMin;
                 rectTransform.anchorMax = targetAnchorMax;
                 rectTransform.pivot = targetPivot;
                 return true;
             }
 
-            // Save the current world position and size
+            // 保存当前的世界位置和尺寸
             Vector3[] worldCorners = new Vector3[4];
             rectTransform.GetWorldCorners(worldCorners);
             Vector2 worldSize = new Vector2(
@@ -494,13 +494,13 @@ namespace UnityMcp.Tools
                 Vector3.Distance(worldCorners[0], worldCorners[1])
             );
 
-            // Calculate the current relative position in the parent container（ReferenceUGUIUtil.AnchorsToCornersComputation method of）
+            // 计算当前在父容器中的相对位置（参考UGUIUtil.AnchorsToCorners的计算方式）
             Vector2 currentOffsetMin = rectTransform.offsetMin;
             Vector2 currentOffsetMax = rectTransform.offsetMax;
             Vector2 currentAnchorMin = rectTransform.anchorMin;
             Vector2 currentAnchorMax = rectTransform.anchorMax;
 
-            // Calculate actual anchor position currently（ContainoffsetEffect of）
+            // 计算当前的实际锚点位置（包含offset的影响）
             Vector2 actualAnchorMin = new Vector2(
                 currentAnchorMin.x + currentOffsetMin.x / parentRect.rect.width,
                 currentAnchorMin.y + currentOffsetMin.y / parentRect.rect.height
@@ -510,12 +510,12 @@ namespace UnityMcp.Tools
                 currentAnchorMax.y + currentOffsetMax.y / parentRect.rect.height
             );
 
-            // Set new anchor and pivot
+            // 设置新的锚点和轴心点
             rectTransform.anchorMin = targetAnchorMin;
             rectTransform.anchorMax = targetAnchorMax;
             rectTransform.pivot = targetPivot;
 
-            // Calculate the required under the new anchoroffsetTo keep the same visual position
+            // 计算新锚点下需要的offset来保持相同的视觉位置
             Vector2 newOffsetMin = new Vector2(
                 (actualAnchorMin.x - targetAnchorMin.x) * parentRect.rect.width,
                 (actualAnchorMin.y - targetAnchorMin.y) * parentRect.rect.height
@@ -525,7 +525,7 @@ namespace UnityMcp.Tools
                 (actualAnchorMax.y - targetAnchorMax.y) * parentRect.rect.height
             );
 
-            // Apply newoffset
+            // 应用新的offset
             rectTransform.offsetMin = newOffsetMin;
             rectTransform.offsetMax = newOffsetMax;
 
@@ -533,11 +533,11 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply anchor preset based on its own position（tattoo_self=trueCall when）
+        /// 应用基于自身位置的锚点预设（tattoo_self=true时调用）
         /// </summary>
         private bool ApplyAnchorSelfPreset(RectTransform rectTransform, string preset, StateTreeContext args)
         {
-            // Get parent container'sRectTransform
+            // 获取父容器的RectTransform
             RectTransform parentRect = rectTransform.parent as RectTransform;
             if (parentRect == null)
             {
@@ -545,14 +545,14 @@ namespace UnityMcp.Tools
                 return false;
             }
 
-            // Get the element's current world position in the parent container
+            // 获取元素当前在父容器中的世界位置
             Vector3[] worldCorners = new Vector3[4];
             rectTransform.GetWorldCorners(worldCorners);
 
             Vector3[] parentWorldCorners = new Vector3[4];
             parentRect.GetWorldCorners(parentWorldCorners);
 
-            // Calculate the element's relative position in the parent container（0-1Range）
+            // 计算元素在父容器中的相对位置（0-1范围）
             Vector3 elementBottomLeft = worldCorners[0];
             Vector3 elementTopRight = worldCorners[2];
             Vector3 elementCenter = (elementBottomLeft + elementTopRight) * 0.5f;
@@ -575,11 +575,11 @@ namespace UnityMcp.Tools
                 (elementTopRight.y - parentBottomLeft.y) / (parentTopRight.y - parentBottomLeft.y)
             );
 
-            // Not perform0-1Range clamping，Avoid being pushed back into the parent when exceeding the parent
+            // 不进行0-1范围钳制，避免超出父级时被压回父级内部
 
             Vector2 newAnchorMin, newAnchorMax, newPivot;
 
-            // Calculate anchor based on the element's own position according to the preset type
+            // 根据预设类型基于元素自身位置计算锚点
             switch (preset)
             {
                 case "top_left":
@@ -638,7 +638,7 @@ namespace UnityMcp.Tools
                     newPivot = new Vector2(0.5f, 0.5f);
                     break;
                 case "stretch_all":
-                    // stretch_all + tattoo_self = tattooFunction（AnchorsToCorners）
+                    // stretch_all + tattoo_self = tattoo功能（AnchorsToCorners）
                     newAnchorMin = new Vector2(
                         rectTransform.anchorMin.x + rectTransform.offsetMin.x / parentRect.rect.width,
                         rectTransform.anchorMin.y + rectTransform.offsetMin.y / parentRect.rect.height
@@ -653,24 +653,24 @@ namespace UnityMcp.Tools
                     return false;
             }
 
-            // Check if modification is needed（Avoid unnecessary updates）
+            // 检查是否需要修改（避免不必要的更新）
             if (Vector2.Distance(rectTransform.anchorMin, newAnchorMin) < 0.001f &&
                 Vector2.Distance(rectTransform.anchorMax, newAnchorMax) < 0.001f &&
                 Vector2.Distance(rectTransform.pivot, newPivot) < 0.001f)
             {
-                return false; // Already in target state，No modification required
+                return false; // 已经是目标状态，无需修改
             }
 
-            // Apply new anchor
+            // 应用新的锚点
             rectTransform.anchorMin = newAnchorMin;
             rectTransform.anchorMax = newAnchorMax;
             rectTransform.pivot = newPivot;
 
-            // ReadUnityAnchor actually applied（AvoidUnityInternal clamping causes errors）
+            // 读取Unity实际应用的锚点（避免Unity内部钳制导致误差）
             Vector2 appliedAnchorMin = rectTransform.anchorMin;
             Vector2 appliedAnchorMax = rectTransform.anchorMax;
 
-            // Calculate new based on the element's four-corner relative coordinatesoffset，Keep the visual position and size unchanged
+            // 基于元素四角相对坐标计算新的offset，保持视觉位置与尺寸不变
             float pw = parentRect.rect.width;
             float ph = parentRect.rect.height;
             Vector2 newOffsetMin = new Vector2(
@@ -689,7 +689,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply anchor position modification
+        /// 应用锚点位置修改
         /// </summary>
         private bool ApplyAnchoredPosition(RectTransform rectTransform, StateTreeContext args)
         {
@@ -706,7 +706,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply size delta modification
+        /// 应用尺寸增量修改
         /// </summary>
         private bool ApplySizeDelta(RectTransform rectTransform, StateTreeContext args)
         {
@@ -723,7 +723,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply minimum anchor modification
+        /// 应用最小锚点修改
         /// </summary>
         private bool ApplyAnchorMin(RectTransform rectTransform, StateTreeContext args)
         {
@@ -740,7 +740,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply maximum anchor modification
+        /// 应用最大锚点修改
         /// </summary>
         private bool ApplyAnchorMax(RectTransform rectTransform, StateTreeContext args)
         {
@@ -757,7 +757,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Apply pivot modification
+        /// 应用轴心点修改
         /// </summary>
         private bool ApplyPivot(RectTransform rectTransform, StateTreeContext args)
         {
@@ -775,7 +775,7 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// ApplySiblingIndexModify
+        /// 应用SiblingIndex修改
         /// </summary>
         private bool ApplySetSiblingIndex(RectTransform rectTransform, StateTreeContext args)
         {
@@ -799,10 +799,10 @@ namespace UnityMcp.Tools
 
 
 
-        #region Attribute operation method
+        #region 属性操作方法
 
         /// <summary>
-        /// Set properties on a single target
+        /// 在单个目标上设置属性
         /// </summary>
         private object SetPropertyOnSingleTarget(GameObject targetGo, string propertyName, object valueObj)
         {
@@ -847,7 +847,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get properties from a single target
+        /// 从单个目标获取属性
         /// </summary>
         private object GetPropertyFromSingleTarget(GameObject targetGo, string propertyName)
         {
@@ -879,7 +879,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get all of a single targetRectTransformAttribute
+        /// 获取单个目标的所有RectTransform属性
         /// </summary>
         private object GetAllRectTransformProperties(GameObject targetGo)
         {
@@ -896,7 +896,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get all of multiple targetsRectTransformAttribute
+        /// 获取多个目标的所有RectTransform属性
         /// </summary>
         private object GetAllRectTransformPropertiesFromMultiple(GameObject[] targets)
         {
@@ -936,10 +936,10 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Batch operation method
+        #region 批量操作方法
 
         /// <summary>
-        /// Set properties on multiple targets
+        /// 在多个目标上设置属性
         /// </summary>
         private object SetPropertyOnMultipleTargets(GameObject[] targets, string propertyName, object valueObj)
         {
@@ -978,7 +978,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get properties from multiple targets
+        /// 从多个目标获取属性
         /// </summary>
         private object GetPropertyFromMultipleTargets(GameObject[] targets, string propertyName)
         {
@@ -1018,14 +1018,14 @@ namespace UnityMcp.Tools
 
         #endregion
 
-        #region Helper method
+        #region 辅助方法
 
         /// <summary>
-        /// Extract target from execution contextGameObjectArray
+        /// 从执行上下文中提取目标GameObject数组
         /// </summary>
         private GameObject[] ExtractTargetsFromContext(StateTreeContext context)
         {
-            // Try from firstObjectReferencesGet（Avoid serialization issues）
+            // 先尝试从ObjectReferences获取（避免序列化问题）
             if (context.TryGetObjectReference("_resolved_targets", out object targetsObj))
             {
                 if (targetsObj is GameObject[] gameObjectArray)
@@ -1048,19 +1048,19 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // IfObjectReferencesNot in，Try fromJsonDataGet（Backward compatible）
+            // 如果ObjectReferences中没有，尝试从JsonData获取（向后兼容）
             if (context.TryGetJsonValue("_resolved_targets", out JsonNode targetToken))
             {
                 if (targetToken is JsonArray targetArray)
                 {
-                    // JsonArray Cannot convert directly to GameObject[]，Need to parse one by one
-                    // This feature may need to be implemented by other means
+                    // JsonArray 不能直接转换为 GameObject[]，需要逐个解析
+                    // 这个功能可能需要其他方式实现
                     return new GameObject[0];
                 }
                 else
                 {
-                    // Single object case - JsonNode Cannot directly convert to GameObject
-                    // Need to obtain via selector or other methods
+                    // 单个对象的情况 - JsonNode 不能直接转为 GameObject
+                    // 需要通过选择器或其他方式获取
                     return new GameObject[0];
                 }
             }
@@ -1069,7 +1069,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Check whether a batch operation should be performed
+        /// 检查是否应该进行批量操作
         /// </summary>
         private bool ShouldSelectMany(StateTreeContext context)
         {
@@ -1080,11 +1080,11 @@ namespace UnityMcp.Tools
                 if (bool.TryParse(selectManyObj?.ToString(), out bool parsedSelectMany))
                     return parsedSelectMany;
             }
-            return false; // Default isfalse
+            return false; // 默认为false
         }
 
         /// <summary>
-        /// According toselect_manyParameter to get target object（Single or multiple）
+        /// 根据select_many参数获取目标对象（单个或多个）
         /// </summary>
         private GameObject[] GetTargetsBasedOnSelectMany(StateTreeContext context)
         {
@@ -1092,29 +1092,29 @@ namespace UnityMcp.Tools
 
             if (ShouldSelectMany(context))
             {
-                return targets; // Return all matching objects
+                return targets; // 返回所有匹配的对象
             }
             else
             {
-                // Only return the first object（If exists）
+                // 只返回第一个对象（如果存在）
                 return targets.Length > 0 ? new GameObject[] { targets[0] } : new GameObject[0];
             }
         }
 
         /// <summary>
-        /// ParseVector2，Support multiple formats：JsonArray、Vector2、String
-        /// Supported format: [1, 2], ["1", "2"], "[1, 2]", "(1, 2)", "1, 2"
+        /// 解析Vector2，支持多种格式：JsonArray、Vector2、字符串
+        /// 支持格式: [1, 2], ["1", "2"], "[1, 2]", "(1, 2)", "1, 2"
         /// </summary>
         private Vector2? ParseVector2(object obj)
         {
             if (obj == null) return null;
 
-            // Process JsonArray Type
+            // 处理 JsonArray 类型
             if (obj is JsonArray JsonArray && JsonArray.Count >= 2)
             {
                 try
                 {
-                    // Try directly asfloatParse
+                    // 尝试直接作为float解析
                     float x = ParseFloatValue(JsonArray[0]);
                     float y = ParseFloatValue(JsonArray[1]);
                     return new Vector2(x, y);
@@ -1125,13 +1125,13 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Process Vector2 Type
+            // 处理 Vector2 类型
             if (obj is Vector2 vector2)
             {
                 return vector2;
             }
 
-            // Handle string format
+            // 处理字符串格式
             if (obj is string str)
             {
                 float[] values = ParseNumberArrayFromString(str, 2);
@@ -1141,7 +1141,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Process JsonNode Type
+            // 处理 JsonNode 类型
             if (obj is JsonNode node && node.type == JsonNodeType.String)
             {
                 float[] values = ParseNumberArrayFromString(node.Value, 2);
@@ -1155,19 +1155,19 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// ParseVector3，Support multiple formats：JsonArray、Vector3、String
-        /// Supported format: [1, 2, 3], ["1", "2", "3"], "[1, 2, 3]", "(1, 2, 3)", "1, 2, 3"
+        /// 解析Vector3，支持多种格式：JsonArray、Vector3、字符串
+        /// 支持格式: [1, 2, 3], ["1", "2", "3"], "[1, 2, 3]", "(1, 2, 3)", "1, 2, 3"
         /// </summary>
         private Vector3? ParseVector3(object obj)
         {
             if (obj == null) return null;
 
-            // Process JsonArray Type
+            // 处理 JsonArray 类型
             if (obj is JsonArray JsonArray && JsonArray.Count >= 3)
             {
                 try
                 {
-                    // Try directly asfloatParse
+                    // 尝试直接作为float解析
                     float x = ParseFloatValue(JsonArray[0]);
                     float y = ParseFloatValue(JsonArray[1]);
                     float z = ParseFloatValue(JsonArray[2]);
@@ -1179,13 +1179,13 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Process Vector3 Type
+            // 处理 Vector3 类型
             if (obj is Vector3 vector3)
             {
                 return vector3;
             }
 
-            // Handle string format
+            // 处理字符串格式
             if (obj is string str)
             {
                 float[] values = ParseNumberArrayFromString(str, 3);
@@ -1195,7 +1195,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            // Process JsonNode Type
+            // 处理 JsonNode 类型
             if (obj is JsonNode node && node.type == JsonNodeType.String)
             {
                 float[] values = ParseNumberArrayFromString(node.Value, 3);
@@ -1209,7 +1209,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get attribute value
+        /// 获取属性值
         /// </summary>
         private object GetPropertyValue(object target, string propertyName)
         {
@@ -1231,7 +1231,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Set attribute value
+        /// 设置属性值
         /// </summary>
         private void SetPropertyValue(object target, string propertyName, JsonNode value)
         {
@@ -1257,16 +1257,16 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// ConvertJTokenValue to specified type
+        /// 转换JToken值到指定类型
         /// </summary>
         private object ConvertValue(JsonNode token, Type targetType)
         {
             if (token == null || token.IsNull())
             {
-                throw new ArgumentNullException(nameof(token), $"Unable to convert null Convert to type {targetType.Name}");
+                throw new ArgumentNullException(nameof(token), $"无法将 null 转换为类型 {targetType.Name}");
             }
 
-            // Base type
+            // 基础类型
             if (targetType == typeof(string))
                 return token.Value;
             if (targetType == typeof(int))
@@ -1284,34 +1284,34 @@ namespace UnityMcp.Tools
             if (targetType == typeof(bool))
                 return token.AsBool;
 
-            // Unity Vector type
+            // Unity 向量类型
             if (targetType == typeof(Vector2))
             {
                 if (token is JsonArray arr2 && arr2.Count >= 2)
                     return new Vector2(arr2[0].AsFloat, arr2[1].AsFloat);
-                throw new InvalidCastException($"Unable to convert JsonNode Convert to Vector2，Must contain at least2Array of elements");
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector2，需要包含至少2个元素的数组");
             }
             if (targetType == typeof(Vector3))
             {
                 if (token is JsonArray arr3 && arr3.Count >= 3)
                     return new Vector3(arr3[0].AsFloat, arr3[1].AsFloat, arr3[2].AsFloat);
-                throw new InvalidCastException($"Unable to convert JsonNode Convert to Vector3，Must contain at least3Array of elements");
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector3，需要包含至少3个元素的数组");
             }
             if (targetType == typeof(Vector4))
             {
                 if (token is JsonArray arr4 && arr4.Count >= 4)
                     return new Vector4(arr4[0].AsFloat, arr4[1].AsFloat, arr4[2].AsFloat, arr4[3].AsFloat);
-                throw new InvalidCastException($"Unable to convert JsonNode Convert to Vector4，Must contain at least4Array of elements");
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Vector4，需要包含至少4个元素的数组");
             }
             if (targetType == typeof(Color))
             {
                 var color = token.ToColor();
                 if (color.HasValue)
                     return color.Value;
-                throw new InvalidCastException($"Unable to convert JsonNode Convert to Color，Need to contain r,g,b,a Object or at least3Array of elements");
+                throw new InvalidCastException($"无法将 JsonNode 转换为 Color，需要包含 r,g,b,a 的对象或至少3个元素的数组");
             }
 
-            // Enum type
+            // 枚举类型
             if (targetType.IsEnum)
             {
                 try
@@ -1320,16 +1320,16 @@ namespace UnityMcp.Tools
                 }
                 catch
                 {
-                    throw new InvalidCastException($"Cannot convert value '{token.Value}' Convert to enum type {targetType.Name}");
+                    throw new InvalidCastException($"无法将值 '{token.Value}' 转换为枚举类型 {targetType.Name}");
                 }
             }
 
-            // For other types，Throw exception
-            throw new NotSupportedException($"Does not support converting JsonNode Convert to type {targetType.Name}。Current value：{token}");
+            // 对于其他类型，抛出异常
+            throw new NotSupportedException($"不支持将 JsonNode 转换为类型 {targetType.Name}。当前值：{token}");
         }
 
         /// <summary>
-        /// CheckResponseWhether the object indicates success
+        /// 检查Response对象是否表示成功
         /// </summary>
         private bool IsSuccessResponse(object response, out object data, out string message)
         {
@@ -1352,7 +1352,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Create batch operation response
+        /// 创建批量操作响应
         /// </summary>
         private object CreateBatchOperationResponse(string operation, int successCount, int totalCount,
             List<Dictionary<string, object>> results, List<string> errors)
@@ -1396,13 +1396,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetRectTransformData representation of（UseYAMLFormat savingtoken）
+        /// 获取RectTransform的数据表示（使用YAML格式节省token）
         /// </summary>
         private Dictionary<string, object> GetRectTransformData(RectTransform rectTransform)
         {
             if (rectTransform == null) return null;
 
-            // UseYAMLCompact representation of the format
+            // 使用YAML格式的紧凑表示
             var yamlData = GetRectTransformDataYaml(rectTransform);
             return new Dictionary<string, object>
             {
@@ -1411,7 +1411,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// CreateRectTransformOfYAMLFormat data representation（Savetoken）
+        /// 创建RectTransform的YAML格式数据表示（节省token）
         /// </summary>
         private string GetRectTransformDataYaml(RectTransform rectTransform)
         {
@@ -1435,20 +1435,20 @@ rect: [x:{rectTransform.rect.x:F1}, y:{rectTransform.rect.y:F1}, w:{rectTransfor
         }
 
         /// <summary>
-        /// From JsonNode Parse float Value，Support numbers and strings
+        /// 从 JsonNode 解析 float 值，支持数字和字符串
         /// </summary>
         private float ParseFloatValue(JsonNode node)
         {
             if (node == null)
                 return 0f;
 
-            // Handle numeric type
+            // 处理数字类型
             if (node.type == JsonNodeType.Integer || node.type == JsonNodeType.Float)
             {
                 return node.AsFloat;
             }
 
-            // Handle string type
+            // 处理字符串类型
             if (node.type == JsonNodeType.String)
             {
                 if (float.TryParse(node.Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float result))
@@ -1461,12 +1461,12 @@ rect: [x:{rectTransform.rect.x:F1}, y:{rectTransform.rect.y:F1}, w:{rectTransfor
         }
 
         /// <summary>
-        /// Parse numeric array from string，Support multiple formats：
+        /// 从字符串解析数字数组，支持多种格式：
         /// "[0.1, 0.2, 0.3]", "(0.1, 0.2, 0.3)", "0.1, 0.2, 0.3"
         /// </summary>
-        /// <param name="str">Input string</param>
-        /// <param name="expectedCount">Expected number of digits</param>
-        /// <returns>Parsed float Array，Return on failure null</returns>
+        /// <param name="str">输入字符串</param>
+        /// <param name="expectedCount">期望的数字数量</param>
+        /// <returns>解析后的 float 数组，失败返回 null</returns>
         private float[] ParseNumberArrayFromString(string str, int expectedCount)
         {
             if (string.IsNullOrWhiteSpace(str))
@@ -1474,27 +1474,27 @@ rect: [x:{rectTransform.rect.x:F1}, y:{rectTransform.rect.y:F1}, w:{rectTransfor
 
             try
             {
-                // Trim leading and trailing spaces
+                // 去除首尾空格
                 str = str.Trim();
 
-                // Remove outer parentheses（Supports square and round brackets）
+                // 移除外层括号（支持方括号和圆括号）
                 if ((str.StartsWith("[") && str.EndsWith("]")) ||
                     (str.StartsWith("(") && str.EndsWith(")")))
                 {
                     str = str.Substring(1, str.Length - 2);
                 }
 
-                // Split by comma
+                // 按逗号分割
                 string[] parts = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                // Check quantity
+                // 检查数量
                 if (parts.Length != expectedCount)
                 {
                     Debug.LogWarning($"[ParseNumberArrayFromString] Expected {expectedCount} values, but got {parts.Length} in string: '{str}'");
                     return null;
                 }
 
-                // Parse each number
+                // 解析每个数字
                 float[] result = new float[parts.Length];
                 for (int i = 0; i < parts.Length; i++)
                 {

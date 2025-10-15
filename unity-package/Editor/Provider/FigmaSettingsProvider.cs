@@ -7,7 +7,7 @@ using UnityMcp;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// FigmaSettings provider，Used inUnityOfProjectSettingsDisplay in windowFigmaRelated settings
+    /// Figma设置提供器，用于在Unity的ProjectSettings窗口中显示Figma相关设置
     /// </summary>
     public class FigmaSettingsProvider
     {
@@ -41,17 +41,17 @@ namespace UnityMcp.Gui
 
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-            // FigmaIntroduction
-            EditorGUILayout.LabelField("Figma Integration configuration", EditorStyles.boldLabel);
+            // Figma简介
+            EditorGUILayout.LabelField("Figma 集成配置", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Configuration andFigmaIntegration settings，Includes access token and download options。" +
-                "These settings will affect fromFigmaBehavior of obtaining design resources。",
+                "配置与Figma的集成设置，包括访问令牌和下载选项。" +
+                "这些设置将影响从Figma获取设计资源的行为。",
                 MessageType.Info);
 
             EditorGUILayout.Space(10);
 
-            // APISetting
-            apiSettingsFoldout = EditorGUILayout.Foldout(apiSettingsFoldout, "APISetting", true, EditorStyles.foldoutHeader);
+            // API设置
+            apiSettingsFoldout = EditorGUILayout.Foldout(apiSettingsFoldout, "API设置", true, EditorStyles.foldoutHeader);
 
             if (apiSettingsFoldout)
             {
@@ -60,14 +60,14 @@ namespace UnityMcp.Gui
                 EditorGUILayout.BeginHorizontal();
                 string token = settings.figmaSettings.figma_access_token;
                 token = EditorGUILayout.PasswordField(
-                    "FigmaAccess token",
+                    "Figma访问令牌",
                     token);
                 settings.figmaSettings.figma_access_token = token;
                 EditorGUILayout.LabelField("💾", GUILayout.Width(20));
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.HelpBox(
-                    "Access token is saved in local editor settings，Will not be committed to version control。",
+                    "访问令牌保存在本地编辑器设置中，不会被提交到版本控制。",
                     MessageType.Info);
 
                 EditorGUI.indentLevel--;
@@ -75,40 +75,40 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.Space(10);
 
-            // Download settings
-            downloadSettingsFoldout = EditorGUILayout.Foldout(downloadSettingsFoldout, "Download settings", true, EditorStyles.foldoutHeader);
+            // 下载设置
+            downloadSettingsFoldout = EditorGUILayout.Foldout(downloadSettingsFoldout, "下载设置", true, EditorStyles.foldoutHeader);
 
             if (downloadSettingsFoldout)
             {
                 EditorGUI.indentLevel++;
 
                 settings.figmaSettings.default_download_path = EditorGUILayout.TextField(
-                    "Default download path",
+                    "默认下载路径",
                     settings.figmaSettings.default_download_path);
 
                 settings.figmaSettings.figma_assets_path = EditorGUILayout.TextField(
-                    "FigmaData asset path",
+                    "Figma数据资产路径",
                     settings.figmaSettings.figma_assets_path);
 
                 settings.figmaSettings.figma_preview_path = EditorGUILayout.TextField(
-                    "FigmaPreview image save path",
+                    "Figma预览图保存路径",
                     settings.figmaSettings.figma_preview_path);
 
                 settings.figmaSettings.auto_download_images = EditorGUILayout.Toggle(
-                    "Automatically download images",
+                    "自动下载图片",
                     settings.figmaSettings.auto_download_images);
 
                 settings.figmaSettings.image_scale = EditorGUILayout.FloatField(
-                    "Image scaling factor",
+                    "图片缩放倍数",
                     settings.figmaSettings.image_scale);
 
                 settings.figmaSettings.preview_max_size = EditorGUILayout.IntSlider(
-                    "Maximum size of preview image",
+                    "预览图最大尺寸",
                     settings.figmaSettings.preview_max_size,
                     50, 600);
 
                 settings.figmaSettings.auto_convert_to_sprite = EditorGUILayout.Toggle(
-                    "Automatically convert toSprite",
+                    "自动转换为Sprite",
                     settings.figmaSettings.auto_convert_to_sprite);
 
                 EditorGUI.indentLevel--;
@@ -116,31 +116,31 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.Space(10);
 
-            // Engine-supported feature settings
-            engineEffectsFoldout = EditorGUILayout.Foldout(engineEffectsFoldout, "Engine-supported features", true, EditorStyles.foldoutHeader);
+            // 引擎支持效果设置
+            engineEffectsFoldout = EditorGUILayout.Foldout(engineEffectsFoldout, "引擎支持效果", true, EditorStyles.foldoutHeader);
 
             if (engineEffectsFoldout)
             {
                 EditorGUI.indentLevel++;
 
                 EditorGUILayout.HelpBox(
-                    "ConfigurationUnityEngine for specific (features)UISupport for effects。Enabling these options can avoid downloading certain things that can be (handled) viaUnityFeatures implemented by native components。",
+                    "配置Unity引擎对特定UI效果的支持。启用这些选项可以避免下载某些可以通过Unity原生组件实现的效果。",
                     MessageType.Info);
 
-                // InitializationengineSupportEffectIf (it) isnull
+                // 初始化engineSupportEffect如果为null
                 if (settings.figmaSettings.engineSupportEffect == null)
                     settings.figmaSettings.engineSupportEffect = new FigmaSettings.EngineSupportEffect();
 
                 settings.figmaSettings.engineSupportEffect.roundCorner = EditorGUILayout.Toggle(
-                    "Rounded corner support (ProceduralUIImage)",
+                    "圆角支持 (ProceduralUIImage)",
                     settings.figmaSettings.engineSupportEffect.roundCorner);
 
                 settings.figmaSettings.engineSupportEffect.outLineImg = EditorGUILayout.Toggle(
-                    "Stroke support (OutlineComponent)",
+                    "描边支持 (Outline组件)",
                     settings.figmaSettings.engineSupportEffect.outLineImg);
 
                 settings.figmaSettings.engineSupportEffect.gradientImg = EditorGUILayout.Toggle(
-                    "Gradient support (UI Gradient)",
+                    "渐变支持 (UI Gradient)",
                     settings.figmaSettings.engineSupportEffect.gradientImg);
 
                 EditorGUI.indentLevel--;
@@ -148,55 +148,55 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.Space(10);
 
-            // Help information
-            helpInfoFoldout = EditorGUILayout.Foldout(helpInfoFoldout, "Instructions", true, EditorStyles.foldoutHeader);
+            // 帮助信息
+            helpInfoFoldout = EditorGUILayout.Foldout(helpInfoFoldout, "使用说明", true, EditorStyles.foldoutHeader);
 
             if (helpInfoFoldout)
             {
                 EditorGUI.indentLevel++;
 
-                // APISettings description
-                EditorGUILayout.LabelField("APISetting", EditorStyles.boldLabel);
+                // API设置说明
+                EditorGUILayout.LabelField("API设置", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
-                    "• Access token：AtFigmaGenerate personal access token in (xxx) forAPIAccess\n" +
-                    "• Acquisition method：LoginFigma → Settings → Personal access tokens → Generate new token\n" +
-                    "• Security：Access token saved locallyEditorPrefsIn，Will not be committed toGit",
+                    "• 访问令牌：在Figma中生成个人访问令牌用于API访问\n" +
+                    "• 获取方式：登录Figma → Settings → Personal access tokens → Generate new token\n" +
+                    "• 安全性：访问令牌保存在本地EditorPrefs中，不会被提交到Git",
                     MessageType.Info);
 
                 EditorGUILayout.Space(5);
 
-                // Download settings description
-                EditorGUILayout.LabelField("Download settings", EditorStyles.boldLabel);
+                // 下载设置说明
+                EditorGUILayout.LabelField("下载设置", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
-                    "• Download path：Local save location for images and resources\n" +
-                    "• Data asset path：FigmaSave location for node and simplified data\n" +
-                    "• Preview image save path：UsepreviewWhere to save preview images when using the feature\n" +
-                    "• Scaling factor：Control the resolution of downloaded images（Recommendation2.0For high definition display）\n" +
-                    "• Maximum size of preview image：Control the maximum size of preview images（Pixel）\n" +
-                    "• Automatically convert toSprite：Automatically set to after downloading imagesSpriteFormat（Recommended to enable）",
+                    "• 下载路径：图片和资源的本地保存位置\n" +
+                    "• 数据资产路径：Figma节点数据和简化数据的保存位置\n" +
+                    "• 预览图保存路径：使用preview功能时保存预览图的位置\n" +
+                    "• 缩放倍数：控制下载图片的分辨率（建议2.0用于高清显示）\n" +
+                    "• 预览图最大尺寸：控制预览图的最大尺寸（像素）\n" +
+                    "• 自动转换为Sprite：下载图片后自动设置为Sprite格式（推荐开启）",
                     MessageType.Info);
 
                 EditorGUILayout.Space(5);
 
-                // Engine-supported feature description
-                EditorGUILayout.LabelField("Engine-supported features", EditorStyles.boldLabel);
+                // 引擎支持效果说明
+                EditorGUILayout.LabelField("引擎支持效果", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
-                    "• Rounded corner support：After enabling，Round-cornered rectangle will useProceduralUIImageInstead of downloading images\n" +
-                    "• Stroke support：After enabling，Stroke effect will useOutlineComponents instead of downloaded images\n" +
-                    "• Gradient support：After enabling，Gradient effect will useUI GradientComponents instead of downloaded images\n" +
-                    "• Advantage：Reduce resource usage，Improve performance，Support runtime dynamic adjustment",
+                    "• 圆角支持：启用后，圆角矩形将使用ProceduralUIImage而非下载图片\n" +
+                    "• 描边支持：启用后，描边效果将使用Outline组件而非下载图片\n" +
+                    "• 渐变支持：启用后，渐变效果将使用UI Gradient组件而非下载图片\n" +
+                    "• 优势：减少资源占用，提高性能，支持运行时动态调整",
                     MessageType.Info);
 
                 EditorGUILayout.Space(5);
 
-                // Usage process description
-                EditorGUILayout.LabelField("Usage process", EditorStyles.boldLabel);
+                // 使用流程说明
+                EditorGUILayout.LabelField("使用流程", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
-                    "1. ConfigurationFigmaAccess token\n" +
-                    "2. Set appropriate download path and scaling factor\n" +
-                    "3. Enable engine-supported features based on project requirements\n" +
-                    "4. AtMCPUsed in toolfigma_manageDownload design resources\n" +
-                    "5. ThroughUIAutomatically created by generation toolUnity UIComponent",
+                    "1. 配置Figma访问令牌\n" +
+                    "2. 设置合适的下载路径和缩放倍数\n" +
+                    "3. 根据项目需求启用引擎支持效果\n" +
+                    "4. 在MCP工具中使用figma_manage下载设计资源\n" +
+                    "5. 通过UI生成工具自动创建Unity UI组件",
                     MessageType.Info);
 
                 EditorGUI.indentLevel--;
@@ -204,7 +204,7 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.EndScrollView();
 
-            // Auto save
+            // 自动保存
             if (GUI.changed)
             {
                 settings.SaveSettings();

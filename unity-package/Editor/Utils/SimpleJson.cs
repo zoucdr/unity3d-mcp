@@ -62,21 +62,21 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Formatted output JSON，With auto wrap and indentation，Easy to read
+        /// 格式化输出 JSON，带有自动换行和缩进，方便阅读
         /// </summary>
-        /// <param name="indent">Indent character，Default is4Spaces</param>
-        /// <returns>Formatted JSON String</returns>
+        /// <param name="indent">缩进字符，默认为4个空格</param>
+        /// <returns>格式化后的 JSON 字符串</returns>
         public string ToPrettyString(string indent = "    ")
         {
             return ToPrettyStringInternal(0, indent);
         }
 
         /// <summary>
-        /// Formatted output JSON Internal recursive method of
+        /// 格式化输出 JSON 的内部递归方法
         /// </summary>
-        /// <param name="level">Current indent level</param>
-        /// <param name="indent">Indent character</param>
-        /// <returns>Formatted JSON String</returns>
+        /// <param name="level">当前缩进层级</param>
+        /// <param name="indent">缩进字符</param>
+        /// <returns>格式化后的 JSON 字符串</returns>
         public virtual string ToPrettyStringInternal(int level, string indent)
         {
             return ToString();
@@ -143,7 +143,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get boolean value，If node is null Return default if so
+        /// 获取布尔值，如果节点为 null 则返回默认值
         /// </summary>
         public bool AsBoolDefault(bool defaultValue)
         {
@@ -152,7 +152,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get integer value，If node is null Return default if so
+        /// 获取整数值，如果节点为 null 则返回默认值
         /// </summary>
         public int AsIntDefault(int defaultValue)
         {
@@ -161,7 +161,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get float value，If node is null Return default if so
+        /// 获取浮点值，如果节点为 null 则返回默认值
         /// </summary>
         public float AsFloatDefault(float defaultValue)
         {
@@ -170,7 +170,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get double value，If node is null Return default if so
+        /// 获取双精度浮点值，如果节点为 null 则返回默认值
         /// </summary>
         public double AsDoubleDefault(double defaultValue)
         {
@@ -205,7 +205,7 @@ namespace UnityMcp
             return (d == null) ? null : d.Value;
         }
 
-        // Implicit conversion：Support conversion from basic types to JsonNode
+        // 隐式转换：支持从基本类型转换为 JsonNode
         public static implicit operator JsonNode(int aInt)
         {
             return new JsonData(aInt);
@@ -249,10 +249,10 @@ namespace UnityMcp
 
         #endregion operators
 
-        #region Compatible Newtonsoft.Json Method of
+        #region 兼容 Newtonsoft.Json 的方法
 
         /// <summary>
-        /// Try to get value（Similar JsonClass.TryGetValue）
+        /// 尝试获取值（类似 JsonClass.TryGetValue）
         /// </summary>
         public virtual bool TryGetValue(string key, out JsonNode value)
         {
@@ -261,7 +261,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Try to get Json Value（Alias，Compatible with legacy code）
+        /// 尝试获取 Json 值（别名，兼容旧代码）
         /// </summary>
         public virtual bool TryGetJsonValue(string key, out JsonNode token)
         {
@@ -269,7 +269,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Check whether is null
+        /// 检查是否为 null
         /// </summary>
         public virtual bool IsNull()
         {
@@ -277,7 +277,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Get JsonNode Type of（Similar JsonNode.type）
+        /// 获取 JsonNode 的类型（类似 JsonNode.type）
         /// </summary>
         public virtual JsonNodeType GetJSONNodeType()
         {
@@ -290,7 +290,7 @@ namespace UnityMcp
             if (this is JsonClass)
                 return JsonNodeType.Object;
 
-            // JsonData - Try to determine actual type
+            // JsonData - 尝试判断实际类型
             var val = Value;
             if (bool.TryParse(val, out _))
                 return JsonNodeType.Boolean;
@@ -305,7 +305,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Safely convert to JsonClass
+        /// 安全地转换为 JsonClass
         /// </summary>
         public JsonClass ToObject()
         {
@@ -313,7 +313,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Safely convert to JsonArray
+        /// 安全地转换为 JsonArray
         /// </summary>
         public JsonArray ToArray()
         {
@@ -322,7 +322,7 @@ namespace UnityMcp
 
 #if UNITY_EDITOR || UNITY_STANDALONE
         /// <summary>
-        /// Convert to Vector2
+        /// 转换为 Vector2
         /// </summary>
         public UnityEngine.Vector2? ToVector2()
         {
@@ -336,7 +336,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Convert to Vector3
+        /// 转换为 Vector3
         /// </summary>
         public UnityEngine.Vector3? ToVector3()
         {
@@ -351,7 +351,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Convert to Vector4
+        /// 转换为 Vector4
         /// </summary>
         public UnityEngine.Vector4? ToVector4()
         {
@@ -367,7 +367,7 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Convert to Color
+        /// 转换为 Color
         /// </summary>
         public UnityEngine.Color? ToColor()
         {
@@ -398,10 +398,10 @@ namespace UnityMcp
 #endif
 
         /// <summary>
-        /// To JsonNode Convert to specified type object（Compatible Newtonsoft.Json Of ToObject Method）
+        /// 将 JsonNode 转换为指定类型的对象（兼容 Newtonsoft.Json 的 ToObject 方法）
         /// </summary>
-        /// <param name="targetType">Target type</param>
-        /// <returns>Converted object，Return if unable to convert null</returns>
+        /// <param name="targetType">目标类型</param>
+        /// <returns>转换后的对象，如果无法转换则返回 null</returns>
         public virtual object ToObject(Type targetType)
         {
             try
@@ -463,7 +463,7 @@ namespace UnityMcp
                     return Enum.Parse(targetType, this.Value, true);
                 }
 
-                // If is string and target type is UnityEngine.Object Subclass of，Try to load resource
+                // 如果是字符串且目标类型是 UnityEngine.Object 的子类，尝试加载资源
 #if UNITY_EDITOR || UNITY_STANDALONE
                 if (this is JsonData && this.type == JsonNodeType.String &&
                     typeof(UnityEngine.Object).IsAssignableFrom(targetType))
@@ -479,7 +479,7 @@ namespace UnityMcp
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogWarning($"[JsonNode.ToObject] Unable to cast '{this}' Convert to type '{targetType.Name}': {ex.Message}");
+                UnityEngine.Debug.LogWarning($"[JsonNode.ToObject] 无法将 '{this}' 转换为类型 '{targetType.Name}': {ex.Message}");
             }
 
             return null;
@@ -866,7 +866,7 @@ return LoadFromCompressedStream(stream);
         public override string Value
         {
             get { return ToString(); }
-            set { /* JsonArray Direct set not supported Value */ }
+            set { /* JsonArray 不支持直接设置 Value */ }
         }
 
         public override JsonNode this[int aIndex]
@@ -987,7 +987,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Convert to List&lt;JsonNode&gt;
+        /// 转换为 List&lt;JsonNode&gt;
         /// </summary>
         public List<JsonNode> ToList()
         {
@@ -995,7 +995,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Convert to string list
+        /// 转换为字符串列表
         /// </summary>
         public List<string> ToStringList()
         {
@@ -1016,7 +1016,7 @@ return LoadFromCompressedStream(stream);
         public override string Value
         {
             get { return ToString(); }
-            set { /* JsonClass Direct set not supported Value */ }
+            set { /* JsonClass 不支持直接设置 Value */ }
         }
 
         public override JsonNode this[string aKey]
@@ -1181,7 +1181,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Create JsonClass Deep copy of
+        /// 创建 JsonClass 的深度副本
         /// </summary>
         public JsonClass Clone()
         {
@@ -1189,7 +1189,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Get all keys（Compatible JSONClass）
+        /// 获取所有键（兼容 JSONClass）
         /// </summary>
         public IEnumerable<string> GetKeys()
         {
@@ -1200,7 +1200,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Get all keys（Property，Easy for access）
+        /// 获取所有键（属性，便于访问）
         /// </summary>
         public IEnumerable<string> Keys
         {
@@ -1208,7 +1208,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Check whether contains specified key
+        /// 检查是否包含指定的键
         /// </summary>
         public bool ContainsKey(string key)
         {
@@ -1221,7 +1221,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Return enumerable key-value pairs collection，Used forforeachLoop
+        /// 返回可枚举的键值对集合，用于foreach循环
         /// </summary>
         public IEnumerable<KeyValuePair<string, JsonNode>> AsEnumerable()
         {
@@ -1232,7 +1232,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Compatible Newtonsoft.Json Of Properties() Method，Return enumerable key-value pairs collection
+        /// 兼容 Newtonsoft.Json 的 Properties() 方法，返回可枚举的键值对集合
         /// </summary>
         public IEnumerable<KeyValuePair<string, JsonNode>> Properties()
         {
@@ -1285,7 +1285,7 @@ return LoadFromCompressedStream(stream);
             return ToString();
         }
 
-        // Implicit conversion operator，Support conversion from basic types to JsonData
+        // 隐式转换操作符，支持从基本类型转换为 JsonData
         public static implicit operator JsonData(int aInt)
         {
             return new JsonData(aInt);
@@ -1521,7 +1521,7 @@ return LoadFromCompressedStream(stream);
     } // End of JsonLazyCreator
 
     /// <summary>
-    /// JsonNode Type enum（Similar Newtonsoft.Json Of JSONNodeType）
+    /// JsonNode 类型枚举（类似 Newtonsoft.Json 的 JSONNodeType）
     /// </summary>
     public enum JsonNodeType
     {
@@ -1542,7 +1542,7 @@ return LoadFromCompressedStream(stream);
         }
 
         /// <summary>
-        /// Create from object JSONNode（Similar Json.FromObject）
+        /// 从对象创建 JSONNode（类似 Json.FromObject）
         /// </summary>
         public static JsonNode FromObject(object obj)
         {
@@ -1613,7 +1613,7 @@ return LoadFromCompressedStream(stream);
             }
 #endif
 
-            // Check first IDictionary，Because Dictionary Also implements IDictionary And IEnumerable
+            // 先检查 IDictionary，因为 Dictionary 同时实现了 IDictionary 和 IEnumerable
             if (obj is System.Collections.IDictionary dict)
             {
                 var jsonObj = new JsonClass();
@@ -1634,14 +1634,14 @@ return LoadFromCompressedStream(stream);
                 return arr;
             }
 
-            // Special handling of anonymous types and objects with properties
+            // 特殊处理匿名类型和具有属性的对象
             if (obj.GetType().IsClass && !(obj is string))
             {
                 var type = obj.GetType();
 
                 var jsonObj = new JsonClass();
 
-                // Handle field
+                // 处理字段
                 var fields = type.GetFields();
                 foreach (var field in fields)
                 {
@@ -1652,16 +1652,16 @@ return LoadFromCompressedStream(stream);
                     }
                     catch (Exception ex)
                     {
-                        UnityEngine.Debug.LogWarning($"Json.FromObject: Unable to access field {field.Name}: {ex.Message}");
+                        UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问字段 {field.Name}: {ex.Message}");
                         jsonObj.Add(field.Name, new JsonData("null"));
                     }
                 }
 
-                // Handle property
+                // 处理属性
                 var properties = type.GetProperties();
                 foreach (var prop in properties)
                 {
-                    // Only handle readable and non-indexer properties
+                    // 只处理可读且不是索引器的属性
                     if (!prop.CanRead || prop.GetIndexParameters().Length > 0) continue;
                     try
                     {
@@ -1670,7 +1670,7 @@ return LoadFromCompressedStream(stream);
                     }
                     catch (Exception ex)
                     {
-                        UnityEngine.Debug.LogWarning($"Json.FromObject: Unable to access property {prop.Name}: {ex.Message}");
+                        UnityEngine.Debug.LogWarning($"Json.FromObject: 无法访问属性 {prop.Name}: {ex.Message}");
                         jsonObj.Add(prop.Name, new JsonData("null"));
                     }
                 }
@@ -1681,7 +1681,7 @@ return LoadFromCompressedStream(stream);
                 }
             }
 
-            // Default convert to string
+            // 默认转换为字符串
             return new JsonData(obj.ToString());
         }
     }

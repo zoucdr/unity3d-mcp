@@ -1,0 +1,955 @@
+文件,中文字符串,替换值
+call_up.py,验证参数类型,Validate parameter types
+call_up.py,游戏玩法控制,Gameplay control
+call_up.py,不能直接调用,Cannot be called directly
+call_up.py,验证输入参数,Validate input parameters
+call_up.py,进行批量调用,Perform batch calls
+call_up.py,核心调用工具,Core invocation utility
+call_up.py,按顺序执行,Execute in order
+call_up.py,要批量执行,To execute in batch
+call_up.py,控制台输出,Console output
+call_up.py,准备发送给,Prepare to send to
+call_up.py,常用场景,Common use cases
+call_up.py,必须使用,Must use
+call_up.py,以及其他,And other
+call_up.py,来调用此,To call this
+call_up.py,用于调用,Used to invoke
+call_up.py,并配置,And configure
+call_up.py,器管理,Manager
+call_up.py,多个,Multiple
+call_up.py,参数,Parameters
+call_up.py,列表,List
+call_up.py,失败,Failed
+call_up.py,指定,Specify
+call_up.py,验证,Validate
+call_up.py,功能,Function
+call_up.py,个,Item
+call_up.py,中,In
+console.py,编辑器控制台消息,Editor console messages
+console.py,点击日志时可在,On log click you can
+console.py,控制台,Console
+console.py,表达式,Expression
+edit_particle_system.py,纹理表动画,Texture sheet animation
+edit_scriptableobject.py,平衡参数,Balance parameters
+edit_sprite_atlas.py,当提供,When provided
+figma_manage.py,高效下载,Efficient download
+figma_manage.py,功能说明,Feature description
+figma_manage.py,作为补充,As a supplement
+figma_manage.py,基础下载,Basic download
+figma_manage.py,同时提供,Also provide
+figma_manage.py,图片下载,Image download
+figma_manage.py,自动转换,Auto-convert
+figma_manage.py,文件名,File name
+figma_manage.py,相对于,Relative to
+figma_manage.py,返回的,Returned
+figma_manage.py,字符串,String
+figma_manage.py,根节点,Root node
+figma_manage.py,仅提供,Provide only
+figma_manage.py,格式为,Formatted as
+figma_manage.py,适用于,Suitable for
+figma_manage.py,优先,Priority
+figma_manage.py,操作,Operation
+figma_manage.py,返回,Return
+figma_manage.py,节点,Node
+figma_manage.py,编码,Encoding
+figma_manage.py,调用,Invoke
+figma_manage.py,深度,Depth
+figma_manage.py,路径,Path
+figma_manage.py,列表,List
+figma_manage.py,拉取,Fetch
+figma_manage.py,提供,Provide
+figma_manage.py,示例,Example
+figma_manage.py,包含,Include
+figma_manage.py,格式,Format
+figma_manage.py,本地,Local
+figma_manage.py,用于,Used for
+figma_manage.py,如,Such as
+figma_manage.py,从,From
+figma_manage.py,和,And
+gameplay.py,用于控制游戏的播放状态和截图等操作,Used to control play state and take screenshots
+gameplay.py,截图时使用的图像格式,Image format used for screenshots
+gameplay.py,控制游戏播放进行测试,Control play for testing
+gameplay.py,控制游戏流程进行演示,Control flow for demos
+gameplay.py,控制游戏状态进行调试,Control state for debugging
+gameplay.py,支持多种游戏控制操作,Supports multiple gameplay controls
+gameplay.py,截图保存的文件路径,Screenshot save path
+gameplay.py,截图的宽度像素数,Screenshot width in pixels
+gameplay.py,截图记录游戏画面,Capture gameplay screenshot
+gameplay.py,要执行的游戏操作,Gameplay operation to perform
+gameplay.py,包含游戏播放控制,Includes play controls
+gameplay.py,游戏玩法控制工具,Gameplay control tool
+gameplay.py,截图的高度像素数,Screenshot height in pixels
+gameplay.py,游戏状态等功能,Game state and related features
+gameplay.py,游戏操作类型,Gameplay operation type
+gameplay.py,自动化测试,Automated testing
+gameplay.py,开发调试,Development debugging
+gameplay.py,截图宽度,Screenshot width
+gameplay.py,截图高度,Screenshot height
+gameplay.py,演示录制,Demo recording
+gameplay.py,内容创作,Content creation
+gameplay.py,保存路径,Save path
+gameplay.py,获取状态,Get status
+gameplay.py,截图格式,Screenshot format
+gameplay.py,二级工具,Secondary tool
+gameplay.py,时有效,Effective when
+gameplay.py,适用于,Applicable to
+gameplay.py,暂停,Pause
+gameplay.py,仅在,Only when
+gameplay.py,截图,Screenshot
+gameplay.py,播放,Play
+gameplay.py,停止,Stop
+gameplay.py,为,Is
+game_view.py,获取当前性能和显示统计信息,Get current performance and display stats
+game_view.py,设置会影响性能和画面流畅度,Settings affect performance and smoothness
+game_view.py,视图的显示和性能设置,View display and performance settings
+game_view.py,宽高比设置是简化实现,Aspect ratio setting is a simplified implementation
+game_view.py,完整功能需要复杂的,Full functionality requires more complex
+game_view.py,分辨率设置会影响,Resolution settings affect
+game_view.py,设置目标帧率为,Set target frame rate to
+game_view.py,获取当前分辨率,Get current resolution
+game_view.py,设置无限制帧率,Set unlimited frame rate
+game_view.py,窗口的显示大小,Window display size
+game_view.py,表示不限制帧率,Indicates no FPS limit
+game_view.py,窗口管理功能,Window management features
+game_view.py,垂直同步计数,VSync count
+game_view.py,窗口管理工具,Window management tool
+game_view.py,窗口分辨率为,Window resolution is
+game_view.py,获取统计信息,Get statistics
+game_view.py,设置目标帧率,Set target frame rate
+game_view.py,设置垂直同步,Set vertical sync
+game_view.py,窗口统计信息,Window statistics
+game_view.py,获取分辨率,Get resolution
+game_view.py,宽高比设置,Aspect ratio settings
+game_view.py,分辨率管理,Resolution management
+game_view.py,设置和查询,Set and query
+game_view.py,表示无限制,Indicates unlimited
+game_view.py,最大化窗口,Maximize window
+game_view.py,设置宽高比,Set aspect ratio
+game_view.py,配置宽高比,Configure aspect ratio
+game_view.py,支持的功能,Supported features
+game_view.py,窗口分辨率,Window resolution
+game_view.py,设置分辨率,Set resolution
+game_view.py,和目标帧率,And target frame rate
+game_view.py,用于控制,Used to control
+game_view.py,性能优化,Performance optimization
+game_view.py,统计信息,Statistics
+game_view.py,每帧同步,Per-frame sync
+game_view.py,支持多种,Supports multiple
+game_view.py,显示设置,Display settings
+game_view.py,目标帧率,Target frame rate
+game_view.py,性能设置,Performance settings
+game_view.py,窗口宽度,Window width
+game_view.py,要执行的,To execute
+game_view.py,窗口高度,Window height
+game_view.py,窗口控制,Window control
+game_view.py,注意事项,Notes
+game_view.py,统计监控,Metrics monitoring
+game_view.py,示例用法,Example usage
+game_view.py,窗口操作,Window operations
+game_view.py,二级工具,Secondary tool
+game_view.py,操作类型,Operation type
+game_view.py,最大化,Maximize
+game_view.py,宽高比,Aspect ratio
+game_view.py,帧同步,Frame sync
+game_view.py,适用于,Suitable for
+game_view.py,操作,Operation
+game_view.py,窗口,Window
+game_view.py,设置,Settings
+game_view.py,内部,Internal
+game_view.py,开启,Enable
+game_view.py,访问,Access
+game_view.py,计数,Count
+game_view.py,配置,Configuration
+game_view.py,像素,Pixels
+game_view.py,获取,Get
+game_view.py,关闭,Close
+game_view.py,用于,Used for
+game_view.py,每,Per
+game_view.py,等,Etc.
+game_view.py,如,Such as
+hierarchy_apply.py,预制体应用和连接操作功能,Prefab apply and link operations
+hierarchy_apply.py,应用预制体的更改到实例,Apply prefab changes to instance
+hierarchy_apply.py,预制体应用和连接操作,Prefab apply and connection operations
+hierarchy_apply.py,覆盖现有的预制体连接,Override existing prefab link
+hierarchy_apply.py,支持多种预制体操作,Supports multiple prefab operations
+hierarchy_apply.py,要执行的应用操作,Apply operation to perform
+hierarchy_apply.py,层次结构应用工具,Hierarchy apply tool
+hierarchy_apply.py,是否强制创建连接,Whether to force link creation
+hierarchy_apply.py,应用预制体更改,Apply prefab changes
+hierarchy_apply.py,断开预制体连接,Disconnect prefab link
+hierarchy_apply.py,与预制体的连接,Connection to prefab
+hierarchy_apply.py,用于应用操作,Used for apply operations
+hierarchy_apply.py,应用操作类型,Apply operation type
+hierarchy_apply.py,覆盖现有连接,Override existing link
+hierarchy_apply.py,连接到预制体,Link to prefab
+hierarchy_apply.py,预制体路径,Prefab path
+hierarchy_apply.py,应用预制体,Apply prefab
+hierarchy_apply.py,预制体应用,Prefab apply
+hierarchy_apply.py,预制体连接,Prefab link
+hierarchy_apply.py,应用类型,Apply type
+hierarchy_apply.py,用于处理,Used to handle
+hierarchy_apply.py,连接断开,Link disconnected
+hierarchy_apply.py,强制应用,Force apply
+hierarchy_apply.py,二级工具,Secondary tool
+hierarchy_apply.py,目标对象,Target object
+hierarchy_apply.py,标识符,Identifier
+hierarchy_apply.py,适用于,Suitable for
+hierarchy_apply.py,目标,Target
+hierarchy_apply.py,包含,Include
+hierarchy_apply.py,断开,Disconnect
+hierarchy_apply.py,将,Will
+hierarchy_create.py,用于在场景中创建各种类型的,Used to create various types in the scene
+hierarchy_create.py,复制现有对象进行批量创建,Duplicate existing objects for batch creation
+hierarchy_create.py,创建基础几何体进行测试,Create basic primitives for testing
+hierarchy_create.py,指定预制体的资源路径,Specify prefab asset path
+hierarchy_create.py,从预制体创建复杂对象,Create complex objects from prefabs
+hierarchy_create.py,创建空对象作为容器,Create empty object as container
+hierarchy_create.py,留空则在根层级创建,Leave empty to create at root
+hierarchy_create.py,支持多种创建方式,Supports multiple creation methods
+hierarchy_create.py,是否保存为预制体,Whether to save as prefab
+hierarchy_create.py,菜单系统创建对象,Create object via menu system
+hierarchy_create.py,层次结构创建工具,Hierarchy creation tool
+hierarchy_create.py,设置激活状态,Set active state
+hierarchy_create.py,父对象的实例,Parent object instance
+hierarchy_create.py,复制现有对象,Duplicate existing object
+hierarchy_create.py,指定图元类型,Specify primitive type
+hierarchy_create.py,指定要复制的,Specify source to duplicate
+hierarchy_create.py,保存为预制体,Save as prefab
+hierarchy_create.py,的父对象名称,Parent object name
+hierarchy_create.py,快速原型制作,Rapid prototyping
+hierarchy_create.py,是否将创建的,Whether the created
+hierarchy_create.py,基础图元类型,Basic primitive type
+hierarchy_create.py,创建来源类型,Creation source type
+hierarchy_create.py,的创建功能,Creation capability
+hierarchy_create.py,预制体路径,Prefab path
+hierarchy_create.py,父对象唯一,Unique parent
+hierarchy_create.py,复制源对象,Source object to duplicate
+hierarchy_create.py,的创建来源,Creation source
+hierarchy_create.py,的激活状态,Active state
+hierarchy_create.py,缩放比例,Scale
+hierarchy_create.py,旋转角度,Rotation
+hierarchy_create.py,对象复制,Object duplication
+hierarchy_create.py,位置坐标,Position coordinates
+hierarchy_create.py,要创建的,To create
+hierarchy_create.py,场景构建,Scene construction
+hierarchy_create.py,对象名称,Object name
+hierarchy_create.py,基础图元,Primitive
+hierarchy_create.py,菜单创建,Menu creation
+hierarchy_create.py,菜单路径,Menu path
+hierarchy_create.py,二级工具,Secondary tool
+hierarchy_create.py,适用于,Suitable for
+hierarchy_create.py,父对象,Parent object
+hierarchy_create.py,创建的,Created
+hierarchy_create.py,所在层,Layer
+hierarchy_create.py,的标签,Tag
+hierarchy_create.py,的名称,Name
+hierarchy_create.py,预制体,Prefab
+hierarchy_create.py,空对象,Empty object
+hierarchy_create.py,设置,Set
+hierarchy_create.py,的层,Layer
+hierarchy_create.py,通过,Via
+hierarchy_create.py,菜单,Menu
+hierarchy_create.py,名称,Name
+hierarchy_create.py,标签,Tag
+hierarchy_create.py,指定,Specify
+hierarchy_create.py,包含,Include
+hierarchy_create.py,构建,Build
+hierarchy_create.py,时,When
+hierarchy_create.py,当,When
+hierarchy_create.py,为,Is
+hierarchy_search.py,是否包含所有子对象的完整层级数据,Whether to include full hierarchy of all children
+hierarchy_search.py,此函数仅用于提供参数说明和文档,This function only provides parameter docs
+hierarchy_search.py,是否在搜索结果中包含非活动的,Whether to include inactive objects in results
+hierarchy_search.py,是否使用正则表达式进行搜索,Whether to use regex for searching
+hierarchy_search.py,支持正则表达式和通配符搜索,Supports regex and wildcard search
+hierarchy_search.py,包含所有子对象的完整数据,Include complete data of all children
+hierarchy_search.py,查找所有符合条件的对象,Find all matching objects
+hierarchy_search.py,是否查找所有匹配的项目,Whether to find all matches
+hierarchy_search.py,获取完整的父子关系数据,Get full parent-child relations
+hierarchy_search.py,检查场景中的对象状态,Check object states in the scene
+hierarchy_search.py,时自动使用按名称搜索,Automatically use name search when
+hierarchy_search.py,获取对象列表进行处理,Get object list for processing
+hierarchy_search.py,获取完整的层级结构,Get full hierarchy
+hierarchy_search.py,快速找到特定名称的,Quickly find by specific name
+hierarchy_search.py,包含完整层级信息,Includes full hierarchy info
+hierarchy_search.py,用于查找场景中的,Used to search in the scene
+hierarchy_search.py,层次结构搜索工具,Hierarchy search tool
+hierarchy_search.py,支持多种搜索方式,Supports multiple search modes
+hierarchy_search.py,支持多种搜索类型,Supports multiple search types
+hierarchy_search.py,查找多个匹配项,Find multiple matches
+hierarchy_search.py,名称或名称模式,Name or name pattern
+hierarchy_search.py,包含非活动对象,Include inactive objects
+hierarchy_search.py,实际调用请使用,Use in actual calls
+hierarchy_search.py,使用正则表达式,Use regular expressions
+hierarchy_search.py,默认搜索功能,Default search feature
+hierarchy_search.py,自动化脚本,Automation scripts
+hierarchy_search.py,当没有指定,When not specified
+hierarchy_search.py,的搜索功能,Search capability
+hierarchy_search.py,搜索的类型,Type of search
+hierarchy_search.py,调试分析,Debug analysis
+hierarchy_search.py,要搜索的,To search
+hierarchy_search.py,批量操作,Batch operations
+hierarchy_search.py,层级结构,Hierarchy
+hierarchy_search.py,重要提示,Important notes
+hierarchy_search.py,通用查询,General query
+hierarchy_search.py,搜索查询,Search query
+hierarchy_search.py,对象定位,Object locating
+hierarchy_search.py,二级工具,Secondary tool
+hierarchy_search.py,搜索类型,Search type
+hierarchy_search.py,按层级,By hierarchy
+hierarchy_search.py,按标签,By tag
+hierarchy_search.py,新功能,New feature
+hierarchy_search.py,按名称,By name
+hierarchy_search.py,按组件,By component
+hierarchy_search.py,组件等,Components, etc.
+hierarchy_search.py,适用于,Suitable for
+hierarchy_search.py,函数,Function
+hierarchy_search.py,层级,Hierarchy
+hierarchy_search.py,标签,Tag
+hierarchy_search.py,示例,Example
+hierarchy_search.py,包含,Include
+hierarchy_search.py,按,By
+manage_package.py,是否在搜索结果中包含预发布版本,Whether to include prerelease versions
+manage_package.py,搜索包时使用的查询字符串,Query string for package search
+manage_package.py,支持多种包管理操作,Supports various package management operations
+manage_package.py,添加新的包到项目中,Add a new package to the project
+manage_package.py,留空安装最新版本,Leave empty to install latest
+manage_package.py,获取包的详细信息,Get package details
+manage_package.py,更新包到最新版本,Update package to latest
+manage_package.py,移除不需要的包,Remove unwanted package
+manage_package.py,包含预发布版本,Include prerelease versions
+manage_package.py,要执行的包操作,Package operation to perform
+manage_package.py,要操作的包名称,Package name to operate on
+manage_package.py,要安装的包版本,Package version to install
+manage_package.py,查找可用的包,Find available packages
+manage_package.py,操作超时时间,Operation timeout
+manage_package.py,包操作类型,Package operation type
+manage_package.py,列表等功能,Listing and more
+manage_package.py,包含包安装,Includes package installation
+manage_package.py,获取包信息,Get package info
+manage_package.py,包管理工具,Package management tool
+manage_package.py,用于管理,Used to manage
+manage_package.py,超时时间,Timeout
+manage_package.py,搜索查询,Search query
+manage_package.py,二级工具,Secondary tool
+manage_package.py,适用于,Suitable for
+manage_package.py,搜索包,Search packages
+manage_package.py,包更新,Package update
+manage_package.py,包安装,Package install
+manage_package.py,移除包,Remove package
+manage_package.py,列出包,List packages
+manage_package.py,中的包,Packages in
+manage_package.py,更新包,Update package
+manage_package.py,包信息,Package information
+manage_package.py,包搜索,Package search
+manage_package.py,包名称,Package name
+manage_package.py,包管理,Package management
+manage_package.py,包版本,Package version
+manage_package.py,添加包,Add package
+manage_package.py,搜索,Search
+manage_package.py,卸载,Uninstall
+manage_package.py,秒,Seconds
+object_delete.py,支持多种删除方式和智能确认机制,Supports multiple delete modes with smart confirmation
+object_delete.py,要删除的对象的层次结构路径,Hierarchy path of the object to delete
+object_delete.py,是否强制显示确认对话框,Whether to force confirmation dialog
+object_delete.py,删除项目中的资源文件,Delete asset files in the project
+object_delete.py,带确认机制的删除操作,Deletion with confirmation
+object_delete.py,要删除的对象的实例,Instance of the object to delete
+object_delete.py,对象的删除功能,Object deletion feature
+object_delete.py,个对象自动删除,Objects auto-deleted
+object_delete.py,个显示对话框,Dialogs shown
+object_delete.py,对象删除工具,Object deletion tool
+object_delete.py,删除多个对象,Delete multiple objects
+object_delete.py,删除场景中的,Delete in scene
+object_delete.py,场景对象删除,Scene object deletion
+object_delete.py,资源和其他,Assets and other
+object_delete.py,用于删除,Used to delete
+object_delete.py,总是确认,Always confirm
+object_delete.py,安全删除,Safe delete
+object_delete.py,资源删除,Asset deletion
+object_delete.py,批量删除,Bulk delete
+object_delete.py,对象路径,Object path
+object_delete.py,智能确认,Smart confirmation
+object_delete.py,强制确认,Force confirmation
+object_delete.py,二级工具,Secondary tool
+object_delete.py,适用于,Suitable for
+object_delete.py,实例,Instance
+object_delete.py,包含,Include
+object_delete.py,对象,Object
+project_operate.py,目录下的文件夹层次结构和文件数量,Folder hierarchy and file count under the directory
+project_operate.py,此函数仅用于提供参数说明和文档,This function only provides parameter docs
+project_operate.py,导出资源包用于分享或备份,Export packages for sharing or backup
+project_operate.py,导入外部资源文件到项目中,Import external assets into the project
+project_operate.py,用于执行各种项目管理操作,Used to perform various project operations
+project_operate.py,是否包含资源的依赖项,Whether to include asset dependencies
+project_operate.py,包含项目资源管理功能,Includes project asset management
+project_operate.py,操作时为根目录路径,Root directory path for the operation
+project_operate.py,支持多种项目操作,Supports multiple project operations
+project_operate.py,删除不需要的资源,Delete unnecessary assets
+project_operate.py,要执行的项目操作,Project operation to perform
+project_operate.py,获取文件夹结构,Get folder structure
+project_operate.py,实际调用请使用,Use in actual calls
+project_operate.py,创建文件夹结构,Create folder structure
+project_operate.py,清理无效引用,Clean invalid references
+project_operate.py,项目操作类型,Project operation type
+project_operate.py,刷新项目状态,Refresh project status
+project_operate.py,项目操作工具,Project operation tool
+project_operate.py,导出包的名称,Name of the exported package
+project_operate.py,操作时使用,Used during operation
+project_operate.py,复制时使用,Used when copying
+project_operate.py,创建文件夹,Create folders
+project_operate.py,文件夹结构,Folder structure
+project_operate.py,源文件路径,Source file path
+project_operate.py,项目组织,Project organization
+project_operate.py,导入资源,Import assets
+project_operate.py,删除资源,Delete assets
+project_operate.py,资源管理,Asset management
+project_operate.py,项目维护,Project maintenance
+project_operate.py,目标路径,Target path
+project_operate.py,标准格式,Standard format
+project_operate.py,资产路径,Asset path
+project_operate.py,包含依赖,Include dependencies
+project_operate.py,刷新项目,Refresh project
+project_operate.py,重要提示,Important notes
+project_operate.py,二级工具,Secondary tool
+project_operate.py,源路径,Source path
+project_operate.py,包名称,Package name
+project_operate.py,包管理,Package management
+project_operate.py,适用于,Suitable for
+project_operate.py,导出包,Export package
+project_operate.py,函数,Function
+project_operate.py,仅在,Only when
+project_operate.py,操作,Operation
+project_operate.py,移动,Move
+project_operate.py,示例,Example
+project_operate.py,格式,Format
+project_operate.py,查看,View
+project_operate.py,默认,Default
+project_search.py,用于在项目中搜索各种类型的资源和文件,Used to search various assets and files in the project
+project_search.py,按文件类型和名称模式搜索项目资源,Search assets by type and name pattern
+project_search.py,获取同类型文件列表进行批量操作,Get files of the same type for batch ops
+project_search.py,查找指定资源依赖的所有其他资源,Find all dependencies of a given asset
+project_search.py,查找引用了指定资源的所有资源,Find all assets referencing a given asset
+project_search.py,查找哪些资源引用了指定资源,Find which assets reference the given asset
+project_search.py,支持多种搜索类型和过滤条件,Supports multiple search types and filters
+project_search.py,这里应该是完整的资源路径,This should be a full asset path
+project_search.py,是否递归获取所有间接依赖,Whether to get indirect dependencies recursively
+project_search.py,限制搜索范围的文件夹路径,Folder path limiting the search scope
+project_search.py,查找未使用或重复的资源,Find unused or duplicate assets
+project_search.py,限制返回的最大结果数量,Limit on maximum results
+project_search.py,这是查找引用的搜索范围,This is the scope to search references
+project_search.py,找到特定名称的资源文件,Find asset by specific name
+project_search.py,查找资源的所有依赖项,Find all dependencies of an asset
+project_search.py,文件名模式或资源路径,Filename pattern or asset path
+project_search.py,搜索时是否区分大小写,Case sensitivity when searching
+project_search.py,包含项目资源搜索功能,Includes project asset search
+project_search.py,是否在搜索结果中包含,Whether to include in results
+project_search.py,留空搜索整个项目,Leave empty to search entire project
+project_search.py,是否搜索子文件夹,Whether to search subfolders
+project_search.py,如场景依赖的材质,E.g., materials depended on by a scene
+project_search.py,要搜索的目标类型,Target type to search
+project_search.py,搜索类型说明,Search type description
+project_search.py,反向依赖查找,Reverse dependency lookup
+project_search.py,搜索目标类型,Search target type
+project_search.py,目录下的文件,Files under the directory
+project_search.py,项目搜索工具,Project search tool
+project_search.py,对于普通搜索,For basic searches
+project_search.py,搜索关键词,Search keywords
+project_search.py,包含包文件,Include package files
+project_search.py,区分大小写,Case sensitive
+project_search.py,最大结果数,Max results
+project_search.py,搜索文件夹,Search folder
+project_search.py,资源文件,Asset files
+project_search.py,项目清理,Project cleanup
+project_search.py,场景文件,Scene files
+project_search.py,脚本文件,Script files
+project_search.py,批量处理,Batch processing
+project_search.py,依赖分析,Dependency analysis
+project_search.py,引用查找,Reference search
+project_search.py,其他类型,Other types
+project_search.py,快速定位,Quick locate
+project_search.py,搜索查询,Search query
+project_search.py,递归搜索,Recursive search
+project_search.py,二级工具,Secondary tool
+project_search.py,预制体,Prefab
+project_search.py,着色器,Shader
+project_search.py,网格等,Meshes, etc.
+project_search.py,依赖项,Dependencies
+project_search.py,适用于,Suitable for
+project_search.py,搜索,Search
+project_search.py,对于,For
+project_search.py,动画,Animation
+project_search.py,材质,Material
+project_search.py,纹理,Texture
+project_search.py,音频,Audio
+project_search.py,模型,Model
+project_search.py,时,When
+project_search.py,当,When
+project_search.py,为,Is
+request_http.py,用于执行各种网络操作,Used to perform various network operations
+request_http.py,要执行的网络操作,Network operation to perform
+request_http.py,批量下载多个文件,Batch download multiple files
+request_http.py,支持多种网络操作,Supports multiple network operations
+request_http.py,是否接受所有证书,Whether to accept all certificates
+request_http.py,用户代理字符串,User-Agent string
+request_http.py,下载和上传文件,Download and upload files
+request_http.py,是否跟随重定向,Whether to follow redirects
+request_http.py,请求操作类型,Request operation type
+request_http.py,网络请求工具,Network request tool
+request_http.py,用于批量下载,Used for batch download
+request_http.py,和连接测试,And connectivity tests
+request_http.py,或绝对路径,Or absolute path
+request_http.py,请求头字典,Request headers dictionary
+request_http.py,跟随重定向,Follow redirects
+request_http.py,调用等功能,Invoke and related features
+request_http.py,文件路径,File path
+request_http.py,用于测试,Used for testing
+request_http.py,基本认证,Basic authentication
+request_http.py,用户代理,User agent
+request_http.py,请求数据,Request data
+request_http.py,接受证书,Accept certificates
+request_http.py,用于下载,Used for download
+request_http.py,文本编码,Text encoding
+request_http.py,文件操作,File operations
+request_http.py,网络测试,Network testing
+request_http.py,重试次数,Retry count
+request_http.py,超时时间,Timeout
+request_http.py,表单数据,Form data
+request_http.py,认证令牌,Bearer token
+request_http.py,重试延迟,Retry delay
+request_http.py,进行交互,Perform interactions
+request_http.py,批量操作,Batch operations
+request_http.py,查询参数,Query parameters
+request_http.py,批量下载,Batch download
+request_http.py,保存路径,Save path
+request_http.py,下载文件,Download file
+request_http.py,文件下载,File download
+request_http.py,内容类型,Content-Type
+request_http.py,上传文件,Upload file
+request_http.py,二级工具,Secondary tool
+request_http.py,用于上传,Used for upload
+request_http.py,适用于,Suitable for
+request_http.py,等标准,And standard options
+request_http.py,请求的,Requested
+request_http.py,用户名,Username
+request_http.py,相对于,Relative to
+request_http.py,与外部,With external
+request_http.py,键值对,Key-value pairs
+request_http.py,请求头,Request headers
+request_http.py,方法,Method
+request_http.py,调用,Invoke
+request_http.py,列表,List
+request_http.py,密码,Password
+request_http.py,请求,Request
+request_http.py,地址,Address
+request_http.py,包含,Include
+request_http.py,格式,Format
+request_http.py,默认,Default
+request_http.py,数组,Array
+request_http.py,用于,Used for
+request_http.py,等,Etc.
+request_http.py,秒,Seconds
+run_code.py,执行完成后是否自动清理临时文件和变量,Whether to auto-clean temp files and variables after execution
+run_code.py,此函数仅用于提供参数说明和文档,This function only provides parameter docs
+run_code.py,代码执行或包安装的超时时间,Timeout for code execution or package install
+run_code.py,执行完成后是否清理临时文件,Whether to clean temp files after execution
+run_code.py,支持顶层语句和完整类定义,Supports top-level statements and full class definitions
+run_code.py,代码编译和执行的超时时间,Timeout for compile and run
+run_code.py,是否捕获并返回控制台输出,Whether to capture and return console output
+run_code.py,运行调试和分析代码,Run, debug, and analyze code
+run_code.py,默认引用的命名空间,Default imported namespaces
+run_code.py,要编译执行或验证的,To compile, run, or validate
+run_code.py,代码编译执行功能,Code compile-and-run capability
+run_code.py,支持两种代码格式,Supports two code formats
+run_code.py,留空安装最新版本,Leave empty to install latest
+run_code.py,验证语法和安装包,Validate syntax and install packages
+run_code.py,要安装的包版本号,Package version to install
+run_code.py,代码语法正确性,Code syntax correctness
+run_code.py,自动包装为方法,Auto-wrap as a method
+run_code.py,要执行或验证的,To execute or validate
+run_code.py,引用的命名空间,Referenced namespaces
+run_code.py,代码和语法验证,Code and syntax validation
+run_code.py,实际调用请使用,Use in actual calls
+run_code.py,支持编译执行,Supports compile & run
+run_code.py,等库处理数据,Use libraries to process data
+run_code.py,入口方法名称,Entry method name
+run_code.py,等库处理图像,Use libraries for image processing
+run_code.py,代码运行工具,Code execution tool
+run_code.py,等库创建模型,Use libraries to build models
+run_code.py,操作时使用,Used during operation
+run_code.py,入口方法名,Entry method
+run_code.py,完整类定义,Full class definition
+run_code.py,代码执行和,Code execution and
+run_code.py,执行复杂的,Execute complex
+run_code.py,的完整代码,Complete code
+run_code.py,直接写代码,Write code directly
+run_code.py,提供完整的,Provide complete
+run_code.py,自动化操作,Automation operations
+run_code.py,支持完整的,Fully supported
+run_code.py,调试工具,Debugging tools
+run_code.py,快速原型,Rapid prototyping
+run_code.py,脚本验证,Script validation
+run_code.py,访问权限,Access permissions
+run_code.py,数据处理,Data processing
+run_code.py,二级工具,Secondary tool
+run_code.py,数组格式,Array format
+run_code.py,语句列表,Statement list
+run_code.py,返回输出,Return output
+run_code.py,自动清理,Auto clean
+run_code.py,运行环境,Runtime environment
+run_code.py,支持执行,Supports execution
+run_code.py,编译执行,Compile and run
+run_code.py,验证代码,Validate code
+run_code.py,对象操作,Object operations
+run_code.py,图像处理,Image processing
+run_code.py,超时时间,Timeout
+run_code.py,要执行的,To execute
+run_code.py,验证语法,Validate syntax
+run_code.py,机器学习,Machine learning
+run_code.py,重要提示,Important notes
+run_code.py,方法参数,Method parameters
+run_code.py,命名空间,Namespace
+run_code.py,执行代码,Execute code
+run_code.py,默认包含,Included by default
+run_code.py,操作类型,Operation type
+run_code.py,顶层语句,Top-level statements
+run_code.py,要安装的,To install
+run_code.py,包名称,Package name
+run_code.py,适用于,Suitable for
+run_code.py,引用的,Referenced
+run_code.py,默认为,Defaults to
+run_code.py,包版本,Package version
+run_code.py,安装包,Install package
+run_code.py,等模型,And models
+run_code.py,验证,Validate
+run_code.py,使用,Use
+run_code.py,默认,Default
+run_code.py,调用,Call
+run_code.py,支持,Support
+run_code.py,模型,Model
+run_code.py,类名,Class name
+run_code.py,函数,Function
+run_code.py,操作,Operation
+run_code.py,访问,Access
+run_code.py,测试,Test
+run_code.py,建模,Modeling
+run_code.py,仅在,Only when
+run_code.py,代码,Code
+run_code.py,编码,Encoding
+run_code.py,运行,Run
+run_code.py,示例,Example
+run_code.py,包含,Include
+run_code.py,创建,Create
+run_code.py,秒,Seconds
+run_code.py,如,Such as
+storage_prefers.py,临时存储调试信息和工作状态,Temporarily store debug info and work state
+storage_prefers.py,操作会删除所有偏好设置,Operation will delete all preferences
+storage_prefers.py,操作时键不存在时返回,Return when key does not exist
+storage_prefers.py,要执行的偏好设置操作,Preference operation to perform
+storage_prefers.py,保存用户的个性化设置,Save user preferences
+storage_prefers.py,不支持直接枚举所有键,Enumerating all keys is not supported
+storage_prefers.py,保存和读取编辑器设置,Save and read editor settings
+storage_prefers.py,支持多种偏好设置操作,Supports multiple preference operations
+storage_prefers.py,保存和读取玩家数据,Save and read player data
+storage_prefers.py,需要使用已知的键名,Requires a known key name
+storage_prefers.py,存储在编辑器层面,Stored at editor level
+storage_prefers.py,偏好设置管理工具,Preferences management tool
+storage_prefers.py,偏好设置操作类型,Preference operation type
+storage_prefers.py,检查键是否存在,Check if key exists
+storage_prefers.py,偏好设置的键名,Preference key name
+storage_prefers.py,存储在应用层面,Stored at application level
+storage_prefers.py,大多数操作需要,Most operations require
+storage_prefers.py,不同项目共享,Shared across projects
+storage_prefers.py,的存储和检索,Storage and retrieval of
+storage_prefers.py,要设置的值,Value to set
+storage_prefers.py,跟随应用走,Tied to the application
+storage_prefers.py,编辑器偏好,Editor preferences
+storage_prefers.py,删除指定键,Delete specified key
+storage_prefers.py,编辑器配置,Editor configuration
+storage_prefers.py,请谨慎使用,Use with caution
+storage_prefers.py,开发工具,Development tools
+storage_prefers.py,用于管理,Used to manage
+storage_prefers.py,操作需要,Operation requires
+storage_prefers.py,用户偏好,User preferences
+storage_prefers.py,玩家偏好,Player preferences
+storage_prefers.py,游戏存档,Game saves
+storage_prefers.py,删除所有,Delete all
+storage_prefers.py,注意事项,Notes
+storage_prefers.py,示例用法,Example usage
+storage_prefers.py,检查存在,Check existence
+storage_prefers.py,二级工具,Secondary tool
+storage_prefers.py,偏好类型,Preference type
+storage_prefers.py,字符串,String
+storage_prefers.py,值类型,Value type
+storage_prefers.py,默认值,Default value
+storage_prefers.py,适用于,Suitable for
+storage_prefers.py,设置,Set
+storage_prefers.py,整数,Integer
+storage_prefers.py,删除,Delete
+storage_prefers.py,键名,Key name
+storage_prefers.py,获取,Get
+storage_prefers.py,工具,Tool
+storage_prefers.py,默认,Default
+storage_prefers.py,或,Or
+storage_prefers.py,值,Value
+storage_prefers.py,和,And
+storage_source_location.py,会在系统默认文件浏览器中打开并选中文件,Opens and selects the file in the system file browser
+storage_source_location.py,支持在系统文件浏览器中打开和定位文件,Supports opening and locating files in the system file browser
+storage_source_location.py,在系统文件浏览器中打开和显示文件,Open and show file in the system file browser
+storage_source_location.py,用于在文件系统中定位和操作资源,Used to locate and operate assets in the file system
+storage_source_location.py,支持通过多种方式定位资源,Supports locating assets in multiple ways
+storage_source_location.py,在文件浏览器中显示资源,Show asset in the file browser
+storage_source_location.py,获取资源的详细路径信息,Get detailed asset path info
+storage_source_location.py,用于资源和文件夹定位,Used for asset and folder locating
+storage_source_location.py,要执行的资源定位操作,Asset-locating operation to perform
+storage_source_location.py,支持多种资源定位操作,Supports multiple locating operations
+storage_source_location.py,窗口中快速定位资源,Quickly locate asset in the window
+storage_source_location.py,中产生高亮动画效果,Highlight animation in
+storage_source_location.py,资源定位操作类型,Asset locating operation type
+storage_source_location.py,获取资源路径信息,Get asset path info
+storage_source_location.py,在文件浏览器显示,Show in file browser
+storage_source_location.py,不选中特定文件,Do not select a specific file
+storage_source_location.py,全局唯一标识符,Globally unique identifier
+storage_source_location.py,路径或系统路径,Path or system path
+storage_source_location.py,窗口中高亮资源,Highlight asset in window
+storage_source_location.py,只打开文件夹,Open folder only
+storage_source_location.py,或资源的实例,Or asset instance
+storage_source_location.py,资源定位工具,Asset locating tool
+storage_source_location.py,选择场景中的,Select in scene
+storage_source_location.py,或资源的名称,Or asset name
+storage_source_location.py,或项目资源,Or project asset
+storage_source_location.py,文件夹路径,Folder path
+storage_source_location.py,资源管理器,Asset explorer
+storage_source_location.py,绝对路径等,Absolute path, etc.
+storage_source_location.py,打开文件夹,Open folder
+storage_source_location.py,文件浏览,File browsing
+storage_source_location.py,路径查询,Path query
+storage_source_location.py,对象名称,Object name
+storage_source_location.py,获取路径,Get path
+storage_source_location.py,资源定位,Asset locating
+storage_source_location.py,注意事项,Notes
+storage_source_location.py,对象选择,Object selection
+storage_source_location.py,示例用法,Example usage
+storage_source_location.py,选择资源,Select asset
+storage_source_location.py,资源路径,Asset path
+storage_source_location.py,定位资源,Locate asset
+storage_source_location.py,二级工具,Secondary tool
+storage_source_location.py,高亮显示,Highlight
+storage_source_location.py,文件夹,Folder
+storage_source_location.py,资源的,Of asset
+storage_source_location.py,适用于,Suitable for
+storage_source_location.py,操作,Operation
+storage_source_location.py,资源,Asset
+storage_source_location.py,打开,Open
+storage_source_location.py,路径,Path
+storage_source_location.py,通过,Via
+storage_source_location.py,实例,Instance
+storage_source_location.py,名称,Name
+storage_source_location.py,工具,Tool
+storage_source_location.py,包括,Including
+storage_source_location.py,用于,Used for
+storage_source_location.py,在,In
+storage_source_location.py,如,Such as
+tag_layer.py,添加层级时会自动分配到第一个空闲槽位,Automatically assigns to the first free slot when adding a layer
+tag_layer.py,支持多种标签和层级管理功能,Supports tag and layer management features
+tag_layer.py,标签和层级管理工具,Tags & layers management tool
+tag_layer.py,不能删除内置标签,Built-in tags cannot be removed
+tag_layer.py,添加自定义标签,Add custom tag
+tag_layer.py,添加自定义层级,Add custom layer
+tag_layer.py,用于管理项目的,Used to manage project
+tag_layer.py,获取所有层级,Get all layers
+tag_layer.py,获取项目层级,Get project layers
+tag_layer.py,获取层级列表,Get layer list
+tag_layer.py,要执行的标签,Tag operation to perform
+tag_layer.py,只能操作索引,Only index operations are allowed
+tag_layer.py,获取标签列表,Get tag list
+tag_layer.py,获取项目标签,Get project tags
+tag_layer.py,获取所有标签,Get all tags
+tag_layer.py,支持的功能,Supported features
+tag_layer.py,为系统保留,Reserved for system
+tag_layer.py,的用户层级,User layer
+tag_layer.py,为用户层级,For user layers
+tag_layer.py,层级操作,Layer operations
+tag_layer.py,标签名称,Tag name
+tag_layer.py,层级索引,Layer index
+tag_layer.py,层级名称,Layer name
+tag_layer.py,移除层级,Remove layer
+tag_layer.py,层级管理,Layer management
+tag_layer.py,注意事项,Notes
+tag_layer.py,示例用法,Example usage
+tag_layer.py,添加标签,Add tag
+tag_layer.py,标签管理,Tag management
+tag_layer.py,移除标签,Remove tag
+tag_layer.py,二级工具,Secondary tool
+tag_layer.py,操作类型,Operation type
+tag_layer.py,添加层级,Add layer
+tag_layer.py,适用于,Suitable for
+tag_layer.py,添加,Add
+tag_layer.py,操作,Operation
+tag_layer.py,索引,Index
+tag_layer.py,删除,Delete
+tag_layer.py,用于,Used for
+tag_layer.py,如,Such as
+tag_layer.py,和,And
+ugui_layout.py,锚点预设将基于元素当前位置而不是父容器的预设位置,Anchor presets are based on the element’s current position, not the parent’s preset
+ugui_layout.py,将锚点设置到元素自己的顶部中心位置,Set anchors to the element’s own top-center
+ugui_layout.py,是否在更改锚点预设时保持视觉位置,Whether to keep visual position when changing presets
+ugui_layout.py,将锚点设置到元素自身对应的位置,Set anchors to the element’s corresponding self position
+ugui_layout.py,此函数仅用于提供参数说明和文档,This function only provides parameter docs
+ugui_layout.py,使用锚点预设拉伸填充父容器,Use anchor preset to stretch and fill parent
+ugui_layout.py,使用锚点预设适配不同分辨率,Use anchor presets to adapt to resolutions
+ugui_layout.py,基于元素当前位置设置锚点,Set anchors based on current position
+ugui_layout.py,设置锚点预设到顶部中心,Set anchor preset to top-center
+ugui_layout.py,如需设置锚点预设请使用,To set anchor presets, use
+ugui_layout.py,在父对象中的子对象索引,Child index in parent
+ugui_layout.py,使用双状态树架构处理,Use dual-state tree architecture
+ugui_layout.py,使用预定义的锚点配置,Use predefined anchor configs
+ugui_layout.py,元素的当前布局属性,Current layout properties of the element
+ugui_layout.py,可同时设置多个属性,Set multiple properties at once
+ugui_layout.py,设置固定位置和大小,Set fixed position and size
+ugui_layout.py,获取所有属性信息,Get all property info
+ugui_layout.py,实现锚点钉到四角,Pin anchors to all four corners
+ugui_layout.py,支持多种布局操作,Supports multiple layout operations
+ugui_layout.py,元素的位置和尺寸,Element position and size
+ugui_layout.py,执行综合布局修改,Perform comprehensive layout changes
+ugui_layout.py,不使用锚点预设,Do not use anchor presets
+ugui_layout.py,的层次结构路径,Hierarchy path of
+ugui_layout.py,不包含锚点预设,Without anchor presets
+ugui_layout.py,类型的布局操作,Type of layout operation
+ugui_layout.py,用于修改和获取,Used to modify and get
+ugui_layout.py,实际调用请使用,Use in actual calls
+ugui_layout.py,统一调整多个,Uniformly adjust multiple
+ugui_layout.py,锚点钉到四角,Anchors to corners
+ugui_layout.py,设置锚点预设,Set anchor preset
+ugui_layout.py,锚点预设类型,Anchor preset type
+ugui_layout.py,批量布局操作,Batch layout operations
+ugui_layout.py,保持视觉位置,Keep visual position
+ugui_layout.py,获取布局属性,Get layout properties
+ugui_layout.py,锚点最小值,Anchor min
+ugui_layout.py,运行时修改,Runtime modifications
+ugui_layout.py,锚点最大值,Anchor max
+ugui_layout.py,的布局属性,Layout properties of
+ugui_layout.py,元素的位置,Element position
+ugui_layout.py,响应式布局,Responsive layout
+ugui_layout.py,操作不支持,Operation not supported
+ugui_layout.py,锚点等属性,Anchor and related properties
+ugui_layout.py,层级索引,Hierarchy index
+ugui_layout.py,尺寸增量,Size delta
+ugui_layout.py,锚点自身,Anchor self
+ugui_layout.py,第二棵树,Second tree
+ugui_layout.py,主要操作,Primary operations
+ugui_layout.py,精确控制,Precise control
+ugui_layout.py,布局工具,Layout tool
+ugui_layout.py,元素布局,Element layout
+ugui_layout.py,其他预设,Other presets
+ugui_layout.py,二级工具,Secondary tool
+ugui_layout.py,布局设计,Layout design
+ugui_layout.py,布局修改,Layout modifications
+ugui_layout.py,适用场景,Applicable scenarios
+ugui_layout.py,智能布局,Smart layout
+ugui_layout.py,第一棵树,First tree
+ugui_layout.py,对象路径,Object path
+ugui_layout.py,目标定位,Target positioning
+ugui_layout.py,重要提示,Important notes
+ugui_layout.py,示例用法,Example usage
+ugui_layout.py,专门处理,Specially handles
+ugui_layout.py,获取属性,Get properties
+ugui_layout.py,修改操作,Modify operations
+ugui_layout.py,综合布局,Composite layout
+ugui_layout.py,属性获取,Property retrieval
+ugui_layout.py,特殊参数,Special parameters
+ugui_layout.py,操作类型,Operation type
+ugui_layout.py,锚点预设,Anchor presets
+ugui_layout.py,锚点位置,Anchor position
+ugui_layout.py,适用于,Suitable for
+ugui_layout.py,不支持,Not supported
+ugui_layout.py,等同于,Equivalent to
+ugui_layout.py,轴心点,Pivot
+ugui_layout.py,的实例,Instance of
+ugui_layout.py,获取,Get
+ugui_layout.py,使用,Use
+ugui_layout.py,默认,Default
+ugui_layout.py,设置,Set
+ugui_layout.py,实例,Instance
+ugui_layout.py,基于,Based on
+ugui_layout.py,功能,Function
+ugui_layout.py,函数,Function
+ugui_layout.py,操作,Operation
+ugui_layout.py,参数,Parameters
+ugui_layout.py,动态,Dynamic
+ugui_layout.py,大小,Size
+ugui_layout.py,当为,When it is
+ugui_layout.py,元素,Element
+ugui_layout.py,属性,Property
+ugui_layout.py,注意,Note
+ugui_layout.py,调整,Adjust
+ugui_layout.py,示例,Example
+ugui_layout.py,时,When
+ui_rule_manage.py,是否在应用前备份对象,Whether to back up objects before applying
+ui_rule_manage.py,制作规则文件管理工具,Rule file management tool
+ui_rule_manage.py,是否保持对象层级结构,Whether to keep object hierarchy
+ui_rule_manage.py,是否创建缺失的组件,Whether to create missing components
+ui_rule_manage.py,目标对象名称或路径,Target object name or path
+ui_rule_manage.py,是否移除多余的组件,Whether to remove extra components
+ui_rule_manage.py,是否仅验证而不应用,Validate only without applying
+ui_rule_manage.py,是否记录更改日志,Whether to log changes
+ui_rule_manage.py,是否强制应用规则,Whether to force apply rules
+ui_rule_manage.py,应用规则到对象,Apply rules to object
+ui_rule_manage.py,删除和获取规则,Delete and get rules
+ui_rule_manage.py,规则文件路径,Rule file path
+ui_rule_manage.py,应用条件字典,Apply-conditions dictionary
+ui_rule_manage.py,规则属性字典,Rule properties dictionary
+ui_rule_manage.py,标准按钮规则,Standard button rule
+ui_rule_manage.py,列出所有规则,List all rules
+ui_rule_manage.py,修改现有规则,Modify existing rule
+ui_rule_manage.py,文本显示规则,Text display rule
+ui_rule_manage.py,验证规则列表,Validation rules list
+ui_rule_manage.py,是否激活规则,Whether the rule is active
+ui_rule_manage.py,获取规则信息,Get rule info
+ui_rule_manage.py,冲突规则列表,Conflicting rules list
+ui_rule_manage.py,面板布局规则,Panel layout rule
+ui_rule_manage.py,应用效果字典,Apply-effects dictionary
+ui_rule_manage.py,约束条件字典,Constraints dictionary
+ui_rule_manage.py,制作规则文件,Create rule file
+ui_rule_manage.py,依赖规则列表,Dependent rules list
+ui_rule_manage.py,应用前备份,Backup before applying
+ui_rule_manage.py,创建新规则,Create new rule
+ui_rule_manage.py,支持的操作,Supported operations
+ui_rule_manage.py,规则优先级,Rule priority
+ui_rule_manage.py,元数据字典,Metadata dictionary
+ui_rule_manage.py,删除规则,Delete rule
+ui_rule_manage.py,模板名称,Template name
+ui_rule_manage.py,规则作者,Rule author
+ui_rule_manage.py,导入格式,Import format
+ui_rule_manage.py,约束条件,Constraints
+ui_rule_manage.py,包括创建,Including creation
+ui_rule_manage.py,导出格式,Export format
+ui_rule_manage.py,是否激活,Whether active
+ui_rule_manage.py,保持层级,Keep hierarchy
+ui_rule_manage.py,规则属性,Rule properties
+ui_rule_manage.py,规则版本,Rule version
+ui_rule_manage.py,规则名称,Rule name
+ui_rule_manage.py,记录更改,Record changes
+ui_rule_manage.py,规则分类,Rule category
+ui_rule_manage.py,验证规则,Validate rules
+ui_rule_manage.py,依赖规则,Dependent rules
+ui_rule_manage.py,规则类型,Rule type
+ui_rule_manage.py,应用条件,Apply conditions
+ui_rule_manage.py,标签列表,Tag list
+ui_rule_manage.py,修改日期,Modified date
+ui_rule_manage.py,移除多余,Remove redundancies
+ui_rule_manage.py,强制应用,Force apply
+ui_rule_manage.py,应用效果,Apply effects
+ui_rule_manage.py,规则描述,Rule description
+ui_rule_manage.py,目标对象,Target object
+ui_rule_manage.py,操作类型,Operation type
+ui_rule_manage.py,二级工具,Secondary tool
+ui_rule_manage.py,冲突规则,Conflicting rules
+ui_rule_manage.py,创建缺失,Create missing
+ui_rule_manage.py,创建日期,Created date
+ui_rule_manage.py,元数据,Metadata
+ui_rule_manage.py,优先级,Priority
+ui_rule_manage.py,仅验证,Validate only
+ui_rule_manage.py,修改,Modify
+ui_rule_manage.py,管理,Manage
+ui_rule_manage.py,标签,Tags

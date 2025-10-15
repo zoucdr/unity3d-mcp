@@ -7,40 +7,40 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
-using UnityMcp.Tools; // Add this reference
+using UnityMcp.Tools; // 添加这个引用
 
 namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles Unity asset management operations including import, modify, move, duplicate, etc.
-    /// Corresponding method name: manage_asset
+    /// 对应方法名: manage_asset
     /// </summary>
-    [ToolName("project_operate", "Project management")]
+    [ToolName("project_operate", "项目管理")]
     public class ProjectOperate : StateMethodBase
     {
         /// <summary>
-        /// Create parameter key list supported by current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new[]
             {
-                new MethodKey("action", "Operation type：import, modify, move, duplicate, rename, get_info, create_folder, reload, select, ping, select_depends, select_usage, treeEtc", false),
-                new MethodKey("path", "Asset path，UnityStandard format：Assets/Folder/File.extension，treeAs root path", false),
-                new MethodKey("properties", "Asset property dictionary，Used to set various asset properties", true),
-                new MethodKey("destination", "Target path（Move/Used during copy）", true),
-                new MethodKey("force", "Whether operation is forced（Overwrite existing files etc.）", true),
-                new MethodKey("refresh_type", "Refresh type：all(All), assets(Assets only), scripts(Scripts only)，Defaultall", true),
-                new MethodKey("save_before_refresh", "Whether to save all assets before refresh，Defaulttrue", true),
-                new MethodKey("include_indirect", "Whether includes indirect dependencies/Reference，Defaultfalse", true),
-                new MethodKey("max_results", "Maximum result count，Default100", true)
+                new MethodKey("action", "操作类型：import, modify, move, duplicate, rename, get_info, create_folder, reload, select, ping, select_depends, select_usage, tree等", false),
+                new MethodKey("path", "资产路径，Unity标准格式：Assets/Folder/File.extension，tree时为根目录路径", false),
+                new MethodKey("properties", "资产属性字典，用于设置资产的各种属性", true),
+                new MethodKey("destination", "目标路径（移动/复制时使用）", true),
+                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
+                new MethodKey("refresh_type", "刷新类型：all(全部), assets(仅资产), scripts(仅脚本)，默认all", true),
+                new MethodKey("save_before_refresh", "刷新前是否保存所有资产，默认true", true),
+                new MethodKey("include_indirect", "是否包含间接依赖/引用，默认false", true),
+                new MethodKey("max_results", "最大结果数量，默认100", true)
             };
         }
 
         /// <summary>
-        /// Create state tree
+        /// 创建状态树
         /// </summary>
-        /// <returns>State tree</returns>
+        /// <returns>状态树</returns>
         protected override StateTree CreateStateTree()
         {
             return StateTreeBuilder
@@ -430,7 +430,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Select resource at specified path
+        /// 选中指定路径的资源
         /// </summary>
         private object SelectAsset(JsonClass args)
         {
@@ -461,7 +461,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Locate（ping）Resource at specified path，InProjectHighlight in window
+        /// 定位（ping）指定路径的资源，在Project窗口中高亮显示
         /// </summary>
         private object PingAsset(JsonClass args)
         {
@@ -492,7 +492,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Select all dependencies of specified resource
+        /// 选择指定资源的所有依赖项
         /// </summary>
         private object SelectDependencies(JsonClass args)
         {
@@ -514,7 +514,7 @@ namespace UnityMcp.Tools
 
                 foreach (string depPath in dependencies)
                 {
-                    if (depPath == fullPath) continue; // Exclude self
+                    if (depPath == fullPath) continue; // 排除自身
 
                     UnityEngine.Object depAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(depPath);
                     if (depAsset != null)
@@ -524,7 +524,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Select all dependencies
+                // 选中所有依赖项
                 Selection.objects = dependencyObjects.ToArray();
 
                 return Response.Success(
@@ -545,13 +545,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Query and select all resources that reference the specified resource（Optimized version）
+        /// 查询并选择引用指定资源的所有资源（优化版本）
         /// </summary>
         private object SelectUsages(JsonClass args)
         {
             string path = args["path"]?.Value;
             bool includeIndirect = args["include_indirect"].AsBoolDefault(false);
-            int maxResults = args["max_results"].AsIntDefault(100); // Limit result count
+            int maxResults = args["max_results"].AsIntDefault(100); // 限制结果数量
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for select_usage.");
@@ -564,21 +564,21 @@ namespace UnityMcp.Tools
             {
                 var startTime = System.DateTime.Now;
 
-                // Get resource'sGUID
+                // 获取资源的GUID
                 string targetGuid = AssetDatabase.AssetPathToGUID(fullPath);
                 if (string.IsNullOrEmpty(targetGuid))
                     return Response.Error($"Could not get GUID for asset: {fullPath}");
 
                 List<string> referencingPaths = new List<string>();
 
-                // Method1: UseUnityBuiltin reference search（More efficient）
+                // 方法1: 使用Unity内置的引用查找（更高效）
                 if (TryFindReferencesUsingBuiltinAPI(fullPath, targetGuid, referencingPaths, maxResults))
                 {
                     LogInfo($"[SelectUsages] Used builtin API to find references");
                 }
                 else
                 {
-                    // Method2: Optimized manual search（Find only common asset types）
+                    // 方法2: 优化的手动查找（仅查找常见资源类型）
                     FindReferencesOptimized(fullPath, targetGuid, referencingPaths, includeIndirect, maxResults);
                 }
 
@@ -595,7 +595,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Select all resources referencing this one
+                // 选中所有引用此资源的资源
                 Selection.objects = referencingObjects.ToArray();
 
                 var duration = System.DateTime.Now - startTime;
@@ -621,13 +621,13 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Try usingUnityBuiltinAPIFind references（If available）
+        /// 尝试使用Unity内置API查找引用（如果可用）
         /// </summary>
         private bool TryFindReferencesUsingBuiltinAPI(string targetPath, string targetGuid, List<string> referencingPaths, int maxResults)
         {
             try
             {
-                // Try usingUnity 2020+Builtin reference search forAPI
+                // 尝试使用Unity 2020+的内置引用查找API
                 var searchFilter = $"ref:{targetGuid}";
                 string[] foundGuids = AssetDatabase.FindAssets(searchFilter);
 
@@ -652,19 +652,19 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Optimized manual reference lookup（Find only common asset types）
+        /// 优化的手动引用查找（仅查找常见资源类型）
         /// </summary>
         private void FindReferencesOptimized(string targetPath, string targetGuid, List<string> referencingPaths, bool includeIndirect, int maxResults)
         {
-            // Find only common resource types that may contain references，Instead of all resources
+            // 只查找常见的可能包含引用的资源类型，而不是所有资源
             string[] searchFilters = {
-                "t:Scene",           // Scene file
-                "t:Prefab",          // Prefab
-                "t:Material",        // Material
-                "t:AnimationClip",   // Animation clip
-                "t:AnimatorController", // Animator controller
+                "t:Scene",           // 场景文件
+                "t:Prefab",          // 预制体
+                "t:Material",        // 材质
+                "t:AnimationClip",   // 动画片段
+                "t:AnimatorController", // 动画控制器
                 "t:ScriptableObject", // ScriptableObject
-                "t:Shader"           // Shader
+                "t:Shader"           // 着色器
             };
 
             var processedGuids = new HashSet<string>();
@@ -685,7 +685,7 @@ namespace UnityMcp.Tools
 
                     if (string.IsNullOrEmpty(assetPath) || assetPath == targetPath) continue;
 
-                    // Check dependency relations
+                    // 检查依赖关系
                     string[] dependencies = AssetDatabase.GetDependencies(assetPath, includeIndirect);
                     if (dependencies.Contains(targetPath))
                     {
@@ -720,7 +720,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Overload（Refresh）UnityProject asset database
+        /// 重载（刷新）Unity工程资产数据库
         /// </summary>
         private object RefreshProject(JsonClass args)
         {
@@ -734,22 +734,22 @@ namespace UnityMcp.Tools
 
                 LogInfo($"[ProjectOperate] Starting project reload with type: {refreshType}");
 
-                // Record start time for performance monitoring
+                // 记录开始时间用于性能监控
                 var startTime = System.DateTime.Now;
 
-                // Save all pending assets
+                // 保存所有待保存的资产
                 if (saveBeforeRefresh)
                 {
                     LogInfo("[ProjectOperate] Saving all modified assets before refresh...");
                     AssetDatabase.SaveAssets();
                 }
 
-                // Perform different refresh ops according to type
+                // 根据刷新类型执行不同的刷新操作
                 switch (refreshType)
                 {
                     case "all":
                         LogInfo("[ProjectOperate] Performing full project refresh...");
-                        // Full refresh：Including asset import、Script compilation etc.
+                        // 全面刷新：包括资产导入、脚本编译等
                         if (!string.IsNullOrEmpty(specificPath))
                         {
                             string sanitizedPath = SanitizeAssetPath(specificPath);
@@ -768,7 +768,7 @@ namespace UnityMcp.Tools
 
                     case "assets":
                         LogInfo("[ProjectOperate] Performing assets-only refresh...");
-                        // Refresh only assets，Do not trigger script recompilation
+                        // 仅刷新资产，不触发脚本重新编译
                         if (!string.IsNullOrEmpty(specificPath))
                         {
                             string sanitizedPath = SanitizeAssetPath(specificPath);
@@ -782,9 +782,9 @@ namespace UnityMcp.Tools
 
                     case "scripts":
                         LogInfo("[ProjectOperate] Performing scripts-only refresh...");
-                        // Mainly for script recompilation
+                        // 主要针对脚本文件的重新编译
                         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-                        // Force request for script recompilation
+                        // 强制请求脚本重新编译
                         EditorUtility.RequestScriptReload();
                         break;
 
@@ -792,10 +792,10 @@ namespace UnityMcp.Tools
                         return Response.Error($"Unknown refresh_type: '{refreshType}'. Valid options are 'all', 'assets', or 'scripts'.");
                 }
 
-                // Calculate duration
+                // 计算耗时
                 var duration = System.DateTime.Now - startTime;
 
-                // Get project stats info
+                // 获取项目统计信息
                 var projectStats = GetProjectStatistics();
 
                 LogInfo($"[ProjectOperate] Project reload completed in {duration.TotalSeconds:F2} seconds");
@@ -823,13 +823,13 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// Get project stats info
+        /// 获取项目统计信息
         /// </summary>
         private object GetProjectStatistics()
         {
             try
             {
-                // Count different asset types
+                // 统计不同类型的资产数量
                 string[] allAssetGUIDs = AssetDatabase.FindAssets("");
 
                 int totalAssets = allAssetGUIDs.Length;
@@ -841,7 +841,7 @@ namespace UnityMcp.Tools
                 int audioCount = AssetDatabase.FindAssets("t:AudioClip").Length;
                 int modelCount = AssetDatabase.FindAssets("t:Model").Length;
 
-                // Count folders
+                // 统计文件夹数量
                 int folderCount = 0;
                 foreach (string guid in allAssetGUIDs)
                 {
@@ -882,7 +882,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Get folder structure（YAMLFormat）
+        /// 获取文件夹结构（YAML格式）
         /// </summary>
         private object GetFolderStructure(JsonClass args)
         {
@@ -892,7 +892,7 @@ namespace UnityMcp.Tools
                 if (string.IsNullOrEmpty(rootPath))
                     rootPath = "Assets";
 
-                const int maxDepth = 10; // Fixed maximum depth as10
+                const int maxDepth = 10; // 固定最大深度为10
 
                 rootPath = SanitizeAssetPath(rootPath);
 
@@ -905,10 +905,10 @@ namespace UnityMcp.Tools
 
                 var startTime = System.DateTime.Now;
 
-                // Build folder structure
+                // 构建文件夹结构
                 var structure = BuildFolderStructure(rootPath, 0, maxDepth);
 
-                // GenerateYAMLFormat string
+                // 生成YAML格式字符串
                 var yamlBuilder = new System.Text.StringBuilder();
                 GenerateYamlStructure(structure, yamlBuilder, 0);
 
@@ -933,7 +933,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Recursively build folder structure
+        /// 递归构建文件夹结构
         /// </summary>
         private FolderNode BuildFolderStructure(string folderPath, int currentDepth, int maxDepth)
         {
@@ -945,7 +945,7 @@ namespace UnityMcp.Tools
                 SubFolders = new List<FolderNode>()
             };
 
-            // If max depth reached，No longer recurse
+            // 如果达到最大深度，不再递归
             if (currentDepth >= maxDepth)
             {
                 return node;
@@ -953,14 +953,14 @@ namespace UnityMcp.Tools
 
             try
             {
-                // Get all assets under current folder
+                // 获取当前文件夹下的所有资产
                 string[] allGuids = AssetDatabase.FindAssets("", new[] { folderPath });
 
                 foreach (string guid in allGuids)
                 {
                     string assetPath = AssetDatabase.GUIDToAssetPath(guid);
 
-                    // Check if direct child of current folder
+                    // 检查是否是当前文件夹的直接子项
                     string parentDir = Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
                     if (parentDir != folderPath)
                     {
@@ -969,13 +969,13 @@ namespace UnityMcp.Tools
 
                     if (AssetDatabase.IsValidFolder(assetPath))
                     {
-                        // Recursively process subfolders
+                        // 递归处理子文件夹
                         var subFolder = BuildFolderStructure(assetPath, currentDepth + 1, maxDepth);
                         node.SubFolders.Add(subFolder);
                     }
                     else
                     {
-                        // Count files（Exclude.metaFile）
+                        // 统计文件数量（排除.meta文件）
                         if (!assetPath.EndsWith(".meta"))
                         {
                             node.FileCount++;
@@ -983,7 +983,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Sort subfolders by name
+                // 按名称排序子文件夹
                 node.SubFolders = node.SubFolders.OrderBy(f => f.Name).ToList();
             }
             catch (Exception ex)
@@ -995,23 +995,23 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GenerateYAMLFolder structure string in format of
+        /// 生成YAML格式的文件夹结构字符串
         /// </summary>
         private void GenerateYamlStructure(FolderNode node, System.Text.StringBuilder builder, int indentLevel)
         {
             string indent = new string(' ', indentLevel * 2);
 
-            // Output folder and file counts
+            // 输出当前文件夹及其文件数量
             if (indentLevel == 0)
             {
-                // Root node
+                // 根节点
                 builder.AppendLine($"{node.Name}:");
             }
             else
             {
                 if (node.SubFolders.Count > 0)
                 {
-                    // Has subfolder，Single line
+                    // 有子文件夹，单独一行
                     builder.AppendLine($"{indent}{node.Name}:");
                     if (node.FileCount > 0)
                     {
@@ -1020,13 +1020,13 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // No subfolder，Directly output file counts
+                    // 无子文件夹，直接输出文件数量
                     builder.AppendLine($"{indent}{node.Name}: {node.FileCount}");
-                    return; // No subfolder，End
+                    return; // 无子文件夹，结束
                 }
             }
 
-            // Recursively output subfolders
+            // 递归输出子文件夹
             foreach (var subFolder in node.SubFolders)
             {
                 GenerateYamlStructure(subFolder, builder, indentLevel + 1);
@@ -1034,7 +1034,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Folder node class，For folder structure representation
+        /// 文件夹节点类，用于表示文件夹结构
         /// </summary>
         private class FolderNode
         {
@@ -1436,7 +1436,7 @@ namespace UnityMcp.Tools
                     return loadedAsset;
                 }
 
-                // SimpleJson Not supported ToObject(targetType)
+                // SimpleJson 不支持 ToObject(targetType)
                 return null;
             }
             catch (Exception ex)

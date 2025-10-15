@@ -12,25 +12,25 @@ using System.Threading.Tasks;
 namespace UnityMcp
 {
     /// <summary>
-    /// State method base class，Provide method call framework based on state tree。
-    /// All tool method classes should inherit from this class，And implement CreateStateTree Method to define state routing logic。
+    /// 状态方法基类，提供基于状态树的方法调用框架。
+    /// 所有工具方法类应继承此类，并实现 CreateStateTree 方法来定义状态路由逻辑。
     /// </summary>
     public abstract class StateMethodBase : IToolMethod
     {
         /// <summary>
-        /// State tree instance，For routing and executing method calls。
-        /// Lazy loading mode：Only create upon first access。
+        /// 状态树实例，用于路由和执行方法调用。
+        /// 懒加载模式：首次访问时才创建。
         /// </summary>
         private StateTree _stateTree;
 
         /// <summary>
-        /// KeysCached field of，Avoid duplicate creation
+        /// Keys的缓存字段，避免重复创建
         /// </summary>
         private MethodKey[] _keys;
 
         /// <summary>
-        /// List of parameter keys supported by this method，Used forAPIDocumentation generation and parameter validation。
-        /// Subclass must implement this property，Define all possible parameter keys accepted by this method。
+        /// 当前方法支持的参数键列表，用于API文档生成和参数验证。
+        /// 子类必须实现此属性，定义该方法接受的所有可能参数键。
         /// </summary>
         public MethodKey[] Keys
         {
@@ -45,24 +45,24 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Abstract method for creating parameter key list，Subclass must implement this method to define parameter keys。
+        /// 创建参数键列表的抽象方法，子类必须实现此方法来定义参数键。
         /// </summary>
-        /// <returns>MethodKeyArray</returns>
+        /// <returns>MethodKey数组</returns>
         protected abstract MethodKey[] CreateKeys();
 
         /// <summary>
-        /// Abstract method for creating state tree，Subclass must implement this method to define state routing logic。
+        /// 创建状态树的抽象方法，子类必须实现此方法来定义状态路由逻辑。
         /// </summary>
-        /// <returns>Configured state tree instance</returns>
+        /// <returns>配置好的状态树实例</returns>
         protected abstract StateTree CreateStateTree();
 
         /// <summary>
-        /// Preview state tree structure，For debugging and visualizing state routing logic。
+        /// 预览状态树结构，用于调试和可视化状态路由逻辑。
         /// </summary>
-        /// <returns>Text representation of state tree</returns>
+        /// <returns>状态树的文本表示</returns>
         public virtual string Preview()
         {
-            // Ensure that the state tree is initialized
+            // 确保状态树已初始化
             _stateTree = _stateTree ?? CreateStateTree();
             var sb = new StringBuilder();
             _stateTree.Print(sb);
@@ -70,17 +70,17 @@ namespace UnityMcp
         }
 
         /// <summary>
-        /// Execute tool method，Implement IToolMethod Interface（Synchronous version）。
-        /// Route to the corresponding handler via the state tree。
+        /// 执行工具方法，实现 IToolMethod 接口（同步版本）。
+        /// 通过状态树路由到对应的处理方法。
         /// </summary>
-        /// <param name="ctx">Parameter object for method call</param>
-        /// <returns>Execution result，Return error response if state tree execution fails</returns>
+        /// <param name="ctx">方法调用的参数对象</param>
+        /// <returns>执行结果，若状态树执行失败则返回错误响应</returns>
         public virtual void ExecuteMethod(StateTreeContext ctx)
         {
-            // Ensure that the state tree is initialized
+            // 确保状态树已初始化
             _stateTree = _stateTree ?? CreateStateTree();
             var result = _stateTree.Run(ctx);
-            // If the result is empty and there is an error message，Return error response
+            // 如果结果为空且有错误信息，返回错误响应
             if (result == null && !string.IsNullOrEmpty(_stateTree.ErrorMessage))
             {
                 ctx.Complete(Response.Error(_stateTree.ErrorMessage));
@@ -91,16 +91,16 @@ namespace UnityMcp
             }
             else
             {
-                //Asynchronous execution
+                //异步执行
                 LogInfo("[StateMethodBase] Async executing!");
             }
         }
 
         /// <summary>
-        /// Log informational message，Only at McpConnect.EnableLog As true Output when。
-        /// Subclass can use this method to log information during execution。
+        /// 记录信息日志，仅在 McpConnect.EnableLog 为 true 时输出。
+        /// 子类可用此方法记录执行过程中的信息。
         /// </summary>
-        /// <param name="message">Log message to record</param>
+        /// <param name="message">要记录的日志消息</param>
         public virtual void LogInfo(string message)
         {
             if (McpConnect.EnableLog) Debug.Log(message);

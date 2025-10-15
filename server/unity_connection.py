@@ -39,7 +39,7 @@ class UnityConnection:
 
     def connect(self, force_reconnect: bool = False) -> bool:
         """Establish a connection to the Unity Editor by trying multiple ports."""
-        # if a connection exists and reconnect is not forced，validate connection first
+        # 如果有现有连接且不强制重连，先验证连接有效性
         if self.sock and not force_reconnect:
             if self.is_connection_alive():
                 logger.debug(f"Reusing existing connection on port {self.port}")
@@ -53,16 +53,16 @@ class UnityConnection:
         self.connection_attempts += 1
         logger.info(f"Starting connection attempt #{self.connection_attempts}")
         
-        # purge expired failed port entries
+        # 清理过期的失败端口记录
         self._cleanup_expired_failed_ports()
         
-        # get list of ports to try（exclude recently failed ports）
+        # 获取可尝试的端口列表（排除最近失败的端口）
         available_ports = []
         for port in range(config.unity_port_start, config.unity_port_end + 1):
             if port not in self.failed_ports:
                 available_ports.append(port)
         
-        # if all ports have failed，clear failure records and restart
+        # 如果所有端口都失败过，清空失败记录重新开始
         if not available_ports:
             logger.warning("All ports have failed recently, clearing failed ports list and retrying all")
             self.failed_ports.clear()
@@ -85,10 +85,10 @@ class UnityConnection:
                 # Try to connect to active Unity MCP servers first
                 for port in active_ports:
                     if self._try_connect_to_port(port):
-                        # remove from failure list after successful connect（if present）
+                        # 成功连接后从失败列表中移除（如果存在）
                         self.failed_ports.pop(port, None)
                         return True
-                    # _try_connect_to_port will auto add failed ports
+                    # _try_connect_to_port 会自动添加失败端口
             
             # If no active Unity MCP servers found, try all available ports in order
             remaining_ports = [p for p in available_ports if p not in active_ports]
@@ -98,7 +98,7 @@ class UnityConnection:
                     if self._try_connect_to_port(port):
                         self.failed_ports.pop(port, None)
                         return True
-                    # _try_connect_to_port will auto add failed ports
+                    # _try_connect_to_port 会自动添加失败端口
         else:
             # Traditional sequential port trying on available ports only
             logger.info(f"Using traditional sequential port connection on {len(available_ports)} available ports...")
@@ -106,7 +106,7 @@ class UnityConnection:
                 if self._try_connect_to_port(port):
                     self.failed_ports.pop(port, None)
                     return True
-                # _try_connect_to_port will auto add failed ports
+                # _try_connect_to_port 会自动添加失败端口
         
         logger.error(f"Failed to connect to Unity on any port in range {config.unity_port_start}-{config.unity_port_end}")
         return False
@@ -116,7 +116,7 @@ class UnityConnection:
         test_sock = None
         try:
             test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            test_sock.settimeout(1.0)  # increase timeout to1seconds
+            test_sock.settimeout(1.0)  # 增加超时时间到1秒
             test_sock.connect((self.host, port))
             
             # Send ping using length-prefixed protocol
@@ -137,7 +137,7 @@ class UnityConnection:
                 response_data = test_sock.recv(response_length)
                 response = response_data.decode('utf-8')
                 
-                # more lenient check：as long as it containspongorsuccessconsidered asUnity MCPserver
+                # 更宽松的检查：只要包含pong或success就认为是Unity MCP服务器
                 response_lower = response.lower()
                 return 'pong' in response_lower or 'success' in response_lower
             except Exception as e:
@@ -158,10 +158,10 @@ class UnityConnection:
         try:
             logger.debug(f"Attempting to connect to Unity at {self.host}:{port}")
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(config.connection_timeout)  # set connection timeout
+            self.sock.settimeout(config.connection_timeout)  # 设置连接超时
             self.sock.connect((self.host, port))
             self.port = port  # Store the successful port
-            self.last_connection_time = time.time()  # record connection time
+            self.last_connection_time = time.time()  # 记录连接时间
             logger.info(f"Successfully connected to Unity at {self.host}:{port}")
             return True
         except Exception as e:
@@ -172,11 +172,11 @@ class UnityConnection:
                 except:
                     pass
                 self.sock = None
-            # add failed port to list with timestamp
+            # 将失败的端口添加到失败列表并记录时间戳
             self.failed_ports[port] = time.time()
-            # limit number of failed port entries
+            # 限制失败端口记录数量
             if len(self.failed_ports) > config.max_failed_ports:
-                # remove oldest failure record
+                # 移除最早的失败记录
                 oldest_port = min(self.failed_ports.items(), key=lambda x: x[1])[0]
                 self.failed_ports.pop(oldest_port)
                 logger.debug(f"Removed oldest failed port record: {oldest_port}")
@@ -264,9 +264,9 @@ class UnityConnection:
                 error_str = str(e).lower()
                 logger.warning(f"Command attempt {attempt + 1} failed: {str(e)}")
                 
-                # if not the last attempt，prepare to retry
+                # 如果不是最后一次尝试，准备重试
                 if attempt < max_retries:
-                    # if it is a connection issue，mark current port failed and try others
+                    # 如果是连接问题，标记当前端口为失败并尝试其他端口
                     if ("connection" in error_str or "broken" in error_str or 
                         "timeout" in error_str or "closed" in error_str):
                         
@@ -274,28 +274,28 @@ class UnityConnection:
                             logger.info(f"Marking port {self.port} as failed due to connection issue")
                             self.failed_ports[self.port] = time.time()
                         
-                        # disconnect current connection
+                        # 断开当前连接
                         self.disconnect()
                         
-                        # force reconnect to a different port
+                        # 强制重新连接到不同端口
                         logger.info(f"Attempting to connect to different port (attempt {attempt + 1})")
                         if not self.connect(force_reconnect=True):
                             logger.warning(f"Could not reconnect to any available port")
                             time.sleep(1)
                             continue
                     else:
-                        # non connection issue，wait briefly
+                        # 非连接问题，稍作等待
                         time.sleep(0.5)
                     
-        # all retries have failed
+        # 所有重试都失败了
         raise last_error
     
     def _cleanup_expired_failed_ports(self):
         """Clean up expired failed port records."""
         current_time = time.time()
         
-        # check if cleanup is needed（avoid cleaning too frequently）
-        if current_time - self.last_cleanup_time < 30:  # 30clean once every
+        # 检查是否需要清理（避免过于频繁的清理）
+        if current_time - self.last_cleanup_time < 30:  # 30秒清理一次
             return
             
         expired_ports = []
@@ -327,7 +327,7 @@ class UnityConnection:
                 response_data = self.receive_full_response(self.sock)
                 response = json.loads(response_data.decode('utf-8'))
                 
-                # more lenientpingvalidate：check whether containspongorsuccess
+                # 更宽松的ping验证：检查是否包含pong或success
                 response_str = str(response).lower()
                 if (response.get("status") == "success" or 
                     "pong" in response_str or 
@@ -336,26 +336,26 @@ class UnityConnection:
                     return {"message": "pong"}
                 else:
                     logger.warning(f"Unexpected ping response: {response}")
-                    # do not close the connection immediately，give it one chance
+                    # 不要立即关闭连接，给一次机会
                     return {"message": "pong", "warning": "Unexpected response format"}
                     
             except (socket.timeout, socket.error) as e:
                 logger.error(f"Ping network error: {str(e)}")
-                self.sock = None  # close connection only on network errors
+                self.sock = None  # 网络错误时才关闭连接
                 raise ConnectionError(f"Network error during ping: {str(e)}")
             except json.JSONDecodeError as e:
                 logger.warning(f"Ping response JSON parsing failed: {str(e)}")
-                # JSONparse failed but connection may still be alive，attempt to continue using
+                # JSON解析失败但连接可能还在，尝试继续使用
                 return {"message": "pong", "warning": "Response parsing failed"}
             except Exception as e:
                 logger.error(f"Ping error: {str(e)}")
-                # close connection only on critical errors
+                # 只在严重错误时关闭连接
                 if "connection" in str(e).lower() or "broken" in str(e).lower():
                     self.sock = None
                 raise ConnectionError(f"Connection verification failed: {str(e)}")
         
         # Normal command handling
-        # supports dict and list typescmdparameters
+        # 支持字典和列表类型的cmd参数
         command = {"type": command_type, "cmd": cmd if cmd is not None else {}}
         try:
             # Ensure we have a valid JSON string before sending
@@ -391,7 +391,7 @@ class UnityConnection:
             error_str = str(e).lower()
             logger.error(f"Communication error with Unity on port {self.port}: {str(e)}")
             
-            # if it is a connection related error，mark current port as failed
+            # 如果是连接相关错误，标记当前端口为失败
             if ("connection" in error_str or "broken" in error_str or 
                 "timeout" in error_str or "closed" in error_str):
                 if self.port:
@@ -408,12 +408,12 @@ def get_unity_connection() -> UnityConnection:
     """Retrieve or establish a persistent Unity connection with advanced port switching."""
     global _unity_connection
     
-    # if a connection already exists，first verify its availability
+    # 如果已存在连接，先验证其可用性
     if _unity_connection is not None:
         try:
-            # verify existing connection is still valid
+            # 验证现有连接是否还有效
             if _unity_connection.sock and _unity_connection.is_connection_alive():
-                # attemptpingvalidate
+                # 尝试ping验证
                 result = _unity_connection.send_command("ping")
                 logger.debug(f"Reusing existing Unity connection on port {_unity_connection.port}")
                 return _unity_connection
@@ -422,14 +422,14 @@ def get_unity_connection() -> UnityConnection:
         except Exception as e:
             logger.warning(f"Existing connection validation failed on port {_unity_connection.port}: {str(e)}")
             
-        # existing connection is unavailable，clean up and recreate
+        # 现有连接不可用，清理并重新创建
         try:
             _unity_connection.disconnect()
         except:
             pass
         _unity_connection = None
     
-    # create a new connection，retry with smart port switching
+    # 创建新连接，带智能端口切换的重试机制
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -447,14 +447,14 @@ def get_unity_connection() -> UnityConnection:
                 else:
                     raise ConnectionError(f"Could not connect to Unity on any port{failed_ports_info}. Ensure the Unity Editor and MCP Bridge are running.")
             
-            # verify new connection（more lenient validation）
+            # 验证新连接（更宽松的验证）
             try:
                 result = _unity_connection.send_command("ping")
                 logger.info(f"Successfully established new Unity connection on port {_unity_connection.port}")
                 return _unity_connection
             except Exception as ping_error:
                 logger.warning(f"Connection ping verification failed on port {_unity_connection.port}: {str(ping_error)}")
-                # ifpingfailed but connection persists，still try using this connection
+                # 如果ping失败但连接存在，仍然尝试使用这个连接
                 if _unity_connection.sock and _unity_connection.is_connection_alive():
                     logger.info(f"Connection established on port {_unity_connection.port} despite ping verification failure")
                     return _unity_connection
@@ -470,7 +470,7 @@ def get_unity_connection() -> UnityConnection:
                 _unity_connection = None
             
             if attempt < max_retries - 1:
-                time.sleep(1)  # wait1retry after seconds
+                time.sleep(1)  # 等待1秒后重试
             else:
                 failed_ports = getattr(_unity_connection, 'failed_ports', {}) if _unity_connection else {}
                 failed_summary = {k: f"{(time.time() - v):.1f}s ago" for k, v in list(failed_ports.items())[:5]}

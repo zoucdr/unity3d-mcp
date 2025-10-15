@@ -1,5 +1,5 @@
 """
-Unity GameObjectediting tool，includeGameObjectcreation of、modify、component management features。
+Unity GameObject编辑工具，包含GameObject的创建、修改、组件管理等功能。
 """
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
@@ -12,100 +12,100 @@ def register_edit_gameobject_tools(mcp: FastMCP):
     def edit_gameobject(
         ctx: Context,
         action: Annotated[str, Field(
-            title="operation type",
-            description="operation type: create(create), modify(modify), get_components(get component), add_component(add component), remove_component(remove component), set_parent(set parent)",
+            title="操作类型",
+            description="操作类型: create(创建), modify(修改), get_components(获取组件), add_component(添加组件), remove_component(移除组件), set_parent(设置父对象)",
             examples=["create", "modify", "get_components", "add_component", "remove_component", "set_parent"]
         )],
         path: Annotated[Optional[str], Field(
-            title="object path",
-            description="GameObjecthierarchy path of",
+            title="对象路径",
+            description="GameObject的层次结构路径",
             default=None,
             examples=["Player", "Canvas/UI/Button", "Enemy_01"]
         )] = None,
         instance_id: Annotated[Optional[int], Field(
-            title="instanceID",
-            description="GameObjectinstance ofID",
+            title="实例ID",
+            description="GameObject的实例ID",
             default=None,
             examples=[12345, 67890]
         )] = None,
         name: Annotated[Optional[str], Field(
-            title="GameObjectname",
-            description="GameObjectname of",
+            title="GameObject名称",
+            description="GameObject的名称",
             default=None,
             examples=["NewObject", "Player", "Enemy"]
         )] = None,
         tag: Annotated[Optional[str], Field(
-            title="tag",
-            description="GameObjecttag of",
+            title="标签",
+            description="GameObject的标签",
             default=None,
             examples=["Player", "Enemy", "Untagged"]
         )] = None,
         layer: Annotated[Optional[int], Field(
-            title="layer",
-            description="GameObjectlayer of",
+            title="图层",
+            description="GameObject的图层",
             default=None,
             examples=[0, 8, 10]
         )] = None,
         parent_id: Annotated[Optional[int], Field(
-            title="parentID",
-            description="parent object instanceID",
+            title="父对象ID",
+            description="父对象的实例ID",
             default=None,
             examples=[12345, 67890]
         )] = None,
         parent_path: Annotated[Optional[str], Field(
-            title="parent path",
-            description="hierarchy path of the parent",
+            title="父对象路径",
+            description="父对象的层次结构路径",
             default=None,
             examples=["Canvas", "Player", "Environment"]
         )] = None,
         position: Annotated[Optional[List[float]], Field(
-            title="position",
-            description="GameObjectposition coordinates of [x, y, z]",
+            title="位置",
+            description="GameObject的位置坐标 [x, y, z]",
             default=None,
             examples=[[0, 0, 0], [1.5, 2.0, -3.0]]
         )] = None,
         rotation: Annotated[Optional[List[float]], Field(
-            title="rotation",
-            description="GameObjectrotation of [x, y, z]",
+            title="旋转",
+            description="GameObject的旋转角度 [x, y, z]",
             default=None,
             examples=[[0, 0, 0], [0, 90, 0]]
         )] = None,
         scale: Annotated[Optional[List[float]], Field(
-            title="scale",
-            description="GameObjectscale of [x, y, z]",
+            title="缩放",
+            description="GameObject的缩放比例 [x, y, z]",
             default=None,
             examples=[[1, 1, 1], [2.0, 2.0, 2.0]]
         )] = None,
         component_type: Annotated[Optional[str], Field(
-            title="component type",
-            description="component type name to add or remove",
+            title="组件类型",
+            description="要添加或移除的组件类型名称",
             default=None,
             examples=["Rigidbody", "BoxCollider", "AudioSource", "Light"]
         )] = None,
         active: Annotated[Optional[bool], Field(
-            title="active state",
-            description="GameObjectactive state of",
+            title="激活状态",
+            description="GameObject的激活状态",
             default=None
         )] = None,
         static_flags: Annotated[Optional[int], Field(
-            title="static flags",
-            description="GameObjectstatic flags of",
+            title="静态标志",
+            description="GameObject的静态标志",
             default=None,
             examples=[0, 1, 2, 4]
         )] = None
     ) -> Dict[str, Any]:
-        """Unity GameObjectediting tool，used to create、modify and manageGameObject。（secondary tool）
+        """Unity GameObject编辑工具，用于创建、修改和管理GameObject。（二级工具）
 
-        supports multipleGameObjectoperation，suitable for：
-        - object creation：create newGameObject
-        - property modification：modifyGameObjectbasic properties of
-        - component management：add、remove and get components
-        - hierarchy：set parent child relationship
-        - transform operations：set position、rotation、scale
+        支持多种GameObject操作，适用于：
+        - 对象创建：创建新的GameObject
+        - 属性修改：修改GameObject的基本属性
+        - 组件管理：添加、移除和获取组件
+        - 层次结构：设置父子关系
+        - 变换操作：设置位置、旋转、缩放
         """
         
-        # ⚠️ important note：this function only provides parameter description and docs
-        # for actual calls please use single_call function
-        # example：single_call(func="edit_gameobject", args={"path": "Player", "action": "modify"})
+        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
+        # 实际调用请使用 single_call 函数
+        # 示例：single_call(func="edit_gameobject", args={"path": "Player", "action": "modify"})
         
         return get_common_call_response("edit_gameobject")

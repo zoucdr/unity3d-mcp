@@ -15,44 +15,44 @@ using System.Linq;
 namespace UnityMcp.Gui
 {
     /// <summary>
-    /// MCPConnection managementGUIClass，Provide all drawing functionality as static methods
-    /// Used inProjectSettingsShow inMCPSetting
+    /// MCP连接管理GUI类，提供所有绘制功能的静态方法
+    /// 用于在ProjectSettings中显示MCP设置
     /// </summary>
     public static class McpConnectGUI
     {
-        // Tool method list related variables
+        // 工具方法列表相关变量
         private static Dictionary<string, bool> methodFoldouts = new Dictionary<string, bool>();
-        private static Dictionary<string, bool> groupFoldouts = new Dictionary<string, bool>(); // Group collapse state
+        private static Dictionary<string, bool> groupFoldouts = new Dictionary<string, bool>(); // 分组折叠状态
         private static Vector2 methodsScrollPosition;
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
-        private const double doubleClickTime = 0.3; // Double-click threshold（Seconds）
+        private const double doubleClickTime = 0.3; // 双击判定时间（秒）
 
-        // Client connection state related variables
+        // 客户端连接状态相关变量
         private static Vector2 clientsScrollPosition;
         private static bool showClientDetails = false;
 
-        // Service run status
+        // 服务运行状态
         private static bool isUnityBridgeRunning = false;
         private static int unityPortStart => McpConnect.unityPortStart;
         private static int unityPortEnd => McpConnect.unityPortEnd;
         private static int currentPort => McpConnect.currentPort;
 
         /// <summary>
-        /// InitializationGUIState，Check service running state
+        /// 初始化GUI状态，检查服务运行状态
         /// </summary>
         public static async void Initialize()
         {
-            // Set to default first
+            // 先设置为默认状态
             isUnityBridgeRunning = false;
 
-            // Async check - Check if any port is in use，And whether it is currentUnityProcess
+            // 异步检测 - 检查是否有任何端口在使用，并且是否是当前Unity进程
             bool anyPortInUse = await IsAnyPortInRangeInUse();
             isUnityBridgeRunning = anyPortInUse && McpConnect.IsRunning;
         }
 
         private static async Task<bool> IsPortInUseAsync(int port)
         {
-            // Use managed API Determine if exists"Listening"Port of，Avoid misidentifying connection state（TIME_WAIT/CLOSE_WAIT/ESTABLISHED）Regard as occupied
+            // 使用托管 API 判断是否有"正在监听"的端口，避免误把连接状态（TIME_WAIT/CLOSE_WAIT/ESTABLISHED）当作占用
             return await Task.Run(() =>
             {
                 try
@@ -63,14 +63,14 @@ namespace UnityMcp.Gui
                     {
                         if (ep.Port == port)
                         {
-                            return true; // Only when port is at LISTENING Then considered occupied
+                            return true; // 仅当端口处于 LISTENING 才认为被占用
                         }
                     }
                     return false;
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"Error occurred while checking port occupation: {ex.Message}");
+                    Debug.LogWarning($"检查端口占用时发生错误: {ex.Message}");
                     return false;
                 }
             });
@@ -113,22 +113,22 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Draw fullMCPSettingGUI
+        /// 绘制完整的MCP设置GUI
         /// </summary>
         public static void DrawGUI()
         {
-            // Use vertical layout to manage the whole window，Ensure full usage of space
+            // 使用垂直布局管理整个窗口，确保充分利用空间
             EditorGUILayout.BeginVertical(GUILayout.ExpandHeight(true));
 
             // Unity Bridge Section
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            // Title and log switch are on the same row
+            // 标题行和日志开关在同一行
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // Log switch
-            bool newEnableLog = EditorGUILayout.ToggleLeft("Log", McpConnect.EnableLog, GUILayout.Width(60));
+            // 日志开关
+            bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpConnect.EnableLog, GUILayout.Width(60));
             if (newEnableLog != McpConnect.EnableLog)
             {
                 McpConnect.EnableLog = newEnableLog;
@@ -139,7 +139,7 @@ namespace UnityMcp.Gui
             DrawStatusDot(installStatusRect, isUnityBridgeRunning ? Color.green : Color.red);
             EditorGUILayout.LabelField($"       Status: {(isUnityBridgeRunning ? "Running" : "Stopped")}");
 
-            // Show port info
+            // 显示端口信息
             if (isUnityBridgeRunning && currentPort != -1)
             {
                 EditorGUILayout.LabelField($"Port: {currentPort} (Range: {unityPortStart}-{unityPortEnd})");
@@ -158,20 +158,20 @@ namespace UnityMcp.Gui
             EditorGUILayout.Space(5);
             EditorGUILayout.EndVertical();
 
-            // Client connection state section
+            // 客户端连接状态部分
             if (isUnityBridgeRunning)
             {
                 DrawClientConnectionStatus();
             }
 
-            // Control panel moved to title row，No longer shown alone
+            // 控制面板已移至标题行，不再单独显示
             // DrawControlPanel();
 
-            // Add tool method list - Let it fill remaining space
+            // 添加工具方法列表 - 让它填充剩余空间
             EditorGUILayout.Space(10);
             DrawMethodsList();
 
-            // End main vertical layout
+            // 结束主垂直布局
             EditorGUILayout.EndVertical();
         }
 
@@ -184,17 +184,17 @@ namespace UnityMcp.Gui
             }
             else
             {
-                // Attempt start - Unity MCP Will automatically select available port
+                // 尝试启动 - Unity MCP 会自动选择可用端口
                 bool hasConflicts = false;
                 List<int> conflictPorts = new List<int>();
 
-                // Check for conflicts in port range
+                // 检查端口范围内是否有冲突
                 for (int port = unityPortStart; port <= unityPortEnd; port++)
                 {
                     bool inUse = await IsPortInUseAsync(port);
                     if (inUse)
                     {
-                        // Check whether it is occupied by external process
+                        // 检查是否是外部进程占用
                         bool isExternalProcess = await IsPortUsedByExternalProcess(port);
                         if (isExternalProcess)
                         {
@@ -204,35 +204,35 @@ namespace UnityMcp.Gui
                     }
                 }
 
-                // If external process occupies port，Ask user whether to clean
+                // 如果有外部进程占用端口，询问用户是否清理
                 if (hasConflicts)
                 {
                     string conflictPortsStr = string.Join(", ", conflictPorts);
-                    if (EditorUtility.DisplayDialog("Port conflict",
-                        $"Port {conflictPortsStr} Occupied by external process。\n\n" +
-                        "Select'Clear'Will attempt to terminate occupying process，\n" +
-                        "Select'Continue'Will start using other available ports。", "Clear", "Continue"))
+                    if (EditorUtility.DisplayDialog("端口冲突",
+                        $"端口 {conflictPortsStr} 被外部进程占用。\n\n" +
+                        "选择'清理'将尝试终止占用进程，\n" +
+                        "选择'继续'将使用其他可用端口启动。", "清理", "继续"))
                     {
-                        // User selects to clean conflicting ports
+                        // 用户选择清理冲突端口
                         await ClearConflictPorts(conflictPorts);
                     }
                 }
 
-                // Attempt startUnity MCP，It will auto select available port
+                // 尝试启动Unity MCP，它会自动选择可用端口
                 McpConnect.Start();
 
-                // Check if startup succeeded
+                // 检查启动是否成功
                 if (McpConnect.IsRunning)
                 {
                     isUnityBridgeRunning = true;
-                    Debug.Log($"Unity MCP Bridge Started，Use port: {McpConnect.currentPort}");
+                    Debug.Log($"Unity MCP Bridge 已启动，使用端口: {McpConnect.currentPort}");
                 }
                 else
                 {
                     isUnityBridgeRunning = false;
-                    EditorUtility.DisplayDialog("Startup failure",
-                        $"Cannot within port range {unityPortStart}-{unityPortEnd} Inner startupUnity MCP Bridge。\n" +
-                        "Please check if other processes are occupying all ports。", "Confirm");
+                    EditorUtility.DisplayDialog("启动失败",
+                        $"无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动Unity MCP Bridge。\n" +
+                        "请检查是否有其他进程占用了所有端口。", "确定");
                 }
             }
             EditorPrefs.SetBool("mcp_open_state", isUnityBridgeRunning);
@@ -247,7 +247,7 @@ namespace UnityMcp.Gui
                     int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
 #if UNITY_EDITOR_WIN
-                    // Windows: UsenetstatCheck port usage
+                    // Windows: 使用netstat检查端口占用
                     System.Diagnostics.Process netstat = new System.Diagnostics.Process();
                     netstat.StartInfo.FileName = "cmd.exe";
                     netstat.StartInfo.Arguments = $"/c netstat -ano | findstr :{port}";
@@ -266,12 +266,12 @@ namespace UnityMcp.Gui
                         {
                             if (pid != currentProcessId && line.Contains("LISTENING"))
                             {
-                                return true; // Occupied by external process
+                                return true; // 外部进程占用
                             }
                         }
                     }
 #elif UNITY_EDITOR_OSX
-                    // macOS: UselsofCheck port usage
+                    // macOS: 使用lsof检查端口占用
                     System.Diagnostics.Process lsof = new System.Diagnostics.Process();
                     lsof.StartInfo.FileName = "/bin/bash";
                     lsof.StartInfo.Arguments = $"-c \"lsof -i :{port} -sTCP:LISTEN\"";
@@ -292,7 +292,7 @@ namespace UnityMcp.Gui
                             {
                                 if (pid != currentProcessId)
                                 {
-                                    return true; // Occupied by external process
+                                    return true; // 外部进程占用
                                 }
                             }
                         }
@@ -302,7 +302,7 @@ namespace UnityMcp.Gui
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"Error occurred while checking if port is occupied by external process: {ex.Message}");
+                    Debug.LogWarning($"检查端口是否被外部进程占用时发生错误: {ex.Message}");
                     return false;
                 }
             });
@@ -319,7 +319,7 @@ namespace UnityMcp.Gui
                     foreach (int port in conflictPorts)
                     {
 #if UNITY_EDITOR_WIN
-                        // Windows: Find and kill process occupying the port
+                        // Windows: 查找并杀死占用端口的进程
                         System.Diagnostics.Process netstat = new System.Diagnostics.Process();
                         netstat.StartInfo.FileName = "cmd.exe";
                         netstat.StartInfo.Arguments = $"/c netstat -ano | findstr :{port}";
@@ -355,7 +355,7 @@ namespace UnityMcp.Gui
                             kill.WaitForExit();
                         }
 #elif UNITY_EDITOR_OSX
-                        // macOS: Find and kill process occupying the port
+                        // macOS: 查找并杀死占用端口的进程
                         System.Diagnostics.Process lsof = new System.Diagnostics.Process();
                         lsof.StartInfo.FileName = "/bin/bash";
                         lsof.StartInfo.Arguments = $"-c \"lsof -i :{port} -sTCP:LISTEN -t\"";
@@ -385,83 +385,83 @@ namespace UnityMcp.Gui
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error occurred while cleaning conflicting ports: {ex.Message}");
+                    Debug.LogError($"清理冲突端口时发生错误: {ex.Message}");
                 }
             });
         }
 
         /// <summary>
-        /// Dynamically calculate available height of tool method list
+        /// 动态计算工具方法列表的可用高度
         /// </summary>
         private static float CalculateAvailableMethodsHeight()
         {
-            // Use fixed height，Because inProjectSettingsNo dynamic calculation needed here
+            // 使用固定高度，因为在ProjectSettings中不需要动态计算
             float windowHeight = 800f;
 
-            // Estimate used space
+            // 估算已占用的空间
             float usedHeight = 0f;
 
-            // Unity Bridge Section Estimate height (About 120-140px)
+            // Unity Bridge Section 估算高度 (约 120-140px)
             usedHeight += 100;
 
-            // Client connection state section（If show）
+            // 客户端连接状态部分（如果显示）
             if (isUnityBridgeRunning)
             {
                 int clientCount = McpConnect.ConnectedClientCount;
                 if (clientCount > 0)
                 {
-                    // If displaying details，Extra increase for scroll view height
+                    // 如果显示详细信息，额外增加滚动视图高度
                     if (showClientDetails)
                     {
                         usedHeight += 80f;
-                        // Scroll view：Minimum80px，Each client takes about100px，Maximum220px，And add margin
+                        // 滚动视图：最小80px，每个客户端约占100px，最大220px，再加上边距
                         usedHeight += Mathf.Max(80f, Mathf.Min(clientCount * 100f, 220f)) + 10f;
                     }
                 }
             }
 
-            // Tool method list header and spacing (About 50px)
+            // 工具方法列表标题和间距 (约 50px)
             usedHeight += 50f;
 
-            // Window margins and scrollbars (About 30px)
+            // 窗口边距和滚动条等 (约 30px)
             usedHeight += 30f;
 
-            // Calculate remaining usable height，Retain at least 150px
+            // 计算剩余可用高度，至少保留 150px
             float availableHeight = Mathf.Max(windowHeight - usedHeight, 150f);
 
             return availableHeight;
         }
 
         /// <summary>
-        /// Draw tool method list，Support folding，Group by category to display，Assembly info displayed after method name
+        /// 绘制工具方法列表，支持折叠展开，按分组分类显示，程序集信息显示在方法名后
         /// </summary>
         private static void DrawMethodsList()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
 
-            // Title bar：Show title at left，Show debug button on right
+            // 标题栏：左侧显示标题，右侧显示调试按钮
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Available tool methods", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("可用工具方法", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // Debug window button
+            // 调试窗口按钮
             GUIStyle titleDebugButtonStyle = new GUIStyle(EditorStyles.miniButton);
             Color titleOriginalColor = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // Light blue background
+            GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // 淡蓝色背景
 
-            if (GUILayout.Button("Debug window", titleDebugButtonStyle, GUILayout.Width(70)))
+            if (GUILayout.Button("调试窗口", titleDebugButtonStyle, GUILayout.Width(70)))
             {
-                // Open debug window（Do not prefill content）
+                // 打开调试窗口（不预填充内容）
                 McpDebugWindow.ShowWindow();
             }
 
             GUI.backgroundColor = titleOriginalColor;
             EditorGUILayout.EndHorizontal();
 
-            // Ensure method registered
+            // 确保方法已注册
             ToolsCall.EnsureMethodsRegisteredStatic();
             var methodNames = ToolsCall.GetRegisteredMethodNames();
 
-            // Group by category method
+            // 按分组分类方法
             var methodsByGroup = new Dictionary<string, List<(string methodName, IToolMethod method, string assemblyName)>>();
 
             foreach (var methodName in methodNames)
@@ -469,9 +469,9 @@ namespace UnityMcp.Gui
                 var method = ToolsCall.GetRegisteredMethod(methodName);
                 if (method == null) continue;
 
-                // Get group name
+                // 获取分组名称
                 string groupName = GetMethodGroupName(method);
-                // Get assembly name
+                // 获取程序集名称
                 string assemblyName = GetAssemblyDisplayName(method.GetType().Assembly);
 
                 if (!methodsByGroup.ContainsKey(groupName))
@@ -482,24 +482,24 @@ namespace UnityMcp.Gui
                 methodsByGroup[groupName].Add((methodName, method, assemblyName));
             }
 
-            // Dynamically calculate available height and apply to scroll view
+            // 动态计算可用高度并应用到滚动视图
             float availableHeight = CalculateAvailableMethodsHeight();
             methodsScrollPosition = EditorGUILayout.BeginScrollView(methodsScrollPosition,
                 GUILayout.Height(availableHeight));
 
-            // Sort and draw by group name
+            // 按分组名称排序并绘制
             foreach (var groupKvp in methodsByGroup.OrderBy(kvp => kvp.Key))
             {
                 string groupName = groupKvp.Key;
                 var methods = groupKvp.Value.OrderBy(m => m.methodName).ToList();
 
-                // Ensure group has an entry in the collapse dictionary
+                // 确保分组在折叠字典中有条目
                 if (!groupFoldouts.ContainsKey(groupName))
                 {
                     groupFoldouts[groupName] = false;
                 }
 
-                // Draw group collapse header
+                // 绘制分组折叠标题
                 EditorGUILayout.BeginVertical("box");
 
                 GUIStyle groupFoldoutStyle = new GUIStyle(EditorStyles.foldout)
@@ -517,7 +517,7 @@ namespace UnityMcp.Gui
                 );
                 EditorGUILayout.EndHorizontal();
 
-                // If group expanded，Show methods among them
+                // 如果分组展开，显示其中的方法
                 if (groupFoldouts[groupName])
                 {
                     EditorGUILayout.BeginVertical();
@@ -525,44 +525,44 @@ namespace UnityMcp.Gui
 
                     foreach (var (methodName, method, assemblyName) in methods)
                     {
-                        // Ensure the method has an entry in the dictionary
+                        // 确保该方法在字典中有一个条目
                         if (!methodFoldouts.ContainsKey(methodName))
                         {
                             methodFoldouts[methodName] = false;
                         }
 
-                        // Draw method collapse header
+                        // 绘制方法折叠标题
                         EditorGUILayout.BeginVertical("box");
 
-                        // Collapse header bar style
+                        // 折叠标题栏样式
                         GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout)
                         {
                             fontStyle = FontStyle.Bold
                         };
 
-                        // Display collapse header in one row、Question mark and debug buttons
+                        // 在一行中显示折叠标题、问号按钮和调试按钮
                         EditorGUILayout.BeginHorizontal();
 
-                        // Draw collapse header
+                        // 绘制折叠标题
                         Rect foldoutRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
 
-                        // Calculate position of button and assembly label
+                        // 计算按钮和程序集标签的位置
                         float buttonWidth = 20f;
                         float buttonHeight = 18f;
-                        float padding = 4f; // Increase spacing
-                        float totalButtonsWidth = (buttonWidth + padding) * 2; // Total width of two buttons
+                        float padding = 4f; // 增加间距
+                        float totalButtonsWidth = (buttonWidth + padding) * 2; // 两个按钮的总宽度
 
-                        // Calculate width of assembly label
+                        // 计算程序集标签宽度
                         string assemblyLabel = $"({assemblyName})";
                         GUIStyle assemblyLabelStyle = new GUIStyle(EditorStyles.miniLabel);
-                        // Ensure label is wide enough，Avoid text truncation
+                        // 确保标签有足够的宽度，避免文本被截断
                         float calculatedWidth = assemblyLabelStyle.CalcSize(new GUIContent(assemblyLabel)).x;
-                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 80f); // Min width80px
+                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 80f); // 最小宽度80px
 
-                        // Calculate positions of areas from right to left
+                        // 从右到左计算各区域位置
                         float rightEdge = foldoutRect.xMax;
 
-                        // 1. Debug button area（Rightmost）
+                        // 1. 调试按钮区域（最右侧）
                         Rect debugButtonRect = new Rect(
                             rightEdge - buttonWidth,
                             foldoutRect.y + (foldoutRect.height - buttonHeight) / 2,
@@ -571,25 +571,25 @@ namespace UnityMcp.Gui
                         );
                         rightEdge -= (buttonWidth + padding);
 
-                        // 2. Question mark area
+                        // 2. 问号按钮区域
                         Rect helpButtonRect = new Rect(
                             rightEdge - buttonWidth,
                             foldoutRect.y + (foldoutRect.height - buttonHeight) / 2,
                             buttonWidth,
                             buttonHeight
                         );
-                        rightEdge -= (buttonWidth + padding * 2); // Add more spacing after button
+                        rightEdge -= (buttonWidth + padding * 2); // 按钮后增加更多间距
 
-                        // 3. Assembly label area
+                        // 3. 程序集标签区域
                         Rect assemblyLabelRect = new Rect(
                             rightEdge - assemblyLabelWidth,
                             foldoutRect.y,
                             assemblyLabelWidth,
                             foldoutRect.height
                         );
-                        rightEdge -= (assemblyLabelWidth + padding * 2); // Add more spacing after label
+                        rightEdge -= (assemblyLabelWidth + padding * 2); // 标签后增加更多间距
 
-                        // 4. Collapse header area（Remaining space）
+                        // 4. 折叠标题区域（剩余空间）
                         Rect actualFoldoutRect = new Rect(
                             foldoutRect.x,
                             foldoutRect.y,
@@ -597,7 +597,7 @@ namespace UnityMcp.Gui
                             foldoutRect.height
                         );
 
-                        // Draw collapse header（Show only method name）
+                        // 绘制折叠标题（只显示方法名）
                         methodFoldouts[methodName] = EditorGUI.Foldout(
                             actualFoldoutRect,
                             methodFoldouts[methodName],
@@ -605,34 +605,34 @@ namespace UnityMcp.Gui
                             true,
                             foldoutStyle);
 
-                        // Draw assembly label
+                        // 绘制程序集标签
                         Color originalColor = GUI.color;
-                        GUI.color = new Color(0.6f, 0.6f, 0.6f, 0.8f); // Lighter gray
+                        GUI.color = new Color(0.6f, 0.6f, 0.6f, 0.8f); // 更淡的灰色
 
-                        // Set label style to right-align
+                        // 设置右对齐的标签样式
                         GUIStyle rightAlignedLabelStyle = new GUIStyle(EditorStyles.miniLabel);
                         rightAlignedLabelStyle.alignment = TextAnchor.MiddleRight;
 
                         EditorGUI.LabelField(assemblyLabelRect, assemblyLabel, rightAlignedLabelStyle);
                         GUI.color = originalColor;
 
-                        // Draw question button
+                        // 绘制问号按钮
                         GUIStyle helpButtonStyle = new GUIStyle(EditorStyles.miniButton);
 
                         if (GUI.Button(helpButtonRect, "?", helpButtonStyle))
                         {
-                            // Handle button click event
+                            // 处理按钮点击事件
                             HandleMethodHelpClick(methodName, method);
                         }
 
-                        // Draw debug button
+                        // 绘制调试按钮
                         GUIStyle debugButtonStyle = new GUIStyle(EditorStyles.miniButton);
                         Color originalBackgroundColor = GUI.backgroundColor;
-                        GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // Light blue background
+                        GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // 淡蓝色背景
 
                         if (GUI.Button(debugButtonRect, "T", debugButtonStyle))
                         {
-                            // Handle debug button click event
+                            // 处理调试按钮点击事件
                             HandleMethodDebugClick(methodName, method);
                         }
 
@@ -640,12 +640,12 @@ namespace UnityMcp.Gui
 
                         EditorGUILayout.EndHorizontal();
 
-                        // If expand，Show preview info
+                        // 如果展开，显示预览信息
                         if (methodFoldouts[methodName])
                         {
                             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-                            // === ParameterKeysInfo section ===
+                            // === 参数Keys信息部分 ===
                             EditorGUILayout.BeginVertical("box");
 
                             var keys = method.Keys;
@@ -653,47 +653,47 @@ namespace UnityMcp.Gui
                             {
                                 foreach (var key in keys)
                                 {
-                                    // Create param row style
+                                    // 创建参数行的样式
                                     EditorGUILayout.BeginHorizontal();
-                                    // Parameter name - Mark required parameters in bold，Optional parameters use regular font
+                                    // 参数名称 - 必需参数用粗体，可选参数用普通字体
                                     GUIStyle keyStyle = EditorStyles.miniBoldLabel;
                                     Color originalKeyColor = GUI.color;
 
-                                    // Mark required parameters in red，Mark optional parameters in gray
+                                    // 必需参数用红色标记，可选参数用灰色标记
                                     GUI.color = key.Optional ? Color.red : Color.green;
-                                    // Parameter name
+                                    // 参数名称
                                     EditorGUILayout.SelectableLabel(key.Key, keyStyle, GUILayout.Width(120), GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     GUI.color = originalKeyColor;
 
-                                    // Parameter description
+                                    // 参数描述
                                     EditorGUILayout.SelectableLabel(key.Desc, keyStyle, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     EditorGUILayout.EndHorizontal();
                                 }
                             }
                             else
                             {
-                                EditorGUILayout.LabelField("No parameters", EditorStyles.centeredGreyMiniLabel);
+                                EditorGUILayout.LabelField("无参数", EditorStyles.centeredGreyMiniLabel);
                             }
 
                             EditorGUILayout.EndVertical();
 
-                            // Add some spacing
+                            // 添加一些间距
                             EditorGUILayout.Space(3);
 
-                            // === State tree structure section ===
+                            // === 状态树结构部分 ===
                             EditorGUILayout.BeginVertical("box");
 
-                            // Get preview info
+                            // 获取预览信息
                             string preview = method.Preview();
 
-                            // Calculate text lines
+                            // 计算文本行数
                             int lineCount = 1;
                             if (!string.IsNullOrEmpty(preview))
                             {
                                 lineCount = preview.Split('\n').Length;
                             }
 
-                            // Show preview info
+                            // 显示预览信息
                             EditorGUILayout.SelectableLabel(preview, EditorStyles.wordWrappedLabel,
                             GUILayout.Height(EditorGUIUtility.singleLineHeight * lineCount * 0.8f));
 
@@ -717,13 +717,13 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Get method's group name
+        /// 获取方法的分组名称
         /// </summary>
-        /// <param name="method">Method instance</param>
-        /// <returns>Group name</returns>
+        /// <param name="method">方法实例</param>
+        /// <returns>分组名称</returns>
         private static string GetMethodGroupName(IToolMethod method)
         {
-            // Get via reflectionToolNameAttribute
+            // 通过反射获取ToolNameAttribute
             var methodType = method.GetType();
             var toolNameAttribute = methodType.GetCustomAttributes(typeof(ToolNameAttribute), false)
                                              .FirstOrDefault() as ToolNameAttribute;
@@ -733,15 +733,15 @@ namespace UnityMcp.Gui
                 return toolNameAttribute.GroupName;
             }
 
-            // If noneToolNameAttribute，Return to default group
-            return "Not grouped";
+            // 如果没有ToolNameAttribute，返回默认分组
+            return "未分组";
         }
 
         /// <summary>
-        /// Get display name for assembly
+        /// 获取程序集的显示名称
         /// </summary>
-        /// <param name="assembly">Assembly</param>
-        /// <returns>Assembly display name</returns>
+        /// <param name="assembly">程序集</param>
+        /// <returns>程序集显示名称</returns>
         private static string GetAssemblyDisplayName(System.Reflection.Assembly assembly)
         {
             string assemblyName = assembly.GetName().Name;
@@ -770,45 +770,45 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Handle click event of method help button
+        /// 处理方法帮助按钮的点击事件
         /// </summary>
-        /// <param name="methodName">Method name</param>
-        /// <param name="method">Method instance</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="method">方法实例</param>
         private static void HandleMethodHelpClick(string methodName, IToolMethod method)
         {
-            // Get current time
+            // 获取当前时间
             double currentTime = EditorApplication.timeSinceStartup;
 
-            // Check whether there is a last click time record
+            // 检查是否存在上次点击时间记录
             if (methodClickTimes.TryGetValue(methodName, out double lastClickTime))
             {
-                // Determine if double-click（Time interval less thandoubleClickTime）
+                // 判断是否为双击（时间间隔小于doubleClickTime）
                 if (currentTime - lastClickTime < doubleClickTime)
                 {
-                    // Double-click：Open script file
+                    // 双击：打开脚本文件
                     OpenMethodScript(method);
-                    // Reset click time，Prevent multiple consecutive clicks from being treated as double-clicks
+                    // 重置点击时间，防止连续多次点击被判定为多个双击
                     methodClickTimes[methodName] = 0;
                     return;
                 }
             }
 
-            // Click：Locate script file
+            // 单击：定位到脚本文件
             PingMethodScript(method);
-            // Record this click time
+            // 记录本次点击时间
             methodClickTimes[methodName] = currentTime;
         }
 
         /// <summary>
-        /// AtProjectLocate the script file of the method in the window
+        /// 在Project窗口中定位到方法所在的脚本文件
         /// </summary>
-        /// <param name="method">Method instance</param>
+        /// <param name="method">方法实例</param>
         private static void PingMethodScript(IToolMethod method)
         {
-            // Get method type
+            // 获取方法类型
             Type methodType = method.GetType();
 
-            // Find script resource
+            // 查找脚本资源
             string scriptName = methodType.Name + ".cs";
             string[] guids = AssetDatabase.FindAssets(methodType.Name + " t:MonoScript");
 
@@ -817,7 +817,7 @@ namespace UnityMcp.Gui
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (path.EndsWith(scriptName))
                 {
-                    // AtProjectHighlight resource in window
+                    // 在Project窗口中高亮显示该资源
                     UnityEngine.Object scriptObj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
                     if (scriptObj != null)
                     {
@@ -827,7 +827,7 @@ namespace UnityMcp.Gui
                 }
             }
 
-            // If script not found，Try to look up directly by type name
+            // 如果没有找到脚本，尝试直接使用类型名称查找
             string[] allScriptGuids = AssetDatabase.FindAssets("t:MonoScript");
             foreach (string guid in allScriptGuids)
             {
@@ -843,19 +843,19 @@ namespace UnityMcp.Gui
                 }
             }
 
-            Debug.LogWarning($"Cannot onProjectFind script in window: {scriptName}");
+            Debug.LogWarning($"无法在Project窗口中找到脚本: {scriptName}");
         }
 
         /// <summary>
-        /// Open the script file of the method
+        /// 打开方法所在的脚本文件
         /// </summary>
-        /// <param name="method">Method instance</param>
+        /// <param name="method">方法实例</param>
         private static void OpenMethodScript(IToolMethod method)
         {
-            // Get method type
+            // 获取方法类型
             Type methodType = method.GetType();
 
-            // Find script resource
+            // 查找脚本资源
             string scriptName = methodType.Name + ".cs";
             string[] guids = AssetDatabase.FindAssets(methodType.Name + " t:MonoScript");
 
@@ -864,7 +864,7 @@ namespace UnityMcp.Gui
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (path.EndsWith(scriptName))
                 {
-                    // Load and open script
+                    // 加载并打开脚本
                     MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
                     if (script != null)
                     {
@@ -874,7 +874,7 @@ namespace UnityMcp.Gui
                 }
             }
 
-            // If script not found，Try to look up directly by type name
+            // 如果没有找到脚本，尝试直接使用类型名称查找
             string[] allScriptGuids = AssetDatabase.FindAssets("t:MonoScript");
             foreach (string guid in allScriptGuids)
             {
@@ -890,37 +890,37 @@ namespace UnityMcp.Gui
                 }
             }
 
-            Debug.LogWarning($"Unable to open script: {scriptName}");
+            Debug.LogWarning($"无法打开脚本: {scriptName}");
         }
 
         /// <summary>
-        /// Handle click event of method debug button
+        /// 处理方法调试按钮的点击事件
         /// </summary>
-        /// <param name="methodName">Method name</param>
-        /// <param name="method">Method instance</param>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="method">方法实例</param>
         private static void HandleMethodDebugClick(string methodName, IToolMethod method)
         {
             try
             {
-                // Generate example method invocationJSON
+                // 生成方法调用的示例JSON
                 string exampleJson = GenerateMethodExampleJson(methodName, method);
 
-                // OpenMcpDebugWindowAnd prefill sample
+                // 打开McpDebugWindow并预填充示例
                 McpDebugWindow.ShowWindowWithContent(exampleJson);
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UnityMcpEditorWindow] Error occurred while generating debug sample: {e}");
-                EditorUtility.DisplayDialog("Error", $"Unable to generate debug sample: {e.Message}", "Confirm");
+                Debug.LogError($"[UnityMcpEditorWindow] 生成调试示例时发生错误: {e}");
+                EditorUtility.DisplayDialog("错误", $"无法生成调试示例: {e.Message}", "确定");
             }
         }
 
         /// <summary>
-        /// Generate example method invocationJSON
+        /// 生成方法调用的示例JSON
         /// </summary>
-        /// <param name="methodName">Method name</param>
-        /// <param name="method">Method instance</param>
-        /// <returns>ExampleJSONString</returns>
+        /// <param name="methodName">方法名称</param>
+        /// <param name="method">方法实例</param>
+        /// <returns>示例JSON字符串</returns>
         private static string GenerateMethodExampleJson(string methodName, IToolMethod method)
         {
             try
@@ -935,9 +935,9 @@ namespace UnityMcp.Gui
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"Generate exampleJSONFailure，Use base template: {e.Message}");
+                Debug.LogWarning($"生成示例JSON失败，使用基础模板: {e.Message}");
 
-                // If generation failed，Return base template
+                // 如果生成失败，返回基础模板
                 var basicCall = new
                 {
                     func = methodName,
@@ -949,10 +949,10 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Generate example parameters for method
+        /// 生成方法的示例参数
         /// </summary>
-        /// <param name="method">Method instance</param>
-        /// <returns>Sample parameter object</returns>
+        /// <param name="method">方法实例</param>
+        /// <returns>示例参数对象</returns>
         private static object GenerateExampleArgs(IToolMethod method)
         {
             var exampleArgs = new Dictionary<string, object>();
@@ -962,7 +962,7 @@ namespace UnityMcp.Gui
             {
                 foreach (var key in keys)
                 {
-                    // Generate example value by parameter name and description
+                    // 根据参数名和描述生成示例值
                     object exampleValue = GenerateExampleValue(key.Key, key.Desc, key.Optional);
                     if (exampleValue != null)
                     {
@@ -975,23 +975,23 @@ namespace UnityMcp.Gui
         }
 
         /// <summary>
-        /// Generate sample value by parameter info
+        /// 根据参数信息生成示例值
         /// </summary>
-        /// <param name="keyName">Parameter name</param>
-        /// <param name="description">Parameter description</param>
-        /// <param name="isOptional">Optional or not</param>
-        /// <returns>Example value</returns>
+        /// <param name="keyName">参数名</param>
+        /// <param name="description">参数描述</param>
+        /// <param name="isOptional">是否可选</param>
+        /// <returns>示例值</returns>
         private static object GenerateExampleValue(string keyName, string description, bool isOptional)
         {
-            // Convert to lowercase for pattern match
+            // 转换为小写用于模式匹配
             string lowerKey = keyName.ToLower();
             string lowerDesc = description?.ToLower() ?? "";
 
-            // Infer type and example value from parameter name and description
+            // 根据参数名和描述推断类型和示例值
             switch (lowerKey)
             {
                 case "action":
-                    return "modify"; // Default action
+                    return "modify"; // 默认操作
 
                 case "from":
                     return "primitive";
@@ -1064,60 +1064,60 @@ namespace UnityMcp.Gui
                     return "cube";
 
                 default:
-                    // Infer from description content
-                    if (lowerDesc.Contains("bool") || lowerDesc.Contains("Whether"))
-                        return !isOptional; // Required parameter defaulttrue，Optional parameter defaultfalse
+                    // 根据描述内容推断
+                    if (lowerDesc.Contains("bool") || lowerDesc.Contains("是否"))
+                        return !isOptional; // 必需参数默认true，可选参数默认false
 
-                    if (lowerDesc.Contains("array") || lowerDesc.Contains("list") || lowerDesc.Contains("Array"))
+                    if (lowerDesc.Contains("array") || lowerDesc.Contains("list") || lowerDesc.Contains("数组"))
                         return new object[] { };
 
-                    if (lowerDesc.Contains("number") || lowerDesc.Contains("int") || lowerDesc.Contains("Number"))
+                    if (lowerDesc.Contains("number") || lowerDesc.Contains("int") || lowerDesc.Contains("数字"))
                         return 0;
 
-                    if (lowerDesc.Contains("float") || lowerDesc.Contains("Float"))
+                    if (lowerDesc.Contains("float") || lowerDesc.Contains("浮点"))
                         return 0.0f;
 
-                    // If it is optional and type cannot be inferred，Returnnull（Do not add to parameters）
+                    // 如果是可选参数且无法推断类型，返回null（不添加到参数中）
                     if (isOptional)
                         return null;
 
-                    // Required parameters default return empty string
+                    // 必需参数默认返回空字符串
                     return "";
             }
         }
 
         /// <summary>
-        /// Draw client connection state
+        /// 绘制客户端连接状态
         /// </summary>
         private static void DrawClientConnectionStatus()
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            // Client connection state title
+            // 客户端连接状态标题
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Client connection status", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("客户端连接状态", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // Show connection count
+            // 显示连接数量
             int clientCount = McpConnect.ConnectedClientCount;
             Color countColor = clientCount > 0 ? Color.green : Color.gray;
             GUIStyle countStyle = new GUIStyle(EditorStyles.label);
             countStyle.normal.textColor = countColor;
             countStyle.fontStyle = FontStyle.Bold;
 
-            EditorGUILayout.LabelField($"Connection count: {clientCount}", countStyle, GUILayout.Width(80));
+            EditorGUILayout.LabelField($"连接数: {clientCount}", countStyle, GUILayout.Width(80));
             EditorGUILayout.EndHorizontal();
 
             if (clientCount > 0)
             {
-                // Detail collapse control
-                showClientDetails = EditorGUILayout.Foldout(showClientDetails, "Show details", true);
+                // 详细信息折叠控制
+                showClientDetails = EditorGUILayout.Foldout(showClientDetails, "显示详细信息", true);
 
                 if (showClientDetails)
                 {
                     EditorGUILayout.Space(5);
 
-                    // Client list scroll view
+                    // 客户端列表滚动视图
                     clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
                         GUILayout.MinHeight(80), GUILayout.MaxHeight(220));
 
@@ -1126,18 +1126,18 @@ namespace UnityMcp.Gui
                     {
                         EditorGUILayout.BeginVertical("box");
 
-                        // Client basic information
-                        EditorGUILayout.LabelField($"Endpoint: {client.EndPoint}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"Connection time: {client.ConnectedAt:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"Last activity: {client.LastActivity:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"Command count: {client.CommandCount}", EditorStyles.miniLabel);
+                        // 客户端基本信息
+                        EditorGUILayout.LabelField($"端点: {client.EndPoint}", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField($"连接时间: {client.ConnectedAt:HH:mm:ss}", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField($"最后活动: {client.LastActivity:HH:mm:ss}", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField($"命令数: {client.CommandCount}", EditorStyles.miniLabel);
 
-                        // Calculate connection duration
+                        // 计算连接持续时间
                         TimeSpan duration = DateTime.Now - client.ConnectedAt;
                         string durationText = duration.TotalMinutes < 1
-                            ? $"{duration.Seconds}Seconds"
-                            : $"{(int)duration.TotalMinutes}Minute{duration.Seconds}Seconds";
-                        EditorGUILayout.LabelField($"Connection duration: {durationText}", EditorStyles.miniLabel);
+                            ? $"{duration.Seconds}秒"
+                            : $"{(int)duration.TotalMinutes}分{duration.Seconds}秒";
+                        EditorGUILayout.LabelField($"连接时长: {durationText}", EditorStyles.miniLabel);
 
                         EditorGUILayout.EndVertical();
                         EditorGUILayout.Space(2);
@@ -1148,7 +1148,7 @@ namespace UnityMcp.Gui
             }
             else
             {
-                EditorGUILayout.LabelField("No client connection", EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.LabelField("暂无客户端连接", EditorStyles.centeredGreyMiniLabel);
             }
 
             EditorGUILayout.EndVertical();

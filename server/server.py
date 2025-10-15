@@ -23,7 +23,7 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
     global _unity_connection
     logger.info("Unity MCP Server starting up")
     
-    # attempt to connectUnity，but do not fail startup
+    # 尝试连接Unity，但不要让启动失败
     try:
         _unity_connection = get_unity_connection()
         logger.info("Successfully connected to Unity on startup")
@@ -33,14 +33,14 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
         _unity_connection = None
     
     try:
-        # always provide a connection object，even ifNone
-        # utility will fetch a connection on demand
+        # 始终提供连接对象，即使是None
+        # 工具函数将在需要时动态获取连接
         yield {"bridge": _unity_connection}
     except Exception as e:
         logger.error(f"Server lifespan error: {str(e)}")
         raise
     finally:
-        # clean up connection resources
+        # 清理连接资源
         if _unity_connection:
             try:
                 _unity_connection.disconnect()

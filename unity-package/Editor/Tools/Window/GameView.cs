@@ -12,13 +12,13 @@ namespace UnityMcp.Tools
 {
     /// <summary>
     /// Handles Unity Game window management and controls.
-    /// Corresponding method name: game_view
+    /// 对应方法名: game_view
     /// </summary>
-    [ToolName("game_view", "Window management")]
+    [ToolName("game_view", "窗口管理")]
     public class GameView : StateMethodBase
     {
         /// <summary>
-        /// Create the list of parameter keys supported by the current method
+        /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
@@ -51,7 +51,7 @@ namespace UnityMcp.Tools
         // --- State Tree Action Handlers ---
 
         /// <summary>
-        /// Handle set resolution operation
+        /// 处理设置分辨率的操作
         /// </summary>
         private object HandleSetResolutionAction(JsonClass args)
         {
@@ -74,7 +74,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle get resolution operation
+        /// 处理获取分辨率的操作
         /// </summary>
         private object HandleGetResolutionAction(JsonClass args)
         {
@@ -83,7 +83,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle get statistics operation
+        /// 处理获取统计信息的操作
         /// </summary>
         private object HandleGetStatsAction(JsonClass args)
         {
@@ -92,7 +92,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle settingVSyncOperation of
+        /// 处理设置VSync的操作
         /// </summary>
         private object HandleSetVSyncAction(JsonClass args)
         {
@@ -108,7 +108,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle setting target frame rate operation
+        /// 处理设置目标帧率的操作
         /// </summary>
         private object HandleSetTargetFramerateAction(JsonClass args)
         {
@@ -124,7 +124,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle maximize window operation
+        /// 处理最大化窗口的操作
         /// </summary>
         private object HandleMaximizeAction(JsonClass args)
         {
@@ -133,7 +133,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Handle set aspect ratio operation
+        /// 处理设置宽高比的操作
         /// </summary>
         private object HandleSetAspectRatioAction(JsonClass args)
         {
@@ -150,13 +150,13 @@ namespace UnityMcp.Tools
         // --- Game View Methods ---
 
         /// <summary>
-        /// SetGameWindow resolution（FromUGUILayoutMigrated from，Use completeGameViewSizes APIImplement）
+        /// 设置Game窗口分辨率（从UGUILayout迁移而来，使用完整的GameViewSizes API实现）
         /// </summary>
         private object SetGameViewResolution(int width, int height)
         {
             try
             {
-                // Access by reflectionGameViewClass，Because it is not publicAPI
+                // 使用反射访问GameView类，因为它不是公开的API
                 var gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
                 if (gameViewType == null)
                 {
@@ -164,7 +164,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not find GameView type.");
                 }
 
-                // Get currentGameViewWindow
+                // 获取当前的GameView窗口
                 var gameView = EditorWindow.GetWindow(gameViewType, false, null, false);
                 if (gameView == null)
                 {
@@ -172,7 +172,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get GameView window.");
                 }
 
-                // GetGameViewSizesClass
+                // 获取GameViewSizes类
                 var gameViewSizesType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameViewSizes");
                 var gameViewSizeType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameViewSize");
                 var gameViewSizeTypeEnum = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameViewSizeType");
@@ -183,11 +183,11 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not find GameView size types.");
                 }
 
-                // Get singleton instance - TryScriptableSingletonMethod（Unity 2021+）
+                // 获取单例实例 - 尝试ScriptableSingleton方式（Unity 2021+）
                 object gameViewSizes = null;
                 UnityEngine.Debug.Log($"[GameView] >>> SetGameViewResolution starting for {width}x{height} <<<");
 
-                // Method1: Try viaScriptableSingleton<T>.instance
+                // 方法1: 尝试通过ScriptableSingleton<T>.instance
                 try
                 {
                     UnityEngine.Debug.Log("[GameView] Method 1: Trying ScriptableSingleton<T>.instance");
@@ -224,7 +224,7 @@ namespace UnityMcp.Tools
                     UnityEngine.Debug.Log($"[GameView] ScriptableSingleton approach exception: {ex.GetType().Name}: {ex.Message}");
                 }
 
-                // Method2: Try to get by property
+                // 方法2: 尝试通过属性获取
                 UnityEngine.Debug.Log("[GameView] Method 2: Trying instance property");
                 var instanceProperty2 = gameViewSizesType.GetProperty("instance",
                     BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -257,7 +257,7 @@ namespace UnityMcp.Tools
                     UnityEngine.Debug.Log("[GameView] No instance property found on GameViewSizes type");
                 }
 
-                // If the first two methods fail，Try the last method（Will show warning but will work）
+                // 如果前两种方法都失败，尝试最后的方法（会产生警告但能工作）
                 if (gameViewSizes == null)
                 {
                     UnityEngine.Debug.Log("[GameView] Method 3: Trying Activator.CreateInstance (may produce warning)");
@@ -277,7 +277,7 @@ namespace UnityMcp.Tools
 
                 goto ProcessGameViewSizes;
 
-            ProcessGameViewSizes: // Handle instance retrieved by method or property
+            ProcessGameViewSizes: // 处理通过方法或属性获取的实例
 
                 if (gameViewSizes == null)
                 {
@@ -285,10 +285,10 @@ namespace UnityMcp.Tools
                     return Response.Error("GameViewSizes instance is null.");
                 }
 
-                // Get the game view size group for the current platform
-                int currentGroup = 0; // Default isStandalone (0)
+                // 获取当前平台的游戏视图尺寸组
+                int currentGroup = 0; // 默认为Standalone (0)
 
-                // Try multiple ways to get the current group type
+                // 尝试多种方式获取当前组类型
                 var currentGroupMethod = gameViewSizes.GetType().GetMethod("GetCurrentGroupType",
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -306,7 +306,7 @@ namespace UnityMcp.Tools
                 }
                 else
                 {
-                    // Try to get by property
+                    // 尝试通过属性获取
                     var currentGroupProp = gameViewSizes.GetType().GetProperty("currentGroupType",
                         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -324,7 +324,7 @@ namespace UnityMcp.Tools
                     }
                     else
                     {
-                        // According toBuildTargetInfer current platform
+                        // 根据BuildTarget推断当前平台
                         switch (EditorUserBuildSettings.activeBuildTarget)
                         {
                             case BuildTarget.Android:
@@ -338,7 +338,7 @@ namespace UnityMcp.Tools
                                 currentGroup = 0; // GameViewSizeGroupType.Standalone
                                 break;
                             default:
-                                currentGroup = 0; // DefaultStandalone
+                                currentGroup = 0; // 默认Standalone
                                 break;
                         }
                         Debug.Log($"[GameView] Using inferred group type based on BuildTarget: {currentGroup} ({EditorUserBuildSettings.activeBuildTarget})");
@@ -361,7 +361,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Failed to get GameView size group.");
                 }
 
-                // Create custom resolution
+                // 创建自定义分辨率
                 var freeAspectValue = Enum.GetValues(gameViewSizeTypeEnum).GetValue(1); // GameViewSizeType.FreeAspectRatio
                 if (freeAspectValue == null)
                 {
@@ -376,7 +376,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Failed to create custom GameViewSize.");
                 }
 
-                // Check if the same custom size already exists
+                // 检查是否已存在相同的自定义尺寸
                 var getTotalCountMethod = group.GetType().GetMethod("GetTotalCount");
                 if (getTotalCountMethod == null)
                 {
@@ -390,7 +390,7 @@ namespace UnityMcp.Tools
                 bool foundExistingSize = false;
                 int targetIndex = -1;
 
-                // Check if matching resolution exists
+                // 查找是否有匹配的分辨率
                 var getSizeAtMethod = group.GetType().GetMethod("GetGameViewSize");
                 if (getSizeAtMethod == null)
                 {
@@ -420,7 +420,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // If not found，Add new custom size
+                // 如果没找到，添加新的自定义尺寸
                 if (!foundExistingSize)
                 {
                     var addCustomSizeMethod = group.GetType().GetMethod("AddCustomSize");
@@ -431,11 +431,11 @@ namespace UnityMcp.Tools
                     }
 
                     addCustomSizeMethod.Invoke(group, new object[] { customSize });
-                    targetIndex = totalCount; // Newly added index
+                    targetIndex = totalCount; // 新添加的索引
                     Debug.Log($"[GameView] Added new custom size at index {targetIndex}");
                 }
 
-                // SetGameViewUse this resolution
+                // 设置GameView使用该分辨率
                 var selectedSizeIndexProperty = gameViewType.GetProperty("selectedSizeIndex",
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -443,7 +443,7 @@ namespace UnityMcp.Tools
                 {
                     selectedSizeIndexProperty.SetValue(gameView, targetIndex, null);
 
-                    // RefreshGameView
+                    // 刷新GameView
                     gameView.Repaint();
 
                     Debug.Log($"[GameView] Successfully set resolution to {width}x{height} at index {targetIndex}");
@@ -471,7 +471,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameCurrent window resolution
+        /// 获取Game窗口当前分辨率
         /// </summary>
         private object GetGameViewResolution()
         {
@@ -489,7 +489,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get GameView window.");
                 }
 
-                // Get index of selected resolution
+                // 获取选中的分辨率索引
                 var selectedSizeIndexProperty = gameViewType.GetProperty("selectedSizeIndex",
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -509,7 +509,7 @@ namespace UnityMcp.Tools
 
                 int selectedIndex = (int)selectedSizeIndexProperty.GetValue(gameView);
 
-                // GetGameViewSizesInstance
+                // 获取GameViewSizes实例
                 var gameViewSizesType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameViewSizes");
                 if (gameViewSizesType == null)
                 {
@@ -518,7 +518,7 @@ namespace UnityMcp.Tools
 
                 object gameViewSizes = null;
 
-                // Try viaScriptableSingletonGet instance
+                // 尝试通过ScriptableSingleton获取实例
                 try
                 {
                     var scriptableSingletonType = typeof(ScriptableObject).Assembly.GetType("UnityEditor.ScriptableSingleton`1");
@@ -534,7 +534,7 @@ namespace UnityMcp.Tools
                 }
                 catch { }
 
-                // Alternative method：Get by property
+                // 备用方法：通过属性获取
                 if (gameViewSizes == null)
                 {
                     var instanceProperty = gameViewSizesType.GetProperty("instance",
@@ -552,7 +552,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Alternative method3：UseActivator.CreateInstance（May show warning but will work）
+                // 备用方法3：使用Activator.CreateInstance（可能产生警告但能工作）
                 if (gameViewSizes == null)
                 {
                     Debug.Log("[GameView] Trying Activator.CreateInstance as fallback");
@@ -576,7 +576,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get GameViewSizes instance. Tried ScriptableSingleton, instance property, and Activator.CreateInstance.");
                 }
 
-                // Get current platform group
+                // 获取当前平台组
                 int currentGroup = 0;
                 var currentGroupMethod = gameViewSizes.GetType().GetMethod("GetCurrentGroupType",
                     BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -595,7 +595,7 @@ namespace UnityMcp.Tools
                     }
                 }
 
-                // Get this group
+                // 获取该组
                 var getGroupMethod = gameViewSizes.GetType().GetMethod("GetGroup");
                 if (getGroupMethod == null)
                 {
@@ -608,7 +608,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Failed to get GameView size group.");
                 }
 
-                // Get selected size
+                // 获取选中的尺寸
                 var getGameViewSizeMethod = group.GetType().GetMethod("GetGameViewSize");
                 if (getGameViewSizeMethod == null)
                 {
@@ -621,7 +621,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get selected GameViewSize.");
                 }
 
-                // Get size property
+                // 获取尺寸属性
                 var widthProp = selectedSize.GetType().GetProperty("width");
                 var heightProp = selectedSize.GetType().GetProperty("height");
                 var displayTextProp = selectedSize.GetType().GetProperty("displayText");
@@ -660,7 +660,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// GetGameWindow statistics
+        /// 获取Game窗口统计信息
         /// </summary>
         private object GetGameViewStats()
         {
@@ -672,7 +672,7 @@ namespace UnityMcp.Tools
                     vSyncCount = QualitySettings.vSyncCount,
                     isPlaying = EditorApplication.isPlaying,
                     isPaused = EditorApplication.isPaused,
-                    currentFrameRate = 1.0f / Time.deltaTime, // Approximate value
+                    currentFrameRate = 1.0f / Time.deltaTime, // 近似值
                     screenWidth = Screen.width,
                     screenHeight = Screen.height,
                     fullScreen = Screen.fullScreen,
@@ -693,7 +693,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// SetVSync
+        /// 设置VSync
         /// </summary>
         private object SetVSync(int vSyncCount)
         {
@@ -719,7 +719,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Set target frame rate
+        /// 设置目标帧率
         /// </summary>
         private object SetTargetFramerate(int targetFramerate)
         {
@@ -740,7 +740,7 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// MaximizeGameWindow
+        /// 最大化Game窗口
         /// </summary>
         private object MaximizeGameView()
         {
@@ -758,7 +758,7 @@ namespace UnityMcp.Tools
                     return Response.Error("Could not get GameView window.");
                 }
 
-                // Try maximize
+                // 尝试最大化
                 gameView.maximized = true;
                 gameView.Repaint();
 
@@ -771,14 +771,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Set aspect ratio
+        /// 设置宽高比
         /// </summary>
         private object SetAspectRatio(string aspectRatio)
         {
             try
             {
-                // This feature requires more complex reflection
-                // Simplified version：Only record set request
+                // 这个功能需要更复杂的反射实现
+                // 简化版本：只记录设置请求
                 Debug.Log($"[GameView] Aspect ratio setting requested: {aspectRatio}");
 
                 return Response.Success($"Aspect ratio set to '{aspectRatio}' (Note: Full implementation requires complex reflection).", new
