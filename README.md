@@ -1,5 +1,7 @@
 # Unity3d MCP 系统说明文档
 
+![Unity3d MCP 宣传图](docs/unity3d-mcp.png)
+
 ## 目录
 1. [系统概述](#系统概述)
 2. [设计架构](#设计架构)
@@ -13,8 +15,6 @@
 ---
 
 ## 系统概述
-
-![Unity3d MCP 宣传图](docs/unity3d-mcp.png)
 
 *Unity3d MCP - 连接AI与Unity的桥梁，实现智能化游戏开发*
 
