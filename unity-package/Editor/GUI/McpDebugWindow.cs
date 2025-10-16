@@ -14,7 +14,7 @@ namespace UnityMcp.Gui
     /// </summary>
     public class McpDebugWindow : EditorWindow
     {
-        [MenuItem("Window/MCP/Debug Window")]
+        [MenuItem("Window/MCP/Debug")]
         public static void ShowWindow()
         {
             McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");

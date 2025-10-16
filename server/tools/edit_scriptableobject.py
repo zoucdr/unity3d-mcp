@@ -1,6 +1,13 @@
 """
 ScriptableObject管理工具
 专门管理Unity中的ScriptableObject资源，提供创建、修改、复制、搜索等操作
+
+支持的功能：
+- 资源创建：从脚本类创建新的ScriptableObject资源
+- 属性修改：动态修改已存在资源的属性值
+- 资源复制：快速复制现有配置创建变体
+- 资源搜索：按条件搜索项目中的ScriptableObject
+- 信息查询：获取资源的详细信息和元数据
 """
 
 from typing import Dict, Any, Optional

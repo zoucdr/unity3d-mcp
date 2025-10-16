@@ -8,8 +8,6 @@ namespace UnityMcp.Gui
     /// </summary>
     public static class McpSettingsProvider
     {
-        private static bool isInitialized = false;
-
         [SettingsProvider]
         public static SettingsProvider CreateMcpSettingsProvider()
         {
@@ -19,15 +17,6 @@ namespace UnityMcp.Gui
                 guiHandler = (searchContext) =>
                 {
                     DrawMcpSettings();
-                },
-                activateHandler = (searchContext, rootElement) =>
-                {
-                    // 在激活时初始化GUI状态
-                    if (!isInitialized)
-                    {
-                        McpServiceGUI.Initialize();
-                        isInitialized = true;
-                    }
                 },
                 keywords = new[] { "MCP", "Settings", "Configuration", "Debug", "Bridge", "Server" }
             };

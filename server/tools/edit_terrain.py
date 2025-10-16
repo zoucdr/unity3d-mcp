@@ -1,6 +1,13 @@
 """
 地形编辑工具
 处理Unity场景中Terrain地形的编辑操作，包括创建、修改、高度图导入导出等
+
+支持的功能：
+- 地形创建：创建新的地形，设置尺寸和分辨率
+- 高度编辑：设置地形高度，平坦化，平滑处理
+- 纹理绘制：添加、移除和绘制地形纹理层
+- 高度图处理：导入导出高度图数据
+- 地形清理：清除树木和细节对象
 """
 
 from typing import Optional, List, Dict, Any
@@ -16,8 +23,8 @@ def register_edit_terrain_tools(mcp: FastMCP):
         action: str = Field(
             ...,
             title="操作类型",
-            description="要执行的地形操作",
-            examples=["create", "modify", "set_height", "add_layer", "flatten", "smooth", "export_heightmap", "get_info"]
+            description="要执行的地形操作：create(创建), modify(修改), set_height(设置高度), paint_texture(绘制纹理), add_layer(添加纹理层), remove_layer(移除纹理层), set_size(设置尺寸), flatten(平坦化), smooth(平滑), export_heightmap(导出高度图), import_heightmap(导入高度图), get_info(获取信息), clear_trees(清除树木), clear_details(清除细节)",
+            examples=["create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "flatten", "smooth", "export_heightmap", "import_heightmap", "get_info", "clear_trees", "clear_details"]
         ),
         path: Optional[str] = Field(
             None,
@@ -100,7 +107,7 @@ def register_edit_terrain_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        地形编辑工具
+        地形编辑工具，用于处理Unity场景中的地形对象。
         
         支持的操作:
         - create: 创建新的Terrain
@@ -117,6 +124,22 @@ def register_edit_terrain_tools(mcp: FastMCP):
         - get_info: 获取地形信息
         - clear_trees: 清除树木
         - clear_details: 清除细节（草等）
+        
+        示例用法：
+        1. 创建新地形:
+           {"action": "create", "path": "Terrain", "position": [0, 0, 0], "terrain_size": [1000, 600, 1000], "heightmap_resolution": 513}
+           
+        2. 设置地形高度:
+           {"action": "set_height", "path": "Terrain", "heightmap_data": [[0.1, 0.2], [0.3, 0.4]]}
+           
+        3. 平坦化地形:
+           {"action": "flatten", "path": "Terrain", "height": 0.5}
+           
+        4. 添加纹理层:
+           {"action": "add_layer", "path": "Terrain", "texture_layer": {"diffuse": "Assets/Textures/grass.jpg", "normal": "Assets/Textures/grass_normal.jpg"}}
+           
+        5. 导出高度图:
+           {"action": "export_heightmap", "path": "Terrain", "heightmap_file": "Assets/HeightMaps/terrain_height.raw", "export_format": "raw"}
         """
         return send_to_unity("edit_terrain", {
             "action": action,

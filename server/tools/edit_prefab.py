@@ -1,6 +1,13 @@
 """
 预制体管理工具
 专门管理Unity中的预制体资源，提供预制体的创建、修改、复制、实例化等操作
+
+支持的功能：
+- 预制体创建：从场景对象创建新的预制体
+- 预制体变体：创建基于其他预制体的变体
+- 预制体实例化：在场景中实例化预制体
+- 预制体解包/打包：解包预制体或将对象打包为预制体
+- 预制体连接管理：连接、应用、还原、断开预制体连接
 """
 
 from typing import Dict, Any, Optional, List
@@ -16,7 +23,7 @@ def register_edit_prefab_tools(mcp: FastMCP):
         action: str = Field(
             ...,
             title="操作类型",
-            description="操作类型",
+            description="操作类型：create(创建), modify(修改), duplicate(复制), get_info(获取信息), search(搜索), instantiate(实例化), unpack(解包), pack(打包), create_variant(创建变体), connect_to_prefab(连接到预制体), apply_changes(应用更改), revert_changes(还原更改), break_connection(断开连接)",
             examples=["create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack", "create_variant", "connect_to_prefab", "apply_changes", "revert_changes", "break_connection"]
         ),
         path: str = Field(
@@ -134,9 +141,38 @@ def register_edit_prefab_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        预制体管理工具，支持操作: 
+        预制体管理工具，用于管理Unity项目中的预制体资源。
         
-        create(创建), modify(修改), duplicate(复制), get_info(获取信息), search(搜索), instantiate(实例化), unpack(解包), pack(打包), create_variant(创建变体), connect_to_prefab(连接), apply_changes(应用更改), revert_changes(还原更改), break_connection(断开连接)
+        支持的操作:
+        - create: 从场景对象创建新的预制体
+        - modify: 修改预制体属性
+        - duplicate: 复制预制体
+        - get_info: 获取预制体信息
+        - search: 搜索预制体
+        - instantiate: 在场景中实例化预制体
+        - unpack: 解包预制体
+        - pack: 将对象打包为预制体
+        - create_variant: 创建预制体变体
+        - connect_to_prefab: 连接到预制体
+        - apply_changes: 应用预制体更改
+        - revert_changes: 还原预制体更改
+        - break_connection: 断开预制体连接
+        
+        示例用法：
+        1. 创建预制体:
+           {"action": "create", "path": "Assets/Prefabs/Player.prefab", "source_object": "Player"}
+           
+        2. 实例化预制体:
+           {"action": "instantiate", "path": "Assets/Prefabs/Enemy.prefab", "position": [0, 0, 0]}
+           
+        3. 创建预制体变体:
+           {"action": "create_variant", "path": "Assets/Prefabs/RedEnemy.prefab", "parent_prefab": "Assets/Prefabs/Enemy.prefab"}
+           
+        4. 解包预制体:
+           {"action": "unpack", "path": "Assets/Prefabs/Player.prefab", "unpack_mode": "Completely"}
+           
+        5. 应用预制体更改:
+           {"action": "apply_changes", "path": "Assets/Prefabs/Player.prefab"}
         """
 
         return send_to_unity("edit_prefab", {

@@ -1,6 +1,13 @@
 """
 Unity脚本编辑工具
 专门管理Unity项目中的C#脚本文件，提供创建、读取、更新、删除等完整的脚本管理功能
+
+支持的功能：
+- 脚本创建：自动生成MonoBehaviour、ScriptableObject等模板代码
+- 脚本读取：获取脚本内容，支持按行返回
+- 脚本更新：修改脚本内容，自动触发重新编译
+- 脚本删除：安全删除脚本，移到回收站
+- 类型搜索：在所有程序集中搜索匹配的类型
 """
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field

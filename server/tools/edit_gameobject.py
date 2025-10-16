@@ -1,5 +1,12 @@
 """
 Unity GameObject编辑工具，包含GameObject的创建、修改、组件管理等功能。
+
+支持的功能：
+- 创建GameObject：通过HierarchyCreate创建对象
+- 修改属性：名称、标签、层、激活状态等
+- 组件管理：添加、移除、获取组件
+- 变换操作：设置位置、旋转、缩放
+- 父子关系：设置父对象
 """
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
@@ -102,11 +109,21 @@ def register_edit_gameobject_tools(mcp: FastMCP):
         - 组件管理：添加、移除和获取组件
         - 层次结构：设置父子关系
         - 变换操作：设置位置、旋转、缩放
+        
+        示例用法：
+        1. 修改GameObject的名称和位置:
+           {"action": "modify", "path": "Player", "name": "MainPlayer", "position": [0, 1, 0]}
+           
+        2. 添加组件:
+           {"action": "add_component", "path": "Player", "component_type": "Rigidbody"}
+           
+        3. 获取GameObject的所有组件:
+           {"action": "get_components", "path": "Player"}
+           
+        4. 设置GameObject的父对象:
+           {"action": "set_parent", "path": "Player", "parent_path": "Characters"}
         """
         
-        # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
-        # 示例：single_call(func="edit_gameobject", args={"path": "Player", "action": "modify"})
         
         return send_to_unity("edit_gameobject", {
             "action": action,

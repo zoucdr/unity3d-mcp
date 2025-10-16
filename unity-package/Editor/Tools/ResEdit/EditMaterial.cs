@@ -25,7 +25,7 @@ namespace UnityMcp.Tools
             {
                 new MethodKey("action", "操作类型：create, set_properties, duplicate, delete, get_info, search, copy_properties", false),
                 new MethodKey("path", "材质资源路径，Unity标准格式：Assets/Materials/MaterialName.mat", false),
-                new MethodKey("shader", "着色器名称或路径", true),
+                new MethodKey("shader_name", "着色器名称或路径", true),
                 new MethodKey("properties", "材质属性字典，包含颜色、纹理、浮点数等属性", true),
                 new MethodKey("source_path", "源材质路径（复制时使用）", true),
                 new MethodKey("destination", "目标路径（复制/移动时使用）", true),
@@ -63,7 +63,7 @@ namespace UnityMcp.Tools
         private object CreateMaterial(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string shaderName = args["shader"]?.Value;
+            string shaderName = args["shader_name"]?.Value;
             JsonClass properties = args["properties"] as JsonClass;
 
             if (string.IsNullOrEmpty(path))
@@ -358,7 +358,7 @@ namespace UnityMcp.Tools
         private object ChangeMaterialShader(JsonClass args)
         {
             string path = args["path"]?.Value;
-            string shaderName = args["shader"]?.Value;
+            string shaderName = args["shader_name"]?.Value;
 
             if (string.IsNullOrEmpty(path))
                 return Response.Error("'path' is required for change_shader.");

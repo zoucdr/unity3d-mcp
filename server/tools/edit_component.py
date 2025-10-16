@@ -1,6 +1,12 @@
 """
 Unity组件编辑工具
 专门用于获取和设置GameObject组件的属性，支持所有Unity组件类型的反射访问和修改
+
+支持的功能：
+- 获取组件属性：通过反射获取组件的所有可序列化属性
+- 设置组件属性：通过反射设置组件的属性值，支持多种数据类型
+- 自动类型转换：自动将JSON数据转换为对应的Unity类型
+- 支持所有组件：内置组件和自定义MonoBehaviour脚本
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -79,6 +85,18 @@ def register_edit_component_tools(mcp: FastMCP):
         - 反射操作有性能开销，避免在每帧调用
         - 确保值类型匹配，Vector3需要3个元素
         - 先使用get查看可用属性作为设置模板
+        
+        示例用法：
+        1. 获取Rigidbody组件的属性:
+           {"action": "get_component_propertys", "path": "Player", "component_type": "Rigidbody"}
+           
+        2. 设置Rigidbody组件的质量和阻力:
+           {"action": "set_component_propertys", "path": "Player", "component_type": "Rigidbody", 
+            "properties": {"mass": 2.0, "drag": 0.5}}
+            
+        3. 设置Light组件的颜色和强度:
+           {"action": "set_component_propertys", "path": "Directional Light", "component_type": "Light", 
+            "properties": {"color": [1.0, 0.9, 0.8, 1.0], "intensity": 1.5}}
         """
 
         return send_to_unity("edit_component", {

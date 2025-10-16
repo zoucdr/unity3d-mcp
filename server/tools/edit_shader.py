@@ -1,6 +1,13 @@
 """
 Shader管理工具
 管理Unity中的Shader资源，包括创建、修改、删除和获取信息
+
+支持的功能：
+- 创建Shader：创建新的Shader文件，可自定义代码或使用模板
+- 修改Shader：更新Shader代码和属性
+- 复制Shader：复制现有Shader创建新变体
+- 编译验证：编译Shader并检查错误
+- 搜索管理：搜索、移动、重命名Shader文件
 """
 
 from typing import Dict, Any, Optional, List
@@ -15,7 +22,7 @@ def register_edit_shader_tools(mcp: FastMCP):
         action: str = Field(
             ...,
             title="操作类型",
-            description="操作类型",
+            description="操作类型：create(创建), modify(修改), delete(删除), get_info(获取信息), search(搜索), duplicate(复制), move(移动), rename(重命名), compile(编译), validate(验证)",
             examples=["create", "modify", "delete", "get_info", "search", "duplicate", "move", "rename", "compile", "validate"]
         ),
         path: str = Field(
@@ -137,9 +144,34 @@ def register_edit_shader_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        Shader管理工具
+        Shader管理工具，用于管理Unity中的Shader资源。
         
-        支持的操作: create(创建Shader), modify(修改Shader), delete(删除Shader), get_info(获取Shader信息), search(搜索Shader), duplicate(复制Shader), move(移动/重命名Shader), rename(移动/重命名Shader，与move相同), compile(编译Shader), validate(验证Shader)
+        支持的操作:
+        - create: 创建新的Shader文件
+        - modify: 修改Shader代码和属性
+        - delete: 删除Shader文件
+        - get_info: 获取Shader信息
+        - search: 搜索Shader文件
+        - duplicate: 复制Shader创建新变体
+        - move/rename: 移动或重命名Shader文件
+        - compile: 编译Shader
+        - validate: 验证Shader语法
+        
+        示例用法：
+        1. 创建新的Shader:
+           {"action": "create", "path": "Assets/Shaders/MyShader.shader", "shader_name": "Custom/MyShader", "shader_code": "Shader \"Custom/MyShader\" {...}"}
+           
+        2. 修改Shader:
+           {"action": "modify", "path": "Assets/Shaders/MyShader.shader", "shader_code": "Shader \"Custom/MyShader\" {...}"}
+           
+        3. 复制Shader:
+           {"action": "duplicate", "path": "Assets/Shaders/MyShader.shader", "destination": "Assets/Shaders/MyShaderCopy.shader"}
+           
+        4. 编译Shader:
+           {"action": "compile", "path": "Assets/Shaders/MyShader.shader"}
+           
+        5. 搜索Shader:
+           {"action": "search", "query": "Custom*", "recursive": true}
         """
         return send_to_unity("edit_shader", {
             "action": action,

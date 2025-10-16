@@ -1,6 +1,13 @@
 """
 图集(Sprite Atlas)编辑工具
 处理Unity中精灵图集的创建、编辑和管理操作
+
+支持的功能：
+- 图集创建：创建新的精灵图集，设置基本属性
+- 精灵管理：添加和移除精灵或整个文件夹
+- 打包设置：配置紧凑排列、旋转、间距等参数
+- 平台优化：为不同平台设置特定的纹理格式和大小
+- 图集打包：执行图集打包操作，生成优化的纹理
 """
 
 from typing import Dict, Any, Optional, List
@@ -129,7 +136,7 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
         )
     ) -> Dict[str, Any]:
         """
-        图集(Sprite Atlas)编辑工具
+        图集(Sprite Atlas)编辑工具，用于管理Unity中的精灵图集资源。
         
         支持的操作:
         - create: 创建新的精灵图集
@@ -150,12 +157,28 @@ def register_edit_sprite_atlas_tools(mcp: FastMCP):
         - compression_quality: 压缩质量0-100（默认50）
         - override_for_platform: 是否覆盖平台默认设置（默认true）
         
-        示例 - 仅设置Android最大尺寸（format和quality使用默认值）:
-          platform="Android", max_texture_size=1024
-        
-        示例 - 完整设置Android平台配置:
-          platform="Android", max_texture_size=1024, 
-          format="ETC2_RGBA8", compression_quality=50
+        示例用法：
+        1. 创建新图集:
+           {"action": "create", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas"}
+           
+        2. 添加精灵到图集:
+           {"action": "add_sprites", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas", 
+            "sprite_paths": ["Assets/Textures/button.png", "Assets/Textures/icon.png"]}
+            
+        3. 添加整个文件夹到图集:
+           {"action": "add_sprites", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas", 
+            "folder_paths": ["Assets/Textures/UI"], "include_subfolders": true}
+            
+        4. 设置图集参数:
+           {"action": "set_settings", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas", 
+            "allow_rotation": true, "padding": 2, "tight_packing": true}
+            
+        5. 设置平台特定参数:
+           {"action": "set_settings", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas", 
+            "platform": "Android", "max_texture_size": 1024, "format": "ETC2_RGBA8"}
+            
+        6. 打包图集:
+           {"action": "pack", "atlas_path": "Assets/Atlas/UIAtlas.spriteatlas"}
         """
         return send_to_unity("edit_sprite_atlas", {
             "action": action,

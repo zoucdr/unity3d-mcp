@@ -1,16 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System;
-using System.Net.Sockets;
-using System.Net;
-using System.Net.NetworkInformation;
 using Debug = UnityEngine.Debug;
-using System.Collections.Generic;
 using UnityMcp.Executer;
-using System.Linq;
 
 namespace UnityMcp.Gui
 {
@@ -27,91 +21,6 @@ namespace UnityMcp.Gui
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
         private const double doubleClickTime = 0.3; // 双击判定时间（秒）
 
-        // 客户端连接状态相关变量
-        private static Vector2 clientsScrollPosition;
-        private static bool showClientDetails = false;
-
-        // 服务运行状态
-        private static bool isUnityBridgeRunning = false;
-        private static int unityPortStart => McpService.unityPortStart;
-        private static int unityPortEnd => McpService.unityPortEnd;
-        private static int currentPort => McpService.currentPort;
-
-        /// <summary>
-        /// 初始化GUI状态，检查服务运行状态
-        /// </summary>
-        public static async void Initialize()
-        {
-            // 先设置为默认状态
-            isUnityBridgeRunning = false;
-
-            // 异步检测 - 检查是否有任何端口在使用，并且是否是当前Unity进程
-            bool anyPortInUse = await IsAnyPortInRangeInUse();
-            isUnityBridgeRunning = anyPortInUse && McpService.IsRunning;
-        }
-
-        private static async Task<bool> IsPortInUseAsync(int port)
-        {
-            // 使用托管 API 判断是否有"正在监听"的端口，避免误把连接状态（TIME_WAIT/CLOSE_WAIT/ESTABLISHED）当作占用
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    IPGlobalProperties ipProps = IPGlobalProperties.GetIPGlobalProperties();
-                    IPEndPoint[] listeners = ipProps.GetActiveTcpListeners();
-                    foreach (var ep in listeners)
-                    {
-                        if (ep.Port == port)
-                        {
-                            return true; // 仅当端口处于 LISTENING 才认为被占用
-                        }
-                    }
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"检查端口占用时发生错误: {ex.Message}");
-                    return false;
-                }
-            });
-        }
-
-        private static async Task<bool> IsAnyPortInRangeInUse()
-        {
-            for (int port = unityPortStart; port <= unityPortEnd; port++)
-            {
-                if (await IsPortInUseAsync(port))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static void DrawStatusDot(Rect statusRect, Color statusColor)
-        {
-            Rect dotRect = new(statusRect.x + 6, statusRect.y + 4, 12, 12);
-            Vector3 center = new(
-                dotRect.x + (dotRect.width / 2),
-                dotRect.y + (dotRect.height / 2),
-                0
-            );
-            float radius = dotRect.width / 2;
-
-            // Draw the main dot
-            Handles.color = statusColor;
-            Handles.DrawSolidDisc(center, Vector3.forward, radius);
-
-            // Draw the border
-            Color borderColor = new(
-                statusColor.r * 0.7f,
-                statusColor.g * 0.7f,
-                statusColor.b * 0.7f
-            );
-            Handles.color = borderColor;
-            Handles.DrawWireDisc(center, Vector3.forward, radius);
-        }
-
         /// <summary>
         /// 绘制完整的MCP设置GUI
         /// </summary>
@@ -120,274 +29,25 @@ namespace UnityMcp.Gui
             // 使用垂直布局管理整个窗口，确保充分利用空间
             EditorGUILayout.BeginVertical(GUILayout.ExpandHeight(true));
 
-            // Unity Bridge Section
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            // 标题行和日志开关在同一行
+            // 标题行
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // 日志开关
-            bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpService.EnableLog, GUILayout.Width(60));
-            if (newEnableLog != McpService.EnableLog)
+            // 状态窗口按钮
+            if (GUILayout.Button("状态窗口", GUILayout.Width(80)))
             {
-                McpService.EnableLog = newEnableLog;
-                EditorPrefs.SetBool("mcp_enable_log", newEnableLog);
+                McpServiceStatusWindow.ShowWindow();
             }
-            EditorGUILayout.EndHorizontal();
-            var installStatusRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(20));
-            DrawStatusDot(installStatusRect, isUnityBridgeRunning ? Color.green : Color.red);
-            EditorGUILayout.LabelField($"       Status: {(isUnityBridgeRunning ? "Running" : "Stopped")}");
 
-            // 显示端口信息
-            if (isUnityBridgeRunning && currentPort != -1)
-            {
-                EditorGUILayout.LabelField($"Port: {currentPort} (Range: {unityPortStart}-{unityPortEnd})");
-            }
-            else
-            {
-                EditorGUILayout.LabelField($"Port Range: {unityPortStart}-{unityPortEnd}");
-            }
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button(isUnityBridgeRunning ? "Stop Bridge" : "Start Bridge"))
-            {
-                ToggleUnityBridge();
-            }
-
-            EditorGUILayout.Space(5);
-            EditorGUILayout.EndVertical();
-
-            // 客户端连接状态部分
-            if (isUnityBridgeRunning)
-            {
-                DrawClientConnectionStatus();
-            }
-
-            // 控制面板已移至标题行，不再单独显示
-            // DrawControlPanel();
+            EditorGUILayout.Space(10);
 
             // 添加工具方法列表 - 让它填充剩余空间
-            EditorGUILayout.Space(10);
             DrawMethodsList();
 
             // 结束主垂直布局
             EditorGUILayout.EndVertical();
-        }
-
-        private static async void ToggleUnityBridge()
-        {
-            if (isUnityBridgeRunning)
-            {
-                McpService.Stop();
-                isUnityBridgeRunning = false;
-            }
-            else
-            {
-                // 尝试启动 - Unity MCP 会自动选择可用端口
-                bool hasConflicts = false;
-                List<int> conflictPorts = new List<int>();
-
-                // 检查端口范围内是否有冲突
-                for (int port = unityPortStart; port <= unityPortEnd; port++)
-                {
-                    bool inUse = await IsPortInUseAsync(port);
-                    if (inUse)
-                    {
-                        // 检查是否是外部进程占用
-                        bool isExternalProcess = await IsPortUsedByExternalProcess(port);
-                        if (isExternalProcess)
-                        {
-                            hasConflicts = true;
-                            conflictPorts.Add(port);
-                        }
-                    }
-                }
-
-                // 如果有外部进程占用端口，询问用户是否清理
-                if (hasConflicts)
-                {
-                    string conflictPortsStr = string.Join(", ", conflictPorts);
-                    if (EditorUtility.DisplayDialog("端口冲突",
-                        $"端口 {conflictPortsStr} 被外部进程占用。\n\n" +
-                        "选择'清理'将尝试终止占用进程，\n" +
-                        "选择'继续'将使用其他可用端口启动。", "清理", "继续"))
-                    {
-                        // 用户选择清理冲突端口
-                        await ClearConflictPorts(conflictPorts);
-                    }
-                }
-
-                // 尝试启动Unity MCP，它会自动选择可用端口
-                McpService.Start();
-
-                // 检查启动是否成功
-                if (McpService.IsRunning)
-                {
-                    isUnityBridgeRunning = true;
-                    Debug.Log($"Unity MCP Bridge 已启动，使用端口: {McpService.currentPort}");
-                }
-                else
-                {
-                    isUnityBridgeRunning = false;
-                    EditorUtility.DisplayDialog("启动失败",
-                        $"无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动Unity MCP Bridge。\n" +
-                        "请检查是否有其他进程占用了所有端口。", "确定");
-                }
-            }
-            EditorPrefs.SetBool("mcp_open_state", isUnityBridgeRunning);
-        }
-
-        private static async Task<bool> IsPortUsedByExternalProcess(int port)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-
-#if UNITY_EDITOR_WIN
-                    // Windows: 使用netstat检查端口占用
-                    System.Diagnostics.Process netstat = new System.Diagnostics.Process();
-                    netstat.StartInfo.FileName = "cmd.exe";
-                    netstat.StartInfo.Arguments = $"/c netstat -ano | findstr :{port}";
-                    netstat.StartInfo.RedirectStandardOutput = true;
-                    netstat.StartInfo.UseShellExecute = false;
-                    netstat.StartInfo.CreateNoWindow = true;
-                    netstat.Start();
-                    string output = netstat.StandardOutput.ReadToEnd();
-                    netstat.WaitForExit();
-
-                    string[] lines = output.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in lines)
-                    {
-                        var parts = line.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length >= 5 && int.TryParse(parts[4], out int pid))
-                        {
-                            if (pid != currentProcessId && line.Contains("LISTENING"))
-                            {
-                                return true; // 外部进程占用
-                            }
-                        }
-                    }
-#elif UNITY_EDITOR_OSX
-                    // macOS: 使用lsof检查端口占用
-                    System.Diagnostics.Process lsof = new System.Diagnostics.Process();
-                    lsof.StartInfo.FileName = "/bin/bash";
-                    lsof.StartInfo.Arguments = $"-c \"lsof -i :{port} -sTCP:LISTEN\"";
-                    lsof.StartInfo.RedirectStandardOutput = true;
-                    lsof.StartInfo.UseShellExecute = false;
-                    lsof.StartInfo.CreateNoWindow = true;
-                    lsof.Start();
-                    string output = lsof.StandardOutput.ReadToEnd();
-                    lsof.WaitForExit();
-
-                    string[] lines = output.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in lines)
-                    {
-                        if (line.Contains("LISTEN"))
-                        {
-                            var parts = line.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length >= 2 && int.TryParse(parts[1], out int pid))
-                            {
-                                if (pid != currentProcessId)
-                                {
-                                    return true; // 外部进程占用
-                                }
-                            }
-                        }
-                    }
-#endif
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"检查端口是否被外部进程占用时发生错误: {ex.Message}");
-                    return false;
-                }
-            });
-        }
-
-        private static async Task ClearConflictPorts(List<int> conflictPorts)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
-
-                    foreach (int port in conflictPorts)
-                    {
-#if UNITY_EDITOR_WIN
-                        // Windows: 查找并杀死占用端口的进程
-                        System.Diagnostics.Process netstat = new System.Diagnostics.Process();
-                        netstat.StartInfo.FileName = "cmd.exe";
-                        netstat.StartInfo.Arguments = $"/c netstat -ano | findstr :{port}";
-                        netstat.StartInfo.RedirectStandardOutput = true;
-                        netstat.StartInfo.UseShellExecute = false;
-                        netstat.StartInfo.CreateNoWindow = true;
-                        netstat.Start();
-                        string output = netstat.StandardOutput.ReadToEnd();
-                        netstat.WaitForExit();
-
-                        string[] lines = output.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
-                        HashSet<int> pids = new HashSet<int>();
-                        foreach (var line in lines)
-                        {
-                            var parts = line.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length >= 5 && int.TryParse(parts[4], out int pid))
-                            {
-                                if (pid != currentProcessId && line.Contains("LISTENING"))
-                                {
-                                    pids.Add(pid);
-                                }
-                            }
-                        }
-
-                        foreach (int pid in pids)
-                        {
-                            System.Diagnostics.Process kill = new System.Diagnostics.Process();
-                            kill.StartInfo.FileName = "taskkill";
-                            kill.StartInfo.Arguments = $"/PID {pid} /F";
-                            kill.StartInfo.CreateNoWindow = true;
-                            kill.StartInfo.UseShellExecute = false;
-                            kill.Start();
-                            kill.WaitForExit();
-                        }
-#elif UNITY_EDITOR_OSX
-                        // macOS: 查找并杀死占用端口的进程
-                        System.Diagnostics.Process lsof = new System.Diagnostics.Process();
-                        lsof.StartInfo.FileName = "/bin/bash";
-                        lsof.StartInfo.Arguments = $"-c \"lsof -i :{port} -sTCP:LISTEN -t\"";
-                        lsof.StartInfo.RedirectStandardOutput = true;
-                        lsof.StartInfo.UseShellExecute = false;
-                        lsof.StartInfo.CreateNoWindow = true;
-                        lsof.Start();
-                        string output = lsof.StandardOutput.ReadToEnd();
-                        lsof.WaitForExit();
-
-                        string[] pids = output.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var pidStr in pids)
-                        {
-                            if (int.TryParse(pidStr, out int pid) && pid != currentProcessId)
-                            {
-                                System.Diagnostics.Process kill = new System.Diagnostics.Process();
-                                kill.StartInfo.FileName = "/bin/bash";
-                                kill.StartInfo.Arguments = $"-c \"kill -9 {pid}\"";
-                                kill.StartInfo.CreateNoWindow = true;
-                                kill.StartInfo.UseShellExecute = false;
-                                kill.Start();
-                                kill.WaitForExit();
-                            }
-                        }
-#endif
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"清理冲突端口时发生错误: {ex.Message}");
-                }
-            });
         }
 
         /// <summary>
@@ -401,24 +61,8 @@ namespace UnityMcp.Gui
             // 估算已占用的空间
             float usedHeight = 0f;
 
-            // Unity Bridge Section 估算高度 (约 120-140px)
-            usedHeight += 100;
-
-            // 客户端连接状态部分（如果显示）
-            if (isUnityBridgeRunning)
-            {
-                int clientCount = McpService.ConnectedClientCount;
-                if (clientCount > 0)
-                {
-                    // 如果显示详细信息，额外增加滚动视图高度
-                    if (showClientDetails)
-                    {
-                        usedHeight += 80f;
-                        // 滚动视图：最小80px，每个客户端约占100px，最大220px，再加上边距
-                        usedHeight += Mathf.Max(80f, Mathf.Min(clientCount * 100f, 220f)) + 10f;
-                    }
-                }
-            }
+            // 标题和按钮区域高度 (约 50px)
+            usedHeight += 50f;
 
             // 工具方法列表标题和间距 (约 50px)
             usedHeight += 50f;
@@ -427,7 +71,7 @@ namespace UnityMcp.Gui
             usedHeight += 30f;
 
             // 计算剩余可用高度，至少保留 150px
-            float availableHeight = Mathf.Max(windowHeight - usedHeight, 150f);
+            float availableHeight = Mathf.Max(windowHeight - usedHeight, 500f);
 
             return availableHeight;
         }
@@ -1084,74 +728,6 @@ namespace UnityMcp.Gui
                     // 必需参数默认返回空字符串
                     return "";
             }
-        }
-
-        /// <summary>
-        /// 绘制客户端连接状态
-        /// </summary>
-        private static void DrawClientConnectionStatus()
-        {
-            EditorGUILayout.Space(10);
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            // 客户端连接状态标题
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("客户端连接状态", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
-
-            // 显示连接数量
-            int clientCount = McpService.ConnectedClientCount;
-            Color countColor = clientCount > 0 ? Color.green : Color.gray;
-            GUIStyle countStyle = new GUIStyle(EditorStyles.label);
-            countStyle.normal.textColor = countColor;
-            countStyle.fontStyle = FontStyle.Bold;
-
-            EditorGUILayout.LabelField($"连接数: {clientCount}", countStyle, GUILayout.Width(80));
-            EditorGUILayout.EndHorizontal();
-
-            if (clientCount > 0)
-            {
-                // 详细信息折叠控制
-                showClientDetails = EditorGUILayout.Foldout(showClientDetails, "显示详细信息", true);
-
-                if (showClientDetails)
-                {
-                    EditorGUILayout.Space(5);
-
-                    // 客户端列表滚动视图
-                    clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
-                        GUILayout.MinHeight(80), GUILayout.MaxHeight(220));
-
-                    var clients = McpService.GetConnectedClients();
-                    foreach (var client in clients)
-                    {
-                        EditorGUILayout.BeginVertical("box");
-
-                        // 客户端基本信息
-                        EditorGUILayout.LabelField($"端点: {client.EndPoint}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"连接时间: {client.ConnectedAt:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"最后活动: {client.LastActivity:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"命令数: {client.CommandCount}", EditorStyles.miniLabel);
-
-                        // 计算连接持续时间
-                        TimeSpan duration = DateTime.Now - client.ConnectedAt;
-                        string durationText = duration.TotalMinutes < 1
-                            ? $"{duration.Seconds}秒"
-                            : $"{(int)duration.TotalMinutes}分{duration.Seconds}秒";
-                        EditorGUILayout.LabelField($"连接时长: {durationText}", EditorStyles.miniLabel);
-
-                        EditorGUILayout.EndVertical();
-                        EditorGUILayout.Space(2);
-                    }
-
-                    EditorGUILayout.EndScrollView();
-                }
-            }
-            else
-            {
-                EditorGUILayout.LabelField("暂无客户端连接", EditorStyles.centeredGreyMiniLabel);
-            }
-
-            EditorGUILayout.EndVertical();
         }
     }
 }
