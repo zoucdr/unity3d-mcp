@@ -82,6 +82,74 @@ namespace UnityMcp
             return ToString();
         }
 
+        /// <summary>
+        /// 导出为 YAML 格式字符串
+        /// </summary>
+        /// <param name="indent">缩进字符，默认为2个空格</param>
+        /// <returns>YAML 格式字符串</returns>
+        public string ToYamlString(string indent = "  ")
+        {
+            return ToYamlStringInternal(0, indent, false);
+        }
+
+        /// <summary>
+        /// 导出为 YAML 格式字符串的内部递归方法
+        /// </summary>
+        /// <param name="level">当前缩进层级</param>
+        /// <param name="indent">缩进字符</param>
+        /// <param name="isArrayItem">是否为数组项</param>
+        /// <returns>YAML 格式字符串</returns>
+        public virtual string ToYamlStringInternal(int level, string indent, bool isArrayItem)
+        {
+            // 默认实现：返回字符串值
+            return EscapeYamlString(Value);
+        }
+
+        /// <summary>
+        /// 转义 YAML 字符串（如果需要引号则添加）
+        /// </summary>
+        protected static string EscapeYamlString(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return "\"\"";
+
+            // 检查是否需要引号
+            bool needQuotes = false;
+            
+            // 包含特殊字符需要引号
+            if (value.Contains(':') || value.Contains('#') || value.Contains('[') || value.Contains(']') ||
+                value.Contains('{') || value.Contains('}') || value.Contains(',') || value.Contains('&') ||
+                value.Contains('*') || value.Contains('!') || value.Contains('|') || value.Contains('>') ||
+                value.Contains('\'') || value.Contains('\"') || value.Contains('%') || value.Contains('@') ||
+                value.Contains('`') || value.StartsWith("-") || value.StartsWith("?") || 
+                value.StartsWith(" ") || value.EndsWith(" ") || value.Contains('\n') || value.Contains('\r'))
+            {
+                needQuotes = true;
+            }
+
+            // 看起来像布尔值或null但实际是字符串
+            string lower = value.ToLower();
+            if (lower == "true" || lower == "false" || lower == "null" || lower == "~" || 
+                lower == "yes" || lower == "no" || lower == "on" || lower == "off")
+            {
+                needQuotes = true;
+            }
+
+            // 看起来像数字但实际是字符串
+            if (!needQuotes && (int.TryParse(value, out _) || float.TryParse(value, out _) || double.TryParse(value, out _)))
+            {
+                needQuotes = true;
+            }
+
+            if (needQuotes)
+            {
+                // 使用双引号并转义内部的双引号和反斜杠
+                return "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t") + "\"";
+            }
+
+            return value;
+        }
+
         #endregion common interface
 
         #region typecasting properties
@@ -1108,6 +1176,80 @@ return LoadFromCompressedStream(stream);
             return result.ToString();
         }
 
+        public override string ToYamlStringInternal(int level, string indent, bool isArrayItem)
+        {
+            if (m_List.Count == 0)
+                return "[]";
+
+            var result = new System.Text.StringBuilder();
+            var currentIndent = new string(' ', level * indent.Length);
+
+            foreach (JsonNode node in m_List)
+            {
+                if (result.Length > 0)
+                    result.Append("\n");
+
+                result.Append(currentIndent);
+                result.Append("- ");
+
+                // 如果元素是对象或数组，需要特殊处理
+                if (node is JsonClass jsonClass)
+                {
+                    // 对象：第一个键值对跟在 "- " 后面，后续键值对需要对齐缩进
+                    bool firstProperty = true;
+                    var itemIndent = currentIndent + indent;
+                    
+                    foreach (var kvp in jsonClass.AsEnumerable())
+                    {
+                        if (!firstProperty)
+                        {
+                            result.Append("\n");
+                            result.Append(itemIndent);
+                        }
+                        
+                        // YAML key
+                        string yamlKey = kvp.Key;
+                        if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') || 
+                            yamlKey.Contains('[') || yamlKey.Contains(']') || yamlKey.Contains('{') || yamlKey.Contains('}'))
+                        {
+                            yamlKey = "\"" + yamlKey.Replace("\"", "\\\"") + "\"";
+                        }
+                        
+                        result.Append(yamlKey);
+                        result.Append(": ");
+
+                        // YAML value
+                        if (kvp.Value is JsonClass || kvp.Value is JsonArray)
+                        {
+                            // 复杂类型：换行并缩进
+                            result.Append("\n");
+                            result.Append(kvp.Value.ToYamlStringInternal(level + 2, indent, false));
+                        }
+                        else
+                        {
+                            // 简单类型：直接跟在冒号后面
+                            result.Append(kvp.Value.ToYamlStringInternal(level + 2, indent, false));
+                        }
+                        
+                        firstProperty = false;
+                    }
+                }
+                else if (node is JsonArray)
+                {
+                    // 嵌套数组
+                    result.Append("\n");
+                    result.Append(node.ToYamlStringInternal(level + 1, indent, false));
+                }
+                else
+                {
+                    // 简单类型
+                    result.Append(node.ToYamlStringInternal(level + 1, indent, true));
+                }
+            }
+
+            return result.ToString();
+        }
+
         public override void Serialize(System.IO.BinaryWriter aWriter)
         {
             aWriter.Write((byte)JsonBinaryTag.Array);
@@ -1301,6 +1443,53 @@ return LoadFromCompressedStream(stream);
             result.Append("}");
             return result.ToString();
         }
+
+        public override string ToYamlStringInternal(int level, string indent, bool isArrayItem)
+        {
+            if (m_Dict.Count == 0)
+                return "{}";
+
+            var result = new System.Text.StringBuilder();
+            var currentIndent = new string(' ', level * indent.Length);
+            var nextIndent = new string(' ', (level + 1) * indent.Length);
+
+            bool first = true;
+            foreach (KeyValuePair<string, JsonNode> kvp in m_Dict)
+            {
+                if (!first)
+                    result.Append("\n");
+                first = false;
+
+                result.Append(currentIndent);
+                
+                // YAML key (需要检查是否需要引号)
+                string yamlKey = kvp.Key;
+                if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') || 
+                    yamlKey.Contains('[') || yamlKey.Contains(']') || yamlKey.Contains('{') || yamlKey.Contains('}'))
+                {
+                    yamlKey = "\"" + yamlKey.Replace("\"", "\\\"") + "\"";
+                }
+                
+                result.Append(yamlKey);
+                result.Append(": ");
+
+                // YAML value
+                if (kvp.Value is JsonClass || kvp.Value is JsonArray)
+                {
+                    // 复杂类型：换行并缩进
+                    result.Append("\n");
+                    result.Append(kvp.Value.ToYamlStringInternal(level + 1, indent, false));
+                }
+                else
+                {
+                    // 简单类型：直接跟在冒号后面
+                    result.Append(kvp.Value.ToYamlStringInternal(level + 1, indent, false));
+                }
+            }
+
+            return result.ToString();
+        }
+
         public override void Serialize(System.IO.BinaryWriter aWriter)
         {
             aWriter.Write((byte)JsonBinaryTag.Class);
@@ -1478,6 +1667,26 @@ return LoadFromCompressedStream(stream);
                 return m_Data; // 数字不需要引号
             }
             return "\"" + Escape(m_Data) + "\"";
+        }
+
+        public override string ToYamlStringInternal(int level, string indent, bool isArrayItem)
+        {
+            JsonNodeType nodeType = this.type;
+            
+            // null 值
+            if (string.IsNullOrEmpty(m_Data) || m_Data == "null")
+                return "null";
+            
+            // 布尔值
+            if (nodeType == JsonNodeType.Boolean)
+                return m_Data.ToLower();
+            
+            // 数字（整数或浮点数）
+            if (nodeType == JsonNodeType.Integer || nodeType == JsonNodeType.Float)
+                return m_Data;
+            
+            // 字符串：使用 EscapeYamlString 处理
+            return EscapeYamlString(m_Data);
         }
 
         // 隐式转换操作符，支持从基本类型转换为 JsonData

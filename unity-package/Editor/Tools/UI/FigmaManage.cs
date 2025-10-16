@@ -1107,49 +1107,6 @@ namespace UnityMcp.Tools
 
                         string scanModeInfo = !string.IsNullOrEmpty(rootNodeIdForScan) ? $"（根节点扫描模式: {rootNodeIdForScan}）" : "";
 
-                        /* 
-                         * ===================================================================================
-                         * Figma到UGUI坐标系转换说明
-                         * ===================================================================================
-                         * 
-                         * 坐标系差异：
-                         * - Figma坐标系：原点在左上角，X轴向右为正，Y轴向下为正
-                         * - UGUI坐标系：原点在容器中心，X轴向右为正，Y轴向上为正
-                         * 
-                         * 转换公式（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
-                         * 
-                         * 1. X坐标转换：
-                         *    anchored_position.x = figma_x + (element_width / 2) - (container_width / 2)
-                         *    
-                         *    示例：figma_x=88, element_width=300, container_width=1200
-                         *    结果：88 + 150 - 600 = -362
-                         * 
-                         * 2. Y坐标转换（需要翻转Y轴）：
-                         *    anchored_position.y = (container_height / 2) - figma_y - (element_height / 2)
-                         *    
-                         *    示例：container_height=720, figma_y=498, element_height=436.75
-                         *    结果：360 - 498 - 218.375 = -356.375
-                         * 
-                         * 3. 尺寸保持不变：
-                         *    size_delta = [element_width, element_height]
-                         * 
-                         * 完整公式总结：
-                         * ┌─────────────────────────────────────────────────────────────────────────┐
-                         * │ anchored_position.x = figma_pos.x + size.x/2 - container_width/2       │
-                         * │ anchored_position.y = container_height/2 - figma_pos.y - size.y/2      │
-                         * │ size_delta.x = figma_size.x                                             │
-                         * │ size_delta.y = figma_size.y                                             │
-                         * └─────────────────────────────────────────────────────────────────────────┘
-                         * 
-                         * 注意事项：
-                         * - 此转换公式适用于锚点在元素中心的情况（默认）
-                         * - 如果锚点不在中心，需要根据实际锚点位置调整offset
-                         * - Figma返回的是元素的左上角位置和尺寸
-                         * - UGUI的anchored_position是相对于锚点的位置
-                         * 
-                         * ===================================================================================
-                         */
-
                         Debug.Log($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点");
                         Debug.Log($"简化数据: {simplifiedPath}");
 
@@ -1160,7 +1117,7 @@ namespace UnityMcp.Tools
                         responseData["include_children"] = includeChildren;
                         responseData["scan_mode"] = !string.IsNullOrEmpty(rootNodeIdForScan);
                         responseData["node_id"] = rootNodeIdForScan;
-                        responseData["simplified_data"] = simplifiedJson;
+                        responseData["simplified_data"] = simplifiedNodes;
                         responseData["coordinate_system_info"] = GetCoordinateSystemInfo();
 
                         yield return Response.Success($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点", responseData);
@@ -1738,6 +1695,49 @@ namespace UnityMcp.Tools
         /// <returns>坐标系转换信息的JsonClass对象</returns>
         private JsonClass GetCoordinateSystemInfo()
         {
+            /* 
+             * ===================================================================================
+             * Figma到UGUI坐标系转换说明
+             * ===================================================================================
+             * 
+             * 坐标系差异：
+             * - Figma坐标系：原点在左上角，X轴向右为正，Y轴向下为正
+             * - UGUI坐标系：原点在容器中心，X轴向右为正，Y轴向上为正
+             * 
+             * 转换公式（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
+             * 
+             * 1. X坐标转换：
+             *    anchored_position.x = figma_x + (element_width / 2) - (container_width / 2)
+             *    
+             *    示例：figma_x=88, element_width=300, container_width=1200
+             *    结果：88 + 150 - 600 = -362
+             * 
+             * 2. Y坐标转换（需要翻转Y轴）：
+             *    anchored_position.y = (container_height / 2) - figma_y - (element_height / 2)
+             *    
+             *    示例：container_height=720, figma_y=498, element_height=436.75
+             *    结果：360 - 498 - 218.375 = -356.375
+             * 
+             * 3. 尺寸保持不变：
+             *    size_delta = [element_width, element_height]
+             * 
+             * 完整公式总结：
+             * ┌─────────────────────────────────────────────────────────────────────────┐
+             * │ anchored_position.x = figma_pos.x + size.x/2 - container_width/2       │
+             * │ anchored_position.y = container_height/2 - figma_pos.y - size.y/2      │
+             * │ size_delta.x = figma_size.x                                             │
+             * │ size_delta.y = figma_size.y                                             │
+             * └─────────────────────────────────────────────────────────────────────────┘
+             * 
+             * 注意事项：
+             * - 此转换公式适用于锚点在元素中心的情况（默认）
+             * - 如果锚点不在中心，需要根据实际锚点位置调整offset
+             * - Figma返回的是元素的左上角位置和尺寸
+             * - UGUI的anchored_position是相对于锚点的位置
+             * 
+             * ===================================================================================
+             */
+
             var info = new JsonClass();
             info["figma_coordinate_system"] = "原点在左上角，Y轴向下为正";
             info["ugui_coordinate_system"] = "原点在容器中心，Y轴向上为正";
