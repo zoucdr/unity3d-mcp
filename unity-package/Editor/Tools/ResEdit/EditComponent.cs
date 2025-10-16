@@ -155,7 +155,22 @@ namespace UnityMcp.Tools
                 Component targetComponent = FindComponentOnGameObject(targetGo, compName);
                 if (targetComponent == null)
                 {
-                    return Response.Error($"Component '{compName}' not found on '{targetGo.name}'.");
+                    // 获取GameObject上所有组件的名称
+                    var availableComponents = targetGo.GetComponents<Component>()
+                        .Where(c => c != null)
+                        .Select(c => c.GetType().Name)
+                        .Distinct()
+                        .ToArray();
+                    
+                    var errorData = new Dictionary<string, object>
+                    {
+                        { "gameobject_name", targetGo.name },
+                        { "requested_component", compName },
+                        { "available_components", availableComponents }
+                    };
+                    
+                    string errorMessage = $"Component '{compName}' not found on '{targetGo.name}'. Available components: {string.Join(", ", availableComponents)}";
+                    return Response.Error(errorMessage, Json.FromObject(errorData));
                 }
 
                 // 获取组件的所有字段和属性
@@ -279,7 +294,22 @@ namespace UnityMcp.Tools
             Component targetComponent = FindComponentOnGameObject(targetGo, compName);
             if (targetComponent == null)
             {
-                return Response.Error($"Component '{compName}' not found on '{targetGo.name}'.");
+                // 获取GameObject上所有组件的名称
+                var availableComponents = targetGo.GetComponents<Component>()
+                    .Where(c => c != null)
+                    .Select(c => c.GetType().Name)
+                    .Distinct()
+                    .ToArray();
+                
+                var errorData = new Dictionary<string, object>
+                {
+                    { "gameobject_name", targetGo.name },
+                    { "requested_component", compName },
+                    { "available_components", availableComponents }
+                };
+                
+                string errorMessage = $"Component '{compName}' not found on '{targetGo.name}'. Available components: {string.Join(", ", availableComponents)}";
+                return Response.Error(errorMessage, Json.FromObject(errorData));
             }
 
             // 获取要设置的属性字典
@@ -356,19 +386,23 @@ namespace UnityMcp.Tools
                 { "results", Json.FromObject(results) }
             };
 
-            if (errors.Count > 0)
-            {
-                // 转换为数组以确保序列化正确
-                responseData["errors"] = errors.ToArray();
-            }
-
             if (successCount > 0)
             {
+                if (errors.Count > 0)
+                {
+                    // 转换为数组以确保序列化正确
+                    responseData["errors"] = errors.ToArray();
+                }
                 return Response.Success(message, Json.FromObject(responseData));
             }
             else
             {
-                return Response.Error($"Failed to set any properties on component '{compName}'.", Json.FromObject(responseData));
+                // 获取所有可设置的属性和字段列表
+                var settableMembers = GetSettablePropertiesAndFields(targetComponent);
+                string errorMessage = $"Failed to set any properties on component '{compName}'. Available settable properties and fields: {string.Join(", ", settableMembers.Take(10))}" + 
+                                    (settableMembers.Count > 10 ? $" (and {settableMembers.Count - 10} more)" : "");
+                
+                return Response.Error(errorMessage, Json.FromObject(responseData));
             }
         }
 
@@ -377,6 +411,74 @@ namespace UnityMcp.Tools
         #endregion
 
         #region 组件辅助方法
+
+        /// <summary>
+        /// 获取组件所有可设置的属性和可序列化字段列表
+        /// </summary>
+        private List<string> GetSettablePropertiesAndFields(Component component)
+        {
+            var settableMembers = new List<string>();
+            if (component == null) return settableMembers;
+
+            Type componentType = component.GetType();
+            BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+
+            // 定义要跳过的属性名称（Unity组件快捷访问器和不常用属性）
+            var skipProperties = new HashSet<string>
+            {
+                "hideFlags", "rigidbody", "rigidbody2D", "camera", "light", "animation",
+                "constantForce", "renderer", "audio", "networkView", "collider", "collider2D",
+                "hingeJoint", "particleSystem", "gameObject", "transform", "tag", "name",
+                "worldToLocalMatrix", "localToWorldMatrix", "isPartOfStaticBatch",
+                // 跳过会导致实例化的属性（避免副作用）
+                "material", "materials", "mesh"  // 使用 sharedMaterial, sharedMaterials, sharedMesh 代替
+            };
+
+            try
+            {
+                // 1. 获取所有可写的公共属性 (Properties)
+                PropertyInfo[] properties = componentType.GetProperties(flags);
+                if (properties != null)
+                {
+                    foreach (PropertyInfo prop in properties)
+                    {
+                        // 跳过黑名单中的属性
+                        if (skipProperties.Contains(prop.Name)) continue;
+
+                        // 只获取可读的、可写的属性（排除只读属性和索引器）
+                        if (prop.CanRead && prop.CanWrite && !prop.GetIndexParameters().Any())
+                        {
+                            settableMembers.Add($"{prop.Name} (Property, {prop.PropertyType.Name})");
+                        }
+                    }
+                }
+
+                // 2. 获取所有可序列化字段 (Fields) - 包括 SerializeField
+                FieldInfo[] fields = componentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (fields != null)
+                {
+                    foreach (FieldInfo field in fields)
+                    {
+                        // 检查字段是否可序列化
+                        // 条件1: public字段
+                        // 条件2: 带有SerializeField特性的非public字段
+                        bool isSerializable = field.IsPublic ||
+                                             field.GetCustomAttributes(typeof(SerializeField), true).Length > 0;
+
+                        if (isSerializable && !settableMembers.Any(m => m.StartsWith(field.Name + " "))) // 避免重复
+                        {
+                            settableMembers.Add($"{field.Name} (Field, {field.FieldType.Name})");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[GetSettablePropertiesAndFields] Error getting settable members for {componentType.Name}: {ex.Message}");
+            }
+
+            return settableMembers;
+        }
 
         /// <summary>
         /// 在GameObject上查找组件
