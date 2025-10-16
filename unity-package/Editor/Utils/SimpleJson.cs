@@ -539,24 +539,121 @@ namespace UnityMcp
             return result;
         }
 
+
+        // 若整段是 "...." 的 JSON 字符串，循环解包到 {..} 或 [..]
+        private static string UnwrapToJsonIfPossible(string s, int maxRounds = 3)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            string cur = s.Trim();
+            for (int round = 0; round < maxRounds; round++)
+            {
+                if (cur.Length >= 2 && cur[0] == '"' && cur[^1] == '"')
+                {
+                    cur = JsonStringUnescape(cur.Substring(1, cur.Length - 2)).Trim();
+                    if ((cur.Length > 1 && ((cur[0] == '{' && cur[^1] == '}') || (cur[0] == '[' && cur[^1] == ']'))))
+                        return cur;
+                    continue;
+                }
+                break;
+            }
+            return cur;
+        }
+
+        // 处理形如 {\"k\":\"v\"} 这种“未包外引号却整体被转义”的文本
+        private static string TryNormalizeEscapedJson(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            string t = s.Trim();
+            if (t.Length == 0) return t;
+
+            // 仅在看起来像 JSON（以 { 或 [ 开头）时尝试
+            if (t[0] == '{' || t[0] == '[')
+            {
+                // 检测是否只有转义引号（\"），几乎没有未转义引号
+                bool hasEscapedQuotes = t.Contains("\\\"");
+                bool hasUnescapedQuotes = HasAnyUnescapedQuote(t);
+
+                if (hasEscapedQuotes && !hasUnescapedQuotes)
+                {
+                    // 把整段当成“JSON字符串内容”按 JSON 规则反转义一次
+                    string u = JsonStringUnescape(t).Trim();
+                    if (u.Length > 1 && ((u[0] == '{' && u[^1] == '}') || (u[0] == '[' && u[^1] == ']')))
+                        return u;
+                }
+            }
+            return s;
+        }
+
+        private static bool HasAnyUnescapedQuote(string s)
+        {
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '"')
+                {
+                    // 统计前置反斜杠奇偶判定是否转义
+                    int bs = 0, j = i - 1;
+                    while (j >= 0 && s[j] == '\\') { bs++; j--; }
+                    if ((bs & 1) == 0) return true; // 有未转义的引号
+                }
+            }
+            return false;
+        }
+
+        // 标准 JSON 字符串反转义
+        private static string JsonStringUnescape(string s)
+        {
+            var sb = new System.Text.StringBuilder(s.Length);
+            for (int i = 0; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (c == '\\' && i + 1 < s.Length)
+                {
+                    char C = s[++i];
+                    switch (C)
+                    {
+                        case '"': sb.Append('\"'); break;
+                        case '\\': sb.Append('\\'); break;
+                        case '/': sb.Append('/'); break;
+                        case 'b': sb.Append('\b'); break;
+                        case 'f': sb.Append('\f'); break;
+                        case 'n': sb.Append('\n'); break;
+                        case 'r': sb.Append('\r'); break;
+                        case 't': sb.Append('\t'); break;
+                        case 'u':
+                            if (i + 4 < s.Length)
+                            {
+                                string hex = s.Substring(i + 1, 4);
+                                sb.Append((char)int.Parse(hex, System.Globalization.NumberStyles.AllowHexSpecifier));
+                                i += 4;
+                            }
+                            break;
+                        default: sb.Append(C); break;
+                    }
+                }
+                else sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
         public static JsonNode Parse(string aJSON)
         {
+            aJSON = UnwrapToJsonIfPossible(aJSON);
+            aJSON = TryNormalizeEscapedJson(aJSON);
             Stack<JsonNode> stack = new Stack<JsonNode>();
             JsonNode ctx = null;
             int i = 0;
             string Token = "";
             string TokenName = "";
             bool QuoteMode = false;
+            bool TokenIsQuoted = false; // 新增：标记当前Token是否源自引号内（即使为空也需提交）
+
             while (i < aJSON.Length)
             {
                 switch (aJSON[i])
                 {
                     case '{':
-                        if (QuoteMode)
-                        {
-                            Token += aJSON[i];
-                            break;
-                        }
+                        if (QuoteMode) { Token += aJSON[i]; break; }
+
                         stack.Push(new JsonClass());
                         if (ctx != null)
                         {
@@ -568,15 +665,12 @@ namespace UnityMcp
                         }
                         TokenName = "";
                         Token = "";
+                        TokenIsQuoted = false;
                         ctx = stack.Peek();
                         break;
 
                     case '[':
-                        if (QuoteMode)
-                        {
-                            Token += aJSON[i];
-                            break;
-                        }
+                        if (QuoteMode) { Token += aJSON[i]; break; }
 
                         stack.Push(new JsonArray());
                         if (ctx != null)
@@ -589,21 +683,19 @@ namespace UnityMcp
                         }
                         TokenName = "";
                         Token = "";
+                        TokenIsQuoted = false;
                         ctx = stack.Peek();
                         break;
 
                     case '}':
                     case ']':
-                        if (QuoteMode)
-                        {
-                            Token += aJSON[i];
-                            break;
-                        }
+                        if (QuoteMode) { Token += aJSON[i]; break; }
+
                         if (stack.Count == 0)
                             throw new Exception("Json Parse: Too many closing brackets");
 
-                        stack.Pop();
-                        if (Token != "")
+                        // 关闭当前容器前，把最后一个尚未提交的值/成员写入
+                        if (Token != "" || TokenIsQuoted)
                         {
                             TokenName = TokenName.Trim();
                             if (ctx is JsonArray)
@@ -611,33 +703,40 @@ namespace UnityMcp
                             else if (TokenName != "")
                                 ctx.Add(TokenName, Token);
                         }
+
+                        stack.Pop();
                         TokenName = "";
                         Token = "";
+                        TokenIsQuoted = false;
+
                         if (stack.Count > 0)
                             ctx = stack.Peek();
                         break;
 
                     case ':':
-                        if (QuoteMode)
+                        // 只有在对象上下文且不在引号内时，冒号才是 key/value 分隔符；
+                        // 其它情况（如 key 含 ':' 或字符串值内的 ':'）都当普通字符。
+                        if (QuoteMode || !(ctx is JsonClass))
                         {
                             Token += aJSON[i];
                             break;
                         }
                         TokenName = Token;
                         Token = "";
+                        TokenIsQuoted = false;
                         break;
 
                     case '"':
+                        // 引号切换字符串模式；配合下方的反斜杠处理可正确跳过转义引号
                         QuoteMode ^= true;
+                        if (QuoteMode)            // 进入引号，标记该Token来自引号
+                            TokenIsQuoted = true;
                         break;
 
                     case ',':
-                        if (QuoteMode)
-                        {
-                            Token += aJSON[i];
-                            break;
-                        }
-                        if (Token != "")
+                        if (QuoteMode) { Token += aJSON[i]; break; }
+
+                        if (Token != "" || TokenIsQuoted)
                         {
                             if (ctx is JsonArray)
                                 ctx.Add(Token);
@@ -646,6 +745,7 @@ namespace UnityMcp
                         }
                         TokenName = "";
                         Token = "";
+                        TokenIsQuoted = false;
                         break;
 
                     case '\r':
@@ -677,7 +777,7 @@ namespace UnityMcp
                                         i += 4;
                                         break;
                                     }
-                                default: Token += C; break;
+                                default: Token += C; break; // 包括 '\"' 在内的普通转义
                             }
                         }
                         break;
@@ -688,10 +788,10 @@ namespace UnityMcp
                 }
                 ++i;
             }
+
             if (QuoteMode)
-            {
                 throw new Exception("Json Parse: Quotation marks seems to be messed up.");
-            }
+
             return ctx;
         }
 

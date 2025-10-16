@@ -319,6 +319,7 @@ namespace UnityMcp.Tools
         {
             string fileKey = ctx["file_key"]?.ToString();
             string nodeId = ctx["node_ids"]?.ToString();
+            string rootNodeId = ctx["root_node_id"]?.ToString();
             string token = GetFigmaToken();
             string imageFormat = ctx["image_format"]?.ToString() ?? "png";
             float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "1");
@@ -326,25 +327,33 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            if (string.IsNullOrEmpty(nodeId))
-                return Response.Error("node_ids是必需的参数");
+            // 支持 node_ids 或 root_node_id
+            if (string.IsNullOrEmpty(nodeId) && string.IsNullOrEmpty(rootNodeId))
+                return Response.Error("必须提供 node_ids 或 root_node_id 其中之一");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
             try
             {
-                // 只处理单个节点ID
-                string[] nodeIdParts = nodeId.Split(',');
-                if (nodeIdParts.Length == 0)
-                    return Response.Error("node_ids格式无效");
-
-                nodeId = nodeIdParts[0].Trim();
                 if (string.IsNullOrEmpty(nodeId))
-                    return Response.Error("node_ids不能为空");
+                {
+                    nodeId = rootNodeId;
+                }
+                else
+                {
+                    // 只处理单个节点ID
+                    string[] nodeIdParts = nodeId.Split(',');
+                    if (nodeIdParts.Length == 0)
+                        return Response.Error("node_ids格式无效");
 
-                // 将节点ID中的"-"替换为":"（兼容URL中的格式）
-                nodeId = nodeId.Replace("-", ":");
+                    nodeId = nodeIdParts[0].Trim();
+                    if (string.IsNullOrEmpty(nodeId))
+                        return Response.Error("node_ids不能为空");
+
+                    // 将节点ID中的"-"替换为":"（兼容URL中的格式）
+                    nodeId = nodeId.Replace("-", ":");
+                }
 
                 Debug.Log($"[FigmaManage] 启动图片预览: 节点{nodeId}");
 
@@ -1320,7 +1329,7 @@ namespace UnityMcp.Tools
             }
             else
             {
-                Debug.LogError($"[FigmaManage] 获取图片链接失败: {request.error}");
+                Debug.LogError($"[FigmaManage] 获取图片链接失败: url:{url}, error:{request.error}");
                 callback?.Invoke(null);
             }
 
@@ -1556,7 +1565,6 @@ namespace UnityMcp.Tools
         {
             nodeIds = new List<string>();
             nodeNames = null;
-
             // 优先解析node_imgs（JSON格式）
             if (!string.IsNullOrEmpty(nodeImgsParam))
             {
@@ -1576,7 +1584,7 @@ namespace UnityMcp.Tools
                         if (nodeNames != null && nodeNames.Count > 0)
                         {
                             nodeIds = nodeNames.Keys.ToList();
-                            Debug.Log($"[FigmaManage] 解析node_imgs为JSON格式，包含 {nodeNames.Count} 个节点映射");
+                            Debug.Log($"[FigmaManage] 解析node_imgs为JSON格式，包含 {nodeNames.Count} 个节点映射:{string.Join(",", nodeNames.Keys.ToList())}");
                             return true;
                         }
                     }
