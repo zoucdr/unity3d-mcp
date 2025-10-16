@@ -753,7 +753,6 @@ namespace UnityMcp
                                 error = jsonResult["error"].Value;
                             }
                         }
-
                         recordObject.addRecord(
                             cmdName,
                             argsString,

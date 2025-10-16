@@ -81,7 +81,7 @@ namespace UnityMcp.Gui
 
             // 标题行和日志开关在同一行
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("Unity MCP Services", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
             // 日志开关
             bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpService.EnableLog, GUILayout.Width(60));
@@ -106,7 +106,7 @@ namespace UnityMcp.Gui
             }
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button(isUnityBridgeRunning ? "Stop Bridge" : "Start Bridge"))
+            if (GUILayout.Button(isUnityBridgeRunning ? "Stop Server" : "Start Server"))
             {
                 ToggleUnityBridge();
             }

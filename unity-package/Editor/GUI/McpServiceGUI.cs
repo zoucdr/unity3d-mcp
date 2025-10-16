@@ -31,7 +31,7 @@ namespace UnityMcp.Gui
 
             // 标题行
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("Unity3D MCP Service", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
             // 状态窗口按钮
             if (GUILayout.Button("状态窗口", GUILayout.Width(80)))

@@ -12,7 +12,7 @@ logging.basicConfig(
     level=getattr(logging, config.log_level),
     format=config.log_format
 )
-logger = logging.getLogger("unity-mcp-server")
+logger = logging.getLogger("unity3d-mcp-server")
 
 # Global connection state
 _unity_connection: UnityConnection = None

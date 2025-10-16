@@ -1,5 +1,12 @@
 """
 Unity Figma管理工具，包含Figma图片下载、节点数据拉取等功能。
+
+支持的功能：
+- 图片下载：下载单张或批量图片
+- 节点数据：拉取节点结构数据并保存为JSON
+- 智能扫描：自动识别并下载所有需要的图片
+- 图片预览：下载图片并返回base64编码
+- 资源管理：自动转换为Sprite格式
 """
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
@@ -46,15 +53,15 @@ def register_figma_manage_tools(mcp: FastMCP):
             default=None,
             examples=["Assets/Images/Figma", "D:/Downloads/Figma"]
         )] = None,
-        format: Annotated[Optional[str], Field(
+        image_format: Annotated[Optional[str], Field(
             title="图片格式",
-            description="图片格式",
-            default="PNG",
-            examples=["PNG", "JPG", "SVG"]
-        )] = "PNG",
-        scale: Annotated[Optional[float], Field(
-            title="缩放比例",
-            description="图片缩放比例",
+            description="图片格式: png, jpg, svg, pdf，默认为png",
+            default="png",
+            examples=["png", "jpg", "svg", "pdf"]
+        )] = "png",
+        image_scale: Annotated[Optional[float], Field(
+            title="图片缩放比例",
+            description="图片缩放比例，默认为1",
             default=1.0,
             ge=0.1,
             le=4.0
@@ -72,9 +79,9 @@ def register_figma_manage_tools(mcp: FastMCP):
         )] = True,
         include_children: Annotated[Optional[bool], Field(
             title="包含子节点",
-            description="是否包含子节点数据",
-            default=False
-        )] = False,
+            description="是否包含子节点数据，默认为true",
+            default=True
+        )] = True,
         depth: Annotated[Optional[int], Field(
             title="深度",
             description="节点数据拉取的深度",
@@ -127,8 +134,8 @@ def register_figma_manage_tools(mcp: FastMCP):
             "node_imgs": node_imgs,
             "root_node_id": root_node_id,
             "save_path": save_path,
-            "format": format,
-            "scale": scale,
+            "image_format": image_format,
+            "image_scale": image_scale,
             "local_json_path": local_json_path,
             "auto_convert_sprite": auto_convert_sprite,
             "include_children": include_children,

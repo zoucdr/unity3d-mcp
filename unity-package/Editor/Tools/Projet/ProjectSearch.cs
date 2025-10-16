@@ -170,13 +170,33 @@ namespace UnityMcp.Tools
                 searchPath = "Assets/" + searchPath.TrimStart('/');
             }
 
+            // 处理查询字符串中可能包含的文件扩展名
+            string searchExtension = null;
+            string cleanSearchTerm = searchTerm;
+
+            // 如果搜索词包含点号且看起来像是带后缀的文件名
+            if (!string.IsNullOrEmpty(searchTerm) && searchTerm.Contains("."))
+            {
+                // 尝试提取文件名和扩展名
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(searchTerm);
+                string extension = System.IO.Path.GetExtension(searchTerm);
+
+                if (!string.IsNullOrEmpty(extension))
+                {
+                    // 保存扩展名供后续过滤使用
+                    searchExtension = extension.ToLowerInvariant();
+                    // 只用文件名部分进行搜索
+                    cleanSearchTerm = fileName;
+                }
+            }
+
             try
             {
                 // 用JArray来序列化结果，确保兼容JSON序列化
                 List<JsonClass> results = new List<JsonClass>();
 
-                // 获取所有资产GUID
-                string[] guids = AssetDatabase.FindAssets(searchTerm, new[] { searchPath });
+                // 获取所有资产GUID，使用清理后的搜索词
+                string[] guids = AssetDatabase.FindAssets(cleanSearchTerm, new[] { searchPath });
 
                 foreach (string guid in guids)
                 {
@@ -189,7 +209,12 @@ namespace UnityMcp.Tools
                     if (!IsInSearchPath(assetPath, searchPath, recursive))
                         continue;
 
-                    // 检查文件扩展名
+                    // 如果有搜索扩展名，先检查文件扩展名是否匹配
+                    if (searchExtension != null &&
+                        !System.IO.Path.GetExtension(assetPath).Equals(searchExtension, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // 检查文件扩展名（从参数传入的扩展名列表）
                     if (extensions != null && !extensions.Any(ext => assetPath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
                         continue;
 

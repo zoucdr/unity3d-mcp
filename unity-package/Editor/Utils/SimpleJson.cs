@@ -518,6 +518,10 @@ namespace UnityMcp
         internal static string Escape(string aText)
         {
             string result = "";
+            if (string.IsNullOrEmpty(aText))
+            {
+                return result;
+            }
             foreach (char c in aText)
             {
                 switch (c)
