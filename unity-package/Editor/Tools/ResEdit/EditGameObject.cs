@@ -861,14 +861,17 @@ namespace UnityMcp.Tools
 
             if (string.IsNullOrEmpty(typeName))
             {
+                // 获取当前GameObject上所有组件列表
+                var existingComponents = GetComponentsListFromGameObject(targetGo);
                 return Response.Error(
-                    "Component type name ('component_type' or first element in 'components') is required."
+                    "Component type name ('component_type' or first element in 'components') is required.",
+                    new Dictionary<string, object> { { "existing_components", existingComponents } }
                 );
             }
 
             var addResult = AddComponentInternal(targetGo, typeName, properties);
             if (addResult != null)
-                return addResult; // Return error
+                return addResult; // Return error with existing components list
 
             // Set properties if provided (after successful component addition)
             if (properties != null)
@@ -886,10 +889,19 @@ namespace UnityMcp.Tools
             }
 
             EditorUtility.SetDirty(targetGo);
+
+            // 获取更新后的组件列表
+            var updatedComponents = GetComponentsListFromGameObject(targetGo);
+            var responseData = new Dictionary<string, object>
+            {
+                { "gameObject", GetGameObjectData(targetGo) },
+                { "components", updatedComponents }
+            };
+
             return Response.Success(
                 $"Component '{typeName}' added to '{targetGo.name}'.",
-               Json.FromObject(GetGameObjectData(targetGo))
-            ); // Return updated GO data
+                responseData
+            );
         }
 
         private object RemoveComponentFromTarget(StateTreeContext cmd, GameObject targetGo)
@@ -1311,6 +1323,34 @@ namespace UnityMcp.Tools
             };
 
             return data;
+        }
+
+        /// <summary>
+        /// 获取GameObject上所有组件的列表
+        /// </summary>
+        private List<Dictionary<string, object>> GetComponentsListFromGameObject(GameObject targetGo)
+        {
+            if (targetGo == null)
+                return new List<Dictionary<string, object>>();
+
+            Component[] components = targetGo.GetComponents<Component>();
+            var componentsList = new List<Dictionary<string, object>>();
+
+            foreach (var component in components)
+            {
+                if (component != null)
+                {
+                    var componentData = new Dictionary<string, object>
+                    {
+                        { "typeName", component.GetType().FullName },
+                        { "name", component.GetType().Name },
+                        { "instanceID", component.GetInstanceID() },
+                    };
+                    componentsList.Add(componentData);
+                }
+            }
+
+            return componentsList;
         }
 
         /// <summary>
@@ -1965,13 +2005,23 @@ namespace UnityMcp.Tools
             Type componentType = FindComponentType(typeName);
             if (componentType == null)
             {
-                return Response.Error($"Component type '{typeName}' not found.");
+                // 获取当前GameObject上所有组件列表
+                var existingComponents = GetComponentsListFromGameObject(targetGo);
+                return Response.Error(
+                    $"Component type '{typeName}' not found or not compiled.",
+                    new Dictionary<string, object> { { "existing_components", existingComponents } }
+                );
             }
 
             // 检查是否已经存在该组件（对于不允许重复的组件）
             if (componentType == typeof(Transform) || componentType == typeof(RectTransform))
             {
-                return Response.Error($"Cannot add component '{typeName}' because it already exists or is not allowed to be duplicated.");
+                // 获取当前GameObject上所有组件列表
+                var existingComponents = GetComponentsListFromGameObject(targetGo);
+                return Response.Error(
+                    $"Cannot add component '{typeName}' because it already exists or is not allowed to be duplicated.",
+                    new Dictionary<string, object> { { "existing_components", existingComponents } }
+                );
             }
 
             try
@@ -1981,7 +2031,12 @@ namespace UnityMcp.Tools
                     addedComponent = targetGo.AddComponent(componentType);
                 if (addedComponent == null)
                 {
-                    return Response.Error($"Failed to add component '{typeName}' to '{targetGo.name}'.");
+                    // 获取当前GameObject上所有组件列表
+                    var existingComponents = GetComponentsListFromGameObject(targetGo);
+                    return Response.Error(
+                        $"Failed to add component '{typeName}' to '{targetGo.name}'.",
+                        new Dictionary<string, object> { { "existing_components", existingComponents } }
+                    );
                 }
 
                 Undo.RegisterCreatedObjectUndo(addedComponent, $"Add Component {typeName}");
@@ -1991,7 +2046,12 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Error adding component '{typeName}' to '{targetGo.name}': {e.Message}");
+                // 获取当前GameObject上所有组件列表
+                var existingComponents = GetComponentsListFromGameObject(targetGo);
+                return Response.Error(
+                    $"Error adding component '{typeName}' to '{targetGo.name}': {e.Message}",
+                    new Dictionary<string, object> { { "existing_components", existingComponents } }
+                );
             }
         }
 

@@ -15,6 +15,9 @@ namespace UnityMcp.Gui
         private static Vector2 scrollPosition;
         private static ReorderableList buildStepsList;
         private static ReorderableList preferredComponentsList;
+        private static ReorderableList commonSpriteFoldersList;
+        private static ReorderableList commonTextureFoldersList;
+        private static ReorderableList commonFontFoldersList;
         private static UIType currentUIType = UIType.UGUI;
 
 
@@ -67,6 +70,9 @@ namespace UnityMcp.Gui
                 // 重置列表以刷新显示
                 buildStepsList = null;
                 preferredComponentsList = null;
+                commonSpriteFoldersList = null;
+                commonTextureFoldersList = null;
+                commonFontFoldersList = null;
 
                 settings.SaveSettings();
             }
@@ -155,6 +161,9 @@ namespace UnityMcp.Gui
                 };
             }
 
+            // 初始化通用资源文件夹列表
+            InitializeCommonFoldersList(settings);
+
             // 绘制UI构建步骤列表
             EditorGUILayout.LabelField($"UI构建步骤 ({settings.uiSettings.selectedUIType})", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox($"定义{settings.uiSettings.selectedUIType}类型UI生成的步骤流程，按顺序执行。", MessageType.Info);
@@ -167,6 +176,33 @@ namespace UnityMcp.Gui
             EditorGUILayout.HelpBox($"配置{settings.uiSettings.selectedUIType}类型UI生成时的环境和约束条件。", MessageType.Info);
             preferredComponentsList.DoLayoutList();
 
+            EditorGUILayout.Space(20);
+
+            // 绘制通用资源文件夹列表
+            EditorGUILayout.LabelField("通用资源文件夹配置", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("配置UI资源的通用文件夹路径，用于自动查找和加载资源。", MessageType.Info);
+
+            EditorGUILayout.Space(5);
+
+            // 绘制通用精灵文件夹列表
+            EditorGUILayout.LabelField("通用精灵文件夹", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("配置UI常用精灵资源文件夹，用于自动查找和加载精灵资源。", MessageType.Info);
+            commonSpriteFoldersList.DoLayoutList();
+
+            EditorGUILayout.Space(5);
+
+            // 绘制通用纹理文件夹列表
+            EditorGUILayout.LabelField("通用纹理文件夹", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("配置UI常用纹理资源文件夹，用于自动查找和加载纹理资源。", MessageType.Info);
+            commonTextureFoldersList.DoLayoutList();
+
+            EditorGUILayout.Space(5);
+
+            // 绘制通用字体文件夹列表
+            EditorGUILayout.LabelField("通用字体文件夹", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("配置UI常用字体资源文件夹，用于自动查找和加载字体资源。", MessageType.Info);
+            commonFontFoldersList.DoLayoutList();
+
             EditorGUILayout.EndScrollView();
 
             // 自动保存
@@ -175,6 +211,138 @@ namespace UnityMcp.Gui
                 // 序列化UI类型数据
                 settings.uiSettings.SerializeUITypeData();
                 settings.SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// 初始化通用资源文件夹列表
+        /// </summary>
+        private static void InitializeCommonFoldersList(McpSettings settings)
+        {
+            // 初始化通用精灵文件夹列表
+            if (commonSpriteFoldersList == null)
+            {
+                commonSpriteFoldersList = new ReorderableList(settings.uiSettings.commonSpriteFolders, typeof(string), true, true, true, true);
+                commonSpriteFoldersList.drawHeaderCallback = (Rect rect) =>
+                {
+                    EditorGUI.LabelField(rect, "精灵文件夹路径");
+                };
+                commonSpriteFoldersList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    rect.y += 2;
+                    rect.height = EditorGUIUtility.singleLineHeight;
+
+                    // 创建文件夹选择按钮
+                    Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
+                    Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
+
+                    settings.uiSettings.commonSpriteFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonSpriteFolders[index]);
+
+                    if (GUI.Button(folderButtonRect, "浏览..."))
+                    {
+                        string currentPath = settings.uiSettings.commonSpriteFolders[index];
+                        string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
+                        string selectedPath = EditorUtility.OpenFolderPanel("选择精灵文件夹", initialPath, "");
+
+                        if (!string.IsNullOrEmpty(selectedPath))
+                        {
+                            // 转换为相对于Assets的路径
+                            if (selectedPath.StartsWith(Application.dataPath))
+                            {
+                                selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
+                            }
+                            settings.uiSettings.commonSpriteFolders[index] = selectedPath;
+                        }
+                    }
+                };
+                commonSpriteFoldersList.onAddCallback = (ReorderableList list) =>
+                {
+                    settings.uiSettings.commonSpriteFolders.Add("Assets/Sprites");
+                };
+            }
+
+            // 初始化通用纹理文件夹列表
+            if (commonTextureFoldersList == null)
+            {
+                commonTextureFoldersList = new ReorderableList(settings.uiSettings.commonTextureFolders, typeof(string), true, true, true, true);
+                commonTextureFoldersList.drawHeaderCallback = (Rect rect) =>
+                {
+                    EditorGUI.LabelField(rect, "纹理文件夹路径");
+                };
+                commonTextureFoldersList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    rect.y += 2;
+                    rect.height = EditorGUIUtility.singleLineHeight;
+
+                    // 创建文件夹选择按钮
+                    Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
+                    Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
+
+                    settings.uiSettings.commonTextureFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonTextureFolders[index]);
+
+                    if (GUI.Button(folderButtonRect, "浏览..."))
+                    {
+                        string currentPath = settings.uiSettings.commonTextureFolders[index];
+                        string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
+                        string selectedPath = EditorUtility.OpenFolderPanel("选择纹理文件夹", initialPath, "");
+
+                        if (!string.IsNullOrEmpty(selectedPath))
+                        {
+                            // 转换为相对于Assets的路径
+                            if (selectedPath.StartsWith(Application.dataPath))
+                            {
+                                selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
+                            }
+                            settings.uiSettings.commonTextureFolders[index] = selectedPath;
+                        }
+                    }
+                };
+                commonTextureFoldersList.onAddCallback = (ReorderableList list) =>
+                {
+                    settings.uiSettings.commonTextureFolders.Add("Assets/Textures");
+                };
+            }
+
+            // 初始化通用字体文件夹列表
+            if (commonFontFoldersList == null)
+            {
+                commonFontFoldersList = new ReorderableList(settings.uiSettings.commonFontFolders, typeof(string), true, true, true, true);
+                commonFontFoldersList.drawHeaderCallback = (Rect rect) =>
+                {
+                    EditorGUI.LabelField(rect, "字体文件夹路径");
+                };
+                commonFontFoldersList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    rect.y += 2;
+                    rect.height = EditorGUIUtility.singleLineHeight;
+
+                    // 创建文件夹选择按钮
+                    Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
+                    Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
+
+                    settings.uiSettings.commonFontFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonFontFolders[index]);
+
+                    if (GUI.Button(folderButtonRect, "浏览..."))
+                    {
+                        string currentPath = settings.uiSettings.commonFontFolders[index];
+                        string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
+                        string selectedPath = EditorUtility.OpenFolderPanel("选择字体文件夹", initialPath, "");
+
+                        if (!string.IsNullOrEmpty(selectedPath))
+                        {
+                            // 转换为相对于Assets的路径
+                            if (selectedPath.StartsWith(Application.dataPath))
+                            {
+                                selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
+                            }
+                            settings.uiSettings.commonFontFolders[index] = selectedPath;
+                        }
+                    }
+                };
+                commonFontFoldersList.onAddCallback = (ReorderableList list) =>
+                {
+                    settings.uiSettings.commonFontFolders.Add("Assets/Fonts");
+                };
             }
         }
 

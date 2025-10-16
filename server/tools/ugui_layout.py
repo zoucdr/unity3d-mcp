@@ -15,7 +15,6 @@ Unity UGUI布局工具，用于修改和获取RectTransform的布局属性。
   * stretch_all + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
   * top_center + tattoo_self = 将锚点设置到元素自己的顶部中心位置
   * 其他预设 + tattoo_self = 将锚点设置到元素自身对应的位置
-- preserve_visual_position: 是否在更改锚点预设时保持视觉位置（默认：true）
 
 适用场景：
 - UI布局设计：精确控制UI元素的位置和尺寸
@@ -86,11 +85,6 @@ def register_ugui_layout_tools(mcp: FastMCP):
             description="当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置（默认：false）",
             default=False
         )] = False,
-        preserve_visual_position: Annotated[Optional[bool], Field(
-            title="保持视觉位置",
-            description="是否在更改锚点预设时保持视觉位置（默认：true）",
-            default=True
-        )] = True,
         pivot: Annotated[Optional[List[float]], Field(
             title="轴心点",
             description="轴心点 [x, y]",
@@ -129,7 +123,7 @@ def register_ugui_layout_tools(mcp: FastMCP):
         5. 获取布局属性：
            {"action": "get_layout", "path": "Canvas/Button"}
            
-        注意：do_layout操作不支持tattoo_preset参数，如需设置锚点预设请使用tattoo操作。
+        注意：do_layout操作不支持tattoo相关参数，如需设置锚点预设请使用tattoo操作。
         """
         return send_to_unity("ugui_layout", {
             "instance_id": instance_id,
@@ -141,7 +135,6 @@ def register_ugui_layout_tools(mcp: FastMCP):
             "anchor_max": anchor_max,
             "tattoo_preset": tattoo_preset,
             "tattoo_self": tattoo_self,
-            "preserve_visual_position": preserve_visual_position,
             "pivot": pivot,
             "sibling_index": sibling_index
         })

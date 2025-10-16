@@ -207,6 +207,28 @@ def register_call_tools(mcp: FastMCP):
         - 场景管理：播放 → 截图 → 停止
         - 批量创建：创建多个不同类型的GameObject
         - UI创建：创建Canvas → 创建UI元素 → 设置布局
+        
+        # 批量调用示例：
+        
+         示例1：批量创建Cube和添加Rigidbody组件
+         [
+             {"func": "hierarchy_create", "args": {"source": "primitive", "primitive_type": "Cube", "name": "Enemy"}},
+             {"func": "edit_gameobject", "args": {"path": "Enemy", "action": "add_component", "component_type": "Rigidbody"}}
+         ]
+        
+         示例2：先播放，执行截图，再停止
+         [
+             {"func": "base_editor", "args": {"action": "play"}},
+             {"func": "gameplay", "args": {"action": "screenshot", "format": "PNG"}},
+             {"func": "base_editor", "args": {"action": "stop"}}
+         ]
+        
+         示例3：批量生成多个UI按钮
+         [
+             {"func": "hierarchy_create", "args": {"source": "ui", "ui_type": "Button", "name": "Button1"}},
+             {"func": "hierarchy_create", "args": {"source": "ui", "ui_type": "Button", "name": "Button2"}},
+             {"func": "hierarchy_create", "args": {"source": "ui", "ui_type": "Button", "name": "Button3"}}
+         ]
         """
         
         # 获取Unity连接实例

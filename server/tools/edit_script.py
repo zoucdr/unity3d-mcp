@@ -3,7 +3,7 @@ Unity脚本编辑工具
 专门管理Unity项目中的C#脚本文件，提供创建、读取、更新、删除等完整的脚本管理功能
 
 支持的功能：
-- 脚本创建：自动生成MonoBehaviour、ScriptableObject等模板代码
+- 脚本创建：自动生成代码
 - 脚本读取：获取脚本内容，支持按行返回
 - 脚本更新：修改脚本内容，自动触发重新编译
 - 脚本删除：安全删除脚本，移到回收站
@@ -21,16 +21,16 @@ def register_edit_script_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="操作类型: create(创建), read(读取), update(更新), delete(删除), search(搜索类型)",
-            examples=["create", "read", "update", "delete", "search"]
+            description="操作类型: create(创建), read(读取), modify(修改), delete(删除), search(搜索类型), import(导入)",
+            examples=["create", "read", "modify", "delete", "search", "import"]
         )],
         name: Annotated[str, Field(
             title="脚本名称",
             description="脚本名称（不含.cs扩展名），必须是有效的C#标识符",
             examples=["PlayerController", "GameManager", "EnemyAI"]
         )],
-        path: Annotated[Optional[str], Field(
-            title="脚本路径",
+        folder: Annotated[Optional[str], Field(
+            title="脚本所在文件夹",
             description="脚本所在目录路径（相对于Assets），默认为'Scripts'",
             default=None,
             examples=["Assets/Scripts", "Scripts", "Scripts/Player"]
@@ -43,12 +43,6 @@ def register_edit_script_tools(mcp: FastMCP):
                 ["using UnityEngine;", "", "public class PlayerController : MonoBehaviour", "{", "    void Start()", "    {", "        Debug.Log(\"Player started\");", "    }", "}"]
             ]
         )] = None,
-        script_type: Annotated[Optional[str], Field(
-            title="脚本类型",
-            description="脚本基类类型，用于创建时自动生成模板",
-            default="MonoBehaviour",
-            examples=["MonoBehaviour", "ScriptableObject", "Editor", "EditorWindow"]
-        )] = "MonoBehaviour",
         namespace: Annotated[Optional[str], Field(
             title="命名空间",
             description="C#命名空间，创建时使用",
@@ -60,12 +54,18 @@ def register_edit_script_tools(mcp: FastMCP):
             description="用于搜索类型的查询字符串，支持通配符*，仅在action为search时使用",
             default=None,
             examples=["Controller", "*Manager", "Unity*"]
+        )] = None,
+        source_path: Annotated[Optional[str], Field(
+            title="源文件路径",
+            description="导入操作时的源文件路径，可以是绝对路径或相对路径",
+            default=None,
+            examples=["/path/to/source/script.cs", "C:\\Scripts\\MyScript.cs"]
         )] = None
     ) -> Dict[str, Any]:
         """Unity脚本编辑工具，用于管理Unity项目中的C#脚本文件。
 
         支持完整的C#脚本生命周期管理：创建、读取、更新和删除操作。
-        创建时会自动生成符合Unity规范的代码模板（MonoBehaviour、ScriptableObject等），
+        创建时会自动生成符合Unity规范的代码，
         并进行基础语法验证（括号匹配）。删除操作使用回收站，可以恢复。
         还支持在所有程序集中搜索类型。
 
@@ -87,7 +87,7 @@ def register_edit_script_tools(mcp: FastMCP):
         - 返回匹配类型的名称、全名、程序集、基类和命名空间信息
 
         注意事项：
-        - 支持的script_type: MonoBehaviour, ScriptableObject, Editor, EditorWindow
+        - 默认使用MonoBehaviour作为基类
         - 修改脚本后Unity会自动重新编译
         - 路径支持相对于Assets的路径，自动创建不存在的目录
         """
@@ -95,9 +95,9 @@ def register_edit_script_tools(mcp: FastMCP):
         return send_to_unity("edit_script", {
             "action": action,
             "name": name,
-            "path": path,
+            "folder": folder,
             "lines": lines,
-            "script_type": script_type,
             "namespace": namespace,
-            "query": query
+            "query": query,
+            "source_path": source_path
         })

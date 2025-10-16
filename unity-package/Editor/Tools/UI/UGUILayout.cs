@@ -62,7 +62,6 @@ namespace UnityMcp.Tools
                       // 预设锚点类型
                 new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all", true),
                 new MethodKey("tattoo_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
-                new MethodKey("preserve_visual_position", "Whether to preserve visual position when changing anchor preset (default: true)", true),
                 new MethodKey("pivot", "Pivot point [x, y]", true),
                 
                 // 层级控制
@@ -443,29 +442,7 @@ namespace UnityMcp.Tools
                     return false; // 已经是目标锚点，无需修改
                 }
 
-                // 检查是否需要保持视觉位置
-                bool preserveVisualPosition = true; // 默认保持视觉位置
-                if (args.TryGetValue("preserve_visual_position", out object preserveObj))
-                {
-                    if (preserveObj is bool preserveBool)
-                        preserveVisualPosition = preserveBool;
-                    else if (bool.TryParse(preserveObj?.ToString(), out bool parsedPreserve))
-                        preserveVisualPosition = parsedPreserve;
-                }
-
-                // 应用锚点预设
-                if (preserveVisualPosition)
-                {
-                    return ApplyAnchorPresetWithVisualPositionPreserved(rectTransform, targetAnchorMin, targetAnchorMax, targetPivot);
-                }
-                else
-                {
-                    // 直接设置锚点，不保持视觉位置
-                    rectTransform.anchorMin = targetAnchorMin;
-                    rectTransform.anchorMax = targetAnchorMax;
-                    rectTransform.pivot = targetPivot;
-                    return true;
-                }
+                return ApplyAnchorPresetWithVisualPositionPreserved(rectTransform, targetAnchorMin, targetAnchorMax, targetPivot);
             }
             return false;
         }
@@ -708,6 +685,9 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 应用尺寸增量修改
         /// </summary>
+        /// <summary>
+        /// Applies sizeDelta, using proper API if anchors are in stretch mode (anchorMin ≠ anchorMax)
+        /// </summary>
         private bool ApplySizeDelta(RectTransform rectTransform, StateTreeContext args)
         {
             if (args.TryGetValue("size_delta", out object sizeObj))
@@ -715,7 +695,19 @@ namespace UnityMcp.Tools
                 Vector2? size = ParseVector2(sizeObj);
                 if (size.HasValue && rectTransform.sizeDelta != size.Value)
                 {
-                    rectTransform.sizeDelta = size.Value;
+                    Vector2 anchorMin = rectTransform.anchorMin;
+                    Vector2 anchorMax = rectTransform.anchorMax;
+                    // 检查水平方向或垂直方向是否为拉伸（anchorMin ≠ anchorMax）
+                    if ((Mathf.Abs(anchorMin.x - anchorMax.x) > 1e-4f) || (Mathf.Abs(anchorMin.y - anchorMax.y) > 1e-4f))
+                    {
+                        // 拉伸模式下直接设置sizeDelta可能无效，需要用SetSizeWithCurrentAnchors
+                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.Value.x);
+                        rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.Value.y);
+                    }
+                    else
+                    {
+                        rectTransform.sizeDelta = size.Value;
+                    }
                     return true;
                 }
             }

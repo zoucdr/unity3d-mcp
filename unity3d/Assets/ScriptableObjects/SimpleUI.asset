@@ -18,6 +18,39 @@ MonoBehaviour:
   prototype_pic: 
   image_scale: 1
   descriptions: 
-  modify_records: []
-  node_names: []
-  node_sprites: []
+  modify_records:
+  - "[2025-10-16 18:27:51] \u5B8C\u6210SimpleUI\u754C\u9762\u521B\u5EFA\uFF1A\u521B\u5EFACanvas(1200x720)\u3001RootFrame\u3001TitleText(TMP)\u3001Image1/2/3\u3002\u914D\u7F6E\u4E86\u54CD\u5E94\u5F0F\u951A\u70B9\u5E03\u5C40\uFF0C\u8BBE\u7F6EGame\u89C6\u56FE\u4E3A1280x720\u3002\u5DF2\u5E94\u7528\u56FE\u7247\u8D44\u6E90\u5230Image2\u548CImage3\u3002"
+  - "[2025-10-16 18:28:58] \u6DFB\u52A0\u8282\u70B91:7 Vector133\u88C5\u9970\u5143\u7D20\uFF0C\u4F4D\u7F6E[815,174]\uFF0C\u5C3A\u5BF8134x252\uFF0C\u5E94\u7528\u4E86top_right\u951A\u70B9\u9884\u8BBE\uFF0C\u52A0\u8F7D\u4E86sprite\u8D44\u6E90\u3002"
+  - "[2025-10-16 18:55:02] \u4E0B\u8F7D\u5E76\u5E94\u7528\u8282\u70B91:4\u7684\u56FE\u7247\u8D44\u6E90\u5230Image1\u7EC4\u4EF6\uFF0C\u6587\u4EF6\u540D\uFF1Aimage1.png_fdddb0ed.png"
+  node_names:
+  - id: 1:2
+    name: RootFrame
+    originName: 
+  - id: 1:3
+    name: TitleText
+    originName: 
+  - id: 1:4
+    name: Image1
+    originName: 
+  - id: 1:5
+    name: Image2
+    originName: 
+  - id: 1:6
+    name: Image3
+    originName: 
+  - id: 1:7
+    name: Vector133
+    originName: 
+  node_sprites:
+  - id: 1:4
+    fileName: Assets/Images/SimpleUI/image1.png_fdddb0ed.png
+    sprite: {fileID: 21300000, guid: 3fe30dcf07734ba4192f3e16a10c69fd, type: 3}
+  - id: 1:5
+    fileName: Assets/Images/SimpleUI/1_5_db4d0a18.png
+    sprite: {fileID: 21300000, guid: 5fe0fbdd8f04f7140ab43b2bc8b8f593, type: 3}
+  - id: 1:6
+    fileName: Assets/Images/SimpleUI/1_6_40269340.png
+    sprite: {fileID: 21300000, guid: 3fa310c058508574a982eb589ae8b3ed, type: 3}
+  - id: 1:7
+    fileName: Assets/Images/SimpleUI/1_7_329b23cc.png
+    sprite: {fileID: 21300000, guid: a9a01a6ddc5c5284f9ef6b26bb00b7a3, type: 3}

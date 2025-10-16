@@ -12,49 +12,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityMcp.Tools
 {
-    /// <summary>
-    /// Figma管理工具，支持下载图片、层级分析、节点数据拉取等功能
-    /// 对应方法名: figma_manage
-    /// 
-    /// 支持的操作：
-    /// - download_image: 智能下载单张图片
-    /// - fetch_nodes: 拉取节点数据并保存为JSON文件
-    /// - download_images: 按需下载指定节点图片
-    /// - preview: 预览图片并返回base64编码
-    /// 
-    /// 节点参数说明：
-    /// - node_ids: 逗号分隔的节点ID字符串，如"1:4,1:5,1:6"
-    /// - node_imgs: JSON格式的节点名称映射，如{"1:4":"image1","1:5":"image2","1:6":"image3"}
-    /// - root_node_id: 根节点ID，用于智能扫描下载。指定后会从该节点开始递归扫描所有可下载的子节点
-    /// 
-    /// preview功能说明：
-    /// - 提供file_key和node_ids（只使用第一个ID），直接下载节点图片并返回base64编码
-    /// - 简化版实现：直接通过Figma API获取图片URL，然后下载并转换为base64
-    /// - 返回的base64数据包含完整的data URL格式：data:image/png;base64,...
-    /// - 无需复杂的进度监控和超时处理，使用Unity内置的timeout机制
-    /// 
-    /// 使用方式：
-    /// 1. 仅提供node_ids: 自动调用Figma API获取节点名称，然后下载
-    /// 2. 仅提供node_imgs: 直接使用指定的文件名下载，无需额外API调用，效率最高
-    /// 3. 同时提供: node_imgs优先，使用其中的节点ID和文件名映射
-    /// 4. 提供root_node_id: 智能扫描该节点及其所有子节点，自动识别需要下载的图片
-    /// 
-    /// 优化的下载流程：
-    /// 当使用node_imgs参数时，将直接使用指定的文件名，无需调用FetchNodes API获取节点数据，显著提高下载效率。
-    /// 当使用node_ids参数时，会自动调用FetchNodes获取节点名称（传统方式）。
-    /// 
-    /// 本地JSON文件支持：
-    /// download_images操作支持通过local_json_path参数从FetchNodes保存的JSON文件中读取节点数据，
-    /// 无需重新访问Figma API即可进行指定节点的图片下载。
-    /// 
-    /// 索引功能：
-    /// 图片下载完成后自动生成node ID到文件名的索引映射，包含：
-    /// - node_index_mapping: node ID -> 文件名的简单映射
-    /// - index_file_path: 自动保存的索引JSON文件路径
-    /// 
-    /// Sprite转换功能：
-    /// 可通过Project Settings → MCP → Figma中的"自动转换为Sprite"选项控制是否自动将下载的图片转换为Sprite格式。
-    /// </summary>
     [ToolName("figma_manage", "UI管理")]
     public class FigmaManage : StateMethodBase
     {
@@ -67,11 +24,10 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型: download_image(智能下载单张图片), fetch_nodes(拉取节点数据), download_images(按需下载指定节点图片), preview(预览图片并返回base64编码)", false),
+                new MethodKey("action", "操作类型: fetch_nodes(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码)", false),
                 new MethodKey("file_key", "Figma文件Key", true),
-                new MethodKey("node_ids", "节点ID列表：逗号分隔的节点ID字符串，如\"1:4,1:5,1:6\"", true),
-                new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1\\\",\\\"1:5\\\":\\\"image2\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
-                new MethodKey("root_node_id", "根节点ID：智能下载时的根节点ID，用于从指定节点开始扫描所有可下载的子节点", true),
+                new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
+                new MethodKey("node_id", "节点ID：用于智能扫描下载或预览的节点ID", true),
                 new MethodKey("save_path", "保存路径，默认为由ProjectSettings → MCP → Figma中的img_save_to配置", true),
                 new MethodKey("image_format", "图片格式: png, jpg, svg, pdf，默认为png", true),
                 new MethodKey("image_scale", "图片缩放比例，默认为1", true),
@@ -88,115 +44,46 @@ namespace UnityMcp.Tools
             return StateTreeBuilder
                 .Create()
                 .Key("action")
-                    .Leaf("download_image", DownloadImages)
+                    .Leaf("preview", PreviewImage)
                     .Leaf("fetch_nodes", FetchNodes)
                     .Leaf("download_images", DownloadNodeImages)
-                    .Leaf("preview", PreviewImage)
                 .Build();
         }
-
-        /// <summary>
-        /// 智能下载单张图片功能
-        /// </summary>
-        private object DownloadImages(StateTreeContext ctx)
-        {
-            string fileKey = ctx["file_key"]?.ToString();
-            string nodeIdsParam = ctx["node_ids"]?.ToString();
-            string nodeImgsParam = ctx["node_imgs"]?.ToString();
-            string token = GetFigmaToken();
-            string savePath = ctx["save_path"]?.ToString() ?? GetFigmaAssetsPath();
-            string imageFormat = ctx["image_format"]?.ToString() ?? "png";
-            float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "1");
-
-            if (string.IsNullOrEmpty(fileKey))
-                return Response.Error("file_key是必需的参数");
-
-            if (string.IsNullOrEmpty(nodeIdsParam) && string.IsNullOrEmpty(nodeImgsParam))
-                return Response.Error("node_ids或node_imgs是必需的参数");
-
-            if (string.IsNullOrEmpty(token))
-                return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
-
-            // 解析节点参数
-            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
-            {
-                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
-            }
-
-            try
-            {
-                // 确保保存目录存在
-                if (!Directory.Exists(savePath))
-                {
-                    Directory.CreateDirectory(savePath);
-                    AssetDatabase.Refresh();
-                }
-
-                // 只取第一个节点ID（单张图片下载）
-                var nodeId = nodeIds.FirstOrDefault();
-                if (string.IsNullOrEmpty(nodeId))
-                {
-                    return Response.Error("未提供有效的节点ID");
-                }
-
-                var nodeIdList = new List<string> { nodeId };
-                Debug.Log($"[FigmaManage] 启动单张图片智能下载: 节点{nodeId}");
-
-                // 如果有节点名称映射，使用直接下载；否则使用传统方式
-                if (nodeNames != null)
-                {
-                    var singleNodeNames = new Dictionary<string, string> { { nodeId, nodeNames[nodeId] } };
-                    return ctx.AsyncReturn(DownloadImagesDirectCoroutine(fileKey, nodeIdList, token, savePath, imageFormat, imageScale, nodeId, singleNodeNames));
-                }
-                else
-                {
-                    return ctx.AsyncReturn(DownloadImagesCoroutine(fileKey, nodeIdList, token, savePath, imageFormat, imageScale, nodeId));
-                }
-            }
-            catch (Exception ex)
-            {
-                return Response.Error($"下载图片失败: {ex.Message}");
-            }
-        }
-
 
         /// <summary>
         /// 拉取节点数据功能
         /// 
         /// 支持两种模式：
-        /// 1. 指定节点模式：通过node_ids或node_imgs指定要拉取的节点ID列表
-        /// 2. 根节点扫描模式：通过root_node_id指定根节点，自动扫描所有子节点
+        /// 1. 指定节点模式：通过node_imgs指定要拉取的节点ID列表
+        /// 2. 节点扫描模式：通过node_id指定节点，自动扫描所有子节点
         /// </summary>
         private object FetchNodes(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodeIdsParam = ctx["node_ids"]?.ToString();
             string nodeImgsParam = ctx["node_imgs"]?.ToString();
-            string rootNodeId = ctx["root_node_id"]?.ToString();
+            string nodeId = ctx["node_id"]?.ToString();
             string token = GetFigmaToken();
             bool includeChildren = bool.Parse(ctx["include_children"]?.ToString() ?? "true");
 
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            // 检查参数：至少提供node_ids、node_imgs或root_node_id之一
-            if (string.IsNullOrEmpty(nodeIdsParam) &&
-                string.IsNullOrEmpty(nodeImgsParam) &&
-                string.IsNullOrEmpty(rootNodeId))
-                return Response.Error("必须提供node_ids、node_imgs或root_node_id之一");
+            // 检查参数：至少提供node_imgs或node_id之一
+            if (string.IsNullOrEmpty(nodeImgsParam) && string.IsNullOrEmpty(nodeId))
+                return Response.Error("必须提供node_imgs或node_id之一");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
-            // 优先处理root_node_id（智能扫描模式）
-            if (!string.IsNullOrEmpty(rootNodeId))
+            // 优先处理node_id（智能扫描模式）
+            if (!string.IsNullOrEmpty(nodeId))
             {
                 try
                 {
-                    Debug.Log($"[FigmaManage] 启动根节点智能扫描: {rootNodeId}");
-                    var rootNodeList = new List<string> { rootNodeId };
+                    Debug.Log($"[FigmaManage] 启动节点智能扫描: {nodeId}");
+                    var nodeIdList = new List<string> { nodeId };
                     // 使用同一个协程，通过includeChildren=true来获取完整的子节点树
-                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, rootNodeList, token, true, rootNodeId));
+                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIdList, token, true, nodeId));
                 }
                 catch (Exception ex)
                 {
@@ -205,9 +92,9 @@ namespace UnityMcp.Tools
             }
 
             // 解析节点参数（标准模式）
-            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
+            if (!ParseNodeParameters(nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
+                return Response.Error("节点参数格式无效，请提供有效的node_imgs");
             }
 
             try
@@ -237,7 +124,6 @@ namespace UnityMcp.Tools
         private object DownloadNodeImages(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodeIdsParam = ctx["node_ids"]?.ToString();
             string nodeImgsParam = ctx["node_imgs"]?.ToString();
             string localJsonPath = ctx["local_json_path"]?.ToString(); // 本地JSON文件路径
             string token = GetFigmaToken();
@@ -246,18 +132,18 @@ namespace UnityMcp.Tools
             float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "2");
 
             if (string.IsNullOrEmpty(fileKey))
-                return Response.Error("file_key是必需的参数");
+                return Response.Error("file_key是下载图片必需的参数");
 
-            if (string.IsNullOrEmpty(nodeIdsParam) && string.IsNullOrEmpty(nodeImgsParam))
-                return Response.Error("node_ids或node_imgs是必需的参数");
+            if (string.IsNullOrEmpty(nodeImgsParam))
+                return Response.Error("node_imgs是下载图片必需的参数");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
             // 解析节点参数
-            if (!ParseNodeParameters(nodeIdsParam, nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
+            if (!ParseNodeParameters(nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("节点参数格式无效，请提供有效的node_ids或node_imgs");
+                return Response.Error("节点参数格式无效，请提供有效的node_id或node_imgs");
             }
 
             // 如果提供了本地JSON文件路径，则使用本地数据
@@ -289,37 +175,11 @@ namespace UnityMcp.Tools
             }
         }
 
-
-        /// <summary>
-        /// 预览图片功能 - 直接下载图片、压缩并返回base64编码
-        /// 
-        /// 使用方式：
-        /// 提供file_key和node_ids（只使用第一个节点ID），直接通过Figma API下载图片并返回base64编码
-        /// 
-        /// 实现逻辑：
-        /// 1. 通过Figma API获取节点的图片URL
-        /// 2. 下载图片数据
-        /// 3. 加载为Texture2D并压缩（最大300x300，保持宽高比）
-        /// 4. 重新编码为PNG/JPG
-        /// 5. 转换为base64并返回
-        /// 
-        /// 优点：
-        /// - 逻辑简单，避免复杂的进度监控和超时处理
-        /// - 使用Unity内置的timeout机制，不会导致卡死
-        /// - 自动压缩图片，减少传输数据量
-        /// - 不依赖其他协程方法，独立完成预览功能
-        /// 
-        /// 压缩规则：
-        /// - 如果原图宽或高超过300像素，按比例缩放到300x300以内
-        /// - 使用RenderTexture进行高质量缩放
-        /// - JPG格式使用85%质量压缩
-        /// - PNG格式无损压缩
         /// </summary>
         private object PreviewImage(StateTreeContext ctx)
         {
             string fileKey = ctx["file_key"]?.ToString();
-            string nodeId = ctx["node_ids"]?.ToString();
-            string rootNodeId = ctx["root_node_id"]?.ToString();
+            string nodeId = ctx["node_id"]?.ToString();
             string token = GetFigmaToken();
             string imageFormat = ctx["image_format"]?.ToString() ?? "png";
             float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "1");
@@ -327,33 +187,17 @@ namespace UnityMcp.Tools
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
 
-            // 支持 node_ids 或 root_node_id
-            if (string.IsNullOrEmpty(nodeId) && string.IsNullOrEmpty(rootNodeId))
-                return Response.Error("必须提供 node_ids 或 root_node_id 其中之一");
+            // 检查必要参数
+            if (string.IsNullOrEmpty(nodeId))
+                return Response.Error("必须提供 node_id 参数");
 
             if (string.IsNullOrEmpty(token))
                 return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
 
             try
             {
-                if (string.IsNullOrEmpty(nodeId))
-                {
-                    nodeId = rootNodeId;
-                }
-                else
-                {
-                    // 只处理单个节点ID
-                    string[] nodeIdParts = nodeId.Split(',');
-                    if (nodeIdParts.Length == 0)
-                        return Response.Error("node_ids格式无效");
-
-                    nodeId = nodeIdParts[0].Trim();
-                    if (string.IsNullOrEmpty(nodeId))
-                        return Response.Error("node_ids不能为空");
-
-                    // 将节点ID中的"-"替换为":"（兼容URL中的格式）
-                    nodeId = nodeId.Replace("-", ":");
-                }
+                // 将节点ID中的"-"替换为":"（兼容URL中的格式）
+                nodeId = nodeId.Replace("-", ":");
 
                 Debug.Log($"[FigmaManage] 启动图片预览: 节点{nodeId}");
 
@@ -420,143 +264,6 @@ namespace UnityMcp.Tools
                 // 使用原来的方式，先获取节点数据再下载
                 yield return DownloadImagesCoroutine(fileKey, nodeIds, token, savePath, imageFormat, imageScale, "LocalJsonSpecificNodes");
             }
-        }
-
-        /// <summary>
-        /// 从本地JSON文件智能下载协程 - 从FetchNodes保存的JSON文件中读取节点数据并下载图片
-        /// </summary>
-        private IEnumerator SmartDownloadFromLocalJsonCoroutine(string fileKey, string localJsonPath, string token, string savePath, string imageFormat, float imageScale)
-        {
-            // 检查本地JSON文件是否存在
-            if (!File.Exists(localJsonPath))
-            {
-                yield return Response.Error($"本地JSON文件不存在: {localJsonPath}");
-                yield break;
-            }
-
-            JsonClass nodeData = null;
-            string errorMessage = null;
-
-            try
-            {
-                // 读取并解析本地JSON文件
-                string jsonContent = File.ReadAllText(localJsonPath);
-                nodeData = Json.Parse(jsonContent) as JsonClass;
-                Debug.Log($"[FigmaManage] 成功读取本地JSON文件: {localJsonPath}");
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"读取本地JSON文件失败: {ex.Message}";
-            }
-
-            if (!string.IsNullOrEmpty(errorMessage))
-            {
-                yield return Response.Error(errorMessage);
-                yield break;
-            }
-
-            // 从JSON数据中提取节点信息
-            JsonNode rootNode = null;
-
-            // 尝试不同的JSON结构
-            // 1. 检查是否是FetchNodes保存的简化格式
-            if (nodeData.ContainsKey("nodes") && nodeData["nodes"] is JsonClass nodesObj)
-            {
-                // 取第一个节点作为根节点
-                var firstNodeId = nodesObj.GetKeys().FirstOrDefault();
-                if (!string.IsNullOrEmpty(firstNodeId))
-                {
-                    rootNode = nodesObj[firstNodeId]?["document"];
-                }
-            }
-            // 2. 检查是否是简化后的单节点数据
-            else if (nodeData.ContainsKey("id") && nodeData.ContainsKey("type"))
-            {
-                rootNode = nodeData;
-            }
-            // 3. 检查是否包含document字段
-            else if (nodeData.ContainsKey("document"))
-            {
-                rootNode = nodeData["document"];
-            }
-
-            if (rootNode == null)
-            {
-                yield return Response.Error("无法从本地JSON文件中解析出有效的节点数据");
-                yield break;
-            }
-
-            // 智能扫描，找出所有需要下载的图片节点
-            var downloadableNodeIds = FindDownloadableNodes(rootNode);
-
-            if (downloadableNodeIds.Count == 0)
-            {
-                yield return Response.Success("从本地JSON文件中没有找到需要下载的图片节点", new
-                {
-                    local_json_path = localJsonPath,
-                    downloadable_count = 0
-                });
-                yield break;
-            }
-
-            Debug.Log($"[FigmaManage] 从本地JSON文件智能扫描完成，发现 {downloadableNodeIds.Count} 个可下载节点");
-
-            // 使用常规下载流程下载这些节点
-            yield return DownloadImagesCoroutine(fileKey, downloadableNodeIds, token, savePath, imageFormat, imageScale, "LocalJsonNodes");
-        }
-
-        /// <summary>
-        /// 智能下载协程 - 自动识别并下载所有需要的图片
-        /// </summary>
-        private IEnumerator SmartDownloadCoroutine(string fileKey, string rootNodeId, string token, string savePath, string imageFormat, float imageScale)
-        {
-            // 如果没有提供rootNodeId，则获取整个文件的数据
-            if (string.IsNullOrEmpty(rootNodeId))
-            {
-                yield return SmartDownloadFromFileCoroutine(fileKey, token, savePath, imageFormat, imageScale);
-                yield break;
-            }
-
-            // 首先获取根节点的完整数据
-            var rootNodeList = new List<string> { rootNodeId };
-            JsonNode rootNodeData = null;
-
-            yield return FetchNodesCoroutine(fileKey, rootNodeList, token, true, null, null, (response) =>
-            {
-                rootNodeData = Json.FromObject(response);
-            });
-
-            if (rootNodeData == null)
-            {
-                yield return Response.Error("无法获取根节点数据");
-                yield break;
-            }
-
-            // 从根节点数据中提取节点树
-            var rootNode = rootNodeData["nodes"]?[rootNodeId]?["document"];
-            if (rootNode == null)
-            {
-                yield return Response.Error($"根节点数据格式错误，rootNodeId: {rootNodeId}");
-                yield break;
-            }
-
-            // 智能扫描，找出所有需要下载的图片节点
-            var downloadableNodeIds = FindDownloadableNodes(rootNode);
-
-            if (downloadableNodeIds.Count == 0)
-            {
-                yield return Response.Success("没有找到需要下载的图片节点", new
-                {
-                    scanned_node = rootNodeId,
-                    downloadable_count = 0
-                });
-                yield break;
-            }
-
-            Debug.Log($"[FigmaManage] 智能扫描完成，发现 {downloadableNodeIds.Count} 个可下载节点");
-
-            // 使用常规下载流程下载这些节点
-            yield return DownloadImagesCoroutine(fileKey, downloadableNodeIds, token, savePath, imageFormat, imageScale, rootNodeId ?? "RootNode");
         }
 
         /// <summary>
@@ -855,98 +562,49 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 从整个文件智能下载协程 - 扫描整个Figma文件并下载所有图片
+        /// 检查文件是否属于McpUISettings中配置的公共sprite或texture目录，
+        /// 如是则返回公共目录下的现有路径（通过out参数），并返回true说明已重定向。
+        /// 否则返回false，并通过out参数返回原始路径。
         /// </summary>
-        private IEnumerator SmartDownloadFromFileCoroutine(string fileKey, string token, string savePath, string imageFormat, float imageScale)
+        /// <param name="filePath">当前图片本地路径</param>
+        /// <param name="remappedPath">重定向后的路径（或原始路径）</param>
+        /// <returns>是否被重定向</returns>
+        private bool TryRemapPathIfCommon(string filePath, out string remappedPath)
         {
-            // 获取整个文件的数据
-            string url = $"{FIGMA_API_BASE}/files/{fileKey}";
-            UnityWebRequest request = UnityWebRequest.Get(url);
-            request.SetRequestHeader("X-Figma-Token", token);
+            remappedPath = filePath;
 
-            var operation = request.SendWebRequest();
+            // 加载McpUISettings
+            var settings = UnityMcp.McpSettings.Instance?.uiSettings;
+            if (settings == null)
+                return false;
 
-            // 监听获取文件数据的进度
-            float lastProgressUpdate = 0f;
-            bool cancelled = false;
-            while (!operation.isDone && !cancelled)
+            // 获取所有可能的公共目录（sprite 和 texture）
+            var commonFolders = new List<string>();
+            if (settings.commonSpriteFolders != null)
+                commonFolders.AddRange(settings.commonSpriteFolders);
+            if (settings.commonTextureFolders != null)
+                commonFolders.AddRange(settings.commonTextureFolders);
+
+            // 标准化文件路径和目录，避免分隔符和大小写问题
+            string fileName = Path.GetFileName(filePath);
+
+            foreach (var folder in commonFolders)
             {
-                float currentTime = Time.realtimeSinceStartup;
-                if (currentTime - lastProgressUpdate >= 1f) // 每1秒更新一次
+                if (string.IsNullOrEmpty(folder))
+                    continue;
+                var commonFilePath = Path.Combine(folder, fileName);
+                if (File.Exists(commonFilePath))
                 {
-                    cancelled = EditorUtility.DisplayCancelableProgressBar("获取Figma文件数据",
-                        $"正在获取文件数据... {operation.progress:P0}\n\n点击取消可中止操作",
-                        operation.progress);
-                    lastProgressUpdate = currentTime;
+                    // 已在公共目录且文件已存在，无需保存，重定向路径
+                    remappedPath = commonFilePath;
+                    return true;
                 }
-                yield return new WaitForSeconds(0.1f); // 每0.1秒检查一次
+
             }
-
-            // 处理取消操作
-            if (cancelled)
-            {
-                request.Abort();
-                EditorUtility.ClearProgressBar();
-                yield return Response.Error("用户取消了获取Figma文件数据操作");
-                request.Dispose();
-                yield break;
-            }
-
-            EditorUtility.ClearProgressBar();
-
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                yield return Response.Error($"获取文件数据失败: {request.error}");
-                request.Dispose();
-                yield break;
-            }
-
-            JsonClass fileData = null;
-            string errorMessage = null;
-
-            try
-            {
-                fileData = Json.Parse(request.downloadHandler.text) as JsonClass;
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"解析文件数据失败: {ex.Message}";
-            }
-
-            request.Dispose();
-
-            if (!string.IsNullOrEmpty(errorMessage))
-            {
-                yield return Response.Error(errorMessage);
-                yield break;
-            }
-
-            // 从文件数据中提取根节点
-            var document = fileData["document"];
-            if (document == null)
-            {
-                yield return Response.Error("文件数据中没有找到document节点");
-                yield break;
-            }
-
-            // 智能扫描，找出所有需要下载的图片节点
-            var downloadableNodeIds = FindDownloadableNodes(document);
-
-            if (downloadableNodeIds.Count == 0)
-            {
-                yield return Response.Success("整个文件中没有找到需要下载的图片节点", new
-                {
-                    scanned_file = fileKey,
-                    downloadable_count = 0
-                });
-                yield break;
-            }
-
-            Debug.Log($"[FigmaManage] 整个文件智能扫描完成，发现 {downloadableNodeIds.Count} 个可下载节点");
-
-            // 使用常规下载流程下载这些节点
-            yield return DownloadImagesCoroutine(fileKey, downloadableNodeIds, token, savePath, imageFormat, imageScale, "EntireFile");
+            // 不在公共目录则不重定向
+            return false;
         }
+
 
         /// <summary>
         /// 下载图片文件协程 - 核心下载逻辑
@@ -1024,7 +682,7 @@ namespace UnityMcp.Tools
 
                     // 计算文件内容hash
                     byte[] imageData = imageRequest.downloadHandler.data;
-                    string contentHash = CalculateFileHash(imageData);
+                    string contentHash = CalculateBatesHash(imageData);
 
                     // 按照 名字_hash.扩展名 格式命名
                     string fileExtension = imageFormat.ToLower();
@@ -1035,17 +693,25 @@ namespace UnityMcp.Tools
                     {
                         relativePath = "Assets/" + relativePath;
                     }
+                    if (TryRemapPathIfCommon(filePath, out string remappedPath))
+                    {
+                        savePath = Path.GetDirectoryName(remappedPath);
+                        filePath = remappedPath;
+                        Debug.Log($"重定向图片路径: {filePath} -> {remappedPath}");
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                        File.WriteAllBytes(filePath, imageData);
+                        downloadedCount++;
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                    File.WriteAllBytes(filePath, imageData);
-                    downloadedCount++;
+                        // 记录索引信息：只保存文件名
+                        nodeIndexMapping[nodeId] = fileName;
+                        // 记录下载成功的文件相对路径，用于后续转换为Sprite
+                        downloadedFiles.Add(relativePath);
 
-                    // 记录索引信息：只保存文件名
-                    nodeIndexMapping[nodeId] = fileName;
-                    // 记录下载成功的文件相对路径，用于后续转换为Sprite
-                    downloadedFiles.Add(relativePath);
-
-                    Debug.Log($"成功下载图片: {filePath}");
+                        Debug.Log($"成功下载图片: {filePath}");
+                    }
                 }
                 else
                 {
@@ -1336,8 +1002,6 @@ namespace UnityMcp.Tools
             request.Dispose();
         }
 
-
-
         /// <summary>
         /// 拉取节点数据协程
         /// 
@@ -1426,79 +1090,8 @@ namespace UnityMcp.Tools
                     {
                         var nodesObject = nodes as JsonClass ?? new JsonClass();
 
-                        // 检查是否为根节点扫描模式
-                        if (!string.IsNullOrEmpty(rootNodeIdForScan))
-                        {
-                            Debug.Log($"[FigmaManage] 根节点扫描模式：从 {rootNodeIdForScan} 开始扫描子节点");
-
-                            // 获取根节点的document数据
-                            var rootNode = nodesObject[rootNodeIdForScan]?["document"];
-                            if (rootNode == null)
-                            {
-                                yield return Response.Error($"根节点数据格式错误，rootNodeId: {rootNodeIdForScan}");
-                                yield break;
-                            }
-
-                            // 收集所有子节点ID
-                            var allNodeIds = new List<string> { rootNodeIdForScan };
-                            CollectAllNodeIds(rootNode, allNodeIds);
-                            Debug.Log($"[FigmaManage] 从根节点 {rootNodeIdForScan} 扫描到 {allNodeIds.Count} 个节点（包括子节点）");
-
-                            // 如果扫描到额外的子节点，分批拉取完整数据
-                            if (allNodeIds.Count > 1)
-                            {
-                                const int batchSize = 50; // Figma API 建议每次不超过50个节点
-                                var allNodesData = new JsonClass();
-
-                                // 先添加根节点数据
-                                allNodesData[rootNodeIdForScan] = nodesObject[rootNodeIdForScan];
-
-                                // 分批拉取子节点数据（跳过根节点）
-                                var childNodeIds = allNodeIds.Skip(1).ToList();
-                                for (int i = 0; i < childNodeIds.Count; i += batchSize)
-                                {
-                                    var batchNodeIds = childNodeIds.Skip(i).Take(batchSize).ToList();
-                                    Debug.Log($"[FigmaManage] 拉取子节点批次 {i / batchSize + 1}/{(childNodeIds.Count + batchSize - 1) / batchSize}: {batchNodeIds.Count} 个节点");
-
-                                    // 构建子节点请求URL
-                                    string childNodeIdsStr = string.Join(",", batchNodeIds);
-                                    string childUrl = $"{FIGMA_API_BASE}/files/{fileKey}/nodes?ids={childNodeIdsStr}&geometry=paths";
-
-                                    UnityWebRequest childRequest = UnityWebRequest.Get(childUrl);
-                                    childRequest.SetRequestHeader("X-Figma-Token", token);
-                                    yield return childRequest.SendWebRequest();
-
-                                    if (childRequest.result == UnityWebRequest.Result.Success)
-                                    {
-                                        var childResponse = Json.Parse(childRequest.downloadHandler.text) as JsonClass;
-                                        var childNodes = childResponse?["nodes"] as JsonClass;
-                                        if (childNodes != null)
-                                        {
-                                            // 合并节点数据
-                                            foreach (var key in childNodes.Keys)
-                                            {
-                                                allNodesData[key] = childNodes[key];
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Debug.LogWarning($"[FigmaManage] 拉取子节点批次失败: {childRequest.error}");
-                                    }
-
-                                    childRequest.Dispose();
-                                }
-
-                                // 使用合并后的完整数据
-                                nodesObject = allNodesData;
-                                nodeIds = allNodeIds; // 更新节点ID列表用于文件命名和计数
-                            }
-                        }
-
                         // 简化节点数据
                         var simplifiedNodes = FigmaDataSimplifier.SimplifyNodes(nodesObject);
-                        var aiPrompt = FigmaDataSimplifier.GenerateBatchAIPrompt(simplifiedNodes);
-
                         // 保存原始数据和简化数据
                         string assetsPath = GetFigmaAssetsPath();
                         // 用 nodeIds 拼接并将不能作路径的特殊符号转换为下划线
@@ -1507,31 +1100,70 @@ namespace UnityMcp.Tools
                         string simplifiedPath = Path.Combine(assetsPath, $"simplified_nodes_{fileKey}_{nodeIdsJoined}.json");
                         Directory.CreateDirectory(Path.GetDirectoryName(simplifiedPath));
                         File.WriteAllText(originalPath, Json.FromObject(nodesObject));
-                        string simplifiedJson = FigmaDataSimplifier.ToCompactJson(simplifiedNodes.Values.FirstOrDefault(), false);
+                        string simplifiedJson = simplifiedNodes.ToString();
                         File.WriteAllText(simplifiedPath, simplifiedJson);
 
                         AssetDatabase.Refresh();
 
-                        // 计算压缩率
-                        var originalJson = Json.FromObject(nodesObject);
-                        var compressionRatio = FigmaDataSimplifier.CalculateCompressionRatio(originalJson, simplifiedJson);
-
                         string scanModeInfo = !string.IsNullOrEmpty(rootNodeIdForScan) ? $"（根节点扫描模式: {rootNodeIdForScan}）" : "";
-                        Debug.Log($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点，压缩率: {compressionRatio:F1}%");
+
+                        /* 
+                         * ===================================================================================
+                         * Figma到UGUI坐标系转换说明
+                         * ===================================================================================
+                         * 
+                         * 坐标系差异：
+                         * - Figma坐标系：原点在左上角，X轴向右为正，Y轴向下为正
+                         * - UGUI坐标系：原点在容器中心，X轴向右为正，Y轴向上为正
+                         * 
+                         * 转换公式（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
+                         * 
+                         * 1. X坐标转换：
+                         *    anchored_position.x = figma_x + (element_width / 2) - (container_width / 2)
+                         *    
+                         *    示例：figma_x=88, element_width=300, container_width=1200
+                         *    结果：88 + 150 - 600 = -362
+                         * 
+                         * 2. Y坐标转换（需要翻转Y轴）：
+                         *    anchored_position.y = (container_height / 2) - figma_y - (element_height / 2)
+                         *    
+                         *    示例：container_height=720, figma_y=498, element_height=436.75
+                         *    结果：360 - 498 - 218.375 = -356.375
+                         * 
+                         * 3. 尺寸保持不变：
+                         *    size_delta = [element_width, element_height]
+                         * 
+                         * 完整公式总结：
+                         * ┌─────────────────────────────────────────────────────────────────────────┐
+                         * │ anchored_position.x = figma_pos.x + size.x/2 - container_width/2       │
+                         * │ anchored_position.y = container_height/2 - figma_pos.y - size.y/2      │
+                         * │ size_delta.x = figma_size.x                                             │
+                         * │ size_delta.y = figma_size.y                                             │
+                         * └─────────────────────────────────────────────────────────────────────────┘
+                         * 
+                         * 注意事项：
+                         * - 此转换公式适用于锚点在元素中心的情况（默认）
+                         * - 如果锚点不在中心，需要根据实际锚点位置调整offset
+                         * - Figma返回的是元素的左上角位置和尺寸
+                         * - UGUI的anchored_position是相对于锚点的位置
+                         * 
+                         * ===================================================================================
+                         */
+
+                        Debug.Log($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点");
                         Debug.Log($"简化数据: {simplifiedPath}");
 
-                        yield return Response.Success($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点，压缩率: {compressionRatio:F1}%", new
-                        {
-                            file_key = fileKey,
-                            node_count = nodeIds.Count,
-                            simplified_path = simplifiedPath,
-                            compression_ratio = compressionRatio,
-                            include_children = includeChildren,
-                            scan_mode = !string.IsNullOrEmpty(rootNodeIdForScan),
-                            root_node_id = rootNodeIdForScan,
-                            simplified_data = simplifiedNodes.Values.FirstOrDefault(),
-                            ai_prompt = aiPrompt
-                        });
+                        var responseData = new JsonClass();
+                        responseData["file_key"] = fileKey;
+                        responseData["node_count"] = nodeIds.Count;
+                        responseData["simplified_path"] = simplifiedPath;
+                        responseData["include_children"] = includeChildren;
+                        responseData["scan_mode"] = !string.IsNullOrEmpty(rootNodeIdForScan);
+                        responseData["node_id"] = rootNodeIdForScan;
+                        responseData["simplified_data"] = simplifiedJson;
+                        responseData["coordinate_system_info"] = GetCoordinateSystemInfo();
+
+                        yield return Response.Success($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点", responseData);
                     }
                 }
                 else
@@ -1554,14 +1186,14 @@ namespace UnityMcp.Tools
         #region 辅助方法
 
         /// <summary>
-        /// 解析节点参数，支持node_ids（逗号分隔的ID）和node_imgs（JSON格式的名称映射）
+        /// 解析节点参数，支持node_id（单个节点ID）和node_imgs（JSON格式的名称映射）
         /// </summary>
-        /// <param name="nodeIdsParam">node_ids参数值（逗号分隔的ID）</param>
+        /// <param name="nodeIdParam">node_id参数值（单个节点ID）</param>
         /// <param name="nodeImgsParam">node_imgs参数值（JSON格式的名称映射）</param>
         /// <param name="nodeIds">输出：节点ID列表</param>
         /// <param name="nodeNames">输出：节点名称映射（如果提供了node_imgs）</param>
         /// <returns>是否解析成功</returns>
-        private bool ParseNodeParameters(string nodeIdsParam, string nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames)
+        private bool ParseNodeParameters(string nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames)
         {
             nodeIds = new List<string>();
             nodeNames = null;
@@ -1595,18 +1227,6 @@ namespace UnityMcp.Tools
                     }
                 }
             }
-
-            // 解析node_ids（逗号分隔的ID字符串）
-            if (!string.IsNullOrEmpty(nodeIdsParam))
-            {
-                nodeIds = nodeIdsParam.Split(',').Select(id => id.Trim()).Where(id => !string.IsNullOrEmpty(id)).ToList();
-                if (nodeIds.Count > 0)
-                {
-                    Debug.Log($"[FigmaManage] 解析node_ids为ID字符串格式，包含 {nodeIds.Count} 个节点ID");
-                    return true;
-                }
-            }
-
             // 如果两个参数都未能解析出有效数据
             return false;
         }
@@ -1844,28 +1464,9 @@ namespace UnityMcp.Tools
 
 
         /// <summary>
-        /// 计算节点哈希值（用于变更检测）
-        /// </summary>
-        private string CalculateNodeHash(JsonNode node)
-        {
-            var hashData = new
-            {
-                id = node["id"]?.Value,
-                name = node["name"]?.Value,
-                type = node["type"]?.Value,
-                visible = node["visible"] != null && !node["visible"].IsNull() ? (bool?)node["visible"].AsBool : null,
-                absoluteBoundingBox = node["absoluteBoundingBox"],
-                fills = node["fills"],
-                strokes = node["strokes"]
-            };
-
-            return Json.FromObject(hashData).GetHashCode().ToString();
-        }
-
-        /// <summary>
         /// 计算文件内容的hash值
         /// </summary>
-        private string CalculateFileHash(byte[] data)
+        private string CalculateBatesHash(byte[] data)
         {
             using (var sha1 = System.Security.Cryptography.SHA1.Create())
             {
@@ -2129,6 +1730,43 @@ namespace UnityMcp.Tools
                     CollectAllNodeIds(child, result);
                 }
             }
+        }
+
+        /// <summary>
+        /// 获取坐标系转换信息
+        /// </summary>
+        /// <returns>坐标系转换信息的JsonClass对象</returns>
+        private JsonClass GetCoordinateSystemInfo()
+        {
+            var info = new JsonClass();
+            info["figma_coordinate_system"] = "原点在左上角，Y轴向下为正";
+            info["ugui_coordinate_system"] = "原点在容器中心，Y轴向上为正";
+            info["uitoolkit_coordinate_system"] = "原点在左上角，Y轴向下为正（与Figma一致）";
+
+            // UGUI转换公式
+            var uguiFormula = new JsonClass();
+            uguiFormula["x"] = "anchored_position_x = figma_x + (width/2) - (container_width/2)";
+            uguiFormula["y"] = "anchored_position_y = (container_height/2) - figma_y - (height/2)";
+            uguiFormula["size"] = "size_delta = [width, height] (保持不变)";
+            uguiFormula["note"] = "公式适用于RectTransform锚点在中心的情况（anchor=[0.5,0.5]）";
+
+            // UIToolkit转换公式
+            var uitoolkitFormula = new JsonClass();
+            uitoolkitFormula["left"] = "left = figma_x";
+            uitoolkitFormula["top"] = "top = figma_y";
+            uitoolkitFormula["right"] = "right = container_width - (figma_x + width)";
+            uitoolkitFormula["bottom"] = "bottom = container_height - (figma_y + height)";
+            uitoolkitFormula["width"] = "width = figma_width";
+            uitoolkitFormula["height"] = "height = figma_height";
+            uitoolkitFormula["note"] = "UIToolkit使用left/top/right/bottom定位，坐标系与Figma一致，无需Y轴翻转";
+
+            var conversionFormulas = new JsonClass();
+            conversionFormulas["ugui"] = uguiFormula;
+            conversionFormulas["uitoolkit"] = uitoolkitFormula;
+
+            info["conversion_formulas"] = conversionFormulas;
+
+            return info;
         }
 
         #endregion

@@ -2,12 +2,13 @@
 Unity Figma管理工具，包含Figma图片下载、节点数据拉取等功能。
 
 支持的功能：
-- 图片下载：下载单张或批量图片
+- 图片下载：批量下载图片
 - 节点数据：拉取节点结构数据并保存为JSON
 - 智能扫描：自动识别并下载所有需要的图片
 - 图片预览：下载图片并返回base64编码
 - 资源管理：自动转换为Sprite格式
 """
+import json
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
@@ -20,8 +21,8 @@ def register_figma_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="要执行的Figma操作: download_image(下载单张图片), fetch_nodes(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码)",
-            examples=["download_image", "fetch_nodes", "download_images", "preview"]
+            description="要执行的Figma操作: fetch_nodes(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码)",
+            examples=["fetch_nodes", "download_images", "preview"]
         )],
         file_key: Annotated[Optional[str], Field(
             title="文件密钥",
@@ -29,21 +30,15 @@ def register_figma_manage_tools(mcp: FastMCP):
             default=None,
             examples=["abc123def456", "xyz789uvw012"]
         )] = None,
-        node_ids: Annotated[Optional[str], Field(
-            title="节点ID列表",
-            description="逗号分隔的节点ID字符串",
-            default=None,
-            examples=["1:4,1:5,1:6", "1:4", "123:456,789:012"]
-        )] = None,
-        node_imgs: Annotated[Optional[str], Field(
+        node_imgs: Annotated[Optional[Dict[str, str]], Field(
             title="节点图片映射",
-            description="JSON格式的节点名称映射，格式为{节点ID: 文件名}。当提供此参数时，将直接使用指定的文件名，无需调用Figma API获取节点数据，提高下载效率",
+            description="节点名称映射，字典格式，格式为{节点ID: 文件名}。当提供此参数时，将直接使用指定的文件名，无需调用Figma API获取节点数据，提高下载效率",
             default=None,
-            examples=['{"1:4":"image1","1:5":"image2","1:6":"image3"}', '{"123:456":"login_button","789:012":"app_icon"}']
+            examples=[{"1:4":"image1.png","1:5":"image2.png","1:6":"image3.png"}, {"123:456":"login_button.png","789:012":"app_icon.jpg"}]
         )] = None,
-        root_node_id: Annotated[Optional[str], Field(
-            title="根节点ID",
-            description="智能下载时的根节点ID，用于从指定节点开始扫描所有可下载的子节点",
+        node_id: Annotated[Optional[str], Field(
+            title="节点ID",
+            description="指定节点ID，用于从该节点开始扫描所有可下载的子节点",
             default=None,
             examples=["1:2", "0:1", "123:456"]
         )] = None,
@@ -81,63 +76,40 @@ def register_figma_manage_tools(mcp: FastMCP):
             title="包含子节点",
             description="是否包含子节点数据，默认为true",
             default=True
-        )] = True,
-        depth: Annotated[Optional[int], Field(
-            title="深度",
-            description="节点数据拉取的深度",
-            default=1,
-            ge=1,
-            le=10
-        )] = 1
+        )] = True
     ) -> Dict[str, Any]:
         """Unity Figma管理工具，用于管理Figma资源和数据。
 
         支持多种Figma操作，适用于：
-        - 图片下载：从Figma下载单张或批量图片
+        - 图片下载：从Figma批量下载图片
         - 节点数据：拉取Figma文件的节点结构数据
-        - 资源管理：自动转换和管理下载的资源
-        - 批量处理：高效处理多个节点
-        - 智能扫描：从根节点递归扫描所有可下载的图片节点
-        - 图片预览：下载图片并返回base64编码，无需保存文件
+        - 图片预览：下载图片并返回base64编码
         
         节点参数说明：
-        - node_ids: 逗号分隔的节点ID字符串（如"1:4,1:5,1:6"）
-        - node_imgs: JSON格式的节点映射（如'{"1:4":"image1","1:5":"image2"}'）
-        - root_node_id: 根节点ID，用于智能扫描下载（如"1:2"）
+        - node_id: 节点ID，用于节点信息拉取（如"1:2"）
+        - node_imgs: 字典格式的节点映射（如{"1:4":"image1.png","1:5":"image2.jpg"}）
         
         preview功能说明：
-        - 提供file_key和node_ids（只使用第一个ID），下载图片并返回base64编码
+        - 提供file_key和node_id，下载图片并返回base64编码
         - 返回的base64数据包含完整的data URL格式：data:image/png;base64,...
         
-        使用方式：
-        1. 仅提供node_ids: 自动调用Figma API获取节点名称，然后下载
-        2. 提供node_imgs: 直接使用指定的文件名下载，无需额外API调用，效率更高
-        3. 同时提供: node_imgs优先，node_ids作为补充
-        4. 提供root_node_id: 智能扫描该节点及其所有子节点，自动识别需要下载的图片
+        下载图片功能说明：
+        - 示例 - 高效下载（直接指定文件名）:
+           action="download_images", node_imgs={"1:4":"login_button.png","1:5":"app_icon.jpg","1:6":"background.png"}
         
-        示例 - 基础下载（自动获取节点名称）:
-          node_ids="1:4,1:5,1:6"
-        
-        示例 - 高效下载（直接指定文件名）:
-          node_imgs='{"1:4":"login_button","1:5":"app_icon","1:6":"background"}'
-        
-        示例 - 智能扫描下载:
-          root_node_id="1:2"
-          
-        示例 - 图片预览（返回base64）:
-          action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_ids="1:4"
+        - 示例 - 图片预览（返回base64）:
+          action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_id="1:4"
         """
+      
         return send_to_unity("figma_manage", {
             "action": action,
             "file_key": file_key,
-            "node_ids": node_ids,
+            "node_id": node_id,
             "node_imgs": node_imgs,
-            "root_node_id": root_node_id,
             "save_path": save_path,
             "image_format": image_format,
             "image_scale": image_scale,
             "local_json_path": local_json_path,
             "auto_convert_sprite": auto_convert_sprite,
-            "include_children": include_children,
-            "depth": depth
+            "include_children": include_children
         })

@@ -25,13 +25,14 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：create, read, update, delete, search", false),
+                new MethodKey("action", "操作类型：create, read, modify, delete, search, import", false),
                 new MethodKey("name", "脚本名称（不含.cs扩展名）", false),
-                new MethodKey("path", "脚本资产路径", false),
+                new MethodKey("folder", "脚本所在文件夹", false),
                 new MethodKey("lines", "C#代码内容（已换行的字符串数组）", true),
                 new MethodKey("script_type", "脚本类型：MonoBehaviour, ScriptableObject等", true),
                 new MethodKey("namespace", "命名空间", true),
-                new MethodKey("query", "查询字符串，用于搜索类型", true)
+                new MethodKey("query", "查询字符串，用于搜索类型", true),
+                new MethodKey("source_path", "源文件路径，用于import操作", true)
             };
         }
 
@@ -42,9 +43,10 @@ namespace UnityMcp.Tools
                 .Key("action")
                     .Leaf("create", HandleCreateAction)
                     .Leaf("read", HandleReadAction)
-                    .Leaf("update", HandleUpdateAction)
+                    .Leaf("modify", HandleModifyAction)
                     .Leaf("delete", HandleDeleteAction)
                     .Leaf("search", HandleSearchAction)
+                    .Leaf("import", HandleImportAction)
                 .Build();
         }
 
@@ -67,7 +69,7 @@ namespace UnityMcp.Tools
                     return dirResult;
 
                 LogInfo($"[ManageScript] Creating script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
-                return CreateScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents, scriptInfo.ScriptType, scriptInfo.NamespaceName);
+                return CreateScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents, scriptInfo.NamespaceName);
             }
             catch (Exception e)
             {
@@ -98,9 +100,9 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 处理更新脚本的操作
+        /// 处理修改脚本的操作
         /// </summary>
-        private object HandleUpdateAction(JsonClass args)
+        private object HandleModifyAction(JsonClass args)
         {
             try
             {
@@ -108,13 +110,13 @@ namespace UnityMcp.Tools
                 if (scriptInfo.ErrorResponse != null)
                     return scriptInfo.ErrorResponse;
 
-                LogInfo($"[ManageScript] Updating script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
-                return UpdateScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents);
+                LogInfo($"[ManageScript] Modifying script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
+                return ModifyScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Update action failed: {e}");
-                return Response.Error($"Internal error processing update action: {e.Message}");
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Modify action failed: {e}");
+                return Response.Error($"Internal error processing modify action: {e.Message}");
             }
         }
 
@@ -176,11 +178,11 @@ namespace UnityMcp.Tools
         {
             public string Name;
             public string Contents;
-            public string ScriptType;
             public string NamespaceName;
             public string FullPath;
             public string RelativePath;
             public string FullPathDir;
+            public string SourcePath;
             public object ErrorResponse;
         }
 
@@ -193,8 +195,9 @@ namespace UnityMcp.Tools
 
             // Extract basic args
             string name = args["name"]?.Value;
-            string path = args["path"]?.Value; // Relative to Assets/
+            string folder = args["folder"]?.Value; // Relative to Assets/
             string contents = null;
+            string sourcePath = args["source_path"]?.Value;
 
             // Handle lines parameter (array of strings)
             if (args["lines"] != null)
@@ -219,14 +222,7 @@ namespace UnityMcp.Tools
                 }
             }
 
-            string scriptType = args["script_type"]?.Value;
             string namespaceName = args["namespace"]?.Value;
-
-            // 设置默认值
-            if (string.IsNullOrEmpty(scriptType))
-            {
-                scriptType = "MonoBehaviour";
-            }
 
             // Validate required args for non-search actions
             string action = args["action"]?.Value;
@@ -245,8 +241,8 @@ namespace UnityMcp.Tools
                 return info;
             }
 
-            // Process path
-            string relativeDir = path ?? "Scripts";
+            // Process folder
+            string relativeDir = folder ?? "Scripts";
             if (!string.IsNullOrEmpty(relativeDir))
             {
                 relativeDir = relativeDir.Replace('\\', '/').Trim('/');
@@ -269,11 +265,11 @@ namespace UnityMcp.Tools
             // Populate info
             info.Name = name;
             info.Contents = contents;
-            info.ScriptType = scriptType;
             info.NamespaceName = namespaceName;
             info.FullPath = fullPath;
             info.RelativePath = relativePath;
             info.FullPathDir = fullPathDir;
+            info.SourcePath = sourcePath;
 
             return info;
         }
@@ -296,14 +292,40 @@ namespace UnityMcp.Tools
 
         // --- Action Implementations ---
 
+        /// <summary>
+        /// 处理导入脚本的操作
+        /// </summary>
+        private object HandleImportAction(JsonClass args)
+        {
+            try
+            {
+                var scriptInfo = ParseScriptArguments(args);
+                if (scriptInfo.ErrorResponse != null)
+                    return scriptInfo.ErrorResponse;
 
+                if (string.IsNullOrEmpty(scriptInfo.SourcePath))
+                    return Response.Error("source_path is required for import action.");
+
+                // 确保目标目录存在
+                var dirResult = EnsureDirectoryExists(scriptInfo.FullPathDir);
+                if (dirResult != null)
+                    return dirResult;
+
+                LogInfo($"[ManageScript] Importing script from '{scriptInfo.SourcePath}' to '{scriptInfo.RelativePath}'");
+                return ImportScript(scriptInfo.SourcePath, scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name);
+            }
+            catch (Exception e)
+            {
+                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Import action failed: {e}");
+                return Response.Error($"Internal error processing import action: {e.Message}");
+            }
+        }
 
         private object CreateScript(
             string fullPath,
             string relativePath,
             string name,
             string contents,
-            string scriptType,
             string namespaceName
         )
         {
@@ -318,7 +340,7 @@ namespace UnityMcp.Tools
             // Generate default content if none provided
             if (string.IsNullOrEmpty(contents))
             {
-                contents = GenerateDefaultScriptContent(name, scriptType, namespaceName);
+                contents = GenerateDefaultScriptContent(name, namespaceName);
             }
 
             // Validate syntax (basic check)
@@ -375,7 +397,7 @@ namespace UnityMcp.Tools
             }
         }
 
-        private object UpdateScript(
+        private object ModifyScript(
             string fullPath,
             string relativePath,
             string name,
@@ -385,18 +407,18 @@ namespace UnityMcp.Tools
             if (!File.Exists(fullPath))
             {
                 return Response.Error(
-                    $"Script not found at '{relativePath}'. Use 'create' action to add a new script."
+                    $"Script not found at '{relativePath}'. Use 'create' action to add a new script or 'import' to import from external source."
                 );
             }
             if (string.IsNullOrEmpty(contents))
             {
-                return Response.Error("Content is required for the 'update' action.");
+                return Response.Error("Content is required for the 'modify' action.");
             }
 
             // Validate syntax (basic check)
             if (!ValidateScriptSyntax(contents))
             {
-                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being updated: {name}");
+                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being modified: {name}");
                 // Consider if this should be a hard error or just a warning
             }
 
@@ -406,13 +428,56 @@ namespace UnityMcp.Tools
                 AssetDatabase.ImportAsset(relativePath); // Re-import to reflect changes
                 AssetDatabase.Refresh();
                 return Response.Success(
-                    $"Script '{name}.cs' updated successfully at '{relativePath}'.",
+                    $"Script '{name}.cs' modified successfully at '{relativePath}'.",
                     new { path = relativePath }
                 );
             }
             catch (Exception e)
             {
                 return Response.Error($"Failed to update script '{relativePath}': {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 导入脚本从外部源
+        /// </summary>
+        private object ImportScript(
+            string sourcePath,
+            string fullPath,
+            string relativePath,
+            string name
+        )
+        {
+            // 检查源文件是否存在
+            if (!File.Exists(sourcePath))
+            {
+                return Response.Error($"Source file not found at '{sourcePath}'.");
+            }
+
+            // 检查目标脚本是否已存在
+            if (File.Exists(fullPath))
+            {
+                return Response.Error(
+                    $"Script already exists at '{relativePath}'. Use 'modify' action to update."
+                );
+            }
+
+            try
+            {
+                // 读取源文件并复制到目标位置
+                string contents = File.ReadAllText(sourcePath);
+                File.WriteAllText(fullPath, contents);
+                AssetDatabase.ImportAsset(relativePath);
+                AssetDatabase.Refresh(); // 确保Unity识别新脚本
+
+                return Response.Success(
+                    $"Script '{name}.cs' imported successfully from '{sourcePath}' to '{relativePath}'.",
+                    new { path = relativePath }
+                );
+            }
+            catch (Exception e)
+            {
+                return Response.Error($"Failed to import script from '{sourcePath}' to '{relativePath}': {e.Message}");
             }
         }
 
@@ -449,11 +514,10 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// Generates basic C# script content based on name and type.
+        /// Generates basic C# script content based on name.
         /// </summary>
         private static string GenerateDefaultScriptContent(
             string name,
-            string scriptType,
             string namespaceName
         )
         {
@@ -462,30 +526,8 @@ namespace UnityMcp.Tools
             string body =
                 "\n    // Use this for initialization\n    void Start() {\n\n    }\n\n    // Update is called once per frame\n    void Update() {\n\n    }\n";
 
-            string baseClass = "";
-            if (!string.IsNullOrEmpty(scriptType))
-            {
-                if (scriptType.Equals("MonoBehaviour", StringComparison.OrdinalIgnoreCase))
-                    baseClass = " : MonoBehaviour";
-                else if (scriptType.Equals("ScriptableObject", StringComparison.OrdinalIgnoreCase))
-                {
-                    baseClass = " : ScriptableObject";
-                    body = ""; // ScriptableObjects don't usually need Start/Update
-                }
-                else if (
-                    scriptType.Equals("Editor", StringComparison.OrdinalIgnoreCase)
-                    || scriptType.Equals("EditorWindow", StringComparison.OrdinalIgnoreCase)
-                )
-                {
-                    usingStatements += "using UnityEditor;\n";
-                    if (scriptType.Equals("Editor", StringComparison.OrdinalIgnoreCase))
-                        baseClass = " : Editor";
-                    else
-                        baseClass = " : EditorWindow";
-                    body = ""; // Editor scripts have different structures
-                }
-                // Add more types as needed
-            }
+            // 默认使用MonoBehaviour作为基类
+            string baseClass = " : MonoBehaviour";
 
             classDeclaration = $"public class {name}{baseClass}";
 

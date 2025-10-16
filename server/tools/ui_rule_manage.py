@@ -1,9 +1,19 @@
 """
 UI制作规则文件管理工具
-管理UI制作规则文件，包括创建、修改、删除和获取规则
+管理UI制作规则文件，包括创建、获取规则、添加修改记录、批量记录节点命名和Sprite信息
+
+支持的操作:
+- create_rule: 创建UI制作规则
+- get_rule: 获取UI制作规则和方案（包含构建步骤、环境等）
+- get_prototype_pic: 获取原型图片（Base64格式）
+- add_modify: 添加UI修改记录
+- record_names: 批量记录节点命名信息
+- get_names: 获取节点命名信息
+- record_sprites: 批量记录节点Sprite信息
+- get_sprites: 获取节点Sprite信息
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
 from .call_up import send_to_unity
@@ -13,234 +23,90 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
     @mcp.tool("ui_rule_manage")
     def ui_rule_manage(
         ctx: Context,
-        action: str = Field(
-            ...,
+        action: Annotated[str, Field(
             title="操作类型",
-            description="操作类型",
-            examples=["create", "modify", "delete", "get", "list", "apply", "validate"]
-        ),
-        rule_name: str = Field(
-            ...,
-            title="规则名称",
-            description="规则名称",
-            examples=["ButtonRule", "PanelRule", "TextRule"]
-        ),
-        rule_type: Optional[str] = Field(
-            None,
-            title="规则类型",
-            description="规则类型",
-            examples=["Button", "Panel", "Text", "Image", "InputField", "ScrollView", "Dropdown", "Toggle", "Slider", "Scrollbar"]
-        ),
-        properties: Optional[Dict[str, Any]] = Field(
-            None,
-            title="规则属性",
-            description="规则属性字典",
-            examples=[{"width": 200, "height": 50, "color": [1, 0, 0, 1]}]
-        ),
-        constraints: Optional[Dict[str, Any]] = Field(
-            None,
-            title="约束条件",
-            description="约束条件字典",
-            examples=[{"min_width": 100, "max_width": 500, "required_components": ["Button", "Text"]}]
-        ),
-        validation_rules: Optional[List[str]] = Field(
-            None,
-            title="验证规则",
-            description="验证规则列表",
-            examples=[["width > 0", "height > 0", "has_button_component"]]
-        ),
-        target_object: Optional[str] = Field(
-            None,
-            title="目标对象",
-            description="目标对象名称或路径",
-            examples=["Canvas/UI/Button", "Button", "Panel"]
-        ),
-        force_apply: Optional[bool] = Field(
-            False,
-            title="强制应用",
-            description="是否强制应用规则"
-        ),
-        validate_only: Optional[bool] = Field(
-            False,
-            title="仅验证",
-            description="是否仅验证而不应用"
-        ),
-        create_missing: Optional[bool] = Field(
-            False,
-            title="创建缺失",
-            description="是否创建缺失的组件"
-        ),
-        remove_extra: Optional[bool] = Field(
-            False,
-            title="移除多余",
-            description="是否移除多余的组件"
-        ),
-        preserve_hierarchy: Optional[bool] = Field(
-            True,
-            title="保持层级",
-            description="是否保持对象层级结构"
-        ),
-        backup_before_apply: Optional[bool] = Field(
-            True,
-            title="应用前备份",
-            description="是否在应用前备份对象"
-        ),
-        log_changes: Optional[bool] = Field(
-            True,
-            title="记录更改",
-            description="是否记录更改日志"
-        ),
-        rule_file_path: Optional[str] = Field(
-            None,
-            title="规则文件路径",
-            description="规则文件路径",
-            examples=["Assets/UI/Rules/ButtonRule.json", "Assets/Config/UI/"]
-        ),
-        export_format: Optional[str] = Field(
-            None,
-            title="导出格式",
-            description="导出格式",
-            examples=["json", "xml", "yaml"]
-        ),
-        import_format: Optional[str] = Field(
-            None,
-            title="导入格式",
-            description="导入格式",
-            examples=["json", "xml", "yaml"]
-        ),
-        template_name: Optional[str] = Field(
-            None,
-            title="模板名称",
-            description="模板名称",
-            examples=["StandardButton", "ModernPanel", "ClassicText"]
-        ),
-        category: Optional[str] = Field(
-            None,
-            title="规则分类",
-            description="规则分类",
-            examples=["UI", "Gameplay", "System", "Custom"]
-        ),
-        tags: Optional[List[str]] = Field(
-            None,
-            title="标签",
-            description="标签列表",
-            examples=[["button", "ui", "interactive"], ["panel", "container", "layout"]]
-        ),
-        description: Optional[str] = Field(
-            None,
-            title="规则描述",
-            description="规则描述",
-            examples=["标准按钮规则", "面板布局规则", "文本显示规则"]
-        ),
-        version: Optional[str] = Field(
-            None,
-            title="规则版本",
-            description="规则版本",
-            examples=["1.0", "2.1", "3.0.1"]
-        ),
-        author: Optional[str] = Field(
-            None,
-            title="规则作者",
-            description="规则作者",
-            examples=["Designer", "Developer", "Artist"]
-        ),
-        created_date: Optional[str] = Field(
-            None,
-            title="创建日期",
-            description="创建日期",
-            examples=["2024-01-01", "2024-12-25"]
-        ),
-        modified_date: Optional[str] = Field(
-            None,
-            title="修改日期",
-            description="修改日期",
-            examples=["2024-01-01", "2024-12-25"]
-        ),
-        is_active: Optional[bool] = Field(
-            True,
-            title="是否激活",
-            description="是否激活规则"
-        ),
-        priority: Optional[int] = Field(
-            0,
-            title="优先级",
-            description="规则优先级",
-            examples=[0, 1, 5, 10]
-        ),
-        dependencies: Optional[List[str]] = Field(
-            None,
-            title="依赖规则",
-            description="依赖规则列表",
-            examples=[["BaseUIRule", "ColorRule"], ["LayoutRule"]]
-        ),
-        conflicts: Optional[List[str]] = Field(
-            None,
-            title="冲突规则",
-            description="冲突规则列表",
-            examples=[["OldButtonRule", "LegacyPanelRule"]]
-        ),
-        conditions: Optional[Dict[str, Any]] = Field(
-            None,
-            title="应用条件",
-            description="应用条件字典",
-            examples=[{"platform": "mobile", "resolution": "high", "theme": "dark"}]
-        ),
-        effects: Optional[Dict[str, Any]] = Field(
-            None,
-            title="应用效果",
-            description="应用效果字典",
-            examples=[{"animation": "fade", "sound": "click", "haptic": "light"}]
-        ),
-        metadata: Optional[Dict[str, Any]] = Field(
-            None,
-            title="元数据",
-            description="元数据字典",
-            examples=[{"project": "MyGame", "team": "UI", "status": "approved"}]
-        )
+            description="操作类型: create_rule(创建制作方案), get_rule(获取制作方案), get_prototype_pic(获取原型图片base64), add_modify(添加修改记录), record_names(批量记录节点命名信息), get_names(获取节点命名信息), record_sprites(批量记录sprite信息), get_sprites(获取sprite信息)",
+            examples=["create_rule", "get_rule", "get_prototype_pic", "add_modify", "record_names", "get_names", "record_sprites", "get_sprites"]
+        )],
+        name: Annotated[str, Field(
+            title="UI名称",
+            description="UI名称，用于查找和记录",
+            examples=["SimpleUI", "MainMenuUI", "BattleUI"]
+        )],
+        modify_desc: Annotated[Optional[str], Field(
+            title="修改描述",
+            description="修改描述，用于add_modify操作",
+            default=None,
+            examples=["调整按钮位置", "更新图片资源", "修改文本内容"]
+        )] = None,
+        save_path: Annotated[Optional[str], Field(
+            title="保存路径",
+            description="保存路径，用于创建新的UIDefineRuleObject，默认为Assets/ScriptableObjects",
+            default=None,
+            examples=["Assets/ScriptableObjects", "Assets/UI/Rules"]
+        )] = None,
+        properties: Annotated[Optional[str], Field(
+            title="属性数据",
+            description="属性数据，Json格式字符串，用于create_rule操作。支持字段：link_url, picture_url, prototype_pic, image_scale, descriptions",
+            default=None,
+            examples=['{"link_url":"https://figma.com/...", "picture_url":"Assets/Pics/SimpleUI", "image_scale":1}']
+        )] = None,
+        names_data: Annotated[Optional[str], Field(
+            title="节点命名数据",
+            description="节点命名数据，Json格式。支持两种格式：1) 详细格式 {\"node_id\":{\"name\":\"new_name\",\"originName\":\"orig_name\"}} 2) 简单格式 {\"node_id\":\"node_name\"}，用于record_names操作",
+            default=None,
+            examples=['{"1:2":"RootFrame","1:3":"TitleText"}', '{"1:4":{"name":"Image1","originName":"image 1"}}']
+        )] = None,
+        sprites_data: Annotated[Optional[str], Field(
+            title="Sprite数据",
+            description="Sprite数据，Json格式 {\"node_id\":\"file_name\"}，用于record_sprites操作",
+            default=None,
+            examples=['{"1:4":"image1.png","1:5":"image2.png"}', '{"1:6":"Assets/Pics/SimpleUI/background.png"}']
+        )] = None,
+        auto_load_sprites: Annotated[Optional[bool], Field(
+            title="自动加载Sprite",
+            description="是否自动从Assets文件夹加载sprite（基于fileName），默认为true",
+            default=True
+        )] = True
     ) -> Dict[str, Any]:
         """
         UI制作规则文件管理工具
         
-        支持的操作:
-        - create: 创建新规则
-        - modify: 修改现有规则
-        - delete: 删除规则
-        - get: 获取规则信息
-        - list: 列出所有规则
-        - apply: 应用规则到对象
-        - validate: 验证规则
+        主要功能：
+        1. create_rule - 创建UI制作规则ScriptableObject
+        2. get_rule - 获取UI规则（包含构建步骤、环境、优化规则等）
+        3. get_prototype_pic - 获取原型图片的Base64编码
+        4. add_modify - 添加UI修改记录（带时间戳）
+        5. record_names - 批量记录Figma节点ID到Unity对象名的映射
+        6. get_names - 获取已记录的节点命名信息
+        7. record_sprites - 批量记录节点Sprite信息（自动加载sprite）
+        8. get_sprites - 获取已记录的Sprite信息
+        
+        示例用法：
+        1. 创建UI规则:
+           {"action": "create_rule", "name": "SimpleUI", "properties": "{\"link_url\":\"https://figma.com/...\"}"}
+        
+        2. 获取UI规则:
+           {"action": "get_rule", "name": "SimpleUI"}
+        
+        3. 记录节点命名:
+           {"action": "record_names", "name": "SimpleUI", "names_data": "{\"1:2\":\"RootFrame\",\"1:3\":\"TitleText\"}"}
+        
+        4. 记录Sprite信息:
+           {"action": "record_sprites", "name": "SimpleUI", "sprites_data": "{\"1:4\":\"image1.png\",\"1:5\":\"image2.png\"}"}
+        
+        注意：
+        - name参数是必需的，用于识别UI规则
+        - 所有Json数据需要以字符串格式传递
+        - record_sprites会自动加载sprite资源（auto_load_sprites=true）
         """
         return send_to_unity("ui_rule_manage", {
             "action": action,
-            "rule_name": rule_name,
-            "rule_type": rule_type,
+            "name": name,
+            "modify_desc": modify_desc,
+            "save_path": save_path,
             "properties": properties,
-            "constraints": constraints,
-            "validation_rules": validation_rules,
-            "target_object": target_object,
-            "force_apply": force_apply,
-            "validate_only": validate_only,
-            "create_missing": create_missing,
-            "remove_extra": remove_extra,
-            "preserve_hierarchy": preserve_hierarchy,
-            "backup_before_apply": backup_before_apply,
-            "log_changes": log_changes,
-            "rule_file_path": rule_file_path,
-            "export_format": export_format,
-            "import_format": import_format,
-            "template_name": template_name,
-            "category": category,
-            "tags": tags,
-            "description": description,
-            "version": version,
-            "author": author,
-            "created_date": created_date,
-            "modified_date": modified_date,
-            "is_active": is_active,
-            "priority": priority,
-            "dependencies": dependencies,
-            "conflicts": conflicts,
-            "conditions": conditions,
-            "effects": effects,
-            "metadata": metadata
+            "names_data": names_data,
+            "sprites_data": sprites_data,
+            "auto_load_sprites": auto_load_sprites
         })
