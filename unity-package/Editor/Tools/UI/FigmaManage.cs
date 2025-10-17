@@ -1704,29 +1704,52 @@ namespace UnityMcp.Tools
              * - Figma坐标系：原点在左上角，X轴向右为正，Y轴向下为正
              * - UGUI坐标系：原点在容器中心，X轴向右为正，Y轴向上为正
              * 
-             * 转换公式（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
+             * 转换公式分两种情况：
              * 
-             * 1. X坐标转换：
-             *    anchored_position.x = figma_x + (element_width / 2) - (container_width / 2)
-             *    
-             *    示例：figma_x=88, element_width=300, container_width=1200
-             *    结果：88 + 150 - 600 = -362
+             * 1. 直接放在根容器下的元素（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
              * 
-             * 2. Y坐标转换（需要翻转Y轴）：
-             *    anchored_position.y = (container_height / 2) - figma_y - (element_height / 2)
+             *    X坐标转换：
+             *    anchored_position.x = figma_x - (container_width / 2)
              *    
-             *    示例：container_height=720, figma_y=498, element_height=436.75
-             *    结果：360 - 498 - 218.375 = -356.375
+             *    示例：figma_x=48, container_width=1200
+             *    结果：48 - 600 = -552
+             * 
+             *    Y坐标转换（需要翻转Y轴）：
+             *    anchored_position.y = (container_height / 2) - figma_y
+             *    
+             *    示例：container_height=720, figma_y=264
+             *    结果：360 - 264 = 96
+             * 
+             * 2. 嵌套在其他元素内的元素（假设RectTransform锚点在中心 anchor=[0.5, 0.5]）：
+             * 
+             *    X坐标转换：
+             *    anchored_position.x = figma_x - parent_figma_x
+             *    
+             *    示例：figma_x=35, parent_figma_x=48
+             *    结果：35 - 48 = -13
+             * 
+             *    Y坐标转换（需要翻转Y轴）：
+             *    anchored_position.y = parent_figma_y - figma_y
+             *    
+             *    示例：parent_figma_y=264, figma_y=251
+             *    结果：264 - 251 = 13
              * 
              * 3. 尺寸保持不变：
              *    size_delta = [element_width, element_height]
              * 
              * 完整公式总结：
              * ┌─────────────────────────────────────────────────────────────────────────┐
-             * │ anchored_position.x = figma_pos.x + size.x/2 - container_width/2       │
-             * │ anchored_position.y = container_height/2 - figma_pos.y - size.y/2      │
-             * │ size_delta.x = figma_size.x                                             │
-             * │ size_delta.y = figma_size.y                                             │
+             * │ 直接放在根容器下的元素：                                                 │
+             * │ anchored_position.x = figma_pos.x - container_width/2                  │
+             * │ anchored_position.y = container_height/2 - figma_pos.y                 │
+             * │                                                                         │
+             * │ 嵌套在其他元素内的元素：                                                 │
+             * │ anchored_position.x = figma_pos.x - parent_figma_pos.x                 │
+             * │ anchored_position.y = parent_figma_pos.y - figma_pos.y                 │
+             * │                                                                         │
+             * │ 尺寸：                                                                  │
+             * │ size_delta.x = figma_size.x                                            │
+             * │ size_delta.y = figma_size.y                                            │
              * └─────────────────────────────────────────────────────────────────────────┘
              * 
              * 注意事项：
@@ -1745,8 +1768,13 @@ namespace UnityMcp.Tools
 
             // UGUI转换公式
             var uguiFormula = new JsonClass();
+            // 根容器下的元素
             uguiFormula["x"] = "anchored_position_x = figma_x + (width/2) - (container_width/2)";
             uguiFormula["y"] = "anchored_position_y = (container_height/2) - figma_y - (height/2)";
+            // 嵌套元素
+            uguiFormula["nested_x"] = "anchored_position_x = figma_x - parent_figma_x";
+            uguiFormula["nested_y"] = "anchored_position_y = parent_figma_y - figma_y";
+            // 尺寸
             uguiFormula["size"] = "size_delta = [width, height] (保持不变)";
             uguiFormula["note"] = "公式适用于RectTransform锚点在中心的情况（anchor=[0.5,0.5]）";
 
