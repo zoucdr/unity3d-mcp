@@ -1771,9 +1771,9 @@ namespace UnityMcp.Tools
             // 根容器下的元素
             uguiFormula["x"] = "anchored_position_x = figma_x + (width/2) - (container_width/2)";
             uguiFormula["y"] = "anchored_position_y = (container_height/2) - figma_y - (height/2)";
-            // 嵌套元素
-            uguiFormula["nested_x"] = "anchored_position_x = figma_x - parent_figma_x";
-            uguiFormula["nested_y"] = "anchored_position_y = parent_figma_y - figma_y";
+            // 嵌套元素（需要进行自身尺寸偏移）
+            uguiFormula["nested_x"] = "anchored_position_x = (figma_x - parent_figma_x) - (width/2)";
+            uguiFormula["nested_y"] = "anchored_position_y = (parent_figma_y - figma_y) + (height/2)";
             // 尺寸
             uguiFormula["size"] = "size_delta = [width, height] (保持不变)";
             uguiFormula["note"] = "公式适用于RectTransform锚点在中心的情况（anchor=[0.5,0.5]）";
