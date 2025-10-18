@@ -116,7 +116,7 @@ class UnityConnection:
         test_sock = None
         try:
             test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            test_sock.settimeout(1.0)  # 增加超时时间到1秒
+            test_sock.settimeout(config.ping_timeout)  # 使用ping超时设置
             test_sock.connect((self.host, port))
             
             # Send ping using length-prefixed protocol
@@ -192,11 +192,12 @@ class UnityConnection:
             finally:
                 self.sock = None
 
-    def _recv_exact(self, sock, n_bytes: int) -> bytes:
+    def _recv_exact(self, sock, n_bytes: int, timeout: float = None) -> bytes:
         """Receive exactly n_bytes from socket."""
         chunks = []
         bytes_received = 0
-        sock.settimeout(config.connection_timeout)
+        # 使用传入的超时时间，如果没有则使用发送超时
+        sock.settimeout(timeout if timeout is not None else config.send_timeout)
         
         while bytes_received < n_bytes:
             chunk = sock.recv(n_bytes - bytes_received)
@@ -214,11 +215,11 @@ class UnityConnection:
         logger.debug(f"Sending message: length={data_len}, length_prefix={length_prefix.hex()}")
         sock.sendall(length_prefix + data)
     
-    def receive_full_response(self, sock, buffer_size=config.buffer_size) -> bytes:
+    def receive_full_response(self, sock, buffer_size=config.buffer_size, timeout: float = None) -> bytes:
         """Receive a complete response from Unity using length-prefixed protocol."""
         try:
             # First, receive the 4-byte length prefix
-            length_data = self._recv_exact(sock, 4)
+            length_data = self._recv_exact(sock, 4, timeout)
             data_length = struct.unpack('>I', length_data)[0]  # Big-endian unsigned int
             
             logger.debug(f"Expecting message of {data_length} bytes")
@@ -229,7 +230,7 @@ class UnityConnection:
                 raise Exception(f"Message too large: {data_length} bytes (max: {max_message_size})")
             
             # Now receive exactly that many bytes
-            data = self._recv_exact(sock, data_length)
+            data = self._recv_exact(sock, data_length, timeout)
             
             logger.info(f"Received complete response ({len(data)} bytes)")
             return data
@@ -324,7 +325,8 @@ class UnityConnection:
                 logger.debug("Sending ping to verify connection")
                 ping_data = b"ping"
                 self._send_with_length(self.sock, ping_data)
-                response_data = self.receive_full_response(self.sock)
+                # 使用ping专用超时
+                response_data = self.receive_full_response(self.sock, timeout=config.ping_timeout)
                 response = json.loads(response_data.decode('utf-8'))
                 
                 # 更宽松的ping验证：检查是否包含pong或success
@@ -371,7 +373,8 @@ class UnityConnection:
             # Send with length prefix
             self._send_with_length(self.sock, command_data)
             
-            response_data = self.receive_full_response(self.sock)
+            # 使用发送超时接收响应
+            response_data = self.receive_full_response(self.sock, timeout=config.send_timeout)
             try:
                 response = json.loads(response_data.decode('utf-8'))
             except (JSONDecodeError, ValueError) as je:

@@ -15,7 +15,8 @@ class ServerConfig:
     unity_port_end: int = 8110
     
     # Connection settings
-    connection_timeout: float = 120.0  # 增加到120秒超时，减少连接问题
+    connection_timeout: float = 3.0  # 连接建立超时，快速失败
+    send_timeout: float = 120.0  # 命令发送和接收超时，给足够时间处理复杂操作
     buffer_size: int = 16 * 1024 * 1024  # 16MB buffer
     smart_port_discovery: bool = True   # 重新启用智能端口发现，配合新的端口切换逻辑
     ping_timeout: float = 3.0  # ping命令的单独超时设置
