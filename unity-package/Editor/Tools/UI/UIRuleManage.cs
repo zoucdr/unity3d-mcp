@@ -745,8 +745,8 @@ namespace UnityMcp.Tools
                 imageScale = figmaObj.image_scale,
                 descriptions = GenerateMarkdownDescription(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps(), mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments(), figmaObj.descriptions),
                 assetPath = AssetDatabase.GetAssetPath(figmaObj),
-                rename_count = figmaObj.node_names.Count,
-                sprite_count = figmaObj.node_sprites.Count > 0 ? figmaObj.node_sprites.Count : 0
+                node_names = figmaObj.node_names.Select(n => new { id = n.id, name = n.name, originName = n.originName }).ToArray(),
+                node_sprites = figmaObj.node_sprites.Select(s => new { id = s.id, fileName = s.fileName }).ToArray()
             };
 
             LogInfo($"[UIRuleManage] UI规则构建完成: {uiName}");

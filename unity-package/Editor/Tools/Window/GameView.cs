@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
@@ -7,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityMcp.Models; // For Response class
 using UnityMcp;
+using UnityMcp.Utils;
 
 namespace UnityMcp.Tools
 {
@@ -24,12 +26,14 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "Operation type: set_resolution, get_resolution, get_stats, set_vsync, set_target_framerate, maximize, set_aspect_ratio", false),
+                new MethodKey("action", "Operation type: set_resolution, get_resolution, get_stats, set_vsync, set_target_framerate, maximize, set_aspect_ratio, screenshot", false),
                 new MethodKey("width", "Window width (used for set_resolution)", true),
                 new MethodKey("height", "Window height (used for set_resolution)", true),
                 new MethodKey("vsync_count", "VSync count: 0=off, 1=every frame, 2=every 2nd frame (used for set_vsync)", true),
                 new MethodKey("target_framerate", "Target frame rate, -1=unlimited (used for set_target_framerate)", true),
-                new MethodKey("aspect_ratio", "Aspect ratio string like '16:9' or 'Free' (used for set_aspect_ratio)", true)
+                new MethodKey("aspect_ratio", "Aspect ratio string like '16:9' or 'Free' (used for set_aspect_ratio)", true),
+                // 截图相关参数
+                new MethodKey("save_path", "Path to save screenshot", true)
             };
         }
 
@@ -45,6 +49,7 @@ namespace UnityMcp.Tools
                     .Leaf("set_target_framerate", HandleSetTargetFramerateAction)
                     .Leaf("maximize", HandleMaximizeAction)
                     .Leaf("set_aspect_ratio", HandleSetAspectRatioAction)
+                    .Leaf("screenshot", HandleScreenshotAction)
                 .Build();
         }
 
@@ -792,6 +797,44 @@ namespace UnityMcp.Tools
                 return Response.Error($"Failed to set aspect ratio: {e.Message}");
             }
         }
+
+        /// <summary>
+        /// 处理截图操作
+        /// </summary>
+        private object HandleScreenshotAction(JsonClass args)
+        {
+            try
+            {
+                var savePath = args["save_path"]?.Value;
+                if (string.IsNullOrEmpty(savePath)) savePath = "Assets/Screenshots/gameview_screenshot.jpg";
+
+                Debug.Log($"[GameView] Taking screenshot to {savePath}");
+
+                var result = ScreenCaptureUtil.CaptureGameView(savePath);
+
+                if (!result.success)
+                {
+                    return Response.Error(result.error);
+                }
+
+                return Response.Success("GameView screenshot saved successfully", new
+                {
+                    path = result.path,
+                    width = result.width,
+                    height = result.height,
+                    format = result.format,
+                    size_bytes = result.size,
+                    is_playing = EditorApplication.isPlaying
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[GameView] Screenshot failed: {e.Message}");
+                return Response.Error($"Screenshot failed: {e.Message}");
+            }
+        }
+
+
     }
 }
 

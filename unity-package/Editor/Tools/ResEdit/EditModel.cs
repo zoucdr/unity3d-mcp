@@ -23,7 +23,7 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型：import, modify, duplicate, delete, get_info, search, set_import_settings", false),
+                new MethodKey("action", "操作类型：import, modify, duplicate, delete, get_info, search, set_import_settings, remap_materials", false),
                 new MethodKey("path", "模型资源路径，Unity标准格式：Assets/Models/ModelName.fbx", false),
                 new MethodKey("source_file", "源文件路径（导入时使用）", true),
                 new MethodKey("destination", "目标路径（复制/移动时使用）", true),
@@ -92,7 +92,8 @@ namespace UnityMcp.Tools
                 new MethodKey("smoothness", "平滑度", true),
                 new MethodKey("normal_import_mode", "法线导入模式：Default, None, Calculate, Import", true),
                 new MethodKey("normal_map_mode", "法线贴图模式：Default, OpenGL, DirectX", true),
-                new MethodKey("height_map_mode", "高度贴图模式：Default, OpenGL, DirectX", true)
+                new MethodKey("height_map_mode", "高度贴图模式：Default, OpenGL, DirectX", true),
+                new MethodKey("material_remaps", "材质重定向映射，格式为{\"source_name\":\"target_path\"}的字典", true)
             };
         }
 
@@ -113,6 +114,7 @@ namespace UnityMcp.Tools
                     .Leaf("set_import_settings", SetModelImportSettings)
                     .Leaf("extract_materials", ExtractModelMaterials)
                     .Leaf("optimize", OptimizeModel)
+                    .Leaf("remap_materials", RemapMaterials)
                 .Build();
         }
 
@@ -475,6 +477,70 @@ namespace UnityMcp.Tools
             }
         }
 
+        /// <summary>
+        /// 重定向模型的材质球
+        /// </summary>
+        private object RemapMaterials(JsonClass args)
+        {
+            string path = args["path"]?.Value;
+            JsonClass materialRemaps = args["material_remaps"] as JsonClass;
+
+            if (string.IsNullOrEmpty(path))
+                return Response.Error("'path' is required for remap_materials.");
+            if (materialRemaps == null || materialRemaps.Count == 0)
+                return Response.Error("'material_remaps' is required for remap_materials.");
+
+            string fullPath = SanitizeAssetPath(path);
+            if (!AssetExists(fullPath))
+                return Response.Error($"Model not found at path: {fullPath}");
+
+            try
+            {
+                ModelImporter importer = AssetImporter.GetAtPath(fullPath) as ModelImporter;
+                if (importer == null)
+                    return Response.Error($"Failed to get ModelImporter for '{fullPath}'");
+
+                int remapCount = 0;
+                foreach (var materialRemap in materialRemaps.Properties())
+                {
+                    string sourceName = materialRemap.Key;
+                    string targetPath = materialRemap.Value?.Value;
+
+                    if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(targetPath))
+                        continue;
+
+                    // 加载目标材质球
+                    Material targetMaterial = AssetDatabase.LoadAssetAtPath<Material>(SanitizeAssetPath(targetPath));
+                    if (targetMaterial == null)
+                    {
+                        LogWarning($"[RemapMaterials] Target material not found at path: {targetPath}");
+                        continue;
+                    }
+
+                    // 创建材质球标识符并添加重定向
+                    var id = new AssetImporter.SourceAssetIdentifier(typeof(Material), sourceName);
+                    importer.AddRemap(id, targetMaterial);
+                    remapCount++;
+
+                    LogInfo($"[RemapMaterials] Remapped material '{sourceName}' to '{targetPath}'");
+                }
+
+                if (remapCount > 0)
+                {
+                    importer.SaveAndReimport();
+                    return Response.Success($"Successfully remapped {remapCount} materials for model '{fullPath}'.", GetModelData(fullPath));
+                }
+                else
+                {
+                    return Response.Error("No materials were remapped. Check your material names and target paths.");
+                }
+            }
+            catch (Exception e)
+            {
+                return Response.Error($"Error remapping materials for model '{fullPath}': {e.Message}");
+            }
+        }
+
         // --- 内部辅助方法 ---
 
         /// <summary>
@@ -815,6 +881,7 @@ namespace UnityMcp.Tools
             // 获取模型导入器信息
             ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
             object importSettings = null;
+            object remapInfo = null;
 
             if (importer != null)
             {
@@ -838,6 +905,37 @@ namespace UnityMcp.Tools
                     add_collider = importer.addCollider,
                     weld_vertices = importer.weldVertices
                 };
+
+                // 获取当前的重定向信息
+                var remaps = new Dictionary<string, string>();
+                try
+                {
+                    var remapObjects = importer.GetExternalObjectMap();
+                    if (remapObjects != null && remapObjects.Count > 0)
+                    {
+                        foreach (var remap in remapObjects)
+                        {
+                            if (remap.Key.type == typeof(Material))
+                            {
+                                string sourceName = remap.Key.name;
+                                string targetPath = AssetDatabase.GetAssetPath(remap.Value);
+                                if (!string.IsNullOrEmpty(targetPath))
+                                {
+                                    remaps[sourceName] = targetPath;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogWarning($"[GetModelData] Error getting remap info: {ex.Message}");
+                }
+
+                if (remaps.Count > 0)
+                {
+                    remapInfo = remaps;
+                }
             }
 
             return new
@@ -849,6 +947,7 @@ namespace UnityMcp.Tools
                 file_extension = Path.GetExtension(path),
                 is_model_file = IsModelFile(path),
                 import_settings = importSettings,
+                material_remaps = remapInfo,
                 lastWriteTimeUtc = File.GetLastWriteTimeUtc(Path.Combine(Directory.GetCurrentDirectory(), path)).ToString("o")
             };
         }

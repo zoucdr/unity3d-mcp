@@ -115,13 +115,13 @@ namespace UnityMcp
 
             // 检查是否需要引号
             bool needQuotes = false;
-            
+
             // 包含特殊字符需要引号
             if (value.Contains(':') || value.Contains('#') || value.Contains('[') || value.Contains(']') ||
                 value.Contains('{') || value.Contains('}') || value.Contains(',') || value.Contains('&') ||
                 value.Contains('*') || value.Contains('!') || value.Contains('|') || value.Contains('>') ||
                 value.Contains('\'') || value.Contains('\"') || value.Contains('%') || value.Contains('@') ||
-                value.Contains('`') || value.StartsWith("-") || value.StartsWith("?") || 
+                value.Contains('`') || value.StartsWith("-") || value.StartsWith("?") ||
                 value.StartsWith(" ") || value.EndsWith(" ") || value.Contains('\n') || value.Contains('\r'))
             {
                 needQuotes = true;
@@ -129,7 +129,7 @@ namespace UnityMcp
 
             // 看起来像布尔值或null但实际是字符串
             string lower = value.ToLower();
-            if (lower == "true" || lower == "false" || lower == "null" || lower == "~" || 
+            if (lower == "true" || lower == "false" || lower == "null" || lower == "~" ||
                 lower == "yes" || lower == "no" || lower == "on" || lower == "off")
             {
                 needQuotes = true;
@@ -259,7 +259,6 @@ namespace UnityMcp
                 return this as JsonClass;
             }
         }
-
 
         #endregion typecasting properties
 
@@ -1198,7 +1197,7 @@ return LoadFromCompressedStream(stream);
                     // 对象：第一个键值对跟在 "- " 后面，后续键值对需要对齐缩进
                     bool firstProperty = true;
                     var itemIndent = currentIndent + indent;
-                    
+
                     foreach (var kvp in jsonClass.AsEnumerable())
                     {
                         if (!firstProperty)
@@ -1206,15 +1205,15 @@ return LoadFromCompressedStream(stream);
                             result.Append("\n");
                             result.Append(itemIndent);
                         }
-                        
+
                         // YAML key
                         string yamlKey = kvp.Key;
-                        if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') || 
+                        if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') ||
                             yamlKey.Contains('[') || yamlKey.Contains(']') || yamlKey.Contains('{') || yamlKey.Contains('}'))
                         {
                             yamlKey = "\"" + yamlKey.Replace("\"", "\\\"") + "\"";
                         }
-                        
+
                         result.Append(yamlKey);
                         result.Append(": ");
 
@@ -1230,7 +1229,7 @@ return LoadFromCompressedStream(stream);
                             // 简单类型：直接跟在冒号后面
                             result.Append(kvp.Value.ToYamlStringInternal(level + 2, indent, false));
                         }
-                        
+
                         firstProperty = false;
                     }
                 }
@@ -1461,15 +1460,15 @@ return LoadFromCompressedStream(stream);
                 first = false;
 
                 result.Append(currentIndent);
-                
+
                 // YAML key (需要检查是否需要引号)
                 string yamlKey = kvp.Key;
-                if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') || 
+                if (yamlKey.Contains(':') || yamlKey.Contains('#') || yamlKey.Contains(' ') ||
                     yamlKey.Contains('[') || yamlKey.Contains(']') || yamlKey.Contains('{') || yamlKey.Contains('}'))
                 {
                     yamlKey = "\"" + yamlKey.Replace("\"", "\\\"") + "\"";
                 }
-                
+
                 result.Append(yamlKey);
                 result.Append(": ");
 
@@ -1672,19 +1671,19 @@ return LoadFromCompressedStream(stream);
         public override string ToYamlStringInternal(int level, string indent, bool isArrayItem)
         {
             JsonNodeType nodeType = this.type;
-            
+
             // null 值
             if (string.IsNullOrEmpty(m_Data) || m_Data == "null")
                 return "null";
-            
+
             // 布尔值
             if (nodeType == JsonNodeType.Boolean)
                 return m_Data.ToLower();
-            
+
             // 数字（整数或浮点数）
             if (nodeType == JsonNodeType.Integer || nodeType == JsonNodeType.Float)
                 return m_Data;
-            
+
             // 字符串：使用 EscapeYamlString 处理
             return EscapeYamlString(m_Data);
         }

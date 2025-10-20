@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityMcp.Models;
 using UnityMcp.Tools;
-
+using System.Collections.Generic;
 namespace UnityMcp.Gui
 {
     /// <summary>
@@ -418,7 +418,7 @@ namespace UnityMcp.Gui
         /// <summary>
         /// 获取UI规则（公共方法）
         /// </summary>
-        private void GetUIRule(string uiName, System.Action<string> onComplete)
+        private void GetUIRule(string uiName, System.Action<JsonNode> onComplete)
         {
             Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{uiName}'...");
 
@@ -451,8 +451,7 @@ namespace UnityMcp.Gui
                     if (x != null)
                     {
                         result = x;
-                        string resultJson = (string)Json.FromObject(result).Value;
-                        onComplete?.Invoke(resultJson);
+                        onComplete?.Invoke(result);
                     }
                     else
                     {
@@ -488,9 +487,12 @@ namespace UnityMcp.Gui
                 message.AppendLine();
                 message.AppendLine("以下是Unity项目中的UI制作规则和配置信息，请基于这些信息基于mcp实现UI界面开发：");
                 message.AppendLine();
-                message.AppendLine("```json");
-                message.AppendLine(resultJson);
-                message.AppendLine("```");
+                foreach (KeyValuePair<string, JsonNode> kv in result.AsObject)
+                {
+                    if (kv.Value.IsNull())
+                        continue;
+                    message.AppendLine($"- {kv.Key}: {kv.Value}");
+                }
                 return message.ToString();
             }
             catch (System.Exception e)
@@ -515,9 +517,9 @@ namespace UnityMcp.Gui
             {
                 GetUIRule(uiName, (result) =>
                 {
-                    if (result != null)
+                    if (result != null && result["success"].AsBoolDefault(false))
                     {
-                        CopyToClipboard(result, uiName);
+                        CopyToClipboard(result["data"]["rule"], uiName);
                     }
                 });
             }
@@ -531,7 +533,7 @@ namespace UnityMcp.Gui
         /// <summary>
         /// 拷贝内容到剪贴板
         /// </summary>
-        private void CopyToClipboard(string result, string uiName)
+        private void CopyToClipboard(JsonNode result, string uiName)
         {
             if (result == null)
             {

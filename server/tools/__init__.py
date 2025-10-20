@@ -32,6 +32,8 @@ from .edit_particle_system import register_edit_particle_system_tools
 from .storage_prefers import register_storage_prefers_tools
 from .storage_source_location import register_storage_source_location_tools
 from .game_view import register_game_view_tools
+from .scene_view import register_scene_view_tools
+from .edit_model import register_edit_model_tools
 
 def register_all_tools(mcp):
     """Register all refactored tools with the MCP server."""
@@ -70,4 +72,6 @@ def register_all_tools(mcp):
     register_storage_prefers_tools(mcp)
     register_storage_source_location_tools(mcp)
     register_game_view_tools(mcp)
+    register_scene_view_tools(mcp)
+    register_edit_model_tools(mcp)
     print("Unity MCP Server tool registration complete.")
