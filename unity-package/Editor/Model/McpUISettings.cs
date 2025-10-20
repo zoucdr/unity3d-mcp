@@ -165,9 +165,29 @@ namespace UnityMcp
         /// <summary>
         /// 获取默认的UI构建步骤
         /// </summary>
+        // 自动生成的默认构建步骤 - UGUI (2025-10-20 10:30:59)
         public static List<string> GetDefaultBuildSteps()
         {
-            return GetDefaultBuildSteps(UIType.UGUI);
+            return new List<string>
+            {
+                "回顾unity-mcp工具使用方法",
+                "利用figma_manage进行界面预览，并分析UI结构详情",
+                "利用figma_manage下载页面信息",
+                "结合页面信息和预览图，合理设计UGUI层级",
+                "创建Canvas和根容器并设置好尺寸",
+                "将Game窗口尺寸和UI尺寸匹配",
+                "按照设计稿创建必要的UI组件",
+                "按理想的UI层级进行组件调整",
+                "记录创建的UI组件名称和原来的节点id到规则文件",
+                "配置组件属性",
+                "基于ugui_layout的mcp工具和设计稿信息，进行界面布局调整",
+                "基于ui_rule_manage记录更改方式到规则文件",
+                "下载界面控件需要的图片资源",
+                "基于ui_rule_manage将图片信息通过记录到规则文件",
+                "将下载的图片，利用mcp加载到指定的UI组件上",
+                "优化屏幕适配，使用mcp调用ugui_layout，每个组件根据所在的位置自动选择合适的锚点方式（anchor_preset）",
+                "使用mcp进行game窗口屏幕截图，并和预览图进行对比与调整"
+            };
         }
 
         /// <summary>

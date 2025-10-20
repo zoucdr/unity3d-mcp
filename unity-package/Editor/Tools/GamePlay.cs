@@ -262,27 +262,58 @@ namespace UnityMcp.Tools
                     Directory.CreateDirectory(directory);
                 }
 
-                // 获取Game窗口
-                var gameView = GetGameView();
-                if (gameView == null)
+                Texture2D texture = null;
+                int width = 0;
+                int height = 0;
+
+                // 方案1: 尝试从Game窗口截图（运行时优先）
+                if (EditorApplication.isPlaying)
                 {
-                    return Response.Error("No Game window found");
+                    var gameView = GetGameView();
+                    if (gameView != null)
+                    {
+                        var renderTexture = GetGameViewRenderTexture();
+                        if (renderTexture != null)
+                        {
+                            texture = CaptureFromRenderTexture(renderTexture);
+                            width = renderTexture.width;
+                            height = renderTexture.height;
+                            LogInfo("[GamePlay] Screenshot captured from Game window (Play mode)");
+                        }
+                    }
                 }
 
-                // 获取Game窗口的RenderTexture
-                var renderTexture = GetGameViewRenderTexture();
-                if (renderTexture == null)
+                // 方案2: 从Scene视图截图（编辑器模式备选）
+                if (texture == null)
                 {
-                    return Response.Error("Failed to get Game window render texture");
+                    var sceneViewCapture = CaptureFromSceneView();
+                    if (sceneViewCapture != null)
+                    {
+                        texture = sceneViewCapture.texture;
+                        width = sceneViewCapture.width;
+                        height = sceneViewCapture.height;
+                        LogInfo("[GamePlay] Screenshot captured from Scene view");
+                    }
                 }
 
-                // 创建Texture2D并读取像素
-                var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
-                var activeRT = RenderTexture.active;
-                RenderTexture.active = renderTexture;
-                texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-                texture.Apply();
-                RenderTexture.active = activeRT;
+                // 方案3: 使用相机渲染截图（最终备选）
+                if (texture == null)
+                {
+                    var cameraCapture = CaptureFromCamera();
+                    if (cameraCapture != null)
+                    {
+                        texture = cameraCapture.texture;
+                        width = cameraCapture.width;
+                        height = cameraCapture.height;
+                        LogInfo("[GamePlay] Screenshot captured from Camera");
+                    }
+                }
+
+                // 如果所有方案都失败
+                if (texture == null)
+                {
+                    return Response.Error("Failed to capture screenshot: No valid source found. Please ensure Game window is open or Scene view is available.");
+                }
 
                 // 修正上下反转的问题
                 texture = FlipTextureVertically(texture);
@@ -314,10 +345,11 @@ namespace UnityMcp.Tools
                 return Response.Success("Screenshot saved successfully", new
                 {
                     path = savePath,
-                    width = renderTexture.width,
-                    height = renderTexture.height,
+                    width = width,
+                    height = height,
                     format = format,
-                    size_bytes = imageData.Length
+                    size_bytes = imageData.Length,
+                    is_playing = EditorApplication.isPlaying
                 });
             }
             catch (Exception e)
@@ -1299,6 +1331,150 @@ namespace UnityMcp.Tools
                 };
             }
         }
+
+        /// <summary>
+        /// 从RenderTexture捕获纹理
+        /// </summary>
+        private Texture2D CaptureFromRenderTexture(RenderTexture renderTexture)
+        {
+            try
+            {
+                var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
+                var activeRT = RenderTexture.active;
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+                texture.Apply();
+                RenderTexture.active = activeRT;
+                return texture;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[GamePlay] Failed to capture from RenderTexture: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 从Scene视图捕获截图
+        /// </summary>
+        private CaptureResult CaptureFromSceneView()
+        {
+            try
+            {
+                var sceneView = UnityEditor.SceneView.lastActiveSceneView;
+                if (sceneView == null)
+                {
+                    // 尝试获取任何打开的SceneView
+                    var sceneViews = UnityEditor.SceneView.sceneViews;
+                    if (sceneViews.Count > 0)
+                    {
+                        sceneView = sceneViews[0] as UnityEditor.SceneView;
+                    }
+                }
+
+                if (sceneView == null || sceneView.camera == null)
+                {
+                    return null;
+                }
+
+                var camera = sceneView.camera;
+                var width = (int)sceneView.position.width;
+                var height = (int)sceneView.position.height;
+
+                // 创建RenderTexture
+                var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+                var previousTarget = camera.targetTexture;
+                var previousAspect = camera.aspect;
+
+                camera.targetTexture = rt;
+                camera.aspect = (float)width / height;
+                camera.Render();
+
+                // 读取像素
+                var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+                var activeRT = RenderTexture.active;
+                RenderTexture.active = rt;
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                RenderTexture.active = activeRT;
+
+                // 恢复相机设置
+                camera.targetTexture = previousTarget;
+                camera.aspect = previousAspect;
+                UnityEngine.Object.DestroyImmediate(rt);
+
+                return new CaptureResult { texture = texture, width = width, height = height };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[GamePlay] Failed to capture from Scene view: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 从场景中的相机捕获截图
+        /// </summary>
+        private CaptureResult CaptureFromCamera()
+        {
+            try
+            {
+                // 查找场景中的主相机或任何相机
+                Camera camera = Camera.main;
+                if (camera == null)
+                {
+                    camera = UnityEngine.Object.FindObjectOfType<Camera>();
+                }
+
+                if (camera == null)
+                {
+                    return null;
+                }
+
+                // 使用默认分辨率
+                var width = 1920;
+                var height = 1080;
+
+                // 创建RenderTexture
+                var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+                var previousTarget = camera.targetTexture;
+                var previousAspect = camera.aspect;
+
+                camera.targetTexture = rt;
+                camera.aspect = (float)width / height;
+                camera.Render();
+
+                // 读取像素
+                var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+                var activeRT = RenderTexture.active;
+                RenderTexture.active = rt;
+                texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                texture.Apply();
+                RenderTexture.active = activeRT;
+
+                // 恢复相机设置
+                camera.targetTexture = previousTarget;
+                camera.aspect = previousAspect;
+                UnityEngine.Object.DestroyImmediate(rt);
+
+                return new CaptureResult { texture = texture, width = width, height = height };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[GamePlay] Failed to capture from Camera: {e.Message}");
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 截图结果数据结构
+    /// </summary>
+    public class CaptureResult
+    {
+        public Texture2D texture;
+        public int width;
+        public int height;
     }
 
     /// <summary>

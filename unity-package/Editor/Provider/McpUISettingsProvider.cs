@@ -353,7 +353,16 @@ namespace UnityMcp.Gui
         {
             try
             {
-                string filePath = System.IO.Path.Combine(Application.dataPath, "../Packages/unity-mcp/Editor/Provider/McpUISettingsProvider.cs");
+                // 通过GUID查找McpUISettings.cs文件
+                string guid = "9f1fbf807c169a748a66f80287d6b872";
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                if (string.IsNullOrEmpty(assetPath))
+                {
+                    throw new System.Exception($"无法通过GUID {guid} 找到McpUISettings.cs文件");
+                }
+
+                string filePath = System.IO.Path.GetFullPath(assetPath);
                 string fileContent = System.IO.File.ReadAllText(filePath);
 
                 // 获取当前UI类型
@@ -406,7 +415,7 @@ namespace UnityMcp.Gui
             catch (System.Exception ex)
             {
                 EditorUtility.DisplayDialog("写入失败", $"写入过程中发生错误：{ex.Message}", "确定");
-                Debug.LogError($"写入UI构建步骤失败: {ex}");
+                Debug.LogException(new System.Exception($"写入UI构建步骤失败: {ex}", ex));
             }
         }
 
@@ -417,7 +426,16 @@ namespace UnityMcp.Gui
         {
             try
             {
-                string filePath = System.IO.Path.Combine(Application.dataPath, "../Packages/unity-mcp/Editor/Provider/McpUISettingsProvider.cs");
+                // 通过GUID查找McpUISettings.cs文件
+                string guid = "9f1fbf807c169a748a66f80287d6b872";
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                if (string.IsNullOrEmpty(assetPath))
+                {
+                    throw new System.Exception($"无法通过GUID {guid} 找到McpUISettings.cs文件");
+                }
+
+                string filePath = System.IO.Path.GetFullPath(assetPath);
                 string fileContent = System.IO.File.ReadAllText(filePath);
 
                 // 获取当前UI类型
