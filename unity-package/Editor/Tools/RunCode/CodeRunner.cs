@@ -383,14 +383,32 @@ namespace UnityMcp.Tools
                 return code;
             }
 
+            // 合并提取的using和默认的includes
+            var allIncludes = new List<string>(includes);
             // 提取代码中的using语句
             var codeLines = code.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
+            // 添加默认引用的命名空间
             var extractedUsings = new List<string>()
             {
                 "UnityEngine",
                 "System.Collections",
                 "System.Collections.Generic",
+                "System.Linq",
+                "System",
+                "System.Text",
+                "System.IO",
+                "UnityEngine.UI"
             };
+
+            foreach (var extracted in extractedUsings)
+            {
+                if (!allIncludes.Contains(extracted))
+                {
+                    allIncludes.Add(extracted);
+                    LogInfo($"[CodeRunner] 自动添加命名空间: {extracted}");
+                }
+            }
+
             var codeWithoutUsings = new List<string>();
 
             foreach (var line in codeLines)
@@ -400,29 +418,21 @@ namespace UnityMcp.Tools
                 {
                     // 提取using语句（去掉"using "和";"）
                     var usingNamespace = trimmedLine.Substring(6, trimmedLine.Length - 7).Trim();
-                    if (!extractedUsings.Contains(usingNamespace))
+                    if (!allIncludes.Contains(usingNamespace))
                     {
-                        extractedUsings.Add(usingNamespace);
+                        allIncludes.Add(usingNamespace);
                         LogInfo($"[CodeRunner] 提取using语句: {usingNamespace}");
                     }
+                }
+                else
+                {
+                    codeWithoutUsings.Add(line);
                 }
             }
 
             // 使用清理后的代码（不包含using语句）
             // 清理多余的空行（但保留代码中的空行结构）
             var codeWithoutUsingsStr = string.Join("\n", codeWithoutUsings);
-
-            // 合并提取的using和默认的includes
-            var allIncludes = new List<string>(includes);
-            foreach (var extracted in extractedUsings)
-            {
-                if (!allIncludes.Contains(extracted))
-                {
-                    allIncludes.Add(extracted);
-                    LogInfo($"[CodeRunner] 从代码中提取using语句: {extracted}");
-                }
-            }
-
             // 分析代码（移除using后的），自动添加需要的命名空间
             var analyzedIncludes = AnalyzeCodeIncludes(codeWithoutUsingsStr);
             foreach (var analyzed in analyzedIncludes)

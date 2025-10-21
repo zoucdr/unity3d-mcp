@@ -165,8 +165,30 @@ namespace UnityMcp.Tools
         /// </summary>
         private (string fullPath, string relativePath, string fullPathDir, object error) PrepareScenePaths(string name, string path, string action)
         {
-            // Ensure path is relative to Assets/, removing any leading "Assets/"
+            // 检查path是否已经包含文件名（.unity扩展名）
+            bool pathContainsFileName = !string.IsNullOrEmpty(path) &&
+                                      (path.EndsWith(".unity", StringComparison.OrdinalIgnoreCase) ||
+                                       path.Contains(".unity/") ||
+                                       path.Contains(".unity\\"));
+
+            string fileName = null;
             string relativeDir = path ?? string.Empty;
+
+            // 如果path包含文件名，则需要分离目录和文件名
+            if (pathContainsFileName)
+            {
+                // 提取文件名和目录
+                fileName = Path.GetFileName(relativeDir);
+                relativeDir = Path.GetDirectoryName(relativeDir) ?? string.Empty;
+
+                // 如果提供了name参数，警告可能存在冲突
+                if (!string.IsNullOrEmpty(name) && !fileName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    LogWarning($"[ManageScene] Both 'name' ({name}) and 'path' with filename ({fileName}) provided. Using filename from path.");
+                }
+            }
+
+            // Ensure path is relative to Assets/, removing any leading "Assets/"
             if (!string.IsNullOrEmpty(relativeDir))
             {
                 relativeDir = relativeDir.Replace('\\', '/').Trim('/');
@@ -182,7 +204,17 @@ namespace UnityMcp.Tools
                 relativeDir = "Scenes"; // Default relative directory
             }
 
-            string sceneFileName = string.IsNullOrEmpty(name) ? null : $"{name}.unity";
+            // 如果path中没有文件名，则使用name参数创建文件名
+            string sceneFileName;
+            if (pathContainsFileName)
+            {
+                sceneFileName = fileName; // 使用从path中提取的文件名
+            }
+            else
+            {
+                sceneFileName = string.IsNullOrEmpty(name) ? null : $"{name}.unity";
+            }
+
             string fullPathDir = Path.Combine(Application.dataPath, relativeDir);
             string fullPath = string.IsNullOrEmpty(sceneFileName)
                 ? null
