@@ -301,26 +301,17 @@ namespace UnityMcp.Tools
                             bool isCompleteCode = fullCode.Contains("using ") || fullCode.Contains("namespace ") ||
                                                  (fullCode.Contains("public class") || fullCode.Contains("public static class"));
 
-                            List<ExecutionResult> executionResults;
+                            ExecutionResult result;
                             if (isCompleteCode)
                             {
-                                // 对于完整代码，尝试查找并执行所有可执行的静态方法
-                                executionResults = ExecuteCompleteCode(assembly, parameters, returnOutput);
+                                // 对于完整代码，尝试查找并执行第一个成功的静态方法
+                                result = ExecuteCompleteCode(assembly, parameters, returnOutput);
                             }
                             else
                             {
-                                // 对于代码片段，按原有方式执行
-                                executionResults = ExecuteCompiledCode(assembly, namespaceName, className, methodName, parameters, returnOutput);
+                                // 对于代码片段，按原有方式执行（返回单个结果）
+                                result = ExecuteCompiledCode(assembly, namespaceName, className, methodName, parameters, returnOutput);
                             }
-
-                            var result = executionResults.FirstOrDefault() ?? new ExecutionResult
-                            {
-                                MethodName = methodName,
-                                Success = false,
-                                Message = "No execution result",
-                                Output = "",
-                                Duration = 0
-                            };
 
                             executionResult = Response.Success(
                                 result.Success ? "Code execution completed successfully" : "Code execution completed with errors",
@@ -1075,24 +1066,34 @@ namespace UnityMcp.Tools
         /// <summary>
         /// 执行完整代码（自动查找可执行方法）
         /// </summary>
-        private List<ExecutionResult> ExecuteCompleteCode(ReflectionAssembly assembly, object[] parameters, bool returnOutput)
+        private ExecutionResult ExecuteCompleteCode(ReflectionAssembly assembly, object[] parameters, bool returnOutput)
         {
-            var results = new List<ExecutionResult>();
+            // 创建一个收集Unity控制台日志的StringBuilder
+            StringBuilder unityLogBuilder = new StringBuilder();
+
+            void OnUnityLogMessageReceived(string logString, string stackTrace, LogType logType)
+            {
+                string logTypeStr = logType.ToString();
+                unityLogBuilder.AppendLine($"[{logTypeStr}] {logString}");
+                if (logType == LogType.Error || logType == LogType.Exception)
+                {
+                    unityLogBuilder.AppendLine(stackTrace);
+                }
+            }
+
+            ExecutionResult result = null;
 
             try
             {
-                // 获取程序集中的所有类型
                 var types = assembly.GetTypes();
                 LogInfo($"[CodeRunner] 在完整代码中找到 {types.Length} 个类型");
 
                 foreach (var type in types)
                 {
-                    // 查找所有公共静态方法
                     var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
 
                     foreach (var method in methods)
                     {
-                        // 跳过特殊方法和属性访问器
                         if (method.IsSpecialName || method.Name.StartsWith("get_") || method.Name.StartsWith("set_"))
                             continue;
 
@@ -1105,20 +1106,16 @@ namespace UnityMcp.Tools
 
                         var startTime = DateTime.Now;
 
-                        // 准备控制台输出捕获
                         StringWriter outputWriter = null;
                         TextWriter originalOutput = null;
 
                         try
                         {
-                            if (returnOutput)
-                            {
-                                outputWriter = new StringWriter();
-                                originalOutput = Console.Out;
-                                Console.SetOut(outputWriter);
-                            }
+                            // 始终捕获控制台输出，即使 returnOutput 为 false
+                            outputWriter = new StringWriter();
+                            originalOutput = Console.Out;
+                            Console.SetOut(outputWriter);
 
-                            // 准备方法参数
                             var methodParameters = method.GetParameters();
                             object[] actualParameters = null;
 
@@ -1138,15 +1135,16 @@ namespace UnityMcp.Tools
                                 }
                             }
 
-                            // 执行方法
+                            // 添加Unity控制台日志监听
+                            Application.logMessageReceived += OnUnityLogMessageReceived;
                             var returnValue = method.Invoke(null, actualParameters);
+                            Application.logMessageReceived -= OnUnityLogMessageReceived;
 
                             executionResult.Success = true;
                             executionResult.Message = "Method executed successfully";
                             executionResult.ReturnValue = returnValue;
 
                             LogInfo($"[CodeRunner] 方法 {method.Name} 执行成功");
-
                             if (returnValue != null)
                             {
                                 LogInfo($"[CodeRunner] 方法返回值: {returnValue}");
@@ -1170,44 +1168,53 @@ namespace UnityMcp.Tools
                         finally
                         {
                             // 恢复控制台输出
-                            if (returnOutput && originalOutput != null)
+                            if (originalOutput != null)
                             {
                                 Console.SetOut(originalOutput);
-                                executionResult.Output = outputWriter?.ToString() ?? "";
+                                if (returnOutput) // Only assign output if returnOutput true
+                                {
+                                    executionResult.Output = outputWriter?.ToString() ?? "";
+                                }
                                 outputWriter?.Dispose();
                             }
-
                             executionResult.Duration = (DateTime.Now - startTime).TotalMilliseconds;
                         }
 
-                        results.Add(executionResult);
                         LogInfo($"[CodeRunner] 方法 {method.Name}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
 
-                        // 如果方法执行成功，通常只执行第一个找到的方法
+                        // 保存第一个结果（无论成功或失败）
+                        if (result == null)
+                        {
+                            result = executionResult;
+                        }
+
+                        // 如果找到成功的方法，立即返回
                         if (executionResult.Success)
                         {
-                            return results;
+                            result = executionResult;
+                            goto AfterMethodExecution;
                         }
                     }
                 }
 
-                // 如果没有找到任何可执行的方法
-                if (results.Count == 0)
+            AfterMethodExecution:
+
+                if (result == null)
                 {
-                    results.Add(new ExecutionResult
+                    result = new ExecutionResult
                     {
                         MethodName = "Unknown",
                         Success = false,
                         Message = "No executable public static methods found in the assembly",
                         Output = "",
                         Duration = 0
-                    });
+                    };
                 }
             }
             catch (Exception e)
             {
                 LogError($"[CodeRunner] 执行完整代码时发生异常: {e.Message}");
-                results.Add(new ExecutionResult
+                result = new ExecutionResult
                 {
                     MethodName = "Unknown",
                     Success = false,
@@ -1215,18 +1222,37 @@ namespace UnityMcp.Tools
                     Output = "",
                     Duration = 0,
                     StackTrace = e.StackTrace
-                });
+                };
+            }
+            finally
+            {
+                Application.logMessageReceived -= OnUnityLogMessageReceived;
+
+                if (result != null)
+                {
+                    string unityLogs = unityLogBuilder.ToString();
+                    if (!string.IsNullOrEmpty(unityLogs))
+                    {
+                        if (!string.IsNullOrEmpty(result.Output))
+                        {
+                            result.Output = $"{result.Output}\n\n--- Unity Debug Logs ---\n{unityLogs}";
+                        }
+                        else
+                        {
+                            result.Output = $"--- Unity Debug Logs ---\n{unityLogs}";
+                        }
+                    }
+                }
             }
 
-            return results;
+            return result;
         }
 
         /// <summary>
         /// 执行编译后的代码
         /// </summary>
-        private List<ExecutionResult> ExecuteCompiledCode(ReflectionAssembly assembly, string namespaceName, string className, string methodName, object[] parameters, bool returnOutput)
+        private ExecutionResult ExecuteCompiledCode(ReflectionAssembly assembly, string namespaceName, string className, string methodName, object[] parameters, bool returnOutput)
         {
-            var results = new List<ExecutionResult>();
             var fullClassName = $"{namespaceName}.{className}";
             var codeType = assembly.GetType(fullClassName);
 
@@ -1349,10 +1375,9 @@ namespace UnityMcp.Tools
                 executionResult.Duration = (DateTime.Now - startTime).TotalMilliseconds;
             }
 
-            results.Add(executionResult);
             LogInfo($"[CodeRunner] Method {methodName}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
 
-            return results;
+            return executionResult;
         }
 
         /// <summary>
