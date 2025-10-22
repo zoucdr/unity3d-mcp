@@ -85,7 +85,8 @@ namespace Unity.Mcp.Tools
                     Debug.Log($"[FigmaManage] 启动节点智能扫描: {nodeId}");
                     var nodeIdList = new List<string> { nodeId };
                     // 使用同一个协程，通过includeChildren=true来获取完整的子节点树
-                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIdList, token, true, nodeId));
+                    // 为长时间运行的网络请求设置更长的超时时间（120秒）
+                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIdList, token, true, nodeId), 120f);
                 }
                 catch (Exception ex)
                 {
@@ -103,7 +104,8 @@ namespace Unity.Mcp.Tools
             {
                 Debug.Log($"[FigmaManage] 启动异步节点数据拉取: {nodeIds.Count}个节点");
                 // 使用ctx.AsyncReturn处理异步操作
-                return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIds, token, includeChildren, null));
+                // 为长时间运行的网络请求设置更长的超时时间（120秒）
+                return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIds, token, includeChildren, null), 120f);
             }
             catch (Exception ex)
             {
@@ -160,7 +162,8 @@ namespace Unity.Mcp.Tools
                     return Response.Error($"日志记录失败: {ex.Message}");
                 }
 
-                return ctx.AsyncReturn(DownloadSpecificNodesFromLocalJsonCoroutine(fileKey, nodeIds, localJsonPath, token, savePath, imageFormat, imageScale, nodeNames));
+                // 为长时间运行的下载操作设置更长的超时时间（180秒）
+                return ctx.AsyncReturn(DownloadSpecificNodesFromLocalJsonCoroutine(fileKey, nodeIds, localJsonPath, token, savePath, imageFormat, imageScale, nodeNames), 180f);
             }
             else
             {
@@ -173,7 +176,8 @@ namespace Unity.Mcp.Tools
                     return Response.Error($"日志记录失败: {ex.Message}");
                 }
 
-                return ctx.AsyncReturn(DownloadImagesDirectCoroutine(fileKey, nodeIds, token, savePath, imageFormat, imageScale, "SpecifiedNodes", nodeNames));
+                // 为直接下载图片设置超时时间（180秒）
+                return ctx.AsyncReturn(DownloadImagesDirectCoroutine(fileKey, nodeIds, token, savePath, imageFormat, imageScale, "SpecifiedNodes", nodeNames), 180f);
             }
         }
 
@@ -301,7 +305,8 @@ namespace Unity.Mcp.Tools
                 Debug.Log($"[FigmaManage] 启动图片预览: 节点{nodeId}");
 
                 // 使用异步协程下载图片并转换为base64
-                return ctx.AsyncReturn(PreviewImageCoroutine(fileKey, nodeId, token, imageFormat, imageScale));
+                // 为图片预览设置超时时间（90秒）
+                return ctx.AsyncReturn(PreviewImageCoroutine(fileKey, nodeId, token, imageFormat, imageScale), 90f);
             }
             catch (Exception ex)
             {
@@ -660,13 +665,13 @@ namespace Unity.Mcp.Tools
 
         /// <summary>
         /// 检查文件是否属于McpUISettings中配置的公共sprite或texture目录，
-        /// 如是则返回公共目录下的现有路径（通过out参数），并返回true说明已重定向。
-        /// 否则返回false，并通过out参数返回原始路径。
+        /// 通过content hash识别相同的图片，如找到则返回已存在文件的路径。
         /// </summary>
         /// <param name="filePath">当前图片本地路径</param>
+        /// <param name="imageData">图片的二进制数据（用于计算hash）</param>
         /// <param name="remappedPath">重定向后的路径（或原始路径）</param>
         /// <returns>是否被重定向</returns>
-        private bool TryRemapPathIfCommon(string filePath, out string remappedPath)
+        private bool TryRemapPathIfCommon(string filePath, byte[] imageData, out string remappedPath)
         {
             remappedPath = filePath;
 
@@ -681,24 +686,81 @@ namespace Unity.Mcp.Tools
                 commonFolders.AddRange(settings.commonSpriteFolders);
             if (settings.commonTextureFolders != null)
                 commonFolders.AddRange(settings.commonTextureFolders);
+            // 将filePath所在的文件夹也加入到commonFolders（如果不为空且未重复）
+            string fileDir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(fileDir) && !commonFolders.Contains(fileDir))
+                commonFolders.Add(fileDir);
+            if (commonFolders.Count == 0)
+                return false;
 
-            // 标准化文件路径和目录，避免分隔符和大小写问题
-            string fileName = Path.GetFileName(filePath);
+            // 计算当前图片的content hash
+            string currentHash = CalculateBatesHash(imageData);
+            string currentExtension = Path.GetExtension(filePath).ToLower();
 
+            // 遍历所有公共目录，查找具有相同hash的文件
             foreach (var folder in commonFolders)
             {
-                if (string.IsNullOrEmpty(folder))
+                if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
                     continue;
-                var commonFilePath = Path.Combine(folder, fileName);
-                if (File.Exists(commonFilePath))
-                {
-                    // 已在公共目录且文件已存在，无需保存，重定向路径
-                    remappedPath = commonFilePath;
-                    return true;
-                }
 
+                try
+                {
+                    // 获取该目录下所有相同扩展名的文件
+                    string searchPattern = $"*{currentExtension}";
+                    string[] existingFiles = Directory.GetFiles(folder, searchPattern, SearchOption.TopDirectoryOnly);
+
+                    foreach (string existingFile in existingFiles)
+                    {
+                        try
+                        {
+                            // 从文件名中提取hash（格式：名字_hash.扩展名）
+                            string existingFileName = Path.GetFileNameWithoutExtension(existingFile);
+                            int lastUnderscoreIndex = existingFileName.LastIndexOf('_');
+
+                            if (lastUnderscoreIndex > 0 && lastUnderscoreIndex < existingFileName.Length - 1)
+                            {
+                                string existingHash = existingFileName.Substring(lastUnderscoreIndex + 1);
+
+                                // 比较hash值
+                                if (existingHash.Equals(currentHash, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // 找到相同hash的文件，重定向
+                                    remappedPath = existingFile;
+                                    Debug.Log($"[FigmaManage] 检测到相同内容的图片，重定向: {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                // 如果文件名格式不符合预期，直接计算文件的hash进行比较（兼容性处理）
+                                byte[] existingData = File.ReadAllBytes(existingFile);
+                                string existingHash = CalculateBatesHash(existingData);
+
+                                if (existingHash.Equals(currentHash, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // 找到相同hash的文件，重定向
+                                    remappedPath = existingFile;
+                                    Debug.Log($"[FigmaManage] 检测到相同内容的图片（通过文件比对），重定向: {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
+                                    return true;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // 单个文件处理失败不影响其他文件
+                            Debug.LogWarning($"[FigmaManage] 检查文件失败: {existingFile}, 错误: {ex.Message}");
+                            continue;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[FigmaManage] 扫描公共目录失败: {folder}, 错误: {ex.Message}");
+                    continue;
+                }
             }
-            // 不在公共目录则不重定向
+
+            // 不在公共目录或未找到相同hash的文件
             return false;
         }
 
@@ -790,11 +852,25 @@ namespace Unity.Mcp.Tools
                     {
                         relativePath = "Assets/" + relativePath;
                     }
-                    if (TryRemapPathIfCommon(filePath, out string remappedPath))
+                    if (TryRemapPathIfCommon(filePath, imageData, out string remappedPath))
                     {
-                        savePath = Path.GetDirectoryName(remappedPath);
+                        // 找到了相同内容的图片，使用已存在的文件
                         filePath = remappedPath;
-                        Debug.Log($"重定向图片路径: {filePath} -> {remappedPath}");
+                        fileName = Path.GetFileName(remappedPath);
+
+                        // 记录索引信息：使用重定向后的文件名
+                        nodeIndexMapping[nodeId] = filePath;
+
+                        // 获取重定向后文件的相对路径
+                        string remappedRelativePath = Path.GetRelativePath(Application.dataPath, remappedPath).Replace("\\", "/");
+                        if (!remappedRelativePath.StartsWith("../"))
+                        {
+                            remappedRelativePath = "Assets/" + remappedRelativePath;
+                        }
+                        downloadedFiles.Add(remappedRelativePath);
+
+                        downloadedCount++;
+                        Debug.Log($"[FigmaManage] 图片已重定向到已存在文件: {remappedPath}");
                     }
                     else
                     {
@@ -803,11 +879,11 @@ namespace Unity.Mcp.Tools
                         downloadedCount++;
 
                         // 记录索引信息：只保存文件名
-                        nodeIndexMapping[nodeId] = fileName;
+                        nodeIndexMapping[nodeId] = filePath;
                         // 记录下载成功的文件相对路径，用于后续转换为Sprite
                         downloadedFiles.Add(relativePath);
 
-                        Debug.Log($"成功下载图片: {filePath}");
+                        Debug.Log($"[FigmaManage] 成功下载图片: {filePath}");
                     }
                 }
                 else

@@ -87,7 +87,8 @@ namespace Unity.Mcp.Tools
 
                 // 使用ctx.AsyncReturn处理异步操作
                 LogInfo($"[UIRuleManage] 启动异步获取原型图片: {uiName}");
-                return ctx.AsyncReturn(GetPrototypePicCoroutine(figmaObj, uiName));
+                // 为原型图片获取设置超时时间（60秒）
+                return ctx.AsyncReturn(GetPrototypePicCoroutine(figmaObj, uiName), 60f);
             }
             catch (Exception e)
             {

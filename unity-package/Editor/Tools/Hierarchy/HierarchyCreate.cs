@@ -177,7 +177,8 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateFromMenu(StateTreeContext ctx)
         {
-            return ctx.AsyncReturn(HandleCreateFromMenuAsync(ctx));
+            // 为层次结构创建操作设置超时时间（60秒）
+            return ctx.AsyncReturn(HandleCreateFromMenuAsync(ctx), 60f);
         }
 
         /// <summary>

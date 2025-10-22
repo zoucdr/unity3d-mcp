@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Unity.Mcp.Gui
         private static bool showClientDetails = false;
 
         // 服务运行状态
-        private static bool isUnityBridgeRunning = false;
+        private static bool isServiceRunning = false;
         private static int unityPortStart => McpService.unityPortStart;
         private static int unityPortEnd => McpService.unityPortEnd;
         private static int currentPort => McpService.currentPort;
@@ -41,10 +42,10 @@ namespace Unity.Mcp.Gui
         private async void OnEnable()
         {
             // 先设置为默认状态
-            isUnityBridgeRunning = false;
+            isServiceRunning = false;
             // 异步检测 - 检查是否有任何端口在使用，并且是否是当前Unity进程
             bool anyPortInUse = await IsAnyPortInRangeInUse();
-            isUnityBridgeRunning = anyPortInUse && McpService.IsRunning;
+            isServiceRunning = anyPortInUse && McpService.IsRunning;
             // 注册编辑器更新事件，用于定期刷新状态
             EditorApplication.update += OnEditorUpdate;
         }
@@ -66,7 +67,7 @@ namespace Unity.Mcp.Gui
             if (currentTime - lastUpdateTime >= updateInterval)
             {
                 lastUpdateTime = currentTime;
-                isUnityBridgeRunning = McpService.IsRunning;
+                isServiceRunning = McpService.IsRunning;
                 Repaint(); // 刷新窗口
             }
         }
@@ -92,11 +93,11 @@ namespace Unity.Mcp.Gui
             }
             EditorGUILayout.EndHorizontal();
             var installStatusRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(20));
-            DrawStatusDot(installStatusRect, isUnityBridgeRunning ? Color.green : Color.red);
-            EditorGUILayout.LabelField($"       Status: {(isUnityBridgeRunning ? "Running" : "Stopped")}");
+            DrawStatusDot(installStatusRect, isServiceRunning ? Color.green : Color.red);
+            EditorGUILayout.LabelField($"       Status: {(isServiceRunning ? "Running" : "Stopped")}");
 
             // 显示端口信息
-            if (isUnityBridgeRunning && currentPort != -1)
+            if (isServiceRunning && currentPort != -1)
             {
                 EditorGUILayout.LabelField($"Port: {currentPort} (Range: {unityPortStart}-{unityPortEnd})");
             }
@@ -106,16 +107,26 @@ namespace Unity.Mcp.Gui
             }
             EditorGUILayout.EndHorizontal();
 
-            if (GUILayout.Button(isUnityBridgeRunning ? "Stop Server" : "Start Server"))
+            // 启动/停止按钮和重启按钮在同一行
+            if (GUILayout.Button(isServiceRunning ? "Stop Server" : "Start Server"))
             {
-                ToggleUnityBridge();
+                ToggleService();
+            }
+
+            // 重启服务器按钮（只在服务运行时显示）
+            if (isServiceRunning)
+            {
+                if (GUILayout.Button("Restart Server"))
+                {
+                    RestartServer();
+                }
             }
 
             EditorGUILayout.Space(5);
             EditorGUILayout.EndVertical();
 
             // 客户端连接状态部分
-            if (isUnityBridgeRunning)
+            if (isServiceRunning)
             {
                 DrawClientConnectionStatus();
             }
@@ -147,12 +158,12 @@ namespace Unity.Mcp.Gui
             Handles.DrawWireDisc(center, Vector3.forward, radius);
         }
 
-        private static async void ToggleUnityBridge()
+        private static async void ToggleService()
         {
-            if (isUnityBridgeRunning)
+            if (isServiceRunning)
             {
                 McpService.Stop();
-                isUnityBridgeRunning = false;
+                isServiceRunning = false;
             }
             else
             {
@@ -196,18 +207,18 @@ namespace Unity.Mcp.Gui
                 // 检查启动是否成功
                 if (McpService.IsRunning)
                 {
-                    isUnityBridgeRunning = true;
+                    isServiceRunning = true;
                     Debug.Log($"Unity MCP Bridge 已启动，使用端口: {McpService.currentPort}");
                 }
                 else
                 {
-                    isUnityBridgeRunning = false;
+                    isServiceRunning = false;
                     EditorUtility.DisplayDialog("启动失败",
                         $"无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动Unity MCP Bridge。\n" +
                         "请检查是否有其他进程占用了所有端口。", "确定");
                 }
             }
-            EditorPrefs.SetBool("mcp_open_state", isUnityBridgeRunning);
+            EditorPrefs.SetBool("mcp_open_state", isServiceRunning);
         }
 
         /// <summary>
@@ -466,6 +477,121 @@ namespace Unity.Mcp.Gui
                     Debug.LogError($"清理冲突端口时发生错误: {ex.Message}");
                 }
             });
+        }
+
+        /// <summary>
+        /// 重启MCP服务器
+        /// </summary>
+        private static void RestartServer()
+        {
+            // 显示确认对话框
+            bool confirm = EditorUtility.DisplayDialog(
+                "重启MCP服务器",
+                "确定要重启MCP服务器吗？\n\n这将断开所有当前连接的客户端。",
+                "确定",
+                "取消"
+            );
+
+            if (!confirm)
+            {
+                return;
+            }
+
+            // 启动协程执行重启流程
+            CoroutineRunner.StartCoroutine(RestartServerCoroutine(), (result) =>
+            {
+                // 协程完成回调
+                if (result is Exception ex)
+                {
+                    Debug.LogError($"[McpServiceStatusWindow] 重启协程异常: {ex.Message}\n{ex.StackTrace}");
+                }
+            });
+        }
+
+        /// <summary>
+        /// 重启服务器的协程
+        /// </summary>
+        private static IEnumerator RestartServerCoroutine()
+        {
+            // 显示进度条
+            EditorUtility.DisplayProgressBar("重启MCP服务器", "正在停止服务器...", 0.3f);
+
+            // 停止服务器
+            try
+            {
+                McpService.Stop();
+                isServiceRunning = false;
+            }
+            catch (Exception ex)
+            {
+                EditorUtility.ClearProgressBar();
+                EditorUtility.DisplayDialog(
+                    "停止服务器错误",
+                    $"停止MCP服务器时发生错误：\n\n{ex.Message}",
+                    "确定"
+                );
+                Debug.LogError($"[McpServiceStatusWindow] 停止MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                yield break; // 终止协程
+            }
+
+            // 等待0.5秒确保资源释放（不能在try-catch中使用yield return）
+            yield return new WaitForSeconds(0.5f);
+
+            EditorUtility.DisplayProgressBar("重启MCP服务器", "正在启动服务器...", 0.7f);
+
+            // 启动服务器
+            try
+            {
+                McpService.Start();
+            }
+            catch (Exception ex)
+            {
+                EditorUtility.ClearProgressBar();
+                EditorUtility.DisplayDialog(
+                    "启动服务器错误",
+                    $"启动MCP服务器时发生错误：\n\n{ex.Message}",
+                    "确定"
+                );
+                Debug.LogError($"[McpServiceStatusWindow] 启动MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                yield break; // 终止协程
+            }
+
+            // 清除进度条
+            EditorUtility.ClearProgressBar();
+
+            // 检查启动状态
+            if (McpService.IsRunning)
+            {
+                isServiceRunning = true;
+                EditorUtility.DisplayDialog(
+                    "重启成功",
+                    $"MCP服务器已成功重启！\n\n服务端口: {McpService.currentPort}",
+                    "确定"
+                );
+                Debug.Log($"[McpServiceStatusWindow] MCP服务器已重启，端口: {McpService.currentPort}");
+
+                // 更新EditorPrefs状态
+                EditorPrefs.SetBool("mcp_open_state", true);
+            }
+            else
+            {
+                isServiceRunning = false;
+                EditorUtility.DisplayDialog(
+                    "重启失败",
+                    "MCP服务器重启失败，请查看控制台日志了解详情。",
+                    "确定"
+                );
+                Debug.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
+
+                // 更新EditorPrefs状态
+                EditorPrefs.SetBool("mcp_open_state", false);
+            }
+
+            // 刷新窗口显示
+            if (instance != null)
+            {
+                instance.Repaint();
+            }
         }
     }
 }

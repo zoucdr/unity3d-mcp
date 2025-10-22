@@ -24,7 +24,7 @@ namespace Unity.Mcp
             (string commandJson, TaskCompletionSource<string> tcs)
         > commandQueue = new();
         public static readonly int unityPortStart = 8100; // Start of port range
-        public static readonly int unityPortEnd = 8110;   // End of port range
+        public static readonly int unityPortEnd = 8105;   // End of port range
         public static int currentPort = -1; // Currently used port
         public static bool IsRunning => isRunning;
 

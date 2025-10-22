@@ -394,171 +394,225 @@ namespace Unity.Mcp.Gui
         }
 
         /// <summary>
-        /// 验证并获取UI名称
-        /// </summary>
-        private string ValidateAndGetUIName()
-        {
-            var targetObject = target as UIDefineRuleObject;
-            if (targetObject == null)
-            {
-                EditorUtility.DisplayDialog("Error", "Cannot find UIDefineRuleObject.", "OK");
-                return null;
-            }
-
-            string uiName = targetObject.name;
-            if (string.IsNullOrEmpty(uiName))
-            {
-                EditorUtility.DisplayDialog("Error", "UI name is empty. Please set a name for this rule object.", "OK");
-                return null;
-            }
-
-            return uiName;
-        }
-
-        /// <summary>
         /// 获取UI规则（公共方法）
         /// </summary>
-        private void GetUIRule(string uiName, System.Action<JsonNode> onComplete)
+        private string GetUIRuleText(UIDefineRuleObject ruleObject)
         {
-            Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{uiName}'...");
+            Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{ruleObject.name}'...");
 
-            // 创建UIRuleManage实例
-            var uiRuleManage = new UIRuleManage();
-
-            // 创建参数
-            var args = new JsonClass();
-            args["action"] = "get_rule";
-            args["name"] = uiName;
-
-            // 使用StateTreeContext调用ExecuteMethod
-            var context = new Unity.Mcp.StateTreeContext(args);
-            bool resultReceived = false;
-            JsonNode result = null;
-
-            // 注册完成回调
-            context.RegistComplete((res) =>
+            if (ruleObject == null)
             {
-                result = res;
-                resultReceived = true;
-            });
-
-            try
-            {
-                uiRuleManage.ExecuteMethod(context);
-                context.RegistComplete((System.Action<JsonNode>)(x =>
-                {
-                    // 如果立即有结果，直接使用
-                    if (x != null)
-                    {
-                        result = x;
-                        onComplete?.Invoke(result);
-                    }
-                    else
-                    {
-                        if (!resultReceived)
-                        {
-                            Debug.LogError("[UIDefineRuleObjectEditor] ExecuteMethod timeout");
-                            EditorUtility.DisplayDialog("Error", "ExecuteMethod timeout", "OK");
-                            onComplete?.Invoke(null);
-                            return;
-                        }
-                    }
-                }));
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[UIDefineRuleObjectEditor] Error getting UI rule: {e.Message}");
-                EditorUtility.DisplayDialog("Error", $"Error getting UI rule: {e.Message}", "OK");
-                onComplete?.Invoke(null);
-            }
-        }
-        /// <summary>
-        /// 构建发送到Cursor的消息
-        /// </summary>
-        private string BuildCursorMessage(JsonNode result, string uiName)
-        {
-            try
-            {
-                // 将结果转换为JSON字符串以便解析
-                string resultJson = Json.FromObject(result);
-
-                var message = new System.Text.StringBuilder();
-                message.AppendLine($"# Unity UI规则信息 - {uiName}");
-                message.AppendLine();
-                message.AppendLine("以下是Unity项目中的UI制作规则和配置信息，请基于这些信息基于mcp实现UI界面开发：");
-                message.AppendLine();
-                foreach (KeyValuePair<string, JsonNode> kv in result.AsObject)
-                {
-                    if (kv.Value.IsNull())
-                        continue;
-                    message.AppendLine($"- {kv.Key}: {kv.Value}");
-                }
-                return message.ToString();
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"[UIDefineRuleObjectEditor] Error building Cursor message: {e.Message}");
+                Debug.LogError("[UIDefineRuleObjectEditor] UIDefineRuleObject is null");
                 return null;
             }
-        }
 
+            var markdown = new System.Text.StringBuilder();
+
+            // 获取全局UI设置
+            var mcpSettings = McpSettings.Instance;
+            var uiSettings = mcpSettings?.uiSettings;
+
+            // 标题
+            markdown.AppendLine($"# Unity UI规则信息 - {ruleObject.name}");
+            markdown.AppendLine();
+            markdown.AppendLine("以下是Unity项目中的UI制作规则和配置信息，请基于这些信息基于mcp实现UI界面开发。");
+            markdown.AppendLine();
+
+            // 基本信息 - 只显示有值的字段
+            bool hasBasicInfo = false;
+            var basicInfo = new System.Text.StringBuilder();
+
+            basicInfo.AppendLine("## 基本信息");
+            basicInfo.AppendLine();
+
+            // UI名称总是显示
+            basicInfo.AppendLine($"- **UI名称**: `{ruleObject.name}`");
+            hasBasicInfo = true;
+
+            // 只有非空字段才显示
+            if (!string.IsNullOrEmpty(ruleObject.link_url))
+            {
+                basicInfo.AppendLine($"- **Figma链接**: {ruleObject.link_url}");
+                hasBasicInfo = true;
+            }
+
+            if (!string.IsNullOrEmpty(ruleObject.optimize_rule_path))
+            {
+                basicInfo.AppendLine($"- **优化规则路径**: {ruleObject.optimize_rule_path}");
+                hasBasicInfo = true;
+            }
+
+            if (!string.IsNullOrEmpty(ruleObject.img_save_to))
+            {
+                basicInfo.AppendLine($"- **图片保存路径**: `{ruleObject.img_save_to}`");
+                hasBasicInfo = true;
+            }
+
+            if (!string.IsNullOrEmpty(ruleObject.prototype_pic))
+            {
+                basicInfo.AppendLine($"- **原型图片**: 已设置");
+                hasBasicInfo = true;
+            }
+
+            // 只有非默认值才显示
+            if (ruleObject.image_scale != 3)
+            {
+                basicInfo.AppendLine($"- **图片缩放比例**: {ruleObject.image_scale}x");
+                hasBasicInfo = true;
+            }
+
+            if (hasBasicInfo)
+            {
+                basicInfo.AppendLine();
+                markdown.Append(basicInfo.ToString());
+            }
+
+            // 描述信息 - 只在有内容时显示
+            if (!string.IsNullOrEmpty(ruleObject.descriptions))
+            {
+                markdown.AppendLine("## 描述信息");
+                markdown.AppendLine();
+                markdown.AppendLine(ruleObject.descriptions);
+                markdown.AppendLine();
+            }
+
+            // UI构建环境说明 - 只在有数据时显示
+            if (uiSettings != null && uiSettings.ui_build_enviroments != null && uiSettings.ui_build_enviroments.Count > 0)
+            {
+                markdown.AppendLine("## UI构建环境说明");
+                markdown.AppendLine();
+                markdown.AppendLine($"当前UI类型：**{uiSettings.selectedUIType}**");
+                markdown.AppendLine();
+                for (int i = 0; i < uiSettings.ui_build_enviroments.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(uiSettings.ui_build_enviroments[i]))
+                    {
+                        markdown.AppendLine($"- {uiSettings.ui_build_enviroments[i]}");
+                    }
+                }
+                markdown.AppendLine();
+            }
+
+            // UI构建步骤 - 只在有数据时显示
+            if (uiSettings != null && uiSettings.ui_build_steps != null && uiSettings.ui_build_steps.Count > 0)
+            {
+                markdown.AppendLine("## UI构建步骤");
+                markdown.AppendLine();
+                markdown.AppendLine($"按照以下步骤进行{uiSettings.selectedUIType} UI开发：");
+                markdown.AppendLine();
+                for (int i = 0; i < uiSettings.ui_build_steps.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(uiSettings.ui_build_steps[i]))
+                    {
+                        markdown.AppendLine($"{i + 1}. {uiSettings.ui_build_steps[i]}");
+                    }
+                }
+                markdown.AppendLine();
+            }
+
+            // 节点名称映射 - 只在有数据时显示
+            if (ruleObject.node_names != null && ruleObject.node_names.Count > 0)
+            {
+                markdown.AppendLine("## 节点名称映射");
+                markdown.AppendLine();
+                markdown.AppendLine($"总计 {ruleObject.node_names.Count} 个节点重命名规则：");
+                markdown.AppendLine();
+                markdown.AppendLine("| 节点ID | 新名称 | 原始名称 |");
+                markdown.AppendLine("|--------|--------|----------|");
+                foreach (var nodeInfo in ruleObject.node_names)
+                {
+                    string id = !string.IsNullOrEmpty(nodeInfo.id) ? nodeInfo.id : "N/A";
+                    string name = !string.IsNullOrEmpty(nodeInfo.name) ? nodeInfo.name : "N/A";
+                    string originName = !string.IsNullOrEmpty(nodeInfo.originName) ? nodeInfo.originName : "N/A";
+                    markdown.AppendLine($"| `{id}` | `{name}` | {originName} |");
+                }
+                markdown.AppendLine();
+            }
+
+            // 节点Sprite映射 - 只在有数据时显示
+            if (ruleObject.node_sprites != null && ruleObject.node_sprites.Count > 0)
+            {
+                markdown.AppendLine("## 节点Sprite映射");
+                markdown.AppendLine();
+                markdown.AppendLine($"总计 {ruleObject.node_sprites.Count} 个Sprite资源：");
+                markdown.AppendLine();
+                markdown.AppendLine("| 节点ID | 文件名 | Sprite状态 |");
+                markdown.AppendLine("|--------|--------|-----------|");
+                foreach (var spriteInfo in ruleObject.node_sprites)
+                {
+                    string id = !string.IsNullOrEmpty(spriteInfo.id) ? spriteInfo.id : "N/A";
+                    string fileName = !string.IsNullOrEmpty(spriteInfo.fileName) ? spriteInfo.fileName : "N/A";
+                    string spriteStatus = spriteInfo.sprite != null ? "✓ 已加载" : "✗ 未加载";
+                    markdown.AppendLine($"| `{id}` | `{fileName}` | {spriteStatus} |");
+                }
+                markdown.AppendLine();
+            }
+
+            // 附加说明 - 只在有实际内容时添加
+            bool hasContent = !string.IsNullOrEmpty(ruleObject.link_url) ||
+                             !string.IsNullOrEmpty(ruleObject.img_save_to) ||
+                             (ruleObject.node_names != null && ruleObject.node_names.Count > 0) ||
+                             (ruleObject.node_sprites != null && ruleObject.node_sprites.Count > 0);
+
+            if (hasContent)
+            {
+                markdown.AppendLine("---");
+                markdown.AppendLine();
+                markdown.AppendLine("### 附加说明");
+                markdown.AppendLine();
+                if (ruleObject.node_names != null && ruleObject.node_names.Count > 0)
+                {
+                    markdown.AppendLine("1. 使用 **节点名称映射** 来重命名Figma节点到Unity GameObject");
+                }
+                if (ruleObject.node_sprites != null && ruleObject.node_sprites.Count > 0)
+                {
+                    markdown.AppendLine("2. 使用 **节点Sprite映射** 来关联图片资源");
+                }
+                if (!string.IsNullOrEmpty(ruleObject.img_save_to))
+                {
+                    markdown.AppendLine("3. 图片资源统一保存在 `img_save_to` 指定的路径下");
+                }
+                markdown.AppendLine();
+            }
+
+            string result = markdown.ToString();
+            Debug.Log($"[UIDefineRuleObjectEditor] Generated Markdown text with {result.Length} characters");
+            return result;
+        }
         /// <summary>
         /// 拷贝UI规则到剪贴板
         /// </summary>
         private void CopyUIRuleToClipboard()
         {
-            string uiName = ValidateAndGetUIName();
-            if (string.IsNullOrEmpty(uiName))
-                return;
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Starting to copy UI rule '{uiName}' to clipboard...");
-
             try
             {
-                GetUIRule(uiName, (result) =>
+                var ruleObject = target as UIDefineRuleObject;
+                if (ruleObject == null)
                 {
-                    if (result != null && result["success"].AsBoolDefault(false))
-                    {
-                        CopyToClipboard(result["data"]["rule"], uiName);
-                    }
-                });
+                    Debug.LogError("[UIDefineRuleObjectEditor] Cannot cast target to UIDefineRuleObject");
+                    EditorUtility.DisplayDialog("Error", "无法获取UI规则对象", "OK");
+                    return;
+                }
+
+                string markdownText = GetUIRuleText(ruleObject);
+                if (string.IsNullOrEmpty(markdownText))
+                {
+                    Debug.LogError("[UIDefineRuleObjectEditor] Failed to get UI rule text");
+                    EditorUtility.DisplayDialog("Error", "无法生成UI规则文本", "OK");
+                    return;
+                }
+
+                // 拷贝到剪贴板
+                GUIUtility.systemCopyBuffer = markdownText;
+
+                Debug.Log($"[UIDefineRuleObjectEditor] Successfully copied UI rule '{ruleObject.name}' to clipboard ({markdownText.Length} characters)");
+                EditorUtility.DisplayDialog("Success", $"UI规则 '{ruleObject.name}' 已复制到剪贴板。\n\n内容长度: {markdownText.Length} 字符", "OK");
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[UIDefineRuleObjectEditor] Error copying UI rule to clipboard: {e.Message}");
-                EditorUtility.DisplayDialog("Error", $"Error copying UI rule to clipboard: {e.Message}", "OK");
+                Debug.LogError($"[UIDefineRuleObjectEditor] Error copying UI rule to clipboard: {e.Message}\n{e.StackTrace}");
+                EditorUtility.DisplayDialog("Error", $"复制UI规则到剪贴板时出错: {e.Message}", "OK");
             }
-        }
-
-        /// <summary>
-        /// 拷贝内容到剪贴板
-        /// </summary>
-        private void CopyToClipboard(JsonNode result, string uiName)
-        {
-            if (result == null)
-            {
-                Debug.LogError("[UIDefineRuleObjectEditor] Failed to get UI rule result");
-                EditorUtility.DisplayDialog("Error", "Failed to get UI rule result", "OK");
-                return;
-            }
-
-            // 解析结果并构建消息
-            string message = BuildCursorMessage(result, uiName);
-
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.LogError("[UIDefineRuleObjectEditor] Failed to build message");
-                EditorUtility.DisplayDialog("Error", "Failed to build message for clipboard", "OK");
-                return;
-            }
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Copying UI rule to clipboard: {message.Length} characters");
-
-            // 拷贝到剪贴板
-            GUIUtility.systemCopyBuffer = message;
-
-            Debug.Log($"[UIDefineRuleObjectEditor] Successfully copied UI rule '{uiName}' to clipboard");
-            EditorUtility.DisplayDialog("Success", $"UI rule '{uiName}' has been copied to clipboard.\n\nMessage length: {message.Length} characters", "OK");
         }
     }
 }

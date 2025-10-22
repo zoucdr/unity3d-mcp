@@ -86,7 +86,8 @@ namespace Unity.Mcp.Tools
         private object HandleExecutePython(StateTreeContext ctx)
         {
             LogInfo("[PythonRunner] Executing Python code");
-            return ctx.AsyncReturn(ExecutePythonCoroutine(ctx.JsonData));
+            // 为Python代码执行设置超时时间（90秒）
+            return ctx.AsyncReturn(ExecutePythonCoroutine(ctx.JsonData), 90f);
         }
 
         /// <summary>
@@ -95,7 +96,8 @@ namespace Unity.Mcp.Tools
         private object HandleValidatePython(StateTreeContext ctx)
         {
             LogInfo("[PythonRunner] Validating Python code or script");
-            return ctx.AsyncReturn(ValidatePythonCoroutine(ctx.JsonData));
+            // 为Python代码验证设置超时时间（30秒）
+            return ctx.AsyncReturn(ValidatePythonCoroutine(ctx.JsonData), 30f);
         }
 
         /// <summary>
@@ -104,7 +106,8 @@ namespace Unity.Mcp.Tools
         private object HandleInstallPackage(StateTreeContext ctx)
         {
             LogInfo("[PythonRunner] Installing Python packages");
-            return ctx.AsyncReturn(InstallPackageCoroutine(ctx.JsonData));
+            // 为Python包安装设置超时时间（180秒）
+            return ctx.AsyncReturn(InstallPackageCoroutine(ctx.JsonData), 180f);
         }
 
         /// <summary>
@@ -113,7 +116,8 @@ namespace Unity.Mcp.Tools
         private object HandleCreateScript(StateTreeContext ctx)
         {
             LogInfo("[PythonRunner] Creating Python script");
-            return ctx.AsyncReturn(CreateScriptCoroutine(ctx.JsonData));
+            // 为Python脚本创建设置超时时间（30秒）
+            return ctx.AsyncReturn(CreateScriptCoroutine(ctx.JsonData), 30f);
         }
 
         // --- 异步执行方法 ---

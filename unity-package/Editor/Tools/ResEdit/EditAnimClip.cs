@@ -472,7 +472,6 @@ namespace Unity.Mcp.Tools
 
                 // 获取模型中的所有动画片段
                 ModelImporterClipAnimation[] clipAnimations = modelImporter.defaultClipAnimations;
-                AnimationClip targetClip = null;
 
                 foreach (var clipAnim in clipAnimations)
                 {

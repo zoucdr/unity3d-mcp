@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Unity.Mcp.Models;
 
 
 namespace Unity.Mcp
@@ -346,20 +347,68 @@ namespace Unity.Mcp
         /// 启动异步协程
         /// </summary>
         /// <param name="coroutine">协程</param>
+        /// <param name="timeoutSeconds">超时时间（秒），默认60秒</param>
         /// <returns>当前上下文实例</returns>
-        public StateTreeContext AsyncReturn(IEnumerator coroutine)
+        public StateTreeContext AsyncReturn(IEnumerator coroutine, float timeoutSeconds = 60f)
         {
             if (coroutine == null)
                 return this;
 
+            // 使用带超时的协程包装器
+            IEnumerator timeoutCoroutine = AddTimeoutToCoroutine(coroutine, timeoutSeconds);
+
             // 使用MainThreadExecutor来启动协程
-            CoroutineRunner.StartCoroutine(coroutine, (result) =>
+            CoroutineRunner.StartCoroutine(timeoutCoroutine, (result) =>
             {
                 // 调用完成回调
                 UnityEngine.Debug.Log($"AsyncReturn: {result}");
                 CompleteAction?.Invoke(Json.FromObject(result));
             });
             return this;
+        }
+
+        /// <summary>
+        /// 为协程添加超时机制
+        /// </summary>
+        /// <param name="coroutine">原始协程</param>
+        /// <param name="timeoutSeconds">超时时间（秒）</param>
+        /// <returns>包装后的协程</returns>
+        private IEnumerator AddTimeoutToCoroutine(IEnumerator coroutine, float timeoutSeconds)
+        {
+            // 记录开始时间
+            double startTime = UnityEditor.EditorApplication.timeSinceStartup;
+            bool completed = false;
+            object result = null;
+
+            // 启动一个子协程来执行实际工作
+            IEnumerator RunOriginalCoroutine()
+            {
+                yield return coroutine;
+                completed = true;
+                result = coroutine.Current;
+            }
+
+            // 启动子协程
+            yield return RunOriginalCoroutine();
+
+            // 检查是否超时
+            while (!completed)
+            {
+                double elapsed = UnityEditor.EditorApplication.timeSinceStartup - startTime;
+                if (elapsed >= timeoutSeconds)
+                {
+                    // 超时处理
+                    UnityEngine.Debug.LogWarning($"协程执行超时，已经运行了 {elapsed:F1} 秒");
+                    yield return Response.Error($"操作超时，已经运行了 {elapsed:F1} 秒，请重试或检查网络连接", null);
+                    yield break;
+                }
+
+                // 继续等待
+                yield return new UnityEngine.WaitForSeconds(0.5f);
+            }
+
+            // 正常完成，返回结果
+            yield return result;
         }
     }
 }

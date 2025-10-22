@@ -460,7 +460,9 @@ namespace Unity.Mcp.Tools
                     return Response.Error($"Failed to get ModelImporter for '{fullPath}'");
 
                 // 应用优化设置
-                importer.optimizeMesh = true;
+                // 替换过时的optimizeMesh API
+                importer.optimizeMeshPolygons = true;
+                importer.optimizeMeshVertices = true;
                 importer.optimizeGameObjects = true;
                 importer.weldVertices = true;
                 importer.indexFormat = ModelImporterIndexFormat.Auto;
@@ -746,9 +748,11 @@ namespace Unity.Mcp.Tools
                             if (settingValue.type == JsonNodeType.Boolean)
                             {
                                 bool optimizeMesh = settingValue.AsBool;
-                                if (importer.optimizeMesh != optimizeMesh)
+                                // 替换过时的optimizeMesh API
+                                if (importer.optimizeMeshPolygons != optimizeMesh || importer.optimizeMeshVertices != optimizeMesh)
                                 {
-                                    importer.optimizeMesh = optimizeMesh;
+                                    importer.optimizeMeshPolygons = optimizeMesh;
+                                    importer.optimizeMeshVertices = optimizeMesh;
                                     modified = true;
                                 }
                             }
@@ -896,7 +900,7 @@ namespace Unity.Mcp.Tools
                     import_lights = importer.importLights,
                     preserve_hierarchy = importer.preserveHierarchy,
                     animation_type = importer.animationType.ToString(),
-                    optimize_mesh = importer.optimizeMesh,
+                    optimize_mesh = importer.optimizeMeshPolygons && importer.optimizeMeshVertices,
                     generate_secondary_uv = importer.generateSecondaryUV,
                     read_write_enabled = importer.isReadable,
                     optimize_game_objects = importer.optimizeGameObjects,

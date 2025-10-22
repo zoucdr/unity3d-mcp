@@ -205,7 +205,8 @@ namespace Unity.Mcp.Tools
         private object HandleAddFromRegistry(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing add package from registry");
-            return ctx.AsyncReturn(ExecuteAddFromRegistryAsync(ctx));
+            // 为包管理操作设置超时时间（180秒）
+            return ctx.AsyncReturn(ExecuteAddFromRegistryAsync(ctx), 180f);
         }
 
         /// <summary>
@@ -214,7 +215,8 @@ namespace Unity.Mcp.Tools
         private object HandleAddFromGitHub(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing add package from GitHub");
-            return ctx.AsyncReturn(ExecuteAddFromGitHubAsync(ctx));
+            // 为包管理操作设置超时时间（180秒）
+            return ctx.AsyncReturn(ExecuteAddFromGitHubAsync(ctx), 180f);
         }
 
         /// <summary>
@@ -223,7 +225,8 @@ namespace Unity.Mcp.Tools
         private object HandleAddFromDisk(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing add package from disk");
-            return ctx.AsyncReturn(ExecuteAddFromDiskAsync(ctx));
+            // 为包管理操作设置超时时间（120秒）
+            return ctx.AsyncReturn(ExecuteAddFromDiskAsync(ctx), 120f);
         }
 
         /// <summary>
@@ -232,7 +235,8 @@ namespace Unity.Mcp.Tools
         private object HandleRemovePackage(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing remove package operation");
-            return ctx.AsyncReturn(ExecuteRemovePackageAsync(ctx));
+            // 为包管理操作设置超时时间（120秒）
+            return ctx.AsyncReturn(ExecuteRemovePackageAsync(ctx), 120f);
         }
 
         /// <summary>
@@ -241,7 +245,8 @@ namespace Unity.Mcp.Tools
         private object HandleListPackages(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing list packages operation");
-            return ctx.AsyncReturn(ExecuteListPackagesAsync(ctx));
+            // 为包管理操作设置超时时间（60秒）
+            return ctx.AsyncReturn(ExecuteListPackagesAsync(ctx), 60f);
         }
 
         /// <summary>
@@ -250,7 +255,8 @@ namespace Unity.Mcp.Tools
         private object HandleSearchPackages(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing search packages operation");
-            return ctx.AsyncReturn(ExecuteSearchPackagesAsync(ctx));
+            // 为包管理操作设置超时时间（120秒）
+            return ctx.AsyncReturn(ExecuteSearchPackagesAsync(ctx), 120f);
         }
 
         /// <summary>
@@ -259,7 +265,8 @@ namespace Unity.Mcp.Tools
         private object HandleRefreshPackages(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing refresh packages operation");
-            return ctx.AsyncReturn(ExecuteRefreshPackagesAsync(ctx));
+            // 为包管理操作设置超时时间（120秒）
+            return ctx.AsyncReturn(ExecuteRefreshPackagesAsync(ctx), 120f);
         }
 
         /// <summary>
@@ -268,7 +275,8 @@ namespace Unity.Mcp.Tools
         private object HandleResolvePackages(StateTreeContext ctx)
         {
             LogInfo("[ManagePackage] Executing resolve packages operation");
-            return ctx.AsyncReturn(ExecuteResolvePackagesAsync(ctx));
+            // 为包管理操作设置超时时间（120秒）
+            return ctx.AsyncReturn(ExecuteResolvePackagesAsync(ctx), 120f);
         }
 
         /// <summary>

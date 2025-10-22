@@ -46,8 +46,7 @@ namespace Unity.Mcp.Tools
         // Queue of active code operations
         private readonly List<CodeOperation> _activeOperations = new List<CodeOperation>();
 
-        // Flag to track if the update callback is registered
-        private bool _updateCallbackRegistered = false;
+        // 移除未使用的字段
 
         private object validationResult;
         private object executionResult;
@@ -94,7 +93,8 @@ namespace Unity.Mcp.Tools
         private object HandleExecuteCode(StateTreeContext ctx)
         {
             LogInfo("[CodeRunner] Executing C# code");
-            return ctx.AsyncReturn(ExecuteCodeCoroutine(ctx.JsonData));
+            // 为C#代码执行设置超时时间（90秒）
+            return ctx.AsyncReturn(ExecuteCodeCoroutine(ctx.JsonData), 90f);
         }
 
         /// <summary>
@@ -103,7 +103,8 @@ namespace Unity.Mcp.Tools
         private object HandleValidateCode(StateTreeContext ctx)
         {
             LogInfo("[CodeRunner] Validating C# code");
-            return ctx.AsyncReturn(ValidateCodeCoroutine(ctx.JsonData));
+            // 为C#代码验证设置超时时间（30秒）
+            return ctx.AsyncReturn(ValidateCodeCoroutine(ctx.JsonData), 30f);
         }
 
         // --- 异步执行方法 ---

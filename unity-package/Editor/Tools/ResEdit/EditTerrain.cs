@@ -764,7 +764,10 @@ namespace Unity.Mcp.Tools
             // 设置阴影投射
             if (properties["cast_shadows"] != null)
             {
-                terrain.castShadows = properties["cast_shadows"].AsBool;
+                // 替换过时的castShadows API
+                terrain.shadowCastingMode = properties["cast_shadows"].AsBool ?
+                    UnityEngine.Rendering.ShadowCastingMode.On :
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
                 modified = true;
             }
 
@@ -969,7 +972,7 @@ layers: {data.terrainLayers?.Length ?? 0}
 treeInstances: {data.treeInstances?.Length ?? 0}
 treePrototypes: {data.treePrototypes?.Length ?? 0}
 detailPrototypes: {data.detailPrototypes?.Length ?? 0}
-castShadows: {terrain.castShadows.ToString().ToLower()}
+castShadows: {(terrain.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off).ToString().ToLower()}
 drawHeightmap: {terrain.drawHeightmap.ToString().ToLower()}
 drawTrees: {terrain.drawTreesAndFoliage.ToString().ToLower()}";
 

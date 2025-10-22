@@ -71,7 +71,7 @@ namespace Unity.Mcp.Gui
         private string newGroupName = ""; // 新分组名称
         private string newGroupDescription = ""; // 新分组描述
         private Vector2 groupScrollPosition; // 分组列表滚动位置
-        private int selectedGroupIndex = -1; // 选中的分组索引
+        // 移除未使用的选中分组索引字段
 
         // 编辑相关变量
         private int editingRecordIndex = -1; // 当前正在编辑的记录索引

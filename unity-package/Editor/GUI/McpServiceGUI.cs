@@ -33,6 +33,18 @@ namespace Unity.Mcp.Gui
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Unity3D MCP Service", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
+            // 重启服务器按钮
+            GUIStyle restartButtonStyle = new GUIStyle(GUI.skin.button);
+            Color restartOriginalColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(1f, 0.8f, 0.4f); // 橙色背景
+
+            if (GUILayout.Button("重启服务器", restartButtonStyle, GUILayout.Width(90)))
+            {
+                RestartServer();
+            }
+
+            GUI.backgroundColor = restartOriginalColor;
+
             // 状态窗口按钮
             if (GUILayout.Button("状态窗口", GUILayout.Width(80)))
             {
@@ -727,6 +739,75 @@ namespace Unity.Mcp.Gui
 
                     // 必需参数默认返回空字符串
                     return "";
+            }
+        }
+
+        /// <summary>
+        /// 重启MCP服务器
+        /// </summary>
+        private static void RestartServer()
+        {
+            try
+            {
+                // 显示确认对话框
+                bool confirm = EditorUtility.DisplayDialog(
+                    "重启MCP服务器",
+                    "确定要重启MCP服务器吗？\n\n这将断开所有当前连接的客户端。",
+                    "确定",
+                    "取消"
+                );
+
+                if (!confirm)
+                {
+                    return;
+                }
+
+                // 显示进度条
+                EditorUtility.DisplayProgressBar("重启MCP服务器", "正在停止服务器...", 0.3f);
+
+                // 停止服务器
+                McpService.Stop();
+
+                // 等待一小段时间确保资源释放
+                System.Threading.Thread.Sleep(500);
+
+                EditorUtility.DisplayProgressBar("重启MCP服务器", "正在启动服务器...", 0.7f);
+
+                // 启动服务器
+                McpService.Start();
+
+                // 清除进度条
+                EditorUtility.ClearProgressBar();
+
+                // 显示成功提示
+                if (McpService.IsRunning)
+                {
+                    EditorUtility.DisplayDialog(
+                        "重启成功",
+                        $"MCP服务器已成功重启！\n\n服务端口: {McpService.currentPort}",
+                        "确定"
+                    );
+                    Debug.Log($"[McpServiceGUI] MCP服务器已重启，端口: {McpService.currentPort}");
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog(
+                        "重启失败",
+                        "MCP服务器重启失败，请查看控制台日志了解详情。",
+                        "确定"
+                    );
+                    Debug.LogError("[McpServiceGUI] MCP服务器重启失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                EditorUtility.ClearProgressBar();
+                EditorUtility.DisplayDialog(
+                    "重启错误",
+                    $"重启MCP服务器时发生错误：\n\n{ex.Message}",
+                    "确定"
+                );
+                Debug.LogError($"[McpServiceGUI] 重启MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
             }
         }
     }

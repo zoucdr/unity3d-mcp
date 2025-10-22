@@ -116,7 +116,8 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleConfirmedDeleteAction(StateTreeContext ctx)
         {
-            return ctx.AsyncReturn(HandleConfirmedDeleteActionAsync(ctx));
+            // 为对象删除操作设置超时时间（30秒）
+            return ctx.AsyncReturn(HandleConfirmedDeleteActionAsync(ctx), 30f);
         }
 
         /// <summary>
@@ -184,7 +185,8 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleUnconfirmedDeleteAction(StateTreeContext ctx)
         {
-            return ctx.AsyncReturn(HandleUnconfirmedDeleteActionAsync(ctx));
+            // 为对象删除操作设置超时时间（30秒）
+            return ctx.AsyncReturn(HandleUnconfirmedDeleteActionAsync(ctx), 30f);
         }
 
         /// <summary>

@@ -26,8 +26,8 @@ def register_figma_manage_tools(mcp: FastMCP):
             examples=["fetch_nodes", "download_images", "preview", "get_conversion_rules"]
         )],
         file_key: Annotated[Optional[str], Field(
-            title="文件密钥",
-            description="Figma文件的密钥",
+            title="文件Key",
+            description="Figma文件的Key",
             default=None,
             examples=["abc123def456", "xyz789uvw012"]
         )] = None,
@@ -35,7 +35,7 @@ def register_figma_manage_tools(mcp: FastMCP):
             title="节点图片映射",
             description="节点名称映射，字典格式，格式为{节点ID: 文件名}。当提供此参数时，将直接使用指定的文件名，无需调用Figma API获取节点数据，提高下载效率",
             default=None,
-            examples=[{"1:4":"image1.png","1:5":"image2.png","1:6":"image3.png"}, {"123:456":"login_button.png","789:012":"app_icon.jpg"}]
+            examples=[{"1:4":"image1","1:5":"image2","1:6":"image3"}, {"123:456":"login_button","789:012":"app_icon"}]
         )] = None,
         node_id: Annotated[Optional[str], Field(
             title="节点ID",
@@ -95,16 +95,14 @@ def register_figma_manage_tools(mcp: FastMCP):
         
         节点参数说明：
         - node_id: 节点ID，用于节点信息拉取（如"1:2"）
-        - node_imgs: 字典格式的节点映射（如{"1:4":"image1.png","1:5":"image2.jpg"}）
-        
+        - node_imgs: 字典格式的节点映射（如{"1:4":"image1","1:5":"image2"}）
         preview功能说明：
         - 提供file_key和node_id，下载图片并返回base64编码
         - 返回的base64数据包含完整的data URL格式：data:image/png;base64,...
         
         下载图片功能说明：
         - 示例 - 高效下载（直接指定文件名）:
-           action="download_images", node_imgs={"1:4":"login_button.png","1:5":"app_icon.jpg","1:6":"background.png"}
-        
+           action="download_images", node_imgs={"1:4":"login_button","1:5":"app_icon","1:6":"background"}
         - 示例 - 图片预览（返回base64）:
           action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_id="1:4"
         

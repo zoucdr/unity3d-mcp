@@ -26,7 +26,6 @@ namespace Unity.Mcp.Tools
         private static PropertyInfo selectedSizeIndexProperty;
 
         // 输入模拟相关
-        private static bool isInputSimulationActive = false;
         private static List<SimulatedInput> inputQueue = new List<SimulatedInput>();
 
         // 截图相关

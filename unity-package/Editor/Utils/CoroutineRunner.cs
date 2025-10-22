@@ -71,12 +71,16 @@ namespace Unity.Mcp
             lock (_lock)
             {
                 // 处理普通任务队列
-                while (_actions.Count > 0)
+                int actionProcessLimit = 10; // 每帧处理的最大任务数量
+                int actionsProcessed = 0;
+
+                while (_actions.Count > 0 && actionsProcessed < actionProcessLimit)
                 {
                     var action = _actions.Dequeue();
                     try
                     {
                         action?.Invoke();
+                        actionsProcessed++;
                     }
                     catch (Exception e)
                     {
@@ -84,21 +88,26 @@ namespace Unity.Mcp
                     }
                 }
 
-                // 处理协程队列
-                ProcessCoroutines();
+                // 处理协程队列，限制每帧处理的协程数量
+                ProcessCoroutines(10); // 每帧最多处理10个协程步骤
             }
         }
 
         /// <summary>
         /// 处理协程队列
         /// </summary>
-        private static void ProcessCoroutines()
+        /// <param name="maxProcessCount">每帧最多处理的协程数量</param>
+        private static void ProcessCoroutines(int maxProcessCount = 10)
         {
             var completedCoroutines = new List<CoroutineInfo>();
+            int processedCount = 0;
 
             foreach (var coroutineInfo in _coroutines.ToArray())
             {
                 if (!coroutineInfo.IsRunning) continue;
+
+                // 检查是否达到了每帧处理的协程上限
+                if (processedCount >= maxProcessCount) break;
 
                 try
                 {
@@ -176,6 +185,7 @@ namespace Unity.Mcp
                     {
                         if (coroutineInfo.Coroutine.MoveNext())
                         {
+                            processedCount++; // 增加已处理的协程计数
                             // 协程还在运行，检查返回值
                             var current = coroutineInfo.Coroutine.Current;
 

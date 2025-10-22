@@ -118,10 +118,11 @@ context.StartConditionalCoroutine(
 
 ```csharp
 // 异步等待协程完成
-async void TestAsyncCoroutine()
+object TestAsyncCoroutine()
 {
-    var result = await context.StartCoroutineAsync(AsyncCoroutine());
+    var result = context.StartCoroutineAsync(AsyncCoroutine());
     Debug.Log($"异步协程完成: {result}");
+    return result;
 }
 
 private IEnumerator AsyncCoroutine()
