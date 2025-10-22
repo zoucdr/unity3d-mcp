@@ -368,7 +368,11 @@ namespace Unity.Mcp
         /// </summary>
         public virtual bool IsNull()
         {
-            return this == null || Value == "null" || Value == "";
+            if (this == null)
+                return true;
+
+            string val = Value;
+            return string.IsNullOrEmpty(val) || val == "null";
         }
 
         /// <summary>
@@ -584,26 +588,27 @@ namespace Unity.Mcp
 
         internal static string Escape(string aText)
         {
-            string result = "";
             if (string.IsNullOrEmpty(aText))
             {
-                return result;
+                return string.Empty;
             }
+
+            var sb = new System.Text.StringBuilder(aText.Length * 2);
             foreach (char c in aText)
             {
                 switch (c)
                 {
-                    case '\\': result += "\\\\"; break;
-                    case '\"': result += "\\\""; break;
-                    case '\n': result += "\\n"; break;
-                    case '\r': result += "\\r"; break;
-                    case '\t': result += "\\t"; break;
-                    case '\b': result += "\\b"; break;
-                    case '\f': result += "\\f"; break;
-                    default: result += c; break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\"': sb.Append("\\\""); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    default: sb.Append(c); break;
                 }
             }
-            return result;
+            return sb.ToString();
         }
 
 
@@ -653,15 +658,23 @@ namespace Unity.Mcp
 
         private static bool HasAnyUnescapedQuote(string s)
         {
+            bool escaped = false;
             for (int i = 0; i < s.Length; i++)
             {
-                if (s[i] == '"')
+                if (escaped)
                 {
-                    // 统计前置反斜杠奇偶判定是否转义
-                    int bs = 0, j = i - 1;
-                    while (j >= 0 && s[j] == '\\') { bs++; j--; }
-                    if ((bs & 1) == 0) return true; // 有未转义的引号
+                    escaped = false;
+                    continue;
                 }
+
+                if (s[i] == '\\')
+                {
+                    escaped = true;
+                    continue;
+                }
+
+                if (s[i] == '"')
+                    return true; // 找到未转义的引号
             }
             return false;
         }
@@ -704,76 +717,87 @@ namespace Unity.Mcp
 
         public static JsonNode Parse(string aJSON)
         {
+            if (string.IsNullOrEmpty(aJSON))
+                return new JsonClass();
+
             aJSON = UnwrapToJsonIfPossible(aJSON);
             aJSON = TryNormalizeEscapedJson(aJSON);
-            Stack<JsonNode> stack = new Stack<JsonNode>();
+
+            // 预分配栈容量，减少动态扩容
+            Stack<JsonNode> stack = new Stack<JsonNode>(8);
             JsonNode ctx = null;
             int i = 0;
-            string Token = "";
-            string TokenName = "";
-            bool QuoteMode = false;
-            bool TokenIsQuoted = false; // 新增：标记当前Token是否源自引号内（即使为空也需提交）
+            int length = aJSON.Length;
 
-            while (i < aJSON.Length)
+            // 使用StringBuilder替代字符串拼接
+            var tokenBuilder = new System.Text.StringBuilder(64);
+            var tokenNameBuilder = new System.Text.StringBuilder(32);
+            bool QuoteMode = false;
+            bool TokenIsQuoted = false; // 标记当前Token是否源自引号内（即使为空也需提交）
+
+            while (i < length)
             {
-                switch (aJSON[i])
+                char currentChar = aJSON[i];
+
+                switch (currentChar)
                 {
                     case '{':
-                        if (QuoteMode) { Token += aJSON[i]; break; }
+                        if (QuoteMode) { tokenBuilder.Append(currentChar); break; }
 
                         stack.Push(new JsonClass());
                         if (ctx != null)
                         {
-                            TokenName = TokenName.Trim();
+                            string tokenName = tokenNameBuilder.ToString().Trim();
                             if (ctx is JsonArray)
                                 ctx.Add(stack.Peek());
-                            else if (TokenName != "")
-                                ctx.Add(TokenName, stack.Peek());
+                            else if (tokenName.Length > 0)
+                                ctx.Add(tokenName, stack.Peek());
                         }
-                        TokenName = "";
-                        Token = "";
+                        tokenNameBuilder.Clear();
+                        tokenBuilder.Clear();
                         TokenIsQuoted = false;
                         ctx = stack.Peek();
                         break;
 
                     case '[':
-                        if (QuoteMode) { Token += aJSON[i]; break; }
+                        if (QuoteMode) { tokenBuilder.Append(currentChar); break; }
 
                         stack.Push(new JsonArray());
                         if (ctx != null)
                         {
-                            TokenName = TokenName.Trim();
+                            string tokenName = tokenNameBuilder.ToString().Trim();
                             if (ctx is JsonArray)
                                 ctx.Add(stack.Peek());
-                            else if (TokenName != "")
-                                ctx.Add(TokenName, stack.Peek());
+                            else if (tokenName.Length > 0)
+                                ctx.Add(tokenName, stack.Peek());
                         }
-                        TokenName = "";
-                        Token = "";
+                        tokenNameBuilder.Clear();
+                        tokenBuilder.Clear();
                         TokenIsQuoted = false;
                         ctx = stack.Peek();
                         break;
 
                     case '}':
                     case ']':
-                        if (QuoteMode) { Token += aJSON[i]; break; }
+                        if (QuoteMode) { tokenBuilder.Append(currentChar); break; }
 
                         if (stack.Count == 0)
                             throw new Exception("Json Parse: Too many closing brackets");
 
                         // 关闭当前容器前，把最后一个尚未提交的值/成员写入
-                        if (Token != "" || TokenIsQuoted)
+                        string token = tokenBuilder.ToString();
+                        if (token.Length > 0 || TokenIsQuoted)
                         {
-                            TokenName = TokenName.Trim();
+                            string tokenName = tokenNameBuilder.ToString().Trim();
                             if (ctx is JsonArray)
-                                ctx.Add(Token);
-                            else if (TokenName != "")
-                                ctx.Add(TokenName, Token);
+                                ctx.Add(token);
+                            else if (tokenName.Length > 0)
+                                ctx.Add(tokenName, token);
                         }
 
                         stack.Pop();
-                        TokenName = "";
-                        Token = "";
+                        tokenNameBuilder.Clear();
+                        tokenBuilder.Clear();
                         TokenIsQuoted = false;
 
                         if (stack.Count > 0)
@@ -785,33 +809,35 @@ namespace Unity.Mcp
                         // 其它情况（如 key 含 ':' 或字符串值内的 ':'）都当普通字符。
                         if (QuoteMode || !(ctx is JsonClass))
                         {
-                            Token += aJSON[i];
+                            tokenBuilder.Append(currentChar);
                             break;
                         }
-                        TokenName = Token;
-                        Token = "";
+                        tokenNameBuilder.Append(tokenBuilder);
+                        tokenBuilder.Clear();
                         TokenIsQuoted = false;
                         break;
 
                     case '"':
                         // 引号切换字符串模式；配合下方的反斜杠处理可正确跳过转义引号
-                        QuoteMode ^= true;
+                        QuoteMode = !QuoteMode;
                         if (QuoteMode)            // 进入引号，标记该Token来自引号
                             TokenIsQuoted = true;
                         break;
 
                     case ',':
-                        if (QuoteMode) { Token += aJSON[i]; break; }
+                        if (QuoteMode) { tokenBuilder.Append(currentChar); break; }
 
-                        if (Token != "" || TokenIsQuoted)
+                        token = tokenBuilder.ToString();
+                        if (token.Length > 0 || TokenIsQuoted)
                         {
+                            string tokenName = tokenNameBuilder.ToString().Trim();
                             if (ctx is JsonArray)
-                                ctx.Add(Token);
-                            else if (TokenName != "")
-                                ctx.Add(TokenName, Token);
+                                ctx.Add(token);
+                            else if (tokenName.Length > 0)
+                                ctx.Add(tokenName, token);
                         }
-                        TokenName = "";
-                        Token = "";
+                        tokenNameBuilder.Clear();
+                        tokenBuilder.Clear();
                         TokenIsQuoted = false;
                         break;
 
@@ -822,35 +848,38 @@ namespace Unity.Mcp
                     case ' ':
                     case '\t':
                         if (QuoteMode)
-                            Token += aJSON[i];
+                            tokenBuilder.Append(currentChar);
                         break;
 
                     case '\\':
                         ++i;
+                        if (i >= length) break;
+
                         if (QuoteMode)
                         {
                             char C = aJSON[i];
                             switch (C)
                             {
-                                case 't': Token += '\t'; break;
-                                case 'r': Token += '\r'; break;
-                                case 'n': Token += '\n'; break;
-                                case 'b': Token += '\b'; break;
-                                case 'f': Token += '\f'; break;
+                                case 't': tokenBuilder.Append('\t'); break;
+                                case 'r': tokenBuilder.Append('\r'); break;
+                                case 'n': tokenBuilder.Append('\n'); break;
+                                case 'b': tokenBuilder.Append('\b'); break;
+                                case 'f': tokenBuilder.Append('\f'); break;
                                 case 'u':
+                                    if (i + 4 < length)
                                     {
                                         string s = aJSON.Substring(i + 1, 4);
-                                        Token += (char)int.Parse(s, System.Globalization.NumberStyles.AllowHexSpecifier);
+                                        tokenBuilder.Append((char)int.Parse(s, System.Globalization.NumberStyles.AllowHexSpecifier));
                                         i += 4;
-                                        break;
                                     }
-                                default: Token += C; break; // 包括 '\"' 在内的普通转义
+                                    break;
+                                default: tokenBuilder.Append(C); break; // 包括 '\"' 在内的普通转义
                             }
                         }
                         break;
 
                     default:
-                        Token += aJSON[i];
+                        tokenBuilder.Append(currentChar);
                         break;
                 }
                 ++i;
@@ -1125,28 +1154,32 @@ return LoadFromCompressedStream(stream);
         }
         public override string ToString()
         {
-            string result = "[ ";
+            var sb = new System.Text.StringBuilder("[ ");
+            bool isFirst = true;
             foreach (JsonNode N in m_List)
             {
-                if (result.Length > 2)
-                    result += ", ";
-                result += N.ToString();
+                if (!isFirst)
+                    sb.Append(", ");
+                isFirst = false;
+                sb.Append(N.ToString());
             }
-            result += " ]";
-            return result;
+            sb.Append(" ]");
+            return sb.ToString();
         }
         public override string ToString(string aPrefix)
         {
-            string result = "[ ";
+            var sb = new System.Text.StringBuilder("[ ");
+            bool isFirst = true;
             foreach (JsonNode N in m_List)
             {
-                if (result.Length > 3)
-                    result += ", ";
-                result += "\n" + aPrefix + "   ";
-                result += N.ToString(aPrefix + "   ");
+                if (!isFirst)
+                    sb.Append(", ");
+                isFirst = false;
+                sb.Append("\n").Append(aPrefix).Append("   ");
+                sb.Append(N.ToString(aPrefix + "   "));
             }
-            result += "\n" + aPrefix + "]";
-            return result;
+            sb.Append("\n").Append(aPrefix).Append("]");
+            return sb.ToString();
         }
 
         public override string ToPrettyStringInternal(int level, string indent)
@@ -1272,10 +1305,11 @@ return LoadFromCompressedStream(stream);
         /// </summary>
         public List<string> ToStringList()
         {
-            var list = new List<string>();
-            foreach (JsonNode node in m_List)
+            var count = m_List.Count;
+            var list = new List<string>(count);
+            for (int i = 0; i < count; i++)
             {
-                list.Add(node.Value);
+                list.Add(m_List[i].Value);
             }
             return list;
         }
@@ -1362,16 +1396,19 @@ return LoadFromCompressedStream(stream);
         }
         public override JsonNode Remove(JsonNode aNode)
         {
-            try
-            {
-                var item = m_Dict.Where(k => k.Value == aNode).First();
-                m_Dict.Remove(item.Key);
-                return aNode;
-            }
-            catch
-            {
+            if (aNode == null)
                 return null;
+
+            foreach (var kvp in m_Dict)
+            {
+                if (kvp.Value == aNode)
+                {
+                    m_Dict.Remove(kvp.Key);
+                    return aNode;
+                }
             }
+
+            return null;
         }
 
         public override IEnumerable<JsonNode> Childs
@@ -1390,28 +1427,32 @@ return LoadFromCompressedStream(stream);
         }
         public override string ToString()
         {
-            string result = "{";
+            var sb = new System.Text.StringBuilder("{");
+            bool isFirst = true;
             foreach (KeyValuePair<string, JsonNode> N in m_Dict)
             {
-                if (result.Length > 2)
-                    result += ", ";
-                result += "\"" + Escape(N.Key) + "\":" + N.Value.ToString();
+                if (!isFirst)
+                    sb.Append(", ");
+                isFirst = false;
+                sb.Append("\"").Append(Escape(N.Key)).Append("\":").Append(N.Value.ToString());
             }
-            result += "}";
-            return result;
+            sb.Append("}");
+            return sb.ToString();
         }
         public override string ToString(string aPrefix)
         {
-            string result = "{ ";
+            var sb = new System.Text.StringBuilder("{ ");
+            bool isFirst = true;
             foreach (KeyValuePair<string, JsonNode> N in m_Dict)
             {
-                if (result.Length > 3)
-                    result += ", ";
-                result += "\n" + aPrefix + "   ";
-                result += "\"" + Escape(N.Key) + "\" : " + N.Value.ToString(aPrefix + "   ");
+                if (!isFirst)
+                    sb.Append(", ");
+                isFirst = false;
+                sb.Append("\n").Append(aPrefix).Append("   ");
+                sb.Append("\"").Append(Escape(N.Key)).Append("\" : ").Append(N.Value.ToString(aPrefix + "   "));
             }
-            result += "\n" + aPrefix + "}";
-            return result;
+            sb.Append("\n").Append(aPrefix).Append("}");
+            return sb.ToString();
         }
 
         public override string ToPrettyStringInternal(int level, string indent)
@@ -1505,7 +1546,29 @@ return LoadFromCompressedStream(stream);
         /// </summary>
         public JsonClass Clone()
         {
-            return Json.Parse(this.ToString()) as JsonClass;
+            var clone = new JsonClass();
+            foreach (var kvp in m_Dict)
+            {
+                if (kvp.Value is JsonClass jsonClass)
+                    clone.Add(kvp.Key, jsonClass.Clone());
+                else if (kvp.Value is JsonArray jsonArray)
+                {
+                    var newArray = new JsonArray();
+                    foreach (var item in jsonArray.Childs)
+                    {
+                        if (item is JsonClass itemClass)
+                            newArray.Add(itemClass.Clone());
+                        else if (item is JsonArray itemArray)
+                            newArray.Add(Json.Parse(itemArray.ToString()) as JsonArray); // 嵌套数组暂时使用序列化方式
+                        else
+                            newArray.Add(new JsonData(item.Value));
+                    }
+                    clone.Add(kvp.Key, newArray);
+                }
+                else
+                    clone.Add(kvp.Key, new JsonData(kvp.Value.Value));
+            }
+            return clone;
         }
 
         /// <summary>
@@ -1564,6 +1627,7 @@ return LoadFromCompressedStream(stream);
     public class JsonData : JsonNode
     {
         private string m_Data;
+        private JsonNodeType? m_CachedType = null;
 
         public override string Value
         {
@@ -1571,6 +1635,7 @@ return LoadFromCompressedStream(stream);
             set
             {
                 m_Data = value;
+                m_CachedType = null; // 值变化时清除缓存的类型
             }
         }
         public JsonData(string aData)
@@ -1628,7 +1693,7 @@ return LoadFromCompressedStream(stream);
 
         public override string ToString()
         {
-            JsonNodeType nodeType = this.type;
+            JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
                 return m_Data.ToLower(); // 布尔值不需要引号
@@ -1642,7 +1707,7 @@ return LoadFromCompressedStream(stream);
 
         public override string ToString(string aPrefix)
         {
-            JsonNodeType nodeType = this.type;
+            JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
                 return m_Data.ToLower(); // 布尔值不需要引号
@@ -1656,7 +1721,7 @@ return LoadFromCompressedStream(stream);
 
         public override string ToPrettyStringInternal(int level, string indent)
         {
-            JsonNodeType nodeType = this.type;
+            JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
                 return m_Data.ToLower(); // 布尔值不需要引号
@@ -1670,7 +1735,7 @@ return LoadFromCompressedStream(stream);
 
         public override string ToYamlStringInternal(int level, string indent, bool isArrayItem)
         {
-            JsonNodeType nodeType = this.type;
+            JsonNodeType nodeType = GetCachedNodeType();
 
             // null 值
             if (string.IsNullOrEmpty(m_Data) || m_Data == "null")
@@ -1736,6 +1801,25 @@ return LoadFromCompressedStream(stream);
         public static implicit operator JsonData(char aChar)
         {
             return new JsonData(aChar);
+        }
+
+        private JsonNodeType GetCachedNodeType()
+        {
+            if (m_CachedType.HasValue)
+                return m_CachedType.Value;
+
+            if (string.IsNullOrEmpty(m_Data) || m_Data == "null")
+                m_CachedType = JsonNodeType.Null;
+            else if (bool.TryParse(m_Data, out _))
+                m_CachedType = JsonNodeType.Boolean;
+            else if (int.TryParse(m_Data, out _))
+                m_CachedType = JsonNodeType.Integer;
+            else if (float.TryParse(m_Data, out _))
+                m_CachedType = JsonNodeType.Float;
+            else
+                m_CachedType = JsonNodeType.String;
+
+            return m_CachedType.Value;
         }
 
         public override void Serialize(System.IO.BinaryWriter aWriter)

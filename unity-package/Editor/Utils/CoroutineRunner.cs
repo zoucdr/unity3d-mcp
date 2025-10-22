@@ -79,7 +79,14 @@ namespace Unity.Mcp
                     var action = _actions.Dequeue();
                     try
                     {
+                        var startTime = EditorApplication.timeSinceStartup;
                         action?.Invoke();
+                        var endTime = EditorApplication.timeSinceStartup;
+                        var duration = (endTime - startTime) * 1000.0; // ms
+                        if (duration > 50) // 50ms 可自行调整
+                        {
+                            Debug.LogWarning($"[MainThreadExecutor] Action took {duration:F2} ms to execute.");
+                        }
                         actionsProcessed++;
                     }
                     catch (Exception e)

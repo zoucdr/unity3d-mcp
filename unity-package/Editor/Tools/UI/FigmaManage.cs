@@ -191,84 +191,34 @@ namespace Unity.Mcp.Tools
 
             try
             {
-                // 复用 GetCoordinateSystemInfo 获取基础转换信息
-                var baseInfo = GetCoordinateSystemInfo();
                 var result = new JsonClass();
+                result["ui_framework"] = uiFramework;
 
-                // 从基础信息中提取数据
-                var conversionFormulas = baseInfo["conversion_formulas"] as JsonClass;
-
-                // 获取各个 UI 框架的专用提示词
-                var figmaSettings = McpSettings.Instance?.figmaSettings;
-                string uguiPrompt = figmaSettings?.GetPromptForUIType(UIType.UGUI) ?? "";
-                string uitoolkitPrompt = figmaSettings?.GetPromptForUIType(UIType.UIToolkit) ?? "";
-
-                // 构建 UGUI 规则
-                var uguiRules = new JsonClass();
-                uguiRules["framework"] = "Unity UGUI";
-                uguiRules["coordinate_system"] = baseInfo["ugui_coordinate_system"];
-                uguiRules["formulas"] = conversionFormulas["ugui"];
-
-                var uguiSettings = new JsonClass();
-                uguiSettings["anchor"] = "[0.5, 0.5] (中心锚点)";
-                uguiSettings["pivot"] = "[0.5, 0.5] (中心轴点)";
-                uguiSettings["clamp"] = "不启用 Clamp 选项";
-                uguiSettings["canvas_pixel_perfect"] = "禁用 Pixel Perfect";
-                uguiSettings["canvas_render_mode"] = "Screen Space - Overlay";
-                uguiRules["recommended_settings"] = uguiSettings;
-                uguiRules["conversion_prompt"] = uguiPrompt;
-
-                // 构建 UIToolkit 规则
-                var uitoolkitRules = new JsonClass();
-                uitoolkitRules["framework"] = "Unity UI Toolkit";
-                uitoolkitRules["coordinate_system"] = baseInfo["uitoolkit_coordinate_system"];
-                uitoolkitRules["formulas"] = conversionFormulas["uitoolkit"];
-
-                var uitoolkitSettings = new JsonClass();
-                uitoolkitSettings["position"] = "absolute (使用 left/top/right/bottom)";
-                uitoolkitSettings["note"] = "坐标系与 Figma 一致，无需 Y 轴翻转";
-                uitoolkitRules["recommended_settings"] = uitoolkitSettings;
-                uitoolkitRules["conversion_prompt"] = uitoolkitPrompt;
-
-                // 根据参数返回相应的规则
+                // 根据参数返回相应的规则，去除根节点 result 与 rules 下的重复数据
                 if (uiFramework == "ugui")
                 {
-                    result["framework"] = "ugui";
-                    result["coordinate_system"] = baseInfo["ugui_coordinate_system"];
-                    result["rules"] = uguiRules;
-                    result["conversion_prompt"] = uguiPrompt;
+                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.UGUI);
                     return Response.Success("成功获取 UGUI 转换规则", result);
                 }
                 else if (uiFramework == "uitoolkit")
                 {
-                    result["framework"] = "uitoolkit";
-                    result["coordinate_system"] = baseInfo["uitoolkit_coordinate_system"];
-                    result["rules"] = uitoolkitRules;
-                    result["conversion_prompt"] = uitoolkitPrompt;
+                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.UIToolkit);
                     return Response.Success("成功获取 UI Toolkit 转换规则", result);
                 }
-                else // all 或其他
+                else if (uiFramework == "ngui")
                 {
-                    var allRules = new JsonClass();
-                    allRules["ugui"] = uguiRules;
-                    allRules["uitoolkit"] = uitoolkitRules;
-
-                    var coordinateSystems = new JsonClass();
-                    coordinateSystems["figma"] = baseInfo["figma_coordinate_system"];
-                    coordinateSystems["ugui"] = baseInfo["ugui_coordinate_system"];
-                    coordinateSystems["uitoolkit"] = baseInfo["uitoolkit_coordinate_system"];
-
-                    // 为所有框架返回各自的提示词
-                    var allPrompts = new JsonClass();
-                    allPrompts["ugui"] = uguiPrompt;
-                    allPrompts["uitoolkit"] = uitoolkitPrompt;
-
-                    result["frameworks"] = new JsonArray { "ugui", "uitoolkit" };
-                    result["rules"] = allRules;
-                    result["coordinate_systems"] = coordinateSystems;
-                    result["conversion_prompts"] = allPrompts;
-
-                    return Response.Success("成功获取所有 UI 框架转换规则", result);
+                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.NGUI);
+                    return Response.Success("成功获取 NGUI 转换规则", result);
+                }
+                else if (uiFramework == "fairygui")
+                {
+                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.FairyGUI);
+                    return Response.Success("成功获取 FairyGUI 转换规则", result);
+                }
+                else
+                {
+                    result["framework"] = "custom";
+                    return Response.Success("成功获取 UI 转换规则", result);
                 }
             }
             catch (Exception ex)
@@ -1856,47 +1806,6 @@ namespace Unity.Mcp.Tools
                     CollectAllNodeIds(child, result);
                 }
             }
-        }
-
-        /// <summary>
-        /// 获取坐标系转换信息
-        /// </summary>
-        /// <returns>坐标系转换信息的JsonClass对象</returns>
-        private JsonClass GetCoordinateSystemInfo()
-        {
-            var info = new JsonClass();
-            info["figma_coordinate_system"] = "原点在左上角，Y轴向下为正";
-            info["ugui_coordinate_system"] = "原点在容器中心，Y轴向上为正";
-            info["uitoolkit_coordinate_system"] = "原点在左上角，Y轴向下为正（与Figma一致）";
-
-            // UGUI转换公式
-            var uguiFormula = new JsonClass();
-            // 根容器下的元素
-            uguiFormula["x"] = "anchored_position_x = figma_x + (width/2) - (container_width/2)";
-            uguiFormula["y"] = "anchored_position_y = (container_height/2) - figma_y - (height/2)";
-            // 嵌套元素（需要进行自身尺寸偏移）
-            uguiFormula["nested_x"] = "anchored_position_x = (figma_x - parent_figma_x) - (parent_width/2) + (width/2)";
-            uguiFormula["nested_y"] = "anchored_position_y = (parent_figma_y - figma_y) + (parent_height/2) - (height/2)";
-            // 尺寸
-            uguiFormula["size"] = "size_delta = [width, height] (保持不变)";
-            uguiFormula["note"] = "公式适用于RectTransform锚点在中心的情况（anchor=[0.5,0.5]）";
-
-            // UIToolkit转换公式
-            var uitoolkitFormula = new JsonClass();
-            uitoolkitFormula["left"] = "left = figma_x";
-            uitoolkitFormula["top"] = "top = figma_y";
-            uitoolkitFormula["right"] = "right = container_width - (figma_x + width)";
-            uitoolkitFormula["bottom"] = "bottom = container_height - (figma_y + height)";
-            uitoolkitFormula["width"] = "width = figma_width";
-            uitoolkitFormula["height"] = "height = figma_height";
-            uitoolkitFormula["note"] = "UIToolkit使用left/top/right/bottom定位，坐标系与Figma一致，无需Y轴翻转";
-
-            var conversionFormulas = new JsonClass();
-            conversionFormulas["ugui"] = uguiFormula;
-            conversionFormulas["uitoolkit"] = uitoolkitFormula;
-            info["conversion_formulas"] = conversionFormulas;
-            info["conversion_prompt"] = McpSettings.Instance.figmaSettings.ai_conversion_prompt;
-            return info;
         }
     }
 }
