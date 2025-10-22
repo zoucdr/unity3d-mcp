@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityMcp;
+using Unity.Mcp;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// Figma设置提供器，用于在Unity的ProjectSettings窗口中显示Figma相关设置
@@ -14,6 +14,7 @@ namespace UnityMcp.Gui
         private static Vector2 scrollPosition;
         private static bool apiSettingsFoldout = true;
         private static bool downloadSettingsFoldout = true;
+        private static bool aiPromptFoldout = true;
         private static bool engineEffectsFoldout = true;
         private static bool helpInfoFoldout = false;
 
@@ -116,6 +117,57 @@ namespace UnityMcp.Gui
 
             EditorGUILayout.Space(10);
 
+            // AI转换提示词
+            aiPromptFoldout = EditorGUILayout.Foldout(aiPromptFoldout, "AI转换提示词", true, EditorStyles.foldoutHeader);
+
+            if (aiPromptFoldout)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.HelpBox(
+                    "配置AI进行Figma到Unity转换时的提示词，用于指导坐标转换、布局设置等。",
+                    MessageType.Info);
+
+                EditorGUILayout.Space(5);
+
+                // 显示多行文本编辑器
+                EditorGUILayout.LabelField("提示词内容:", EditorStyles.boldLabel);
+
+                // 创建一个滚动视图来显示多行文本
+                GUIStyle textAreaStyle = new GUIStyle(EditorStyles.textArea)
+                {
+                    wordWrap = true,
+                    richText = false
+                };
+
+                settings.figmaSettings.ai_conversion_prompt = EditorGUILayout.TextArea(
+                    settings.figmaSettings.ai_conversion_prompt,
+                    textAreaStyle,
+                    GUILayout.MinHeight(300),
+                    GUILayout.MaxHeight(600));
+
+                EditorGUILayout.Space(5);
+
+                // 重置按钮
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("重置为默认值", GUILayout.Width(150)))
+                {
+                    if (EditorUtility.DisplayDialog("确认重置",
+                        "确定要将AI提示词重置为默认值吗？当前的自定义内容将丢失。",
+                        "确定", "取消"))
+                    {
+                        settings.figmaSettings.ai_conversion_prompt = "";
+                        GUI.changed = true;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.Space(10);
+
             // 引擎支持效果设置
             engineEffectsFoldout = EditorGUILayout.Foldout(engineEffectsFoldout, "引擎支持效果", true, EditorStyles.foldoutHeader);
 
@@ -178,6 +230,18 @@ namespace UnityMcp.Gui
 
                 EditorGUILayout.Space(5);
 
+                // AI转换提示词说明
+                EditorGUILayout.LabelField("AI转换提示词", EditorStyles.boldLabel);
+                EditorGUILayout.HelpBox(
+                    "• 用途：指导AI进行Figma到Unity的精确转换\n" +
+                    "• 内容：包含坐标转换公式、布局规则、转换要求等\n" +
+                    "• 自定义：可根据项目需求修改提示词内容\n" +
+                    "• 重置：点击'重置为默认值'按钮恢复默认提示词\n" +
+                    "• 建议：首次使用建议保持默认值，根据实际转换效果进行调整",
+                    MessageType.Info);
+
+                EditorGUILayout.Space(5);
+
                 // 引擎支持效果说明
                 EditorGUILayout.LabelField("引擎支持效果", EditorStyles.boldLabel);
                 EditorGUILayout.HelpBox(
@@ -194,9 +258,11 @@ namespace UnityMcp.Gui
                 EditorGUILayout.HelpBox(
                     "1. 配置Figma访问令牌\n" +
                     "2. 设置合适的下载路径和缩放倍数\n" +
-                    "3. 根据项目需求启用引擎支持效果\n" +
-                    "4. 在MCP工具中使用figma_manage下载设计资源\n" +
-                    "5. 通过UI生成工具自动创建Unity UI组件",
+                    "3. 根据项目需求配置AI转换提示词（可选）\n" +
+                    "4. 根据项目需求启用引擎支持效果\n" +
+                    "5. 在MCP工具中使用figma_manage下载设计资源\n" +
+                    "6. 使用AI和提示词进行精确的UI布局转换\n" +
+                    "7. 通过UI生成工具自动创建Unity UI组件",
                     MessageType.Info);
 
                 EditorGUI.indentLevel--;

@@ -7,6 +7,7 @@ Unity Figma管理工具，包含Figma图片下载、节点数据拉取等功能�
 - 智能扫描：自动识别并下载所有需要的图片
 - 图片预览：下载图片并返回base64编码
 - 资源管理：自动转换为Sprite格式
+- 转换规则：获取Figma到Unity UI框架的坐标转换规则
 """
 import json
 from typing import Annotated, Dict, Any, Optional, List
@@ -21,8 +22,8 @@ def register_figma_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="要执行的Figma操作: fetch_nodes(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码)",
-            examples=["fetch_nodes", "download_images", "preview"]
+            description="要执行的Figma操作: fetch_nodes(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)",
+            examples=["fetch_nodes", "download_images", "preview", "get_conversion_rules"]
         )],
         file_key: Annotated[Optional[str], Field(
             title="文件密钥",
@@ -76,7 +77,13 @@ def register_figma_manage_tools(mcp: FastMCP):
             title="包含子节点",
             description="是否包含子节点数据，默认为true",
             default=True
-        )] = True
+        )] = True,
+        ui_framework: Annotated[Optional[str], Field(
+            title="UI框架类型",
+            description="UI框架类型: ugui, uitoolkit, all（默认为all，返回所有框架的规则）",
+            default="all",
+            examples=["ugui", "uitoolkit", "all"]
+        )] = "all"
     ) -> Dict[str, Any]:
         """Unity Figma管理工具，用于管理Figma资源和数据。
 
@@ -84,6 +91,7 @@ def register_figma_manage_tools(mcp: FastMCP):
         - 图片下载：从Figma批量下载图片
         - 节点数据：拉取Figma文件的节点结构数据
         - 图片预览：下载图片并返回base64编码
+        - 转换规则：获取UI框架坐标转换规则
         
         节点参数说明：
         - node_id: 节点ID，用于节点信息拉取（如"1:2"）
@@ -99,6 +107,18 @@ def register_figma_manage_tools(mcp: FastMCP):
         
         - 示例 - 图片预览（返回base64）:
           action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_id="1:4"
+        
+        获取转换规则功能说明：
+        - 示例 - 获取所有框架规则:
+          action="get_conversion_rules"
+        
+        - 示例 - 获取UGUI规则:
+          action="get_conversion_rules", ui_framework="ugui"
+        
+        - 示例 - 获取UI Toolkit规则:
+          action="get_conversion_rules", ui_framework="uitoolkit"
+        
+        - 返回数据包含：坐标系说明、转换公式、推荐设置、AI转换提示词
         """
       
         return send_to_unity("figma_manage", {
@@ -111,5 +131,6 @@ def register_figma_manage_tools(mcp: FastMCP):
             "image_scale": image_scale,
             "local_json_path": local_json_path,
             "auto_convert_sprite": auto_convert_sprite,
-            "include_children": include_children
+            "include_children": include_children,
+            "ui_framework": ui_framework
         })

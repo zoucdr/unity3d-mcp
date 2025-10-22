@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp;
+using Unity.Mcp.Models;
+using Unity.Mcp;
 
-namespace UnityMcp.Executer
+namespace Unity.Mcp.Executer
 {
     /// <summary>
     /// Handles batch function calls from MCP server.

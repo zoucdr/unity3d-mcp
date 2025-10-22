@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 using System.Text;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     /// <summary>
     /// 双状态树方法基类，提供基于两棵状态树的方法调用框架。

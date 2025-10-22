@@ -4,9 +4,9 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using UnityMcp.Executer;
+using Unity.Mcp.Executer;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// MCP连接管理GUI类，提供所有绘制功能的静态方法
@@ -395,7 +395,7 @@ namespace UnityMcp.Gui
             {
                 return "Main Project Assembly";
             }
-            else if (assemblyName.StartsWith("UnityMcp"))
+            else if (assemblyName.StartsWith("Unity.Mcp"))
             {
                 return "Unity MCP";
             }

@@ -5,9 +5,9 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// 专门的模型管理工具，提供模型的导入、修改、复制、删除等操作

@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEditor;
-using UnityMcp;
+using Unity.Mcp;
 
 public class TestUIRuleAsync : MonoBehaviour
 {

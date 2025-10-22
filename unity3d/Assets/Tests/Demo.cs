@@ -3,11 +3,11 @@ using System.Collections;
 // ------------------------- Quick Demo -------------------------
 using System.Collections.Generic;
 using System;
-using UnityMcp.Tools;
+using Unity.Mcp.Tools;
 using UnityEngine;
 using System.Linq;
 using System.Text;
-using UnityMcp;
+using Unity.Mcp;
 
 public class Demo : MonoBehaviour
 {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models; // For Response class
-using UnityMcp;
+using Unity.Mcp.Models; // For Response class
+using Unity.Mcp;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles writing different types of log messages to Unity Editor console.

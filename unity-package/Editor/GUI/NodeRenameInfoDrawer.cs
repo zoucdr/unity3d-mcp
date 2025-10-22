@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// NodeRenameInfo的自定义PropertyDrawer，让id、name和originName显示在同一行

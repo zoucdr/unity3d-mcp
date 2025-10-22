@@ -9,12 +9,12 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 using UnityEditor.Compilation;
 using CompilationAssembly = UnityEditor.Compilation.Assembly;
 using ReflectionAssembly = System.Reflection.Assembly;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles C# code execution including compilation and running arbitrary C# methods.

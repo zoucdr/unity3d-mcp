@@ -9,9 +9,9 @@ using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityMcp.Models; // For Response class
+using Unity.Mcp.Models; // For Response class
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles GameObject search and find operations in the scene hierarchy.

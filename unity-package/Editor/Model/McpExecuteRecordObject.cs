@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
-namespace UnityMcp.Models
+namespace Unity.Mcp.Models
 {
     [FilePath("Library/McpExecuteRecordObject.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpExecuteRecordObject : ScriptableSingleton<McpExecuteRecordObject>

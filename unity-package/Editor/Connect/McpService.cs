@@ -8,10 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp.Executer;
+using Unity.Mcp.Models;
+using Unity.Mcp.Executer;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     [InitializeOnLoad]
     public static partial class McpService
@@ -65,7 +65,7 @@ namespace UnityMcp
         private static readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
         //通用函数执行
         private static ToolsCall methodsCall = new ToolsCall();
-        // 在 UnityMcp 类中添加日志开关
+        // 在 Unity.Mcp 类中添加日志开关
         public static bool EnableLog = false;
 
         // 统一的日志输出方法
@@ -117,12 +117,12 @@ namespace UnityMcp
         {
             // 从EditorPrefs读取日志设置，默认为false
             McpService.EnableLog = EditorPrefs.GetBool("mcp_enable_log", false);
-            Log($"[UnityMcp] 正在启动UnityMcp...");
+            Log($"[Unity.Mcp] 正在启动UnityMcp...");
             Stop();
 
             if (isRunning)
             {
-                Log($"[UnityMcp] 服务已在运行中");
+                Log($"[Unity.Mcp] 服务已在运行中");
                 return;
             }
 
@@ -134,18 +134,18 @@ namespace UnityMcp
             {
                 try
                 {
-                    Log($"[UnityMcp] 尝试在端口 {port} 启动TCP监听器...");
+                    Log($"[Unity.Mcp] 尝试在端口 {port} 启动TCP监听器...");
                     listener = new TcpListener(IPAddress.Loopback, port);
                     listener.Start();
                     currentPort = port;
                     isRunning = true;
                     started = true;
-                    Log($"[UnityMcp] TCP监听器已成功启动，端口: {port}");
+                    Log($"[Unity.Mcp] TCP监听器已成功启动，端口: {port}");
 
                     // Start the listener loop and command processing
                     Task.Run(ListenerLoop);
                     EditorApplication.update += ProcessCommands;
-                    Log($"[UnityMcp] 启动完成，监听循环已开始，命令处理已注册");
+                    Log($"[Unity.Mcp] 启动完成，监听循环已开始，命令处理已注册");
                     break;
                 }
                 catch (SocketException ex)
@@ -153,11 +153,11 @@ namespace UnityMcp
                     lastException = ex;
                     if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     {
-                        Log($"[UnityMcp] 端口 {port} 已被占用，尝试下一个端口...");
+                        Log($"[Unity.Mcp] 端口 {port} 已被占用，尝试下一个端口...");
                     }
                     else
                     {
-                        LogWarning($"[UnityMcp] 端口 {port} 启动失败: {ex.Message}，尝试下一个端口...");
+                        LogWarning($"[Unity.Mcp] 端口 {port} 启动失败: {ex.Message}，尝试下一个端口...");
                     }
 
                     // Clean up failed listener
@@ -172,10 +172,10 @@ namespace UnityMcp
 
             if (!started)
             {
-                LogError($"[UnityMcp] 无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动TCP监听器。最后错误: {lastException?.Message}");
+                LogError($"[Unity.Mcp] 无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动TCP监听器。最后错误: {lastException?.Message}");
                 if (lastException?.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
-                    LogError("[UnityMcp] 所有端口都被占用。请确保没有其他Unity MCP实例正在运行。");
+                    LogError("[Unity.Mcp] 所有端口都被占用。请确保没有其他Unity MCP实例正在运行。");
                 }
             }
         }
@@ -187,7 +187,7 @@ namespace UnityMcp
                 return;
             }
 
-            Log($"[UnityMcp] 正在停止UnityMcp...");
+            Log($"[Unity.Mcp] 正在停止UnityMcp...");
 
             try
             {
@@ -203,23 +203,23 @@ namespace UnityMcp
                 }
 
                 EditorApplication.update -= ProcessCommands;
-                Log($"[UnityMcp] 服务已停止，TCP监听器已关闭，命令处理已注销");
+                Log($"[Unity.Mcp] 服务已停止，TCP监听器已关闭，命令处理已注销");
             }
             catch (Exception ex)
             {
-                LogError($"[UnityMcp] 停止服务时发生错误: {ex.Message}");
+                LogError($"[Unity.Mcp] 停止服务时发生错误: {ex.Message}");
             }
         }
 
         private static async Task ListenerLoop()
         {
-            Log($"[UnityMcp] 监听循环已启动");
+            Log($"[Unity.Mcp] 监听循环已启动");
 
             while (isRunning)
             {
                 try
                 {
-                    Log($"[UnityMcp] 等待客户端连接...");
+                    Log($"[Unity.Mcp] 等待客户端连接...");
                     TcpClient client = await listener.AcceptTcpClientAsync();
 
                     // Enable basic socket keepalive
@@ -232,7 +232,7 @@ namespace UnityMcp
                     // Set longer receive timeout to prevent quick disconnections
                     client.ReceiveTimeout = 60000; // 60 seconds
 
-                    Log($"[UnityMcp] 客户端连接配置完成：KeepAlive=true, ReceiveTimeout=60s");
+                    Log($"[Unity.Mcp] 客户端连接配置完成：KeepAlive=true, ReceiveTimeout=60s");
 
                     // Fire and forget each client connection
                     _ = HandleClientAsync(client);
@@ -241,16 +241,16 @@ namespace UnityMcp
                 {
                     if (isRunning)
                     {
-                        LogError($"[UnityMcp] 监听器错误: {ex.Message}");
+                        LogError($"[Unity.Mcp] 监听器错误: {ex.Message}");
                     }
                     else
                     {
-                        Log($"[UnityMcp] 监听器已停止");
+                        Log($"[Unity.Mcp] 监听器已停止");
                     }
                 }
             }
 
-            Log($"[UnityMcp] 监听循环已结束");
+            Log($"[Unity.Mcp] 监听循环已结束");
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace UnityMcp
             lengthBytes[2] = (byte)((dataLength >> 8) & 0xFF);
             lengthBytes[3] = (byte)(dataLength & 0xFF);
 
-            Log($"[UnityMcp] 发送消息: length={data.Length}, length_prefix={BitConverter.ToString(lengthBytes)}");
+            Log($"[Unity.Mcp] 发送消息: length={data.Length}, length_prefix={BitConverter.ToString(lengthBytes)}");
 
             try
             {
@@ -325,19 +325,19 @@ namespace UnityMcp
                              ((uint)lengthBytes[2] << 8) |
                              ((uint)lengthBytes[3]);
 
-            Log($"[UnityMcp] 接收长度前缀字节: {BitConverter.ToString(lengthBytes)} -> {dataLength} bytes");
+            Log($"[Unity.Mcp] 接收长度前缀字节: {BitConverter.ToString(lengthBytes)} -> {dataLength} bytes");
 
             // 安全检查，防止内存问题
             const uint maxMessageSize = 100 * 1024 * 1024; // 100MB限制
             if (dataLength > maxMessageSize)
             {
-                LogError($"[UnityMcp] 长度前缀字节详细: [{lengthBytes[0]}, {lengthBytes[1]}, {lengthBytes[2]}, {lengthBytes[3]}]");
+                LogError($"[Unity.Mcp] 长度前缀字节详细: [{lengthBytes[0]}, {lengthBytes[1]}, {lengthBytes[2]}, {lengthBytes[3]}]");
                 throw new Exception($"消息过大: {dataLength} bytes (最大: {maxMessageSize})");
             }
 
             if (dataLength == 0)
             {
-                LogWarning($"[UnityMcp] 接收到长度为0的消息");
+                LogWarning($"[Unity.Mcp] 接收到长度为0的消息");
                 return new byte[0];
             }
 
@@ -349,7 +349,7 @@ namespace UnityMcp
         {
             string clientEndpoint = client.Client.RemoteEndPoint?.ToString() ?? "Unknown";
             string clientId = Guid.NewGuid().ToString();
-            Log($"[UnityMcp] 客户端已连接: {clientEndpoint} (ID: {clientId})");
+            Log($"[Unity.Mcp] 客户端已连接: {clientEndpoint} (ID: {clientId})");
 
             // 添加客户端到连接列表
             var clientInfo = new ClientInfo
@@ -377,7 +377,7 @@ namespace UnityMcp
                         byte[] commandBytes = await ReceiveWithLengthAsync(stream);
 
                         string commandText = System.Text.Encoding.UTF8.GetString(commandBytes);
-                        Log($"[UnityMcp] 接收到命令 from {clientEndpoint}: {commandText}");
+                        Log($"[Unity.Mcp] 接收到命令 from {clientEndpoint}: {commandText}");
 
                         // 更新客户端活动状态
                         lock (clientsLock)
@@ -395,38 +395,38 @@ namespace UnityMcp
                         // Special handling for ping command to avoid Json parsing
                         if (commandText.Trim() == "ping")
                         {
-                            Log($"[UnityMcp] 处理ping命令 from {clientEndpoint}");
+                            Log($"[Unity.Mcp] 处理ping命令 from {clientEndpoint}");
                             // Direct response to ping without going through Json parsing
                             byte[] pingResponseBytes = System.Text.Encoding.UTF8.GetBytes(
                                 /*lang=json,strict*/
                                 "{\"status\":\"success\",\"result\":{\"message\":\"pong\"}}"
                             );
                             await SendWithLengthAsync(stream, pingResponseBytes);
-                            Log($"[UnityMcp] ping响应已发送 to {clientEndpoint}");
+                            Log($"[Unity.Mcp] ping响应已发送 to {clientEndpoint}");
                             continue;
                         }
 
                         lock (lockObj)
                         {
                             commandQueue[commandId] = (commandText, tcs);
-                            Log($"[UnityMcp] 命令已加入队列 ID: {commandId}");
+                            Log($"[Unity.Mcp] 命令已加入队列 ID: {commandId}");
                         }
 
                         string response = await tcs.Task;
                         byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes(response);
                         await SendWithLengthAsync(stream, responseBytes);
-                        Log($"[UnityMcp] 响应已发送 to {clientEndpoint}, ID: {commandId}, Response: {response}");
+                        Log($"[Unity.Mcp] 响应已发送 to {clientEndpoint}, ID: {commandId}, Response: {response}");
                     }
                     catch (ConnectionClosedException ex)
                     {
                         // 正常的连接关闭，使用 Log 而不是 LogError
-                        Log($"[UnityMcp] 客户端主动断开连接 {clientEndpoint}: {ex.Message}");
+                        Log($"[Unity.Mcp] 客户端主动断开连接 {clientEndpoint}: {ex.Message}");
                         break;
                     }
                     catch (Exception ex)
                     {
                         // 真正的错误
-                        LogError($"[UnityMcp] 客户端处理异常 {clientEndpoint}: {ex.Message}");
+                        LogError($"[Unity.Mcp] 客户端处理异常 {clientEndpoint}: {ex.Message}");
                         break;
                     }
                 }
@@ -438,7 +438,7 @@ namespace UnityMcp
                 connectedClients.Remove(clientId);
             }
 
-            Log($"[UnityMcp] 客户端连接已关闭: {clientEndpoint} (ID: {clientId})");
+            Log($"[Unity.Mcp] 客户端连接已关闭: {clientEndpoint} (ID: {clientId})");
         }
 
         private static void ProcessCommands()
@@ -448,7 +448,7 @@ namespace UnityMcp
             {
                 if (commandQueue.Count > 0)
                 {
-                    Log($"[UnityMcp] 开始处理命令队列，队列长度: {commandQueue.Count}");
+                    Log($"[Unity.Mcp] 开始处理命令队列，队列长度: {commandQueue.Count}");
                 }
 
                 foreach (
@@ -462,14 +462,14 @@ namespace UnityMcp
                     string commandText = kvp.Value.commandJson;
                     TaskCompletionSource<string> tcs = kvp.Value.tcs;
 
-                    Log($"[UnityMcp] 处理命令 ID: {id}");
+                    Log($"[Unity.Mcp] 处理命令 ID: {id}");
 
                     try
                     {
                         // Special case handling
                         if (string.IsNullOrEmpty(commandText))
                         {
-                            LogWarning($"[UnityMcp] 接收到空命令 ID: {id}");
+                            LogWarning($"[Unity.Mcp] 接收到空命令 ID: {id}");
                             var emptyResponse = new
                             {
                                 status = "error",
@@ -486,7 +486,7 @@ namespace UnityMcp
                         // Non-Json direct commands handling (like ping)
                         if (commandText == "ping")
                         {
-                            Log($"[UnityMcp] 处理ping命令 ID: {id}");
+                            Log($"[Unity.Mcp] 处理ping命令 ID: {id}");
                             var pingResponse = new
                             {
                                 status = "success",
@@ -494,7 +494,7 @@ namespace UnityMcp
                             };
                             string pingResponseJson = Json.FromObject(pingResponse);
                             tcs.SetResult(pingResponseJson);
-                            Log($"[UnityMcp] ping命令处理完成 ID: {id}");
+                            Log($"[Unity.Mcp] ping命令处理完成 ID: {id}");
                             processedIds.Add(id);
                             continue;
                         }
@@ -502,7 +502,7 @@ namespace UnityMcp
                         // Check if the command is valid Json before attempting to deserialize
                         if (!IsValidJson(commandText))
                         {
-                            LogError($"[UnityMcp] 无效JSON格式 ID: {id}, Content: {commandText}");
+                            LogError($"[Unity.Mcp] 无效JSON格式 ID: {id}, Content: {commandText}");
                             var invalidJsonResponse = new
                             {
                                 status = "error",
@@ -517,11 +517,11 @@ namespace UnityMcp
                         }
 
                         // Normal Json command processing
-                        Log($"[UnityMcp] 开始解析JSON命令 ID: {id}");
+                        Log($"[Unity.Mcp] 开始解析JSON命令 ID: {id}");
                         Command command = DeserializeCommand(commandText);
                         if (command == null)
                         {
-                            LogError($"[UnityMcp] 命令反序列化为null ID: {id}");
+                            LogError($"[Unity.Mcp] 命令反序列化为null ID: {id}");
                             var nullCommandResponse = new
                             {
                                 status = "error",
@@ -532,7 +532,7 @@ namespace UnityMcp
                         }
                         else
                         {
-                            Log($"[UnityMcp] 执行命令 ID: {id}, Type: {command.type}");
+                            Log($"[Unity.Mcp] 执行命令 ID: {id}, Type: {command.type}");
                             // 异步执行命令，但不等待结果，让它在后台执行
                             try
                             {
@@ -540,7 +540,7 @@ namespace UnityMcp
                             }
                             catch (Exception asyncEx)
                             {
-                                LogError($"[UnityMcp] 异步执行命令时发生错误 ID: {id}: {asyncEx.Message}\n{asyncEx.StackTrace}");
+                                LogError($"[Unity.Mcp] 异步执行命令时发生错误 ID: {id}: {asyncEx.Message}\n{asyncEx.StackTrace}");
                                 var response = new
                                 {
                                     status = "error",
@@ -555,7 +555,7 @@ namespace UnityMcp
                     }
                     catch (Exception ex)
                     {
-                        LogError($"[UnityMcp] 处理命令时发生错误 ID: {id}: {ex.Message}\n{ex.StackTrace}");
+                        LogError($"[Unity.Mcp] 处理命令时发生错误 ID: {id}: {ex.Message}\n{ex.StackTrace}");
 
                         var response = new
                         {
@@ -568,7 +568,7 @@ namespace UnityMcp
                         };
                         string responseJson = Json.FromObject(response);
                         tcs.SetResult(responseJson);
-                        Log($"[UnityMcp] 错误响应已设置 ID: {id}");
+                        Log($"[Unity.Mcp] 错误响应已设置 ID: {id}");
                     }
 
                     processedIds.Add(id);
@@ -581,7 +581,7 @@ namespace UnityMcp
 
                 if (processedIds.Count > 0)
                 {
-                    Log($"[UnityMcp] 命令队列处理完成，已处理: {processedIds.Count} 个命令");
+                    Log($"[Unity.Mcp] 命令队列处理完成，已处理: {processedIds.Count} 个命令");
                 }
             }
         }
@@ -617,13 +617,13 @@ namespace UnityMcp
 
         private static void ExecuteCommand(Command command, TaskCompletionSource<string> tcs)
         {
-            Log($"[UnityMcp] 开始执行命令: Type={command.type}");
+            Log($"[Unity.Mcp] 开始执行命令: Type={command.type}");
 
             try
             {
                 if (string.IsNullOrEmpty(command.type))
                 {
-                    LogError($"[UnityMcp] 命令类型为空");
+                    LogError($"[Unity.Mcp] 命令类型为空");
                     var errorResponse = new
                     {
                         status = "error",
@@ -637,13 +637,13 @@ namespace UnityMcp
                 // Handle ping command for connection verification
                 if (command.type.Equals("ping", StringComparison.OrdinalIgnoreCase))
                 {
-                    Log($"[UnityMcp] 处理ping命令");
+                    Log($"[Unity.Mcp] 处理ping命令");
                     var pingResponse = new
                     {
                         status = "success",
                         result = new { message = "pong" },
                     };
-                    Log($"[UnityMcp] ping命令执行成功");
+                    Log($"[Unity.Mcp] ping命令执行成功");
                     tcs.SetResult(Json.FromObject(pingResponse));
                     return;
                 }
@@ -651,17 +651,17 @@ namespace UnityMcp
                 // Use JsonClass for args as the new handlers likely expect this
                 JsonNode paramsObject = command.cmd ?? new JsonData("null");
 
-                Log($"[UnityMcp] 命令参数: {paramsObject}");
+                Log($"[Unity.Mcp] 命令参数: {paramsObject}");
 
-                Log($"[UnityMcp] 获取McpTool实例: {command.type}");
+                Log($"[Unity.Mcp] 获取McpTool实例: {command.type}");
                 var tool = GetMcpTool(command.type);
                 if (tool == null)
                 {
-                    LogError($"[UnityMcp] 未找到工具: {command.type}");
+                    LogError($"[Unity.Mcp] 未找到工具: {command.type}");
                     throw new ArgumentException($"Unknown or unsupported command type: {command.type}");
                 }
 
-                Log($"[UnityMcp] 找到工具: {tool.GetType().Name}，开始异步处理命令");
+                Log($"[Unity.Mcp] 找到工具: {tool.GetType().Name}，开始异步处理命令");
                 var startTime = System.DateTime.Now;
                 tool.HandleCommand(paramsObject, (result) =>
                 {
@@ -676,11 +676,11 @@ namespace UnityMcp
                             status = "success",
                             result = Json.FromObject(result)
                         }).ToString();
-                        Log($"[UnityMcp] 工具执行完成，结果: {re}");
+                        Log($"[Unity.Mcp] 工具执行完成，结果: {re}");
                     }
                     catch (Exception serEx)
                     {
-                        LogError($"[UnityMcp] 序列化响应失败: {serEx.Message}");
+                        LogError($"[Unity.Mcp] 序列化响应失败: {serEx.Message}");
                         // 尝试序列化一个简化的错误响应
                         re = Json.FromObject((object)(new
                         {
@@ -765,7 +765,7 @@ namespace UnityMcp
                     }
                     catch (System.Exception recordEx)
                     {
-                        LogError($"[UnityMcp] 记录执行结果时发生错误: {recordEx.Message}");
+                        LogError($"[Unity.Mcp] 记录执行结果时发生错误: {recordEx.Message}");
                     }
 
                     tcs.SetResult(re);
@@ -775,7 +775,7 @@ namespace UnityMcp
             {
                 // Log the detailed error in Unity for debugging
                 Debug.LogException(new Exception(
-                    $"[UnityMcp] 执行命令时发生错误 '{command?.type ?? "Unknown"}': {ex.Message}\n{ex.StackTrace}",
+                    $"[Unity.Mcp] 执行命令时发生错误 '{command?.type ?? "Unknown"}': {ex.Message}\n{ex.StackTrace}",
                     ex
                 ));
 
@@ -790,7 +790,7 @@ namespace UnityMcp
                         ? command.cmd.Value
                         : "No args", // Summarize args for context
                 };
-                Log($"[UnityMcp] 错误响应已生成: Type={command?.type ?? "Unknown"}");
+                Log($"[Unity.Mcp] 错误响应已生成: Type={command?.type ?? "Unknown"}");
                 var errorResponse = Json.FromObject(response);
 
                 // 记录错误执行结果到McpExecuteRecordObject
@@ -848,7 +848,7 @@ namespace UnityMcp
                 }
                 catch (System.Exception recordEx)
                 {
-                    LogError($"[UnityMcp] 记录错误执行结果时发生错误: {recordEx.Message}");
+                    LogError($"[Unity.Mcp] 记录错误执行结果时发生错误: {recordEx.Message}");
                 }
 
                 tcs.SetResult(errorResponse);
@@ -862,11 +862,11 @@ namespace UnityMcp
         /// <returns></returns>
         private static McpTool GetMcpTool(string toolName)
         {
-            Log($"[UnityMcp] 请求获取工具: {toolName}");
+            Log($"[Unity.Mcp] 请求获取工具: {toolName}");
 
             if (mcpToolInstanceCache.Count == 0)
             {
-                Log($"[UnityMcp] 工具缓存为空，开始反射查找工具实例");
+                Log($"[Unity.Mcp] 工具缓存为空，开始反射查找工具实例");
                 // 没有缓存则反射查找并缓存
                 var toolType = typeof(McpTool);
                 var toolInstances = AppDomain.CurrentDomain.GetAssemblies()
@@ -878,25 +878,25 @@ namespace UnityMcp
                 {
                     mcpToolInstanceCache[toolInstance.ToolName] = toolInstance;
                     cacheCount++;
-                    Log($"[UnityMcp] 缓存工具: {toolInstance.ToolName} ({toolInstance.GetType().Name})");
+                    Log($"[Unity.Mcp] 缓存工具: {toolInstance.ToolName} ({toolInstance.GetType().Name})");
                 }
-                Log($"[UnityMcp] 工具缓存完成，共缓存 {cacheCount} 个工具");
+                Log($"[Unity.Mcp] 工具缓存完成，共缓存 {cacheCount} 个工具");
             }
 
             if (mcpToolInstanceCache.TryGetValue(toolName, out var tool))
             {
-                Log($"[UnityMcp] 从缓存中获取到工具: {toolName} ({tool.GetType().Name})");
+                Log($"[Unity.Mcp] 从缓存中获取到工具: {toolName} ({tool.GetType().Name})");
                 return tool;
             }
 
             if (methodsCall.GetToolMethod(toolName) != null)
             {
-                Log($"[UnityMcp] 从methodsCall中获取到工具: {toolName}");
+                Log($"[Unity.Mcp] 从methodsCall中获取到工具: {toolName}");
                 methodsCall.SetToolName(toolName);
                 return methodsCall;
             }
 
-            LogError($"[UnityMcp] 未找到工具: {toolName}，可用工具: [{string.Join(", ", mcpToolInstanceCache.Keys)}]");
+            LogError($"[Unity.Mcp] 未找到工具: {toolName}，可用工具: [{string.Join(", ", mcpToolInstanceCache.Keys)}]");
             return null;
         }
 
@@ -922,7 +922,7 @@ namespace UnityMcp
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[UnityMcp] 反序列化 Command 失败: {ex.Message}");
+                Debug.LogError($"[Unity.Mcp] 反序列化 Command 失败: {ex.Message}");
                 return null;
             }
         }

@@ -1,16 +1,16 @@
 """
 UI制作规则文件管理工具
-管理UI制作规则文件，包括创建、获取规则、添加修改记录、批量记录节点命名和Sprite信息
+管理UI制作规则文件，包括获取原型图片、记录修改、批量记录节点重命名和已下载Sprite信息
 
 支持的操作:
-- create_rule: 创建UI制作规则
-- get_rule: 获取UI制作规则和方案（包含构建步骤、环境等）
 - get_prototype_pic: 获取原型图片（Base64格式）
-- add_modify: 添加UI修改记录
-- record_names: 批量记录节点命名信息
-- get_names: 获取节点命名信息
-- record_sprites: 批量记录节点Sprite信息
-- get_sprites: 获取节点Sprite信息
+- record_modify: 记录UI修改记录
+- record_renames: 批量记录节点重命名信息
+- get_renames: 获取节点重命名信息
+- record_download_sprites: 批量记录已下载的节点Sprite信息
+- get_download_sprites: 获取已下载的节点Sprite信息
+
+注意: 创建规则功能已移至 Window/Mcp/Rules 编辑器窗口
 """
 
 from typing import Annotated, Dict, Any, Optional
@@ -25,8 +25,8 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="操作类型: create_rule(创建制作方案), get_rule(获取制作方案), get_prototype_pic(获取原型图片base64), add_modify(添加修改记录), record_names(批量记录节点命名信息), get_names(获取节点命名信息), record_sprites(批量记录sprite信息), get_sprites(获取sprite信息)",
-            examples=["create_rule", "get_rule", "get_prototype_pic", "add_modify", "record_names", "get_names", "record_sprites", "get_sprites"]
+            description="操作类型: get_prototype_pic(获取原型图片base64), record_modify(记录修改), record_renames(批量记录节点重命名信息), get_renames(获取节点重命名信息), record_download_sprites(批量记录已下载sprite信息), get_download_sprites(获取已下载sprite信息)",
+            examples=["get_prototype_pic", "record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites"]
         )],
         name: Annotated[str, Field(
             title="UI名称",
@@ -35,31 +35,31 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         )],
         modify_desc: Annotated[Optional[str], Field(
             title="修改描述",
-            description="修改描述，用于add_modify操作",
+            description="修改描述，用于record_modify操作",
             default=None,
             examples=["调整按钮位置", "更新图片资源", "修改文本内容"]
         )] = None,
         save_path: Annotated[Optional[str], Field(
             title="保存路径",
-            description="保存路径，用于创建新的UIDefineRuleObject，默认为Assets/ScriptableObjects",
+            description="保存路径（保留用于向后兼容，实际创建规则请使用 Window/Mcp/Rules 窗口）",
             default=None,
             examples=["Assets/ScriptableObjects", "Assets/UI/Rules"]
         )] = None,
         properties: Annotated[Optional[str], Field(
             title="属性数据",
-            description="属性数据，Json格式字符串，用于create_rule操作。支持字段：link_url, picture_url, prototype_pic, image_scale, descriptions",
+            description="属性数据，Json格式字符串（保留用于向后兼容，实际创建规则请使用 Window/Mcp/Rules 窗口）",
             default=None,
             examples=['{"link_url":"https://figma.com/...", "picture_url":"Assets/Pics/SimpleUI", "image_scale":1}']
         )] = None,
         names_data: Annotated[Optional[str], Field(
-            title="节点命名数据",
-            description="节点命名数据，Json格式。支持两种格式：1) 详细格式 {\"node_id\":{\"name\":\"new_name\",\"originName\":\"orig_name\"}} 2) 简单格式 {\"node_id\":\"node_name\"}，用于record_names操作",
+            title="节点重命名数据",
+            description="节点重命名数据，Json格式。支持两种格式：1) 详细格式 {\"node_id\":{\"name\":\"new_name\",\"originName\":\"orig_name\"}} 2) 简单格式 {\"node_id\":\"node_name\"}，用于record_renames操作",
             default=None,
             examples=['{"1:2":"RootFrame","1:3":"TitleText"}', '{"1:4":{"name":"Image1","originName":"image 1"}}']
         )] = None,
         sprites_data: Annotated[Optional[str], Field(
-            title="Sprite数据",
-            description="Sprite数据，Json格式 {\"node_id\":\"file_name\"}，用于record_sprites操作",
+            title="已下载Sprite数据",
+            description="已下载Sprite数据，Json格式 {\"node_id\":\"file_name\"}，用于record_download_sprites操作",
             default=None,
             examples=['{"1:4":"image1.png","1:5":"image2.png"}', '{"1:6":"Assets/Pics/SimpleUI/background.png"}']
         )] = None,
@@ -73,32 +73,31 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         UI制作规则文件管理工具
         
         主要功能：
-        1. create_rule - 创建UI制作规则ScriptableObject
-        2. get_rule - 获取UI规则（包含构建步骤、环境、优化规则等）
-        3. get_prototype_pic - 获取原型图片的Base64编码
-        4. add_modify - 添加UI修改记录（带时间戳）
-        5. record_names - 批量记录Figma节点ID到Unity对象名的映射
-        6. get_names - 获取已记录的节点命名信息
-        7. record_sprites - 批量记录节点Sprite信息（自动加载sprite）
-        8. get_sprites - 获取已记录的Sprite信息
+        1. get_prototype_pic - 获取原型图片的Base64编码
+        2. record_modify - 记录UI修改记录（带时间戳）
+        3. record_renames - 批量记录Figma节点ID到Unity对象名的重命名映射
+        4. get_renames - 获取已记录的节点重命名信息
+        5. record_download_sprites - 批量记录已下载的节点Sprite信息（自动加载sprite）
+        6. get_download_sprites - 获取已记录的已下载Sprite信息
         
         示例用法：
-        1. 创建UI规则:
-           {"action": "create_rule", "name": "SimpleUI", "properties": "{\"link_url\":\"https://figma.com/...\"}"}
+        1. 获取原型图片:
+           {"action": "get_prototype_pic", "name": "SimpleUI"}
         
-        2. 获取UI规则:
-           {"action": "get_rule", "name": "SimpleUI"}
+        2. 记录修改:
+           {"action": "record_modify", "name": "SimpleUI", "modify_desc": "调整按钮位置"}
         
-        3. 记录节点命名:
-           {"action": "record_names", "name": "SimpleUI", "names_data": "{\"1:2\":\"RootFrame\",\"1:3\":\"TitleText\"}"}
+        3. 记录节点重命名:
+           {"action": "record_renames", "name": "SimpleUI", "names_data": "{\"1:2\":\"RootFrame\",\"1:3\":\"TitleText\"}"}
         
-        4. 记录Sprite信息:
-           {"action": "record_sprites", "name": "SimpleUI", "sprites_data": "{\"1:4\":\"image1.png\",\"1:5\":\"image2.png\"}"}
+        4. 记录已下载的Sprite信息:
+           {"action": "record_download_sprites", "name": "SimpleUI", "sprites_data": "{\"1:4\":\"image1.png\",\"1:5\":\"image2.png\"}"}
         
         注意：
         - name参数是必需的，用于识别UI规则
         - 所有Json数据需要以字符串格式传递
-        - record_sprites会自动加载sprite资源（auto_load_sprites=true）
+        - record_download_sprites会自动加载sprite资源（auto_load_sprites=true）
+        - 创建规则功能已移至 Window/Mcp/Rules 编辑器窗口
         """
         return send_to_unity("ui_rule_manage", {
             "action": action,

@@ -1,8 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Executer
+namespace Unity.Mcp.Executer
 {
     /// <summary>
     /// Handles single function calls from MCP server.

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityMcp.Tools;
+using Unity.Mcp.Tools;
 using System.Text;
-using UnityMcp;
+using Unity.Mcp;
 
 public class TestStateTree
 {

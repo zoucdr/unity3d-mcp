@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     public class MethodKey
     {

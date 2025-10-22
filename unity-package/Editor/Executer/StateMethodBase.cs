@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 // Migrated from Newtonsoft.Json to SimpleJson
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     /// <summary>
     /// 状态方法基类，提供基于状态树的方法调用框架。

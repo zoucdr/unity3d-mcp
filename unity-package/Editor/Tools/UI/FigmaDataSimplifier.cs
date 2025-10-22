@@ -5,7 +5,7 @@ using UnityEngine;
 // Migrated from Newtonsoft.Json to SimpleJson
 // Migrated from Newtonsoft.Json to SimpleJson
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Figma数据简化器 - 将复杂的Figma节点数据简化为AI友好且token高效的格式

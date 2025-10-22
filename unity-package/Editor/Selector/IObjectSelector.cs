@@ -1,8 +1,8 @@
 ﻿using System;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
-using UnityMcp.Models;
-namespace UnityMcp.Tools
+using Unity.Mcp.Models;
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Unity对象选择器接口

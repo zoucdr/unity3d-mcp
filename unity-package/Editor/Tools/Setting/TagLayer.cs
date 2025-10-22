@@ -5,10 +5,10 @@ using System.Linq;
 using UnityEditor;
 using UnityEditorInternal; // Required for tag management
 using UnityEngine;
-using UnityMcp.Models; // For Response class
-using UnityMcp;
+using Unity.Mcp.Models; // For Response class
+using Unity.Mcp;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Unity Tag and Layer management.

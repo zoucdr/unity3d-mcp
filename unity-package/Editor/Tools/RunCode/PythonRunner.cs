@@ -8,9 +8,9 @@ using System.Diagnostics;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Python script execution including validation and running Python code.

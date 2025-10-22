@@ -4,9 +4,9 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// 项目资产对象选择器

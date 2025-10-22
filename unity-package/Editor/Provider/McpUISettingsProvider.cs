@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// MCP UI设置提供器，用于在Unity的ProjectSettings窗口中显示UI相关设置

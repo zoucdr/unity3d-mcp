@@ -5,9 +5,9 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Component-specific operations using dual state tree architecture.
@@ -161,14 +161,14 @@ namespace UnityMcp.Tools
                         .Select(c => c.GetType().Name)
                         .Distinct()
                         .ToArray();
-                    
+
                     var errorData = new Dictionary<string, object>
                     {
                         { "gameobject_name", targetGo.name },
                         { "requested_component", compName },
                         { "available_components", availableComponents }
                     };
-                    
+
                     string errorMessage = $"Component '{compName}' not found on '{targetGo.name}'. Available components: {string.Join(", ", availableComponents)}";
                     return Response.Error(errorMessage, Json.FromObject(errorData));
                 }
@@ -300,14 +300,14 @@ namespace UnityMcp.Tools
                     .Select(c => c.GetType().Name)
                     .Distinct()
                     .ToArray();
-                
+
                 var errorData = new Dictionary<string, object>
                 {
                     { "gameobject_name", targetGo.name },
                     { "requested_component", compName },
                     { "available_components", availableComponents }
                 };
-                
+
                 string errorMessage = $"Component '{compName}' not found on '{targetGo.name}'. Available components: {string.Join(", ", availableComponents)}";
                 return Response.Error(errorMessage, Json.FromObject(errorData));
             }
@@ -399,9 +399,9 @@ namespace UnityMcp.Tools
             {
                 // 获取所有可设置的属性和字段列表
                 var settableMembers = GetSettablePropertiesAndFields(targetComponent);
-                string errorMessage = $"Failed to set any properties on component '{compName}'. Available settable properties and fields: {string.Join(", ", settableMembers.Take(10))}" + 
+                string errorMessage = $"Failed to set any properties on component '{compName}'. Available settable properties and fields: {string.Join(", ", settableMembers.Take(10))}" +
                                     (settableMembers.Count > 10 ? $" (and {settableMembers.Count - 10} more)" : "");
-                
+
                 return Response.Error(errorMessage, Json.FromObject(responseData));
             }
         }

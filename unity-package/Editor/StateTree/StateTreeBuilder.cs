@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 // Migrated from Newtonsoft.Json to SimpleJson
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     public class StateTreeBuilder
     {

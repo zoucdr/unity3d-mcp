@@ -5,10 +5,10 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models; // For Response class
-using UnityMcp.Tools; // 添加这个引用
+using Unity.Mcp.Models; // For Response class
+using Unity.Mcp.Tools; // 添加这个引用
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Unity mesh asset operations including generation, modification, optimization, etc.

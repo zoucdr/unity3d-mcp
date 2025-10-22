@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityMcp.Models;
-using UnityMcp.Tools;
+using Unity.Mcp.Models;
+using Unity.Mcp.Tools;
 using System.Collections.Generic;
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// UIDefineRuleObject的自定义Inspector，使用ReorderableList绘制node_names和node_sprites
@@ -431,7 +431,7 @@ namespace UnityMcp.Gui
             args["name"] = uiName;
 
             // 使用StateTreeContext调用ExecuteMethod
-            var context = new UnityMcp.StateTreeContext(args);
+            var context = new Unity.Mcp.StateTreeContext(args);
             bool resultReceived = false;
             JsonNode result = null;
 

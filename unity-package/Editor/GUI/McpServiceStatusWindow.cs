@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using UnityMcp.Executer;
+using Unity.Mcp.Executer;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// MCP服务状态窗口，用于显示服务运行状态和客户端连接信息

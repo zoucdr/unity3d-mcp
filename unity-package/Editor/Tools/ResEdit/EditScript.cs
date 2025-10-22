@@ -7,9 +7,9 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles C# script management operations in Unity.

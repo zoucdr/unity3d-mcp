@@ -4,10 +4,10 @@ using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp.Executer;
+using Unity.Mcp.Models;
+using Unity.Mcp.Executer;
 
-namespace UnityMcp.Gui
+namespace Unity.Mcp.Gui
 {
     /// <summary>
     /// MCP调试客户端窗口 - 用于测试和调试MCP函数调用

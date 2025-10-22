@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp;
+using Unity.Mcp.Models;
+using Unity.Mcp;
 
-namespace UnityMcp.Executer
+namespace Unity.Mcp.Executer
 {
     /// <summary>
     /// Handles method calls by routing to specific tool methods.

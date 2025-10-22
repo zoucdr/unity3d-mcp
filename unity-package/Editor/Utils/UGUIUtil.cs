@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     public class UGUIUtil
     {

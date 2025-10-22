@@ -24,3 +24,4 @@ SECRET_CLEANUP_GUIDE.md
 /.vscode
 /unity3d/Assets/FigmaAssets
 /unity3d/Packages/com.unity.ide.traeCN/Editor/VSWhere/*.exe
+/unity3d/Assets/Screenshots

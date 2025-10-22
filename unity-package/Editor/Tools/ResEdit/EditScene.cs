@@ -7,10 +7,10 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityMcp.Models; // For Response class
-using UnityMcp;
+using Unity.Mcp.Models; // For Response class
+using Unity.Mcp;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Unity scene management operations.

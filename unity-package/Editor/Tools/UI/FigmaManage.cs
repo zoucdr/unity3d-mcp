@@ -6,11 +6,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Networking;
-using UnityMcp.Tools;
-using UnityMcp.Models;
+using Unity.Mcp.Tools;
+using Unity.Mcp.Models;
 using Object = UnityEngine.Object;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     [ToolName("figma_manage", "UI管理")]
     public class FigmaManage : StateMethodBase
@@ -24,7 +24,7 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型: fetch_nodes(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码)", false),
+                new MethodKey("action", "操作类型: fetch_nodes(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)", false),
                 new MethodKey("file_key", "Figma文件Key", true),
                 new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
                 new MethodKey("node_id", "节点ID：用于智能扫描下载或预览的节点ID", true),
@@ -32,7 +32,8 @@ namespace UnityMcp.Tools
                 new MethodKey("image_format", "图片格式: png, jpg, svg, pdf，默认为png", true),
                 new MethodKey("image_scale", "图片缩放比例，默认为1", true),
                 new MethodKey("include_children", "是否包含子节点，默认为true", true),
-                new MethodKey("local_json_path", "本地JSON文件路径（可选，用于从FetchNodes保存的JSON文件中读取节点数据）", true)
+                new MethodKey("local_json_path", "本地JSON文件路径（可选，用于从FetchNodes保存的JSON文件中读取节点数据）", true),
+                new MethodKey("ui_framework", "UI框架类型: ugui, uitoolkit, all（默认为all，返回所有框架的规则）", true)
             };
         }
 
@@ -47,6 +48,7 @@ namespace UnityMcp.Tools
                     .Leaf("preview", PreviewImage)
                     .Leaf("fetch_nodes", FetchNodes)
                     .Leaf("download_images", DownloadNodeImages)
+                    .Leaf("get_conversion_rules", GetConversionRules)
                 .Build();
         }
 
@@ -175,6 +177,103 @@ namespace UnityMcp.Tools
             }
         }
 
+        /// <summary>
+        /// 获取UI框架转换规则
+        /// </summary>
+        private object GetConversionRules(StateTreeContext ctx)
+        {
+            string uiFramework = ctx["ui_framework"]?.ToString() ?? "all";
+            uiFramework = uiFramework.ToLower();
+
+            try
+            {
+                // 复用 GetCoordinateSystemInfo 获取基础转换信息
+                var baseInfo = GetCoordinateSystemInfo();
+                var result = new JsonClass();
+
+                // 从基础信息中提取数据
+                var conversionFormulas = baseInfo["conversion_formulas"] as JsonClass;
+
+                // 获取各个 UI 框架的专用提示词
+                var figmaSettings = McpSettings.Instance?.figmaSettings;
+                string uguiPrompt = figmaSettings?.GetPromptForUIType(UIType.UGUI) ?? "";
+                string uitoolkitPrompt = figmaSettings?.GetPromptForUIType(UIType.UIToolkit) ?? "";
+
+                // 构建 UGUI 规则
+                var uguiRules = new JsonClass();
+                uguiRules["framework"] = "Unity UGUI";
+                uguiRules["coordinate_system"] = baseInfo["ugui_coordinate_system"];
+                uguiRules["formulas"] = conversionFormulas["ugui"];
+
+                var uguiSettings = new JsonClass();
+                uguiSettings["anchor"] = "[0.5, 0.5] (中心锚点)";
+                uguiSettings["pivot"] = "[0.5, 0.5] (中心轴点)";
+                uguiSettings["clamp"] = "不启用 Clamp 选项";
+                uguiSettings["canvas_pixel_perfect"] = "禁用 Pixel Perfect";
+                uguiSettings["canvas_render_mode"] = "Screen Space - Overlay";
+                uguiRules["recommended_settings"] = uguiSettings;
+                uguiRules["conversion_prompt"] = uguiPrompt;
+
+                // 构建 UIToolkit 规则
+                var uitoolkitRules = new JsonClass();
+                uitoolkitRules["framework"] = "Unity UI Toolkit";
+                uitoolkitRules["coordinate_system"] = baseInfo["uitoolkit_coordinate_system"];
+                uitoolkitRules["formulas"] = conversionFormulas["uitoolkit"];
+
+                var uitoolkitSettings = new JsonClass();
+                uitoolkitSettings["position"] = "absolute (使用 left/top/right/bottom)";
+                uitoolkitSettings["note"] = "坐标系与 Figma 一致，无需 Y 轴翻转";
+                uitoolkitRules["recommended_settings"] = uitoolkitSettings;
+                uitoolkitRules["conversion_prompt"] = uitoolkitPrompt;
+
+                // 根据参数返回相应的规则
+                if (uiFramework == "ugui")
+                {
+                    result["framework"] = "ugui";
+                    result["coordinate_system"] = baseInfo["ugui_coordinate_system"];
+                    result["rules"] = uguiRules;
+                    result["conversion_prompt"] = uguiPrompt;
+                    return Response.Success("成功获取 UGUI 转换规则", result);
+                }
+                else if (uiFramework == "uitoolkit")
+                {
+                    result["framework"] = "uitoolkit";
+                    result["coordinate_system"] = baseInfo["uitoolkit_coordinate_system"];
+                    result["rules"] = uitoolkitRules;
+                    result["conversion_prompt"] = uitoolkitPrompt;
+                    return Response.Success("成功获取 UI Toolkit 转换规则", result);
+                }
+                else // all 或其他
+                {
+                    var allRules = new JsonClass();
+                    allRules["ugui"] = uguiRules;
+                    allRules["uitoolkit"] = uitoolkitRules;
+
+                    var coordinateSystems = new JsonClass();
+                    coordinateSystems["figma"] = baseInfo["figma_coordinate_system"];
+                    coordinateSystems["ugui"] = baseInfo["ugui_coordinate_system"];
+                    coordinateSystems["uitoolkit"] = baseInfo["uitoolkit_coordinate_system"];
+
+                    // 为所有框架返回各自的提示词
+                    var allPrompts = new JsonClass();
+                    allPrompts["ugui"] = uguiPrompt;
+                    allPrompts["uitoolkit"] = uitoolkitPrompt;
+
+                    result["frameworks"] = new JsonArray { "ugui", "uitoolkit" };
+                    result["rules"] = allRules;
+                    result["coordinate_systems"] = coordinateSystems;
+                    result["conversion_prompts"] = allPrompts;
+
+                    return Response.Success("成功获取所有 UI 框架转换规则", result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[FigmaManage] 获取转换规则失败: {ex.Message}\n{ex.StackTrace}");
+                return Response.Error($"获取转换规则失败: {ex.Message}");
+            }
+        }
+
         /// </summary>
         private object PreviewImage(StateTreeContext ctx)
         {
@@ -210,8 +309,6 @@ namespace UnityMcp.Tools
                 return Response.Error($"预览图片失败: {ex.Message}");
             }
         }
-
-        #region 协程实现
 
         /// <summary>
         /// 直接下载图片协程 - 不获取节点数据，直接下载图片（使用提供的节点名称映射）
@@ -549,7 +646,7 @@ namespace UnityMcp.Tools
             {
                 node_id = nodeId,
                 image_format = imageFormat,
-                base64_data = dataUrl,
+                image = dataUrl,  // ✅ 改为 image，Cursor 更容易识别
                 mime_type = mimeType,
                 original_size = new { width = originalWidth, height = originalHeight },
                 compressed_size = new { width = newWidth, height = newHeight },
@@ -574,7 +671,7 @@ namespace UnityMcp.Tools
             remappedPath = filePath;
 
             // 加载McpUISettings
-            var settings = UnityMcp.McpSettings.Instance?.uiSettings;
+            var settings = Unity.Mcp.McpSettings.Instance?.uiSettings;
             if (settings == null)
                 return false;
 
@@ -1118,7 +1215,6 @@ namespace UnityMcp.Tools
                         responseData["scan_mode"] = !string.IsNullOrEmpty(rootNodeIdForScan);
                         responseData["node_id"] = rootNodeIdForScan;
                         responseData["simplified_data"] = simplifiedNodes;
-                        responseData["coordinate_system_info"] = GetCoordinateSystemInfo();
 
                         yield return Response.Success($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点", responseData);
                     }
@@ -1138,9 +1234,6 @@ namespace UnityMcp.Tools
         }
 
 
-        #endregion
-
-        #region 辅助方法
 
         /// <summary>
         /// 解析节点参数，支持node_id（单个节点ID）和node_imgs（JSON格式的名称映射）
@@ -1725,12 +1818,9 @@ namespace UnityMcp.Tools
             var conversionFormulas = new JsonClass();
             conversionFormulas["ugui"] = uguiFormula;
             conversionFormulas["uitoolkit"] = uitoolkitFormula;
-
             info["conversion_formulas"] = conversionFormulas;
-
+            info["conversion_prompt"] = McpSettings.Instance.figmaSettings.ai_conversion_prompt;
             return info;
         }
-
-        #endregion
     }
 }

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Gui;
+using Unity.Mcp.Gui;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     /// <summary>
     /// MCP设置管理器，用于管理MCP相关的配置和偏好设置

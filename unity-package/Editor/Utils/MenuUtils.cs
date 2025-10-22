@@ -4,9 +4,9 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     public class MenuUtils
     {

@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp;
+using Unity.Mcp.Models;
+using Unity.Mcp;
 
 [ToolName("gm_command", "调试工具")]
 public class GMCommandMethod : StateMethodBase

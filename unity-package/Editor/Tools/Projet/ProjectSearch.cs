@@ -4,9 +4,9 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models; // For Response class
+using Unity.Mcp.Models; // For Response class
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Project window search operations for finding assets and objects.

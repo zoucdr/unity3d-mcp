@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityMcp.Models
+namespace Unity.Mcp.Models
 {
-    public class UIDefineRuleObject : ScriptableObject
+    public class UIDefineRuleObject : ScriptableObject, IMcpRule
     {
         public string link_url;
         public string optimize_rule_path;

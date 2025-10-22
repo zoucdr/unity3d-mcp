@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Text;
 // Migrated from Newtonsoft.Json to SimpleJson
 
-namespace UnityMcp
+namespace Unity.Mcp
 {
     /// <summary>
     /// StateTree执行上下文包装类，支持JSON序列化字段和非序列化对象引用

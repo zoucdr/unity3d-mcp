@@ -6,11 +6,11 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models; // For Response class
-using UnityMcp;
-using UnityMcp.Utils;
+using Unity.Mcp.Models; // For Response class
+using Unity.Mcp;
+using Unity.Mcp.Utils;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// Handles Unity Game window management and controls.

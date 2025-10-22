@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using UnityMcp.Models;
+using Unity.Mcp.Models;
 using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// UI规则管理工具，负责管理UI制作方案和修改记录
@@ -24,13 +24,13 @@ namespace UnityMcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "Operation type: create_rule(create production plan), get_rule(get production plan), get_prototype_pic(get prototype picture as base64), add_modify(add modification record), record_names(batch record node naming info), get_names(get node naming info), record_sprites(batch record sprite info), get_sprites(get sprite info)", false),
+                new MethodKey("action", "Operation type: get_prototype_pic(get prototype picture as base64), record_modify(record modification), record_renames(batch record node rename info), get_renames(get node rename info), record_download_sprites(batch record downloaded sprite info), get_download_sprites(get downloaded sprite info)", false),
                 new MethodKey("name", "UI name, used for finding and recording", false),
                 new MethodKey("modify_desc", "Modification description", true),
                 new MethodKey("save_path", "Save path, used to create new FigmaUGUIRuleObject", true),
                 new MethodKey("properties", "Property data, Json formatted string", true),
-                new MethodKey("names_data", "Json object with node_id:{name,originName} pairs {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple node_id:node_name pairs {\"node_id1\":\"node_name1\"} - Required for record_names", true),
-                new MethodKey("sprites_data", "Json object with node_id:fileName pairs {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"} - Required for record_sprites", true),
+                new MethodKey("names_data", "Json object with node_id:{name,originName} pairs {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple node_id:node_name pairs {\"node_id1\":\"node_name1\"} - Required for record_renames", true),
+                new MethodKey("sprites_data", "Json object with node_id:fileName pairs {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"} - Required for record_download_sprites", true),
                 new MethodKey("auto_load_sprites", "Automatically load sprites from Assets folder based on fileName (default: true)", true)
             };
         }
@@ -43,149 +43,15 @@ namespace UnityMcp.Tools
             return StateTreeBuilder
                 .Create()
                 .Key("action")
-                    .Leaf("create_rule", CreateUIRule)
-                    .Leaf("get_rule", GetUIRule)
                     .Leaf("get_prototype_pic", GetPrototypePic)
-                    .Leaf("add_modify", AddModifyRecord)
-                    .Leaf("record_names", RecordNodeNames)
-                    .Leaf("get_names", GetNodeNames)
-                    .Leaf("record_sprites", RecordNodeSprites)
-                    .Leaf("get_sprites", GetNodeSprites)
+                    .Leaf("record_modify", RecordModify)
+                    .Leaf("record_renames", RecordNodeRenames)
+                    .Leaf("get_renames", GetNodeRenames)
+                    .Leaf("record_download_sprites", RecordDownloadedSprites)
+                    .Leaf("get_download_sprites", GetDownloadedSprites)
                 .Build();
         }
 
-        /// <summary>
-        /// 创建UI制作规则
-        /// </summary>
-        private object CreateUIRule(StateTreeContext ctx)
-        {
-            string uiName = ctx["name"]?.ToString();
-            string savePath = ctx["save_path"]?.ToString();
-            string propertiesJson = ctx["properties"]?.ToString();
-
-            if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for create_rule.");
-
-            if (string.IsNullOrEmpty(savePath))
-            {
-                // 如果没有提供保存路径，使用默认路径
-                savePath = "Assets/ScriptableObjects";
-            }
-
-            try
-            {
-                // 确保保存目录存在
-                if (!System.IO.Directory.Exists(savePath))
-                {
-                    System.IO.Directory.CreateDirectory(savePath);
-                    AssetDatabase.Refresh();
-                }
-
-                // 检查是否已经存在同名的资产
-                string assetPath = Path.Combine(savePath, $"{uiName}_Rule.asset");
-                if (File.Exists(assetPath))
-                {
-                    return Response.Error($"FigmaUGUIRuleObject already exists at path: {assetPath}");
-                }
-
-                // 创建新的 FigmaUGUIRuleObject 实例
-                UIDefineRuleObject newRule = ScriptableObject.CreateInstance<UIDefineRuleObject>();
-
-                // 设置基本属性
-                newRule.name = uiName;
-                newRule.modify_records = new List<string>();
-
-                // 如果提供了properties，尝试解析JSON数据
-                if (!string.IsNullOrEmpty(propertiesJson))
-                {
-                    try
-                    {
-                        JsonClass properties = Json.Parse(propertiesJson) as JsonClass;
-
-                        // 设置各种属性
-                        if (properties["link_url"] != null)
-                            newRule.link_url = properties["link_url"].Value;
-
-                        if (properties["picture_url"] != null)
-                            newRule.img_save_to = properties["picture_url"].Value;
-
-                        if (properties["prototype_pic"] != null)
-                            newRule.prototype_pic = properties["prototype_pic"].Value;
-
-                        if (properties["image_scale"] != null)
-                            newRule.image_scale = properties["image_scale"].AsInt;
-
-                        if (properties["descriptions"] != null)
-                            newRule.descriptions = properties["descriptions"].Value;
-                        // 注意：descriptions和preferred_components现在从McpSettings中获取
-                        // 不再从properties中解析这些字段
-                    }
-                    catch (Exception jsonEx)
-                    {
-                        LogWarning($"[FigmaMakeUGUI] Failed to parse properties Json: {jsonEx.Message}");
-                    }
-                }
-
-                // 创建资产文件
-                AssetDatabase.CreateAsset(newRule, assetPath);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-
-                LogInfo($"[FigmaMakeUGUI] Created new FigmaUGUIRuleObject for UI '{uiName}' at path: {assetPath}");
-
-                return Response.Success($"Successfully created FigmaUGUIRuleObject for UI '{uiName}'.",
-                    new
-                    {
-                        uiName = uiName,
-                        assetPath = assetPath,
-                        rule = Json.FromObject(BuildUIRule(newRule))
-                    });
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                return Response.Error($"Failed to create UI rule for '{uiName}': {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 获取UI制作规则和方案
-        /// </summary>
-        private object GetUIRule(StateTreeContext ctx)
-        {
-            string uiName = ctx["name"]?.ToString();
-
-            if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_rule.");
-
-            try
-            {
-                // 搜索相关的 UIDefineRule
-                UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
-
-                if (figmaObj == null)
-                {
-                    // 即使没有找到特定的UI规则，也可以返回全局的构建步骤和环境配置
-                    var mcpSettings = McpSettings.Instance;
-                    return Response.Success($"No specific UI rule found for '{uiName}', but global build configuration is available.",
-                        new
-                        {
-                            uiName = uiName,
-                            foundObject = false,
-                            suggestion = "Create a UIDefineRule asset to define UI creation rules",
-                        });
-                }
-
-                // 使用ctx.AsyncReturn处理异步操作
-                LogInfo($"[UIRuleManage] 启动异步获取UI规则: {uiName}");
-                return ctx.AsyncReturn(GetUIRuleCoroutine(figmaObj, uiName));
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                return Response.Error($"Failed to get UI rule for '{uiName}': {e.Message}");
-            }
-        }
 
         /// <summary>
         /// 获取原型图片（Base64格式）
@@ -260,16 +126,16 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 添加UI修改记录
+        /// 记录UI修改记录
         /// </summary>
-        private object AddModifyRecord(JsonClass args)
+        private object RecordModify(JsonClass args)
         {
             string uiName = args["name"]?.Value;
             string modify_desc = args["modify_desc"]?.Value;
             if (string.IsNullOrEmpty(modify_desc)) modify_desc = "UI modification";
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for add_modify.");
+                return Response.Error("'name' is required for record_modify.");
 
             try
             {
@@ -299,7 +165,7 @@ namespace UnityMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[FigmaMakeUGUI] Added modify record for UI '{uiName}': {modify_desc}");
+                LogInfo($"[UIRuleManage] Recorded modify for UI '{uiName}': {modify_desc}");
 
                 return Response.Success($"Modify record added to UIDefineRule for UI '{uiName}'.",
                     new
@@ -312,25 +178,25 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to add modify record for '{uiName}': {e.Message}");
+                return Response.Error($"Failed to record modify for '{uiName}': {e.Message}");
             }
         }
 
 
 
         /// <summary>
-        /// 批量记录节点命名信息
+        /// 批量记录节点重命名信息
         /// </summary>
-        private object RecordNodeNames(JsonClass args)
+        private object RecordNodeRenames(JsonClass args)
         {
             string uiName = args["name"]?.Value;
             string namesDataJson = args["names_data"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for record_names.");
+                return Response.Error("'name' is required for record_renames.");
 
             if (string.IsNullOrEmpty(namesDataJson))
-                return Response.Error("'names_data' is required for record_names. Provide Json object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}");
+                return Response.Error("'names_data' is required for record_renames. Provide Json object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}");
 
             try
             {
@@ -406,7 +272,7 @@ namespace UnityMcp.Tools
 
                 if (addedCount == 0 && updatedCount == 0)
                 {
-                    return Response.Error("No valid node naming data found in names_data object.");
+                    return Response.Error("No valid node rename data found in names_data object.");
                 }
 
                 // 标记资产为脏数据并保存
@@ -414,9 +280,9 @@ namespace UnityMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[UIRuleManage] Batch recorded node names for UI '{uiName}': {addedCount} added, {updatedCount} updated");
+                LogInfo($"[UIRuleManage] Batch recorded node renames for UI '{uiName}': {addedCount} added, {updatedCount} updated");
 
-                return Response.Success($"Batch node names recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated.",
+                return Response.Success($"Batch node renames recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated.",
                     new
                     {
                         uiName = uiName,
@@ -428,19 +294,19 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to record node names for '{uiName}': {e.Message}");
+                return Response.Error($"Failed to record node renames for '{uiName}': {e.Message}");
             }
         }
 
         /// <summary>
-        /// 获取节点命名信息
+        /// 获取节点重命名信息
         /// </summary>
-        private object GetNodeNames(JsonClass args)
+        private object GetNodeRenames(JsonClass args)
         {
             string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_names.");
+                return Response.Error("'name' is required for get_renames.");
 
             try
             {
@@ -460,7 +326,7 @@ namespace UnityMcp.Tools
 
                 var nodeNames = figmaObj.node_names ?? new List<NodeRenameInfo>();
 
-                return Response.Success($"Retrieved {nodeNames.Count} node name(s) for UI '{uiName}'.",
+                return Response.Success($"Retrieved {nodeNames.Count} node rename(s) for UI '{uiName}'.",
                     new
                     {
                         uiName = uiName,
@@ -471,24 +337,24 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to get node names for '{uiName}': {e.Message}");
+                return Response.Error($"Failed to get node renames for '{uiName}': {e.Message}");
             }
         }
 
         /// <summary>
-        /// 批量记录节点Sprite信息
+        /// 批量记录已下载的节点Sprite信息
         /// </summary>
-        private object RecordNodeSprites(JsonClass args)
+        private object RecordDownloadedSprites(JsonClass args)
         {
             string uiName = args["name"]?.Value;
             string spritesDataJson = args["sprites_data"]?.Value;
             bool autoLoadSprites = args["auto_load_sprites"].AsBoolDefault(true);
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for record_sprites.");
+                return Response.Error("'name' is required for record_download_sprites.");
 
             if (string.IsNullOrEmpty(spritesDataJson))
-                return Response.Error("'sprites_data' is required for record_sprites. Provide Json object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}");
+                return Response.Error("'sprites_data' is required for record_download_sprites. Provide Json object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}");
 
             try
             {
@@ -567,7 +433,7 @@ namespace UnityMcp.Tools
 
                 if (addedCount == 0 && updatedCount == 0)
                 {
-                    return Response.Error("No valid sprite data found in sprites_data object.");
+                    return Response.Error("No valid downloaded sprite data found in sprites_data object.");
                 }
 
                 // 标记资产为脏数据并保存
@@ -575,9 +441,9 @@ namespace UnityMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[UIRuleManage] Batch recorded node sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded");
+                LogInfo($"[UIRuleManage] Batch recorded downloaded sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded");
 
-                return Response.Success($"Batch node sprites recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated" +
+                return Response.Success($"Batch downloaded sprites recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated" +
                     (autoLoadSprites ? $", {loadedSpritesCount} sprites loaded" : ""),
                     new
                     {
@@ -592,7 +458,7 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to record node sprites for '{uiName}': {e.Message}");
+                return Response.Error($"Failed to record downloaded sprites for '{uiName}': {e.Message}");
             }
         }
 
@@ -647,14 +513,14 @@ namespace UnityMcp.Tools
         }
 
         /// <summary>
-        /// 获取节点Sprite信息
+        /// 获取已下载的节点Sprite信息
         /// </summary>
-        private object GetNodeSprites(JsonClass args)
+        private object GetDownloadedSprites(JsonClass args)
         {
             string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_sprites.");
+                return Response.Error("'name' is required for get_download_sprites.");
 
             try
             {
@@ -674,7 +540,7 @@ namespace UnityMcp.Tools
 
                 var nodeSprites = figmaObj.node_sprites ?? new List<NodeSpriteInfo>();
 
-                return Response.Success($"Retrieved {nodeSprites.Count} sprite(s) for UI '{uiName}'.",
+                return Response.Success($"Retrieved {nodeSprites.Count} downloaded sprite(s) for UI '{uiName}'.",
                     new
                     {
                         uiName = uiName,
@@ -685,79 +551,11 @@ namespace UnityMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to get node sprites for '{uiName}': {e.Message}");
+                return Response.Error($"Failed to get downloaded sprites for '{uiName}': {e.Message}");
             }
         }
 
         // --- Helper Methods ---
-
-        /// <summary>
-        /// 使用协程方式获取UI规则（不包含原型图片）
-        /// </summary>
-        private IEnumerator GetUIRuleCoroutine(UIDefineRuleObject figmaObj, string uiName)
-        {
-            LogInfo($"[UIRuleManage] 启动协程获取UI规则: {uiName}");
-            // 获取McpSettings中的配置
-            var mcpSettings = McpSettings.Instance;
-
-            // 读取optimize_rule_path的文本内容
-            string optimizeRuleContent = "";
-            string optimizeRuleMessage = "";
-
-            if (!string.IsNullOrEmpty(figmaObj.optimize_rule_path))
-            {
-                try
-                {
-                    string fullPath = GetFullRulePath(figmaObj.optimize_rule_path);
-                    if (File.Exists(fullPath))
-                    {
-                        optimizeRuleContent = File.ReadAllText(fullPath, System.Text.Encoding.UTF8);
-                        optimizeRuleMessage = "UI布局优化规则已加载";
-                        LogInfo($"[UIRuleManage] 成功读取优化规则文件: {fullPath}");
-                    }
-                    else
-                    {
-                        optimizeRuleMessage = "UI布局信息需要下载 - 文件不存在";
-                        LogWarning($"[UIRuleManage] 优化规则文件不存在: {fullPath}");
-                    }
-                }
-                catch (Exception e)
-                {
-                    optimizeRuleMessage = $"UI布局信息需要下载 - 读取失败: {e.Message}";
-                    LogError($"[UIRuleManage] 读取优化规则文件失败: {e.Message}");
-                }
-            }
-            else
-            {
-                optimizeRuleMessage = "UI布局信息需要下载 - 未设置优化规则路径";
-            }
-
-            // 构建UI规则信息（不包含designPic）
-            var rule = new
-            {
-                name = figmaObj.name,
-                figmaUrl = figmaObj.link_url,
-                pictureUrl = figmaObj.img_save_to,
-                prototypePic = figmaObj.prototype_pic,
-                optimizeRulePath = figmaObj.optimize_rule_path,
-                optimizeRuleContent = optimizeRuleContent,
-                optimizeRuleMessage = optimizeRuleMessage,
-                imageScale = figmaObj.image_scale,
-                descriptions = GenerateMarkdownDescription(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps(), mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments(), figmaObj.descriptions),
-                assetPath = AssetDatabase.GetAssetPath(figmaObj),
-                node_names = figmaObj.node_names.Select(n => new { id = n.id, name = n.name, originName = n.originName }).ToArray(),
-                node_sprites = figmaObj.node_sprites.Select(s => new { id = s.id, fileName = s.fileName }).ToArray()
-            };
-
-            LogInfo($"[UIRuleManage] UI规则构建完成: {uiName}");
-
-            yield return Response.Success($"Found UI rule for '{uiName}'.", new
-            {
-                uiName = uiName,
-                foundObject = true,
-                rule = rule
-            });
-        }
 
         /// <summary>
         /// 加载图片并转换为Base64（协程版本）
@@ -1108,106 +906,6 @@ namespace UnityMcp.Tools
             return null;
         }
 
-        /// <summary>
-        /// 构建UI制作规则
-        /// </summary>
-        private object BuildUIRule(UIDefineRuleObject figmaObj)
-        {
-            // 获取McpSettings中的配置
-            var mcpSettings = McpSettings.Instance;
-
-            // 读取optimize_rule_path的文本内容
-            string optimizeRuleContent = "";
-            string optimizeRuleMessage = "";
-
-            if (!string.IsNullOrEmpty(figmaObj.optimize_rule_path))
-            {
-                try
-                {
-                    string fullPath = GetFullRulePath(figmaObj.optimize_rule_path);
-                    if (File.Exists(fullPath))
-                    {
-                        optimizeRuleContent = File.ReadAllText(fullPath, System.Text.Encoding.UTF8);
-                        optimizeRuleMessage = "UI布局优化规则已加载";
-                    }
-                    else
-                    {
-                        optimizeRuleMessage = "UI布局信息需要下载 - 文件不存在";
-                    }
-                }
-                catch (Exception e)
-                {
-                    optimizeRuleMessage = $"UI布局信息需要下载 - 读取失败: {e.Message}";
-                }
-            }
-            else
-            {
-                optimizeRuleMessage = "UI布局信息需要下载 - 未设置优化规则路径";
-            }
-
-            return new
-            {
-                name = figmaObj.name,
-                figmaUrl = figmaObj.link_url,
-                pictureUrl = figmaObj.img_save_to,
-                optimizeRulePath = figmaObj.optimize_rule_path,
-                optimizeRuleContent = optimizeRuleContent,
-                optimizeRuleMessage = optimizeRuleMessage,
-                imageScale = figmaObj.image_scale,
-                descriptions = figmaObj.descriptions,
-                // 使用McpUISettingsProvider中的配置替代原来的descriptions和preferred_components
-                buildSteps = Json.FromObject(mcpSettings.uiSettings?.ui_build_steps ?? McpUISettings.GetDefaultBuildSteps()),
-                buildEnvironments = Json.FromObject(mcpSettings.uiSettings?.ui_build_enviroments ?? McpUISettings.GetDefaultBuildEnvironments()),
-                assetPath = AssetDatabase.GetAssetPath(figmaObj)
-            };
-        }
-
-        /// <summary>
-        /// 生成包含构建步骤、构建环境和附加条件的Markdown描述文本
-        /// </summary>
-        private string GenerateMarkdownDescription(List<string> buildSteps, List<string> buildEnvironments, string additionalConditions)
-        {
-            var markdown = new System.Text.StringBuilder();
-
-            // 添加标题
-            markdown.AppendLine("# UI构建规则说明");
-            markdown.AppendLine();
-
-            // 添加构建步骤
-            if (buildSteps != null && buildSteps.Count > 0)
-            {
-                markdown.AppendLine("## 🔨 构建步骤");
-                markdown.AppendLine();
-                for (int i = 0; i < buildSteps.Count; i++)
-                {
-                    markdown.AppendLine($"{i + 1}. {buildSteps[i]}");
-                }
-                markdown.AppendLine();
-            }
-
-            // 添加构建环境
-            if (buildEnvironments != null && buildEnvironments.Count > 0)
-            {
-                markdown.AppendLine("## 🌐 构建环境");
-                markdown.AppendLine();
-                foreach (var env in buildEnvironments)
-                {
-                    markdown.AppendLine($"- {env}");
-                }
-                markdown.AppendLine();
-            }
-
-            // 添加附加条件
-            if (!string.IsNullOrEmpty(additionalConditions))
-            {
-                markdown.AppendLine("## 📋 附加条件");
-                markdown.AppendLine();
-                markdown.AppendLine(additionalConditions);
-                markdown.AppendLine();
-            }
-
-            return markdown.ToString().TrimEnd();
-        }
 
     }
 }

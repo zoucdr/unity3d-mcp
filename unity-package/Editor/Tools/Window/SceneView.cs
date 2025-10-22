@@ -4,10 +4,10 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using UnityMcp.Models;
-using UnityMcp.Utils;
+using Unity.Mcp.Models;
+using Unity.Mcp.Utils;
 
-namespace UnityMcp.Tools
+namespace Unity.Mcp.Tools
 {
     /// <summary>
     /// 处理Unity Scene窗口管理和控制

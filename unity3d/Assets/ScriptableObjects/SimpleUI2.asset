@@ -25,5 +25,58 @@ MonoBehaviour:
   - "[2025-10-20 10:38:42] \u5B8C\u6210\u5C4F\u5E55\u9002\u914D\u4F18\u5316\uFF1ARoot\u4F7F\u7528stretch_all\u951A\u70B9\u586B\u5145\u6574\u4E2ACanvas\uFF1BShadow\u548CBounding
     Headline\u4F7F\u7528middle_center\u951A\u70B9\u5C45\u4E2D\uFF1B4\u4E2Acorner\u5206\u522B\u4F7F\u7528top_right/top_left/bottom_right/bottom_left\u951A\u70B9\u56FA\u5B9A\u5728\u56DB\u4E2A\u89D2\uFF1B\u6587\u672C\u4F7F\u7528middle_center\u5C45\u4E2D\uFF1BFrame
     6\u4F7F\u7528middle_right\u951A\u70B9\u9760\u53F3"
-  node_names: []
-  node_sprites: []
+  - "[2025-10-22 10:11:51] \u8C03\u6574\u4E86UI\u5143\u7D20\u7684\u4F4D\u7F6E\u548C\u951A\u70B9\u8BBE\u7F6E\uFF0C\u4F7F\u5176\u4E0E\u8BBE\u8BA1\u7A3F\u5BF9\u9F50\uFF0C\u5E76\u4F18\u5316\u4E86\u5C4F\u5E55\u9002\u914D"
+  - "[2025-10-22 10:15:44] \u6839\u636E\u8BBE\u8BA1\u7A3F\u8C03\u6574\u4E86UI\u5143\u7D20\u4F4D\u7F6E\uFF1A1.
+    \u4FEE\u6B63\u4E86Canvas\u7F29\u653E\u6BD4\u4F8B\u4E3A1.0\uFF1B2. \u8C03\u6574\u4E86\u9634\u5F71\u548C\u9EC4\u8272\u8FB9\u6846\u7684\u4F4D\u7F6E\uFF1B3.
+    \u8C03\u6574\u4E86\u6587\u672C\u5927\u5C0F\u4E3A132\u548C\u4F4D\u7F6E\uFF1B4.
+    \u8C03\u6574\u4E86\u56DB\u4E2A\u89D2\u843D\u88C5\u9970\u5143\u7D20\u7684\u4F4D\u7F6E"
+  node_names:
+  - id: 4368:321039
+    name: Background
+    originName: 
+  - id: 50:80
+    name: Shadow
+    originName: 
+  - id: 50:81
+    name: BoundingHeadline
+    originName: 
+  - id: 50:82
+    name: CornerBottomRight
+    originName: 
+  - id: 50:83
+    name: CornerBottomLeft
+    originName: 
+  - id: 50:84
+    name: CornerTopRight
+    originName: 
+  - id: 50:85
+    name: CornerTopLeft
+    originName: 
+  - id: 50:86
+    name: FigmaBasicsText
+    originName: 
+  node_sprites:
+  - id: 4368:321039
+    fileName: Thumbnail.png_5a818d26.png
+    sprite: {fileID: 21300000, guid: 707c31dc1dbe1494496d4b87fb2e2c8a, type: 3}
+  - id: 50:81
+    fileName: BoundingHeadline.png_f904f217.png
+    sprite: {fileID: 21300000, guid: 5c70120ed33da10459417cdafa7ed30e, type: 3}
+  - id: 50:80
+    fileName: Shadow.png_dfac4409.png
+    sprite: {fileID: 21300000, guid: 7e7a537d372c3e64fb23e54f80a6ba5d, type: 3}
+  - id: 50:82
+    fileName: corner_br.png_1a870a52.png
+    sprite: {fileID: 21300000, guid: 0d06b2ee6f28fe3459ec428deb84712a, type: 3}
+  - id: 50:83
+    fileName: corner_bl.png_1a870a52.png
+    sprite: {fileID: 21300000, guid: b4d6dd4c5eb43814db6661f2f6a4cb91, type: 3}
+  - id: 50:84
+    fileName: corner_tr.png_1a870a52.png
+    sprite: {fileID: 21300000, guid: 00cfb8dd6ba46ee48a3a7297c6aa9870, type: 3}
+  - id: 50:85
+    fileName: corner_tl.png_1a870a52.png
+    sprite: {fileID: 21300000, guid: 46aed2ccf0d75674b84bfb53d1f89be9, type: 3}
+  - id: 50:86
+    fileName: FigmaBasicsText.png_ca41ed1d.png
+    sprite: {fileID: 21300000, guid: d503136a8c638b049987944de2ba33d7, type: 3}
