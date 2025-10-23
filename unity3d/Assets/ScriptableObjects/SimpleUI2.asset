@@ -47,22 +47,4 @@ MonoBehaviour:
   - id: 50:86
     name: TitleText
     originName: 
-  node_sprites:
-  - id: 4368:321039
-    fileName: thumbnail_bg.png_5a818d26.png
-    sprite: {fileID: 21300000, guid: 9e8c0918f5e9ddd47ba9e0d6d6e567e0, type: 3}
-  - id: 50:81
-    fileName: bounding_headline.png_f904f217.png
-    sprite: {fileID: 21300000, guid: e5287898c989cc847af937f81ab260f1, type: 3}
-  - id: 50:82
-    fileName: corner_bottom_right.png_1a870a52.png
-    sprite: {fileID: 21300000, guid: 568ae8e20541c58409f2f4306fcc5fad, type: 3}
-  - id: 50:83
-    fileName: corner_bottom_left.png_1a870a52.png
-    sprite: {fileID: 21300000, guid: 555e3c5ec685a454aa7975692339a7ac, type: 3}
-  - id: 50:84
-    fileName: corner_top_right.png_1a870a52.png
-    sprite: {fileID: 21300000, guid: f365b455676678347af2c6a67728ff4a, type: 3}
-  - id: 50:85
-    fileName: corner_top_left.png_1a870a52.png
-    sprite: {fileID: 21300000, guid: 5c7dae6deb4893c47a458b9b460be867, type: 3}
+  node_sprites: []

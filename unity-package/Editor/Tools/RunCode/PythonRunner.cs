@@ -49,6 +49,7 @@ namespace Unity.Mcp.Tools
             {
                 new MethodKey("action", "Operation type: execute, validate, install_package, create", false),
                 new MethodKey("code", "Python script code content (mutually exclusive with script_path)", true),
+                new MethodKey("description", "Description of the script's functionality", true),
                 new MethodKey("script_path", "Path to existing Python script file to execute or path for creating new script", true),
                 new MethodKey("script_name", "Python script name, default is script.py", true),
                 new MethodKey("python_path", "Path to Python interpreter, default is 'python'", true),

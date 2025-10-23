@@ -51,17 +51,17 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
             default=None,
             examples=['{"link_url":"https://figma.com/...", "picture_url":"Assets/Pics/SimpleUI", "image_scale":1}']
         )] = None,
-        names_data: Annotated[Optional[str], Field(
+        names_data: Annotated[Optional[Dict[str, Any]], Field(
             title="节点重命名数据",
-            description="节点重命名数据，Json格式。支持两种格式：1) 详细格式 {\"node_id\":{\"name\":\"new_name\",\"originName\":\"orig_name\"}} 2) 简单格式 {\"node_id\":\"node_name\"}，用于record_renames操作",
+            description="节点重命名数据，字典格式。支持两种格式：1) 详细格式 {\"node_id\":{\"name\":\"new_name\",\"originName\":\"orig_name\"}} 2) 简单格式 {\"node_id\":\"node_name\"}，用于record_renames操作",
             default=None,
-            examples=['{"1:2":"RootFrame","1:3":"TitleText"}', '{"1:4":{"name":"Image1","originName":"image 1"}}']
+            examples=[{"1:4":{"name":"Image1","originName":"image 1"}}, {"1:5":{"name":"TitleText","originName":"title text"}}]
         )] = None,
-        sprites_data: Annotated[Optional[str], Field(
+        sprites_data: Annotated[Optional[Dict[str, str]], Field(
             title="已下载Sprite数据",
-            description="已下载Sprite数据，Json格式 {\"node_id\":\"file_name\"}，用于record_download_sprites操作",
+            description="已下载Sprite数据，字典格式 {\"node_id\":\"file_name\"}，用于record_download_sprites操作",
             default=None,
-            examples=['{"1:4":"image1.png","1:5":"image2.png"}', '{"1:6":"Assets/Pics/SimpleUI/background.png"}']
+            examples=[{"1:4":"image1.png","1:5":"image2.png"}, {"1:6":"Assets/Pics/SimpleUI/background.png"}]
         )] = None,
         auto_load_sprites: Annotated[Optional[bool], Field(
             title="自动加载Sprite",
@@ -88,16 +88,10 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
            {"action": "record_modify", "name": "SimpleUI", "modify_desc": "调整按钮位置"}
         
         3. 记录节点重命名:
-           {"action": "record_renames", "name": "SimpleUI", "names_data": "{\"1:2\":\"RootFrame\",\"1:3\":\"TitleText\"}"}
-        
+           {"action": "record_renames", "name": "SimpleUI", "names_data": {"1:2":{"name":"RootFrame","originName":"RootFrame"},"1:3":{"name":"TitleText","originName":"TitleText"},"1:4":{"name":"Image1","originName":"image 1"}}}
+
         4. 记录已下载的Sprite信息:
-           {"action": "record_download_sprites", "name": "SimpleUI", "sprites_data": "{\"1:4\":\"image1.png\",\"1:5\":\"image2.png\"}"}
-        
-        注意：
-        - name参数是必需的，用于识别UI规则
-        - 所有Json数据需要以字符串格式传递
-        - record_download_sprites会自动加载sprite资源（auto_load_sprites=true）
-        - 创建规则功能已移至 Window/Mcp/Rules 编辑器窗口
+           {"action": "record_download_sprites", "name": "SimpleUI", "sprites_data": {"1:4":"image1_xxxxxx.png","1:5":"image2_xxxxxx.png","1:6":"image3_xxxxxx.png"}}
         """
         return send_to_unity("ui_rule_manage", {
             "action": action,

@@ -16,14 +16,10 @@ namespace Unity.Mcp.Tools
         /// </summary>
         /// <param name="figmaNode">原始Figma节点数据</param>
         /// <param name="maxDepth">最大深度，默认无限制</param>
-        /// <param name="convertToUGUI">保留参数以兼容，现在始终使用Figma坐标系</param>
-        /// <param name="cleanupRedundantData">保留参数以兼容</param>
-        /// <param name="canvasHeight">保留参数以兼容</param>
-        /// <param name="canvasWidth">保留参数以兼容</param>
         /// <returns>简化后的节点数据（JsonNode格式）</returns>
-        public static JsonNode SimplifyNode(JsonNode figmaNode, int maxDepth = -1, bool convertToUGUI = true, bool cleanupRedundantData = true, float canvasHeight = 720f, float canvasWidth = 1200f)
+        public static JsonNode SimplifyNode(JsonNode figmaNode, int maxDepth = -1)
         {
-            var result = SimplifyNodeInternal(figmaNode, maxDepth, convertToUGUI, cleanupRedundantData, null, null, canvasHeight, canvasWidth);
+            var result = SimplifyNodeInternal(figmaNode, maxDepth, null, null);
 
             // 使用Figma坐标系，不需要坐标转换
             return result;
@@ -32,7 +28,7 @@ namespace Unity.Mcp.Tools
         /// <summary>
         /// 内部简化方法，支持传递父节点信息
         /// </summary>
-        private static JsonNode SimplifyNodeInternal(JsonNode figmaNode, int maxDepth, bool convertToUGUI, bool cleanupRedundantData, JsonNode parentNode, JsonNode parentFigmaNode, float canvasHeight = 720f, float canvasWidth = 1200f)
+        private static JsonNode SimplifyNodeInternal(JsonNode figmaNode, int maxDepth, JsonNode parentNode, JsonNode parentFigmaNode)
         {
             if (figmaNode == null || maxDepth == 0)
                 return null;
@@ -101,7 +97,7 @@ namespace Unity.Mcp.Tools
 
                 foreach (JsonNode child in children.Childs) // 处理所有子节点
                 {
-                    var simplifiedChild = SimplifyNodeInternal(child, nextDepth, convertToUGUI, cleanupRedundantData, simplified, figmaNode, canvasHeight, canvasWidth);
+                    var simplifiedChild = SimplifyNodeInternal(child, nextDepth, simplified, figmaNode);
                     if (simplifiedChild != null)
                     {
                         simplifiedChildren.Add(simplifiedChild);
@@ -369,11 +365,9 @@ namespace Unity.Mcp.Tools
         /// </summary>
         /// <param name="figmaNodes">原始节点数据字典</param>
         /// <param name="maxDepth">最大深度，默认无限制</param>
-        /// <param name="convertToUGUI">是否转换为Unity坐标系，默认true</param>
-        /// <param name="canvasHeight">Canvas高度，用于Unity坐标系转换，默认720</param>
-        /// <param name="canvasWidth">Canvas宽度，用于Unity坐标系转换，默认1200</param>
+        /// <param name="useComponentPfb">是否使用组件预制件，简化数据结构</param>
         /// <returns>简化后的节点数据（JsonNode, 以对象形式返回）</returns>
-        public static JsonNode SimplifyNodes(JsonClass figmaNodes, int maxDepth = -1, bool convertToUGUI = true, float canvasHeight = 720f, float canvasWidth = 1200f)
+        public static JsonNode SimplifyNodes(JsonClass figmaNodes, int maxDepth = -1, bool useComponentPfb = false)
         {
             var result = new JsonClass();
 
@@ -384,7 +378,7 @@ namespace Unity.Mcp.Tools
                 var nodeData = kvp.Value["document"];
                 if (nodeData != null)
                 {
-                    var simplified = SimplifyNode(nodeData, maxDepth, convertToUGUI, true, canvasHeight, canvasWidth);
+                    var simplified = SimplifyNode(nodeData, maxDepth);
                     if (simplified != null)
                     {
                         // 提取并简化 components
@@ -394,12 +388,31 @@ namespace Unity.Mcp.Tools
                             var componentsList = ExtractComponentIds(componentsData);
                             if (componentsList.Count > 0)
                             {
-                                var componentsArray = new JsonArray();
-                                foreach (var componentId in componentsList)
+                                if (useComponentPfb)
                                 {
-                                    componentsArray.Add(componentId);
+                                    // 使用预制件模式：创建ID到预制件路径的字典
+                                    var componentsDict = new JsonClass();
+                                    foreach (var componentId in componentsList)
+                                    {
+                                        // 初始路径为空，后续由外部逻辑填充实际路径
+                                        string prefabPath = Models.ComponentDefineObject.GetPrefabPathById(componentId);
+                                        if (!string.IsNullOrEmpty(prefabPath))
+                                        {
+                                            componentsDict[componentId] = prefabPath;
+                                        }
+                                    }
+                                    simplified["components"] = componentsDict;
                                 }
-                                simplified["components"] = componentsArray;
+                                else
+                                {
+                                    // 传统模式：创建组件ID数组
+                                    var componentsArray = new JsonArray();
+                                    foreach (var componentId in componentsList)
+                                    {
+                                        componentsArray.Add(componentId);
+                                    }
+                                    simplified["components"] = componentsArray;
+                                }
                             }
                         }
 
@@ -408,7 +421,81 @@ namespace Unity.Mcp.Tools
                 }
             }
 
+            // 如果启用了组件预制件模式，进行额外处理
+            if (useComponentPfb)
+            {
+                ProcessNodesForComponentPrefabs(result);
+            }
+
             return result;
+        }
+
+        /// <summary>
+        /// 处理节点数据以支持组件预制件模式
+        /// </summary>
+        /// <param name="nodesData">节点数据</param>
+        private static void ProcessNodesForComponentPrefabs(JsonClass nodesData)
+        {
+            if (nodesData == null) return;
+
+            // 遍历所有节点
+            foreach (KeyValuePair<string, JsonNode> kvp in nodesData.AsEnumerable())
+            {
+                ProcessNodeForComponentPrefabs(kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// 递归处理单个节点以支持组件预制件模式
+        /// </summary>
+        /// <param name="node">节点数据</param>
+        /// <returns>是否为预制件节点</returns>
+        private static bool ProcessNodeForComponentPrefabs(JsonNode node)
+        {
+            if (node == null || node.type != JsonNodeType.Object) return false;
+
+            // 检查节点是否引用了组件
+            bool isComponentInstance = !node["componentId"].IsNull() && !string.IsNullOrEmpty(node["componentId"].Value);
+            string componentId = isComponentInstance ? node["componentId"].Value : null;
+
+            // 检查组件字典中是否有此组件的预制件路径
+            string prefabPath = "";
+            var components = node["components"] as JsonClass;
+            if (isComponentInstance && components != null && !components[componentId].IsNull())
+            {
+                prefabPath = components[componentId].Value;
+            }
+
+            // 如果有预制件路径，清空子节点并添加描述
+            if (isComponentInstance && !string.IsNullOrEmpty(prefabPath))
+            {
+                // 清空子节点
+                if (!node["children"].IsNull())
+                {
+                    node.Remove("children");
+                }
+
+                // 添加描述字段
+                node["desc"] = new JsonData($"使用预制体加载: {prefabPath}");
+
+                return true; // 表示此节点使用预制件
+            }
+
+            // 递归处理子节点
+            var children = node["children"];
+            if (!node["children"].IsNull() && children != null && children.type == JsonNodeType.Array)
+            {
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    if (ProcessNodeForComponentPrefabs(children[i]))
+                    {
+                        // 如果子节点是预制件，可以选择保留或移除
+                        // 这里保留，因为可能需要位置信息
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

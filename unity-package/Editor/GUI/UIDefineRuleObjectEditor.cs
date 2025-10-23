@@ -20,6 +20,7 @@ namespace Unity.Mcp.Gui
         private SerializedProperty pictureUrlProp;
         private SerializedProperty prototypePicProp;
         private SerializedProperty imageScaleProp;
+        private SerializedProperty useExistsComponentsProp;
         private SerializedProperty descriptionsProp;
         private SerializedProperty modifyRecordsProp;
         private SerializedProperty nodeNamesProp;
@@ -37,6 +38,7 @@ namespace Unity.Mcp.Gui
             pictureUrlProp = serializedObject.FindProperty("img_save_to");
             prototypePicProp = serializedObject.FindProperty("prototype_pic");
             imageScaleProp = serializedObject.FindProperty("image_scale");
+            useExistsComponentsProp = serializedObject.FindProperty("use_exists_components");
             descriptionsProp = serializedObject.FindProperty("descriptions");
             modifyRecordsProp = serializedObject.FindProperty("modify_records");
             nodeNamesProp = serializedObject.FindProperty("node_names");
@@ -174,6 +176,7 @@ namespace Unity.Mcp.Gui
             EditorGUILayout.PropertyField(pictureUrlProp, new GUIContent("Img SaveTo"));
             EditorGUILayout.PropertyField(prototypePicProp, new GUIContent("Prototype Pic"));
             EditorGUILayout.PropertyField(imageScaleProp, new GUIContent("Image Scale"));
+            EditorGUILayout.PropertyField(useExistsComponentsProp, new GUIContent("使用已存在组件", "启用后，将尝试查找并使用场景中已存在的同名组件，而不是创建新组件"));
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(descriptionsProp, new GUIContent("Descriptions"));
@@ -461,6 +464,10 @@ namespace Unity.Mcp.Gui
                 hasBasicInfo = true;
             }
 
+            // 显示使用已存在组件的设置
+            basicInfo.AppendLine($"- **使用已存在组件**: {(ruleObject.use_exists_components ? "是" : "否")}");
+            hasBasicInfo = true;
+
             if (hasBasicInfo)
             {
                 basicInfo.AppendLine();
@@ -549,9 +556,7 @@ namespace Unity.Mcp.Gui
             }
 
             // 附加说明 - 只在有实际内容时添加
-            bool hasContent = !string.IsNullOrEmpty(ruleObject.link_url) ||
-                             !string.IsNullOrEmpty(ruleObject.img_save_to) ||
-                             (ruleObject.node_names != null && ruleObject.node_names.Count > 0) ||
+            bool hasContent = (ruleObject.node_names != null && ruleObject.node_names.Count > 0) ||
                              (ruleObject.node_sprites != null && ruleObject.node_sprites.Count > 0);
 
             if (hasContent)
@@ -562,15 +567,11 @@ namespace Unity.Mcp.Gui
                 markdown.AppendLine();
                 if (ruleObject.node_names != null && ruleObject.node_names.Count > 0)
                 {
-                    markdown.AppendLine("1. 使用 **节点名称映射** 来重命名Figma节点到Unity GameObject");
+                    markdown.AppendLine("- 使用 **节点名称映射** 来重命名Figma节点到Unity GameObject");
                 }
                 if (ruleObject.node_sprites != null && ruleObject.node_sprites.Count > 0)
                 {
-                    markdown.AppendLine("2. 使用 **节点Sprite映射** 来关联图片资源");
-                }
-                if (!string.IsNullOrEmpty(ruleObject.img_save_to))
-                {
-                    markdown.AppendLine("3. 图片资源统一保存在 `img_save_to` 指定的路径下");
+                    markdown.AppendLine("- 使用 **节点Sprite映射** 来关联图片资源");
                 }
                 markdown.AppendLine();
             }

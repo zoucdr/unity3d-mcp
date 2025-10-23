@@ -26,6 +26,12 @@ def register_run_code_tools(mcp: FastMCP):
                 "# 创建3D模型\nimport trimesh\nmesh = trimesh.creation.box()"
             ]
         )] = None,
+        description: Annotated[Optional[str], Field(
+            title="功能描述",
+            description="脚本功能的详细描述",
+            default=None,
+            examples=["数据处理脚本", "图像转换工具", "3D模型生成器"]
+        )] = None,
         package_name: Annotated[Optional[str], Field(
             title="包名称",
             description="要安装的Python包名称，仅在install_package操作时使用",
@@ -65,6 +71,7 @@ def register_run_code_tools(mcp: FastMCP):
         return send_to_unity("python_runner", {
             "action": action,
             "code": code,
+            "description": description,
             "package_name": package_name,
             "version": version,
             "timeout": timeout,
@@ -89,6 +96,12 @@ def register_run_code_tools(mcp: FastMCP):
                 "var terrain = GameObject.Find(\"Terrain\").GetComponent<Terrain>();\nterrain.terrainData.SetHeights(0, 0, new float[513, 513]);"
             ]
         )],
+        description: Annotated[Optional[str], Field(
+            title="功能描述",
+            description="代码功能的详细描述",
+            default=None,
+            examples=["场景对象创建", "UI组件管理", "地形编辑工具"]
+        )] = None,
         class_name: Annotated[Optional[str], Field(
             title="类名",
             description="类名，默认为CodeClass",
@@ -164,6 +177,7 @@ def register_run_code_tools(mcp: FastMCP):
         return send_to_unity("code_runner", {
             "action": action,
             "code": code,
+            "description": description,
             "class_name": class_name,
             "entry_method": entry_method,
             "namespace": namespace,

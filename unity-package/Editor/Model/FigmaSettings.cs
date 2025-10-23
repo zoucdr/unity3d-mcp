@@ -107,7 +107,7 @@ namespace Unity.Mcp
         {
             get
             {
-                return GetPromptForUIType(selectedUIType);
+                return GetPromptForUIType(selectedUIType, false);
             }
             set
             {
@@ -137,8 +137,11 @@ namespace Unity.Mcp
         public class EngineSupportEffect
         {
             public bool roundCorner;
+            public string roundCornerPrompt;
             public bool outLineImg;
+            public string outLinePrompt;
             public bool gradientImg;
+            public string gradientPrompt;
         }
 
         /// <summary>
@@ -219,25 +222,60 @@ namespace Unity.Mcp
                 }
             }
         }
-
+        /// <summary>
+        /// 获取当前UI类型的提示词
+        /// </summary>
+        public string GetCurrentPrompt(bool includeEffect = true)
+        {
+            return GetPromptForUIType(selectedUIType, includeEffect);
+        }
         /// <summary>
         /// 获取指定UI类型的提示词
         /// </summary>
-        public string GetPromptForUIType(UIType uiType)
+        public string GetPromptForUIType(UIType uiType, bool includeEffect = true)
         {
             if (_aiPromptDict == null)
             {
                 InitializeAIPrompts();
             }
 
+            string prompt = "";
             if (_aiPromptDict.ContainsKey(uiType))
             {
-                return _aiPromptDict[uiType];
+                prompt = _aiPromptDict[uiType];
+            }
+            else
+            {
+                prompt = GetDefaultPrompt(uiType);
+                _aiPromptDict[uiType] = prompt;
             }
 
-            string defaultPrompt = GetDefaultPrompt(uiType);
-            _aiPromptDict[uiType] = defaultPrompt;
-            return defaultPrompt;
+            // 附加引擎支持效果的说明
+            if (includeEffect && engineSupportEffect != null)
+            {
+                // 添加分隔线
+                prompt += "\n\n## 引擎支持效果\n";
+
+                // 圆角效果
+                if (engineSupportEffect.roundCorner && !string.IsNullOrEmpty(engineSupportEffect.roundCornerPrompt))
+                {
+                    prompt += "\n### 圆角支持\n" + engineSupportEffect.roundCornerPrompt + "\n";
+                }
+
+                // 描边效果
+                if (engineSupportEffect.outLineImg && !string.IsNullOrEmpty(engineSupportEffect.outLinePrompt))
+                {
+                    prompt += "\n### 描边支持\n" + engineSupportEffect.outLinePrompt + "\n";
+                }
+
+                // 渐变效果
+                if (engineSupportEffect.gradientImg && !string.IsNullOrEmpty(engineSupportEffect.gradientPrompt))
+                {
+                    prompt += "\n### 渐变支持\n" + engineSupportEffect.gradientPrompt + "\n";
+                }
+            }
+
+            return prompt;
         }
 
         /// <summary>
@@ -256,9 +294,9 @@ namespace Unity.Mcp
         /// <summary>
         /// 获取默认提示词（向后兼容）
         /// </summary>
-        private static string GetDefaultPrompt()
+        public string GetDefaultPrompt()
         {
-            return GetDefaultPrompt(UIType.UGUI);
+            return GetDefaultPrompt(selectedUIType);
         }
 
         /// <summary>
@@ -294,61 +332,39 @@ namespace Unity.Mcp
             return @"# Figma到Unity UGUI坐标转换规则
 
 ## 坐标系差异
-- Figma坐标系：原点在左上角，Y轴向下为正
-- Unity UGUI坐标系：原点在容器中心，Y轴向上为正
+
+* **Figma坐标系**：原点在左上角，Y轴向下为正
+* **Unity UGUI坐标系**：原点在容器中心，Y轴向上为正
+
+---
 
 ## 精确计算公式
-对于顶层元素（直接在Canvas下）：
-- X坐标: anchored_position_x = figma_x - (canvas_width/2) + (element_width/2)
-- Y坐标: anchored_position_y = (canvas_height/2) - figma_y - (element_height/2)
 
-对于嵌套元素（在父元素内）：
-- X坐标: anchored_position_x = (figma_x - parent_figma_x) - (parent_width/2) + (element_width/2)
-- Y坐标: anchored_position_y = (parent_figma_y - figma_y) + (parent_height/2) - (element_height/2)
+### 顶层元素（直接在Canvas下）
 
-## 尺寸计算
-- 宽度: size_delta_x = element_width
-- 高度: size_delta_y = element_height
+* X坐标：`anchored_position_x = figma_x - (canvas_width/2) + (element_width/2)`
+* Y坐标：`anchored_position_y = (canvas_height/2) - figma_y - (element_height/2)`
+
+### 嵌套元素（在父元素内）
+
+* X坐标：`anchored_position_x = (figma_x - parent_figma_x) - (parent_width/2) + (element_width/2)`
+* Y坐标：`anchored_position_y = (parent_figma_y - figma_y) + (parent_height/2) - (element_height/2)`
+
+### 尺寸计算
+
+* 宽度：`size_delta_x = element_width`
+* 高度：`size_delta_y = element_height`
+
+---
 
 ## 允许UI元素超出边界的设置
 
 ### RectTransform设置
-- 设置RectTransform的anchorMin和anchorMax为[0.5, 0.5]，保持锚点在中心
-- 不启用RectTransform的Clamp选项，确保元素可以超出父容器边界
-- 对于需要超出边界的元素，不使用ContentSizeFitter组件限制大小
 
-### Canvas设置
-- 将Canvas的additionalShaderChannels设置包含""TexCoord1""以支持大尺寸UI
-- 设置Canvas的renderMode为""Screen Space - Overlay""以避免相机裁剪
-- 禁用Canvas的""Pixel Perfect""选项，以允许非整数像素位置
-
-### 布局组件设置
-- 不使用VerticalLayoutGroup或HorizontalLayoutGroup等自动布局组件
-- 不使用GridLayoutGroup限制元素位置
-- 如果使用LayoutGroup，设置childAlignment为MiddleCenter
-- 禁用LayoutGroup的childForceExpandWidth和childForceExpandHeight选项
-
-## 转换要求（必须严格执行）
-
-### 坐标计算规则
-1. 所有RectTransform的锚点必须设置为[0.5, 0.5]
-2. 不启用任何裁剪组件（如Mask或RectMask2D）
-3. 使用精确的数学计算，计算过程中保留至少2位小数精度
-4. 不对超出父容器的元素进行任何位置调整
-5. 如果计算结果与Figma设计有任何差异，必须使用计算结果
-6. 在转换过程中记录每个元素的原始坐标和计算后的坐标
-
-### Canvas配置
-- 禁用Canvas的""Pixel Perfect""选项
-- 设置Canvas.renderMode为""Screen Space - Overlay""
-
-### 输出要求
-对于每个UI元素，提供以下信息：
-- 元素名称和ID
-- Figma原始坐标
-- 计算过程（包含公式和中间值）
-- Unity中的最终anchoredPosition和sizeDelta
-- 是否超出父容器边界的分析";
+* 设置`anchorMin`和`anchorMax`为`[0.5, 0.5]`，保持锚点在中心
+* 不启用RectTransform的Clamp选项
+* 允许超出父容器边界的元素不使用ContentSizeFitter组件
+";
         }
 
         /// <summary>

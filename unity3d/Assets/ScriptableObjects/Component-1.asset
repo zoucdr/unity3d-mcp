@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5e1012b4cffbb64cb70209e789e9b08, type: 3}
+  m_Name: Component-1
+  m_EditorClassIdentifier: 
+  link_url: https://www.figma.com/design/NOthutkClw7kcJbVLfKHC3/Mcp-Mate?node-id=2-549&t=2sUI2IiHYpwjNvSS-4
+  optimize_rule_path: 
+  img_save_to: Assets/Pics/Components/Head
+  prototype_pic: 
+  image_scale: 2
+  use_exists_components: 0
+  descriptions: 
+  modify_records: []
+  node_names:
+  - id: 2:549
+    name: HeadPanel
+    originName: "\u5934\u90E8"
+  - id: I2:549;5799:182
+    name: LogoGroup
+    originName: Group 427320649
+  - id: I2:549;5799:183
+    name: LogoBackground
+    originName: Rectangle 4852
+  - id: I2:549;5799:184
+    name: LogoIcon
+    originName: Mask group
+  - id: I2:549;5812:222
+    name: ButtonGroup
+    originName: Frame 427320932
+  - id: I2:549;5812:216
+    name: ProfileButton
+    originName: Frame 122
+  - id: I2:549;5812:217
+    name: ProfileButtonBg
+    originName: Rectangle 4852
+  - id: I2:549;5812:218
+    name: ProfileIcon
+    originName: Frame
+  - id: I2:549;2859:136
+    name: AddButton
+    originName: Frame 120
+  - id: I2:549;2859:137
+    name: AddButtonBg
+    originName: Rectangle 4852
+  - id: I2:549;2859:138
+    name: AddIcon
+    originName: "\u56FE\u6807/\u589E\u52A0-fill"
+  node_sprites:
+  - id: I2:549;5799:187
+    fileName: Assets/Pics/Components/Head/logo_image_ca6a5ceb.png
+    sprite: {fileID: 21300000, guid: ff67dde14b8fe2f42b7cc27c6f5a657a, type: 3}
+  - id: I2:549;5812:219
+    fileName: Assets/Pics/Components/Head/message_icon_38ec8de4.png
+    sprite: {fileID: 21300000, guid: 8275a98b61ed8164e85fe71bfee3199b, type: 3}
+  - id: I2:549;5812:220
+    fileName: Assets/Pics/Components/Head/message_dot_fe79aaa6.png
+    sprite: {fileID: 21300000, guid: c2bf635e55a4ee045977aecacb10ee91, type: 3}
+  - id: I2:549;2859:138;535:11745
+    fileName: Assets/Pics/Components/Head/add_icon_bdcbec0a.png
+    sprite: {fileID: 21300000, guid: 8dca06dbe07a5504fbf424cf262a8601, type: 3}

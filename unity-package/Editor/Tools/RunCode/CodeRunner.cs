@@ -60,6 +60,7 @@ namespace Unity.Mcp.Tools
             {
                 new MethodKey("action", "Operation type: execute, validate", false),
                 new MethodKey("code", "C# code content to execute", true),
+                new MethodKey("description", "Description of the code's functionality", true),
                 new MethodKey("class_name", "Class name, default is CodeClass", true),
                 new MethodKey("entry_method", "Entry method name to execute, default is Execute", true),
                 new MethodKey("namespace", "Namespace, default is CodeNamespace", true),
@@ -382,14 +383,22 @@ namespace Unity.Mcp.Tools
             // 添加默认引用的命名空间
             var extractedUsings = new List<string>()
             {
-                "UnityEngine",
+                // 自动收录Unity常用的无需额外引包即可直接使用的命名空间
+                "System",
                 "System.Collections",
                 "System.Collections.Generic",
-                "System.Linq",
-                "System",
-                "System.Text",
                 "System.IO",
-                "UnityEngine.UI"
+                "System.Linq",
+                "System.Text",
+                "System.Threading",
+                "System.Threading.Tasks",
+                "UnityEngine",
+                "UnityEngine.SceneManagement",
+                "UnityEngine.EventSystems",
+                "UnityEngine.UI",
+                "UnityEditor",
+                "UnityEditorInternal",
+                "UnityEngine.Rendering",
             };
 
             foreach (var extracted in extractedUsings)

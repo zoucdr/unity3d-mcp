@@ -17,6 +17,7 @@ MonoBehaviour:
   img_save_to: Assets/Pics/MatchRule
   prototype_pic: 
   image_scale: 1
+  use_exists_components: 1
   descriptions: "- \u9700\u8981\u63A7\u4EF6\u4EA4\u4E92\u7EC4\u4EF6\uFF01\n- \u9700\u8981\u8F83\u9AD8\u7684\u8FD8\u539F\u5EA6\uFF01\n-
     \u5E03\u5C40\u9700\u8981\u8BA1\u7B97\u5E76\u9AD8\u5EA6\u8FD8\u539F\uFF01"
   modify_records:

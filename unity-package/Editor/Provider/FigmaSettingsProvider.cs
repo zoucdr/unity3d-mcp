@@ -130,8 +130,18 @@ namespace Unity.Mcp.Gui
 
                 EditorGUILayout.Space(5);
 
+                // 添加UI类型选择
+                EditorGUILayout.LabelField("UI框架类型:", EditorStyles.boldLabel);
+
+                // 使用EnumPopup绘制UI类型选择器
+                settings.figmaSettings.selectedUIType = (UIType)EditorGUILayout.EnumPopup(
+                    "选择UI框架",
+                    settings.figmaSettings.selectedUIType);
+
+                EditorGUILayout.Space(5);
+
                 // 显示多行文本编辑器
-                EditorGUILayout.LabelField("提示词内容:", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(string.Format("提示词内容 ({0}):", settings.figmaSettings.selectedUIType.ToString()), EditorStyles.boldLabel);
 
                 // 创建一个滚动视图来显示多行文本
                 GUIStyle textAreaStyle = new GUIStyle(EditorStyles.textArea)
@@ -140,24 +150,33 @@ namespace Unity.Mcp.Gui
                     richText = false
                 };
 
-                settings.figmaSettings.ai_conversion_prompt = EditorGUILayout.TextArea(
-                    settings.figmaSettings.ai_conversion_prompt,
+                // 根据选择的UI类型显示对应的提示词
+                string currentPrompt = settings.figmaSettings.GetPromptForUIType(settings.figmaSettings.selectedUIType, false);
+                string newPrompt = EditorGUILayout.TextArea(
+                    currentPrompt,
                     textAreaStyle,
                     GUILayout.MinHeight(300),
                     GUILayout.MaxHeight(600));
+
+                // 如果提示词被修改，更新对应UI类型的提示词
+                if (newPrompt != currentPrompt)
+                {
+                    settings.figmaSettings.SetPromptForUIType(settings.figmaSettings.selectedUIType, newPrompt);
+                }
 
                 EditorGUILayout.Space(5);
 
                 // 重置按钮
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("重置为默认值", GUILayout.Width(150)))
+                if (GUILayout.Button(string.Format("重置{0}提示词为默认值", settings.figmaSettings.selectedUIType.ToString()), GUILayout.Width(200)))
                 {
                     if (EditorUtility.DisplayDialog("确认重置",
-                        "确定要将AI提示词重置为默认值吗？当前的自定义内容将丢失。",
+                        string.Format("确定要将{0}的AI提示词重置为默认值吗？\n当前的自定义内容将丢失。", settings.figmaSettings.selectedUIType.ToString()),
                         "确定", "取消"))
                     {
-                        settings.figmaSettings.ai_conversion_prompt = "";
+                        // 重置当前选择的UI类型的提示词为默认值
+                        settings.figmaSettings.SetPromptForUIType(settings.figmaSettings.selectedUIType, settings.figmaSettings.GetDefaultPrompt());
                         GUI.changed = true;
                     }
                 }
@@ -183,17 +202,47 @@ namespace Unity.Mcp.Gui
                 if (settings.figmaSettings.engineSupportEffect == null)
                     settings.figmaSettings.engineSupportEffect = new FigmaSettings.EngineSupportEffect();
 
+                // 圆角支持
+                EditorGUILayout.BeginHorizontal();
                 settings.figmaSettings.engineSupportEffect.roundCorner = EditorGUILayout.Toggle(
                     "圆角支持 (ProceduralUIImage)",
-                    settings.figmaSettings.engineSupportEffect.roundCorner);
+                    settings.figmaSettings.engineSupportEffect.roundCorner,
+                    GUILayout.Width(200));
 
+                if (settings.figmaSettings.engineSupportEffect.roundCorner)
+                {
+                    settings.figmaSettings.engineSupportEffect.roundCornerPrompt = EditorGUILayout.TextField(
+                        settings.figmaSettings.engineSupportEffect.roundCornerPrompt);
+                }
+                EditorGUILayout.EndHorizontal();
+
+                // 描边支持
+                EditorGUILayout.BeginHorizontal();
                 settings.figmaSettings.engineSupportEffect.outLineImg = EditorGUILayout.Toggle(
                     "描边支持 (Outline组件)",
-                    settings.figmaSettings.engineSupportEffect.outLineImg);
+                    settings.figmaSettings.engineSupportEffect.outLineImg,
+                    GUILayout.Width(200));
 
+                if (settings.figmaSettings.engineSupportEffect.outLineImg)
+                {
+                    settings.figmaSettings.engineSupportEffect.outLinePrompt = EditorGUILayout.TextField(
+                        settings.figmaSettings.engineSupportEffect.outLinePrompt);
+                }
+                EditorGUILayout.EndHorizontal();
+
+                // 渐变支持
+                EditorGUILayout.BeginHorizontal();
                 settings.figmaSettings.engineSupportEffect.gradientImg = EditorGUILayout.Toggle(
                     "渐变支持 (UI Gradient)",
-                    settings.figmaSettings.engineSupportEffect.gradientImg);
+                    settings.figmaSettings.engineSupportEffect.gradientImg,
+                    GUILayout.Width(200));
+
+                if (settings.figmaSettings.engineSupportEffect.gradientImg)
+                {
+                    settings.figmaSettings.engineSupportEffect.gradientPrompt = EditorGUILayout.TextField(
+                        settings.figmaSettings.engineSupportEffect.gradientPrompt);
+                }
+                EditorGUILayout.EndHorizontal();
 
                 EditorGUI.indentLevel--;
             }

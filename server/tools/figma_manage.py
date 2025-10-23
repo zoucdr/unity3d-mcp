@@ -22,8 +22,8 @@ def register_figma_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="要执行的Figma操作: fetch_nodes(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)",
-            examples=["fetch_nodes", "download_images", "preview", "get_conversion_rules"]
+            description="要执行的Figma操作: fetch_document(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)",
+            examples=["fetch_document", "download_images", "preview", "get_conversion_rules"]
         )],
         file_key: Annotated[Optional[str], Field(
             title="文件Key",

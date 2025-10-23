@@ -24,7 +24,7 @@ namespace Unity.Mcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型: fetch_nodes(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)", false),
+                new MethodKey("action", "操作类型: fetch_document(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)", false),
                 new MethodKey("file_key", "Figma文件Key", true),
                 new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
                 new MethodKey("node_id", "节点ID：用于智能扫描下载或预览的节点ID", true),
@@ -33,7 +33,8 @@ namespace Unity.Mcp.Tools
                 new MethodKey("image_scale", "图片缩放比例，默认为1", true),
                 new MethodKey("include_children", "是否包含子节点，默认为true", true),
                 new MethodKey("local_json_path", "本地JSON文件路径（可选，用于从FetchNodes保存的JSON文件中读取节点数据）", true),
-                new MethodKey("ui_framework", "UI框架类型: ugui, uitoolkit, all（默认为all，返回所有框架的规则）", true)
+                new MethodKey("ui_framework", "UI框架类型: ugui, uitoolkit, all（默认为all，返回所有框架的规则）", true),
+                new MethodKey("use_component_pfb", "是否使用现成的预制件，获取的数据将简化", true)
             };
         }
 
@@ -46,7 +47,7 @@ namespace Unity.Mcp.Tools
                 .Create()
                 .Key("action")
                     .Leaf("preview", PreviewImage)
-                    .Leaf("fetch_nodes", FetchNodes)
+                    .Leaf("fetch_document", FetchNodes)
                     .Leaf("download_images", DownloadNodeImages)
                     .Leaf("get_conversion_rules", GetConversionRules)
                 .Build();
@@ -66,6 +67,7 @@ namespace Unity.Mcp.Tools
             string nodeId = ctx["node_id"]?.ToString();
             string token = GetFigmaToken();
             bool includeChildren = bool.Parse(ctx["include_children"]?.ToString() ?? "true");
+            bool useComponentPfb = bool.Parse(ctx["use_component_pfb"]?.ToString() ?? "false");
 
             if (string.IsNullOrEmpty(fileKey))
                 return Response.Error("file_key是必需的参数");
@@ -86,7 +88,7 @@ namespace Unity.Mcp.Tools
                     var nodeIdList = new List<string> { nodeId };
                     // 使用同一个协程，通过includeChildren=true来获取完整的子节点树
                     // 为长时间运行的网络请求设置更长的超时时间（120秒）
-                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIdList, token, true, nodeId), 120f);
+                    return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIdList, token, true, nodeId, null, null, useComponentPfb), 120f);
                 }
                 catch (Exception ex)
                 {
@@ -105,7 +107,7 @@ namespace Unity.Mcp.Tools
                 Debug.Log($"[FigmaManage] 启动异步节点数据拉取: {nodeIds.Count}个节点");
                 // 使用ctx.AsyncReturn处理异步操作
                 // 为长时间运行的网络请求设置更长的超时时间（120秒）
-                return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIds, token, includeChildren, null), 120f);
+                return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIds, token, includeChildren, null, null, null, useComponentPfb), 120f);
             }
             catch (Exception ex)
             {
@@ -217,7 +219,7 @@ namespace Unity.Mcp.Tools
                 }
                 else
                 {
-                    result["framework"] = "custom";
+                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetCurrentPrompt();
                     return Response.Success("成功获取 UI 转换规则", result);
                 }
             }
@@ -838,7 +840,7 @@ namespace Unity.Mcp.Tools
                 }
                 else
                 {
-                    Debug.LogError($"下载图片失败 (节点: {nodeId}): {imageRequest.error}");
+                    Debug.LogError($"下载图片失败 (节点: {nodeId}): url:{imageUrl}: {imageRequest.error}");
                 }
 
                 imageRequest.Dispose();
@@ -945,7 +947,7 @@ namespace Unity.Mcp.Tools
             yield return FetchNodesCoroutine(fileKey, nodeIds, token, false, null, (nodes) =>
             {
                 nodeNames = nodes;
-            });
+            }, null, false); // 下载图片时不使用预制件简化
 
             // 然后获取图片链接
             yield return GetImageLinksCoroutine(fileKey, nodeIds, token, imageFormat, imageScale, (links) =>
@@ -1139,7 +1141,8 @@ namespace Unity.Mcp.Tools
         /// <param name="rootNodeIdForScan">根节点ID（用于智能扫描模式）</param>
         /// <param name="nodeNamesCallback">节点名称回调</param>
         /// <param name="fullDataCallback">完整数据回调</param>
-        private IEnumerator FetchNodesCoroutine(string fileKey, List<string> nodeIds, string token, bool includeChildren, string rootNodeIdForScan = null, System.Action<Dictionary<string, string>> nodeNamesCallback = null, System.Action<JsonNode> fullDataCallback = null)
+        /// <param name="useComponentPfb">是否使用现成的预制件，获取的数据将简化</param>
+        private IEnumerator FetchNodesCoroutine(string fileKey, List<string> nodeIds, string token, bool includeChildren, string rootNodeIdForScan = null, System.Action<Dictionary<string, string>> nodeNamesCallback = null, System.Action<JsonNode> fullDataCallback = null, bool useComponentPfb = false)
         {
             string nodeIdsStr = string.Join(",", nodeIds);
             string url = $"{FIGMA_API_BASE}/files/{fileKey}/nodes?ids={nodeIdsStr}&geometry=paths";
@@ -1214,7 +1217,7 @@ namespace Unity.Mcp.Tools
                         var nodesObject = nodes as JsonClass ?? new JsonClass();
 
                         // 简化节点数据
-                        var simplifiedNodes = FigmaDataSimplifier.SimplifyNodes(nodesObject);
+                        var simplifiedNodes = FigmaDataSimplifier.SimplifyNodes(nodesObject, useComponentPfb: useComponentPfb);
                         // 保存原始数据和简化数据
                         string assetsPath = GetFigmaAssetsPath();
                         // 用 nodeIds 拼接并将不能作路径的特殊符号转换为下划线
