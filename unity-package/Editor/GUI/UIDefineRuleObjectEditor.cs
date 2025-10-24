@@ -31,6 +31,26 @@ namespace Unity.Mcp.Gui
         private bool nodeSpritesFoldout = true;
         private bool modifyRecordsFoldout = true;
 
+        //Unity 准备打开某个资源（双击 / 右键 Open）时调用
+        [UnityEditor.Callbacks.OnOpenAsset]
+        static bool OnOpenAsset(int instanceID, int line)
+        {
+            Object obj = EditorUtility.InstanceIDToObject(instanceID);
+
+            if (obj is UIDefineRuleObject ruleObject)
+            {
+                // 通过默认脚本编辑器打开 asset 对应文件
+                // 检查如果是文本文件，调用默认文本编辑器
+                var assetPath = AssetDatabase.GetAssetPath(ruleObject);
+                UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(assetPath, 1);
+                string markdownText = UIDefineRuleObjectEditor.GetUIRuleText(ruleObject);
+                GUIUtility.systemCopyBuffer = markdownText;
+                return true; // 返回 true 表示“阻止 Unity 默认打开逻辑”
+            }
+            // 返回 false 让 Unity 继续正常处理（打开代码文件或其他）
+            return false;
+        }
+
         void OnEnable()
         {
             // 获取序列化属性
@@ -399,7 +419,7 @@ namespace Unity.Mcp.Gui
         /// <summary>
         /// 获取UI规则（公共方法）
         /// </summary>
-        private string GetUIRuleText(UIDefineRuleObject ruleObject)
+        public static string GetUIRuleText(UIDefineRuleObject ruleObject)
         {
             Debug.Log($"[UIDefineRuleObjectEditor] Getting UI rule for '{ruleObject.name}'...");
 

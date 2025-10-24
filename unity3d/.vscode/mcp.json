@@ -4,7 +4,7 @@
 			"command": "uv",
 			"args": [
 				"--directory",
-				"D:/unity-mcp/server",
+				"D:/unity3d-mcp/server",
 				"run",
 				"server.py"
 			],

@@ -411,18 +411,29 @@ namespace Unity.Mcp.Tools
             }
 
             var codeWithoutUsings = new List<string>();
+            // 用于存储代码中的类型别名声明
+            var existingTypeAliases = new List<string>();
 
             foreach (var line in codeLines)
             {
                 var trimmedLine = line.Trim();
                 if (trimmedLine.StartsWith("using ") && trimmedLine.EndsWith(";"))
                 {
-                    // 提取using语句（去掉"using "和";"）
-                    var usingNamespace = trimmedLine.Substring(6, trimmedLine.Length - 7).Trim();
-                    if (!allIncludes.Contains(usingNamespace))
+                    // 检查是否是类型别名声明（如 using Object = UnityEngine.Object;）
+                    if (trimmedLine.Contains("="))
                     {
-                        allIncludes.Add(usingNamespace);
-                        LogInfo($"[CodeRunner] 提取using语句: {usingNamespace}");
+                        existingTypeAliases.Add(trimmedLine);
+                        LogInfo($"[CodeRunner] 保留类型别名声明: {trimmedLine}");
+                    }
+                    else
+                    {
+                        // 提取普通using语句（去掉"using "和";"）
+                        var usingNamespace = trimmedLine.Substring(6, trimmedLine.Length - 7).Trim();
+                        if (!allIncludes.Contains(usingNamespace))
+                        {
+                            allIncludes.Add(usingNamespace);
+                            LogInfo($"[CodeRunner] 提取using语句: {usingNamespace}");
+                        }
                     }
                 }
                 else
@@ -434,7 +445,8 @@ namespace Unity.Mcp.Tools
             // 使用清理后的代码（不包含using语句）
             // 清理多余的空行（但保留代码中的空行结构）
             var codeWithoutUsingsStr = string.Join("\n", codeWithoutUsings);
-            // 分析代码（移除using后的），自动添加需要的命名空间
+
+            // 分析代码（移除using后的），自动添加需要的命名空间和类型别名
             var analyzedIncludes = AnalyzeCodeIncludes(codeWithoutUsingsStr);
             foreach (var analyzed in analyzedIncludes)
             {
@@ -460,6 +472,28 @@ namespace Unity.Mcp.Tools
             foreach (var include in allIncludes)
             {
                 sb.AppendLine($"using {include};");
+            }
+
+            // 检查代码中是否使用了需要特殊处理的类型（如Object, Random等）
+            var typeAliases = GetTypeAliasesForCode(code);
+
+            // 添加现有的类型别名声明
+            foreach (var alias in existingTypeAliases)
+            {
+                sb.AppendLine(alias);
+            }
+
+            // 添加自动检测到的类型别名声明
+            foreach (var alias in typeAliases)
+            {
+                // 检查是否已存在相同的别名声明
+                bool alreadyExists = existingTypeAliases.Any(existing =>
+                    existing.Replace(" ", "").Equals(alias.Replace(" ", ""), StringComparison.OrdinalIgnoreCase));
+
+                if (!alreadyExists)
+                {
+                    sb.AppendLine(alias);
+                }
             }
 
             sb.AppendLine();
@@ -489,8 +523,9 @@ namespace Unity.Mcp.Tools
             {
                 // 顶层语句代码 - 包装在方法中
                 LogInfo("[CodeRunner] 检测到顶层语句，包装为方法");
-
-                sb.AppendLine($"        public static object {methodName}()");
+                var noReturn = !code.ToLower().Contains("return") || code.ToLower().Contains("return;");
+                var returnType = noReturn ? "void" : "object";
+                sb.AppendLine($"        public static {returnType} {methodName}()");
                 sb.AppendLine("        {");
 
                 // 不需要 try-catch，让异常自然传播
@@ -509,7 +544,7 @@ namespace Unity.Mcp.Tools
                 }
 
                 // 如果代码不包含return语句，添加默认返回值
-                if (!code.ToLower().Contains("return"))
+                if (!noReturn)
                 {
                     sb.AppendLine("            return \"Execution completed\";");
                 }
@@ -529,6 +564,43 @@ namespace Unity.Mcp.Tools
             LogInfo($"[CodeRunner] ===== Generated Code End =====");
 
             return generatedCode;
+        }
+
+        /// <summary>
+        /// 获取代码中需要的类型别名声明
+        /// </summary>
+        private List<string> GetTypeAliasesForCode(string code)
+        {
+            var typeAliases = new List<string>();
+
+            // 定义需要特殊处理的类型（在System和UnityEngine中都存在的类型）
+            var ambiguousTypes = new Dictionary<string, (string, string)>
+            {
+                { "Object", ("System", "UnityEngine") },
+                { "Random", ("System", "UnityEngine") },
+                { "Math", ("System", "UnityEngine") },
+                { "Debug", ("System.Diagnostics", "UnityEngine") },
+                { "Exception", ("System", "UnityEngine") },
+                { "Mathf", ("System", "UnityEngine") }
+            };
+
+            foreach (var kvp in ambiguousTypes)
+            {
+                var typeName = kvp.Key;
+                var namespaces = kvp.Value;
+
+                // 检查类型是否在代码中使用（使用正则表达式匹配单词边界）
+                var pattern = $@"\b{System.Text.RegularExpressions.Regex.Escape(typeName)}\b";
+                if (System.Text.RegularExpressions.Regex.IsMatch(code, pattern))
+                {
+                    // 默认使用UnityEngine命名空间
+                    string aliasStatement = $"using {typeName} = {namespaces.Item2}.{typeName};";
+                    typeAliases.Add(aliasStatement);
+                    LogInfo($"[CodeRunner] 添加类型别名: {aliasStatement}");
+                }
+            }
+
+            return typeAliases;
         }
 
         /// <summary>
@@ -1396,6 +1468,7 @@ namespace Unity.Mcp.Tools
         private string[] AnalyzeCodeIncludes(string code)
         {
             var additionalIncludes = new HashSet<string>();
+            var typeAliases = new List<string>();
 
             // 定义类型到命名空间的映射
             var typeToNamespace = new Dictionary<string, string>
@@ -1564,6 +1637,17 @@ namespace Unity.Mcp.Tools
                 { "YieldInstruction", "UnityEngine" },
             };
 
+            // 定义需要特殊处理的类型（在System和UnityEngine中都存在的类型）
+            var ambiguousTypes = new Dictionary<string, (string, string)>
+            {
+                { "Object", ("System", "UnityEngine") },
+                { "Random", ("System", "UnityEngine") },
+                { "Math", ("System", "UnityEngine") },
+                { "Debug", ("System.Diagnostics", "UnityEngine") },
+                { "Exception", ("System", "UnityEngine") },
+                { "Mathf", ("System", "UnityEngine") }
+            };
+
             // 分析代码，查找使用的类型
             foreach (var kvp in typeToNamespace)
             {
@@ -1575,15 +1659,35 @@ namespace Unity.Mcp.Tools
                 if (System.Text.RegularExpressions.Regex.IsMatch(code, pattern))
                 {
                     additionalIncludes.Add(namespaceName);
+
+                    // 检查是否是需要特殊处理的类型
+                    if (ambiguousTypes.TryGetValue(typeName, out var namespaces))
+                    {
+                        // 如果是ambiguousTypes中的类型，添加别名声明
+                        string aliasStatement = $"using {typeName} = {namespaceName}.{typeName};";
+                        typeAliases.Add(aliasStatement);
+                        LogInfo($"[CodeRunner] 添加类型别名: {aliasStatement}");
+
+                        // 同时添加可能冲突的命名空间
+                        if (namespaces.Item1 != namespaceName)
+                            additionalIncludes.Add(namespaces.Item1);
+                    }
                 }
             }
 
+            // 将特殊类型别名添加到结果中
             var result = additionalIncludes.ToArray();
             if (result.Length > 0)
             {
                 LogInfo($"[CodeRunner] 代码分析发现额外需要的命名空间: {string.Join(", ", result)}");
             }
 
+            if (typeAliases.Count > 0)
+            {
+                LogInfo($"[CodeRunner] 添加类型别名: {string.Join(", ", typeAliases)}");
+            }
+
+            // 返回命名空间列表，类型别名会在GenerateFullCode中处理
             return result;
         }
 

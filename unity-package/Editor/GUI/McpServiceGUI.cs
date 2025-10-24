@@ -766,7 +766,7 @@ namespace Unity.Mcp.Gui
                 EditorUtility.DisplayProgressBar("重启MCP服务器", "正在停止服务器...", 0.3f);
 
                 // 停止服务器
-                McpService.Stop();
+                McpService.StopService();
 
                 // 等待一小段时间确保资源释放
                 System.Threading.Thread.Sleep(500);
@@ -774,20 +774,22 @@ namespace Unity.Mcp.Gui
                 EditorUtility.DisplayProgressBar("重启MCP服务器", "正在启动服务器...", 0.7f);
 
                 // 启动服务器
-                McpService.Start();
+                McpService.StartService();
 
                 // 清除进度条
                 EditorUtility.ClearProgressBar();
 
                 // 显示成功提示
-                if (McpService.IsRunning)
+                if (McpService.Instance.IsRunning)
                 {
+                    var activePorts = McpService.GetActivePorts();
+                    string portsStr = activePorts.Count > 0 ? string.Join(", ", activePorts) : "无";
                     EditorUtility.DisplayDialog(
                         "重启成功",
-                        $"MCP服务器已成功重启！\n\n服务端口: {McpService.currentPort}",
+                        $"MCP服务器已成功重启！\n\n激活端口: {portsStr}",
                         "确定"
                     );
-                    Debug.Log($"[McpServiceGUI] MCP服务器已重启，端口: {McpService.currentPort}");
+                    Debug.Log($"[McpServiceGUI] MCP服务器已重启，激活端口: {portsStr}");
                 }
                 else
                 {

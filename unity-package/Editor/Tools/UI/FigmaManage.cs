@@ -599,20 +599,31 @@ namespace Unity.Mcp.Tools
             string mimeType = $"image/{imageFormat.ToLower()}";
             string dataUrl = $"data:{mimeType};base64,{base64String}";
 
-            yield return Response.Success($"图片预览成功: 节点{nodeId}", new
+            var result = new JsonClass
             {
-                node_id = nodeId,
-                image_format = imageFormat,
-                image = dataUrl,  // ✅ 改为 image，Cursor 更容易识别
-                mime_type = mimeType,
-                original_size = new { width = originalWidth, height = originalHeight },
-                compressed_size = new { width = newWidth, height = newHeight },
-                data_size = compressedData.Length,
-                saved_path = savedFilePath,
-                asset_path = assetPath,
-                converted_to_sprite = convertedToSprite,
-                preview_path = previewPath
-            });
+                ["node_id"] = nodeId,
+                ["original_size"] = new JsonClass
+                {
+                    ["width"] = originalWidth,
+                    ["height"] = originalHeight
+                },
+                ["compressed_size"] = new JsonClass
+                {
+                    ["width"] = newWidth,
+                    ["height"] = newHeight
+                },
+                ["data_size"] = compressedData.Length,
+                ["saved_path"] = Path.GetFileName(savedFilePath),
+                ["converted_to_sprite"] = convertedToSprite,
+                ["preview_path"] = previewPath
+            };
+            var resources = new JsonClass
+            {
+                ["type"] = "image",
+                ["path"] = Path.GetFileName(savedFilePath),
+                ["format"] = imageFormat
+            };
+            yield return Response.Success($"图片预览成功: 节点{nodeId}", result, resources);
         }
 
         /// <summary>

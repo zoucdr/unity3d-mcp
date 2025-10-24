@@ -13,54 +13,49 @@ from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context,Image
 from connection import get_unity_connection
 
+# 创建资源对象的辅助函数
+def create_resource_object(resource_dict):
+    """根据资源类型创建对应的资源对象（Image或Audio），如果不是资源类型则返回原始数据"""
+    if not isinstance(resource_dict, dict):
+        return resource_dict
+    
+    resource_type = resource_dict.get("type")
+    
+    if resource_type == "image":
+        return Image(
+            path=resource_dict.get("path", ""),
+            format=resource_dict.get("format", "png")
+        )
+    # elif resource_type == "audio":
+    #     return Audio(
+    #         path=resource_dict.get("path", ""),
+    #         format=resource_dict.get("format", "wav")
+    #     )
+    else:
+        # 不是资源类型，返回原始数据
+        return resource_dict
+
 # 公共资源处理函数
 def process_resources(resources):
-    """处理resources中的image资源，转换为Image对象，支持普通数据和资源的混合列表"""
-    # 如果resources直接是一个image对象（不是字典的字典）
-    if isinstance(resources, dict) and resources.get("type") == "image":
-        # 直接创建Image对象并返回
-        return Image(
-            path=resources.get("path", ""),
-            format=resources.get("format", "png")
-        )
-
-    # 如果resources是数组（多个资源，可能包含普通数据和图片资源）
+    """处理resources中的资源，转换为Image或Audio对象，支持普通数据和资源的混合列表"""
+    # 如果resources直接是一个资源对象
+    if isinstance(resources, dict) and "type" in resources:
+        return create_resource_object(resources)
+    
+    # 如果resources是数组（多个资源，可能包含普通数据和图片/音频资源）
     if isinstance(resources, list):
-        mixed_list = []
-        for resource in resources:
-            if isinstance(resource, dict) and resource.get("type") == "image":
-                # 创建Image对象
-                image = Image(
-                    path=resource.get("path", ""),
-                    format=resource.get("format", "png")
-                )
-                mixed_list.append(image)
-            else:
-                # 保持普通数据不变
-                mixed_list.append(resource)
-        return mixed_list
+        return [create_resource_object(resource) for resource in resources]
     
     # 如果resources是字典的字典（多个资源）
     if isinstance(resources, dict):
-        mixed_dict = []
-        for key, value in resources.items():
-            if isinstance(value, dict) and value.get("type") == "image":
-                # 创建Image对象
-                image = Image(
-                    path=value.get("path", ""),
-                    format=value.get("format", "png"))
-                mixed_dict.append(image)
-            else:
-                # 保持普通数据不变
-                mixed_dict.append(value)
-        return mixed_dict
+        return [create_resource_object(value) for value in resources.values()]
     
     # 如果不匹配任何格式，直接返回原始resources
     return resources
 
 # 资源类型处理
 def decord_result(result):
-    """解码Unity返回的结果，处理Image资源"""
+    """解码Unity返回的结果，处理Image和Audio资源"""
     # 处理单个结果中的resources
     if isinstance(result, dict) and "resources" in result:
         processed_resources = process_resources(result["resources"])
@@ -176,7 +171,6 @@ def register_call_tools(mcp: FastMCP):
         args: Annotated[Dict[str, Any], Field(
             title="函数参数",
             description="传递给Unity函数的参数字典。参数格式必须严格按照目标函数的定义，所有参数都通过此args字典传递",
-            default_factory=dict,
             examples=[
                 {"source": "primitive", "name": "Cube", "primitive_type": "Cube"},
                 {"path": "Player", "action": "add_component", "component_type": "Rigidbody"},

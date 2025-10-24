@@ -2,15 +2,25 @@
 Unity材质编辑工具，包含材质的创建、修改和管理功能。
 
 支持的功能：
-- 创建材质：create
-- 设置属性：set_properties
-- 复制材质：duplicate
-- 获取信息：get_info
-- 搜索材质：search
-- 复制属性：copy_properties
-- 更改着色器：change_shader
-- 启用关键字：enable_keyword
-- 禁用关键字：disable_keyword
+- 创建材质：create - 从零开始创建新材质
+- 设置属性：set_properties - 修改材质的各种属性参数
+- 复制材质：duplicate - 复制已有材质创建新材质
+- 获取信息：get_info - 获取材质详细信息
+- 搜索材质：search - 搜索项目中的材质资源
+- 复制属性：copy_properties - 在不同材质间复制属性
+- 更改着色器：change_shader - 更改材质的着色器
+- 启用关键字：enable_keyword - 启用着色器关键字
+- 禁用关键字：disable_keyword - 禁用着色器关键字
+
+示例用法：
+1. 创建红色材质：
+   {"action": "create", "path": "Assets/Materials/RedMaterial.mat", "shader_name": "Standard", "properties": {"_Color": [1, 0, 0, 1]}}
+
+2. 设置材质属性：
+   {"action": "set_properties", "path": "Assets/Materials/MyMaterial.mat", "properties": {"_Metallic": 0.8, "_Smoothness": 0.5}}
+
+3. 复制材质：
+   {"action": "duplicate", "path": "Assets/Materials/SourceMaterial.mat", "destination": "Assets/Materials/NewMaterial.mat"}
 """
 from typing import Annotated, Dict, Any, Optional
 from pydantic import Field
@@ -27,7 +37,7 @@ def register_edit_material_tools(mcp: FastMCP):
             description="要执行的材质操作: create(创建), set_properties(设置属性), duplicate(复制), get_info(获取信息), search(搜索), copy_properties(复制属性), change_shader(更改着色器), enable_keyword(启用关键字), disable_keyword(禁用关键字)",
             examples=["create", "set_properties", "duplicate", "get_info", "search", "copy_properties", "change_shader", "enable_keyword", "disable_keyword"]
         )],
-        material_path: Annotated[str, Field(
+        path: Annotated[str, Field(
             title="材质路径",
             description="材质资源路径，Unity标准格式：Assets/Materials/MaterialName.mat",
             examples=["Assets/Materials/PlayerMaterial.mat", "Materials/Ground.mat"]
@@ -128,7 +138,7 @@ def register_edit_material_tools(mcp: FastMCP):
         """
         return send_to_unity("edit_material", {
             "action": action,
-            "path": material_path,
+            "path": path,
             "shader_name": shader_name,
             "properties": properties,
             "source_path": source_path,
