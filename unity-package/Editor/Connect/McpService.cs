@@ -153,7 +153,7 @@ namespace Unity.Mcp
                     lastException = ex;
                     if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     {
-                        Log($"[Unity.Mcp] 端口 {port} 已被占用，尝试下一个端口...");
+                        LogError($"[Unity.Mcp] 端口 {port} 已被占用，尝试下一个端口...");
                     }
                     else
                     {

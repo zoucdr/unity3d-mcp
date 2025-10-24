@@ -16,7 +16,7 @@ namespace Unity.Mcp.Models
         /// <param name="message">A message describing the successful operation.</param>
         /// <param name="data">Optional additional data to include in the response.</param>
         /// <returns>A JsonClass representing the success response.</returns>
-        public static JsonClass Success(string message, JsonNode data)
+        public static JsonClass Success(string message, JsonNode data, JsonNode resources = null)
         {
             var response = new JsonClass();
             response.Add("success", new JsonData(true));
@@ -25,6 +25,11 @@ namespace Unity.Mcp.Models
             if (data != null)
             {
                 response.Add("data", data);
+            }
+
+            if (resources != null)
+            {
+                response.Add("resources", resources);
             }
 
             return response;
