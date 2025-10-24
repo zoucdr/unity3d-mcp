@@ -13,7 +13,7 @@ from typing import Annotated, Dict, Any, Optional, List, Union
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
 from .call_up import send_to_unity
-
+from mcp.server.fastmcp import FastMCP
 
 def register_scene_view_tools(mcp: FastMCP):
     @mcp.tool("scene_view")
@@ -28,7 +28,6 @@ def register_scene_view_tools(mcp: FastMCP):
             title="保存路径",
             description="截图保存的文件路径，仅在action为screenshot时有效",
             default=None,
-            examples=["Assets/Screenshots/scene_view.jpg", "Screenshots/scene_capture.png"]
         )] = None,
         pivot_position: Annotated[Optional[List[float]], Field(
             title="Pivot位置",
@@ -54,7 +53,7 @@ def register_scene_view_tools(mcp: FastMCP):
             default=None,
             examples=["top", "front", "right"]
         )] = None
-    ) -> Dict[str, Any]:
+    ) :
         """Unity Scene窗口管理工具，用于控制Scene视图的显示和操作。
 
         支持多种Scene窗口管理功能，适用于：
@@ -93,6 +92,7 @@ def register_scene_view_tools(mcp: FastMCP):
         9. 将Scene视图聚焦到选中对象：
            {"action": "frame_selected"}
         """
+        # Image(path=file_path, format="png")
         return send_to_unity("scene_view", {
             "action": action,
             "save_path": save_path,

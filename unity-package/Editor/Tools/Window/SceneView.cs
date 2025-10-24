@@ -157,15 +157,21 @@ namespace Unity.Mcp.Tools
                 {
                     return Response.Error(result.error);
                 }
-
-                return Response.Success("SceneView screenshot saved successfully", new
+                var data = new JsonClass
                 {
-                    path = result.path,
-                    width = result.width,
-                    height = result.height,
-                    format = result.format,
-                    size_bytes = result.size
-                });
+                    { "path", result.path },
+                    { "width", result.width },
+                    { "height", result.height },
+                    { "format", result.format },
+                    { "size_bytes", result.size }
+                };
+                var resources = new JsonClass
+                {
+                    { "type", "image" },
+                    { "path", result.path },
+                    { "format", result.format }
+                };
+                return Response.Success("SceneView screenshot saved successfully", data, resources);
             }
             catch (Exception e)
             {

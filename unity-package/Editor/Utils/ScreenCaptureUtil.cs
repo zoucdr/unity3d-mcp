@@ -105,7 +105,7 @@ namespace Unity.Mcp.Utils
                 var result = new CaptureResult
                 {
                     success = true,
-                    path = savePath,
+                    path = Path.GetFullPath(savePath),
                     width = texture.width,
                     height = texture.height,
                     format = "JPG",
@@ -190,7 +190,7 @@ namespace Unity.Mcp.Utils
                 var result = new CaptureResult
                 {
                     success = true,
-                    path = savePath,
+                    path = Path.GetFullPath(savePath),
                     width = width,
                     height = height,
                     format = "JPG",
@@ -263,7 +263,7 @@ namespace Unity.Mcp.Utils
                 var result = new CaptureResult
                 {
                     success = true,
-                    path = savePath,
+                    path = Path.GetFullPath(savePath),
                     width = width,
                     height = height,
                     format = "JPG",

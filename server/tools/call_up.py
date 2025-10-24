@@ -10,8 +10,95 @@ Unity MCP 核心调用工具，包含单个和批量Unity函数调用功能。
 import json
 from typing import Annotated, List, Dict, Any, Literal
 from pydantic import Field
-from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.fastmcp import FastMCP, Context,Image
 from connection import get_unity_connection
+
+# 公共资源处理函数
+def process_resources(resources):
+    """处理resources中的image资源，转换为Image对象，支持普通数据和资源的混合列表"""
+    # 如果resources直接是一个image对象（不是字典的字典）
+    if isinstance(resources, dict) and resources.get("type") == "image":
+        # 直接创建Image对象并返回
+        return Image(
+            path=resources.get("path", ""),
+            format=resources.get("format", "png")
+        )
+
+    # 如果resources是数组（多个资源，可能包含普通数据和图片资源）
+    if isinstance(resources, list):
+        mixed_list = []
+        for resource in resources:
+            if isinstance(resource, dict) and resource.get("type") == "image":
+                # 创建Image对象
+                image = Image(
+                    path=resource.get("path", ""),
+                    format=resource.get("format", "png")
+                )
+                mixed_list.append(image)
+            else:
+                # 保持普通数据不变
+                mixed_list.append(resource)
+        return mixed_list
+    
+    # 如果resources是字典的字典（多个资源）
+    if isinstance(resources, dict):
+        mixed_dict = []
+        for key, value in resources.items():
+            if isinstance(value, dict) and value.get("type") == "image":
+                # 创建Image对象
+                image = Image(
+                    path=value.get("path", ""),
+                    format=value.get("format", "png"))
+                mixed_dict.append(image)
+            else:
+                # 保持普通数据不变
+                mixed_dict.append(value)
+        return mixed_dict
+    
+    # 如果不匹配任何格式，直接返回原始resources
+    return resources
+
+# 资源类型处理
+def decord_result(result):
+    """解码Unity返回的结果，处理Image资源"""
+    # 处理单个结果中的resources
+    if isinstance(result, dict) and "resources" in result:
+        processed_resources = process_resources(result["resources"])
+        del result["resources"]
+        final_result = []
+        final_result.append(result)
+        if  isinstance(processed_resources, list):
+            final_result.extend(processed_resources)
+        else:
+            final_result.append(processed_resources)
+            pass
+        return final_result
+    return result
+# 批量处理结果
+def decord_batch_result(result):
+    """处理批量结果中的resources"""
+    # 处理批处理结果中的resources（results数组）
+    if isinstance(result, dict) and "results" in result and isinstance(result["results"], list):
+        new_result = []
+        for sub_result in result["results"]:
+            if isinstance(sub_result, dict) and "resources" in sub_result:
+                # 处理resources
+                processed_resources = process_resources(sub_result["resources"])
+                # 删除resources字段
+                del sub_result["resources"]
+                # 然后将处理后的资源附加到列表
+                if isinstance(processed_resources, list):
+                    new_result.extend(processed_resources)
+                else:
+                    new_result.append(processed_resources)
+
+        # 收集到资源,返回新格式
+        if len(new_result) > 0:
+            new_result.insert(0, result)
+            return new_result
+    
+    # 如果没有匹配到资源，直接返回原始结果
+    return result
 
 # 发送命令到Unity
 def send_to_unity(func,args):
@@ -50,7 +137,7 @@ def send_to_unity(func,args):
             
             # 确保返回结果包含success标志
             if isinstance(result, dict):
-                return result
+                return decord_result(result)
             else:
                 return {
                     "success": True,
@@ -96,7 +183,7 @@ def register_call_tools(mcp: FastMCP):
                 {"action": "play"}
             ]
         )] = {}
-    ) -> Dict[str, Any]:
+    ):
         """单个函数调用工具，用于调用所有Unity MCP函数。（基础工具）
         
         - func参数指定要调用的函数名，args参数传递该函数所需的所有参数
@@ -148,7 +235,7 @@ def register_call_tools(mcp: FastMCP):
             
             # 确保返回结果包含success标志
             if isinstance(result, dict):
-                return result
+                return decord_result(result)
             else:
                 return {
                     "success": True,
@@ -195,7 +282,7 @@ def register_call_tools(mcp: FastMCP):
                 ]
             ]
         )]
-    ) -> Dict[str, Any]:
+    ):
         """批量函数调用工具，可以按顺序调用Unity中的多个MCP函数并收集所有返回值。（基础工具）
         
         - 每个函数调用元素必须包含func（函数名）和args（参数字典）字段
@@ -283,7 +370,7 @@ def register_call_tools(mcp: FastMCP):
             
             # Unity的functions_call处理器返回的结果已经是完整的格式，直接返回data部分
             if isinstance(result, dict) and "data" in result:
-                return result["data"]
+                return decord_batch_result(result["data"])
             else:
                 # 如果返回格式不符合预期，包装成标准格式
                 return {

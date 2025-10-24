@@ -817,15 +817,22 @@ namespace Unity.Mcp.Tools
                     return Response.Error(result.error);
                 }
 
-                return Response.Success("GameView screenshot saved successfully", new
+                var data = new JsonClass
                 {
-                    path = result.path,
-                    width = result.width,
-                    height = result.height,
-                    format = result.format,
-                    size_bytes = result.size,
-                    is_playing = EditorApplication.isPlaying
-                });
+                    { "path", result.path },
+                    { "width", result.width },
+                    { "height", result.height },
+                    { "format", result.format },
+                    { "size_bytes", result.size }
+                };
+                var resources = new JsonClass
+                {
+                    { "type", "image" },
+                    { "path", result.path },
+                    { "format", result.format }
+                };
+
+                return Response.Success("GameView screenshot saved successfully", data, resources);
             }
             catch (Exception e)
             {

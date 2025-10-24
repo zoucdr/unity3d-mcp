@@ -1,3 +1,4 @@
+# https://mcp.fleeto.us/sdk/python/
 from mcp.server.fastmcp import FastMCP, Context, Image
 import logging
 from dataclasses import dataclass
@@ -61,6 +62,10 @@ mcp = FastMCP(
 register_all_tools(mcp)
 
 # Asset Creation Strategy
+@mcp.prompt()
+def review_code(code: str) -> str:
+    return f"请审查这段代码：\n\n{code}"
+
 
 # @mcp.prompt()
 def function_args_strategy() -> str:

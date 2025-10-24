@@ -20,8 +20,8 @@ def register_game_view_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="要执行的Game窗口操作: set_resolution(设置分辨率), get_resolution(获取分辨率), get_stats(获取统计信息), set_vsync(设置垂直同步), set_target_framerate(设置目标帧率), maximize(最大化窗口), set_aspect_ratio(设置宽高比)",
-            examples=["set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio"]
+            description="要执行的Game窗口操作: set_resolution(设置分辨率), get_resolution(获取分辨率), get_stats(获取统计信息), set_vsync(设置垂直同步), set_target_framerate(设置目标帧率), maximize(最大化窗口), set_aspect_ratio(设置宽高比), screenshot(截图)",
+            examples=["set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio", "screenshot"]
         )],
         width: Annotated[Optional[int], Field(
             title="窗口宽度",
@@ -52,6 +52,11 @@ def register_game_view_tools(mcp: FastMCP):
             description="宽高比设置，如'16:9', '4:3', 'Free'等，用于set_aspect_ratio操作",
             default=None,
             examples=["16:9", "16:10", "4:3", "Free", "21:9"]
+        )] = None,
+        save_path: Annotated[Optional[str], Field(
+            title="保存路径",
+            description="截图保存的文件路径，仅在action为screenshot时有效",
+            default=None,
         )] = None
     ) -> Dict[str, Any]:
         """Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。
@@ -96,6 +101,9 @@ def register_game_view_tools(mcp: FastMCP):
         
         9. 设置16:9宽高比：
            {"action": "set_aspect_ratio", "aspect_ratio": "16:9"}
+        
+        10. 获取Game窗口截图：
+           {"action": "screenshot", "save_path": "Assets/Screenshots/game_view.jpg"}
         """
         return send_to_unity("game_view", {
             "action": action,
@@ -103,6 +111,7 @@ def register_game_view_tools(mcp: FastMCP):
             "height": height,
             "vsync_count": vsync_count,
             "target_framerate": target_framerate,
-            "aspect_ratio": aspect_ratio
+            "aspect_ratio": aspect_ratio,
+            "save_path": save_path
         })
 
