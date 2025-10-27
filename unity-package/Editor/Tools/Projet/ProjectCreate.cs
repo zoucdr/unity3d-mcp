@@ -64,7 +64,7 @@ namespace Unity.Mcp.Tools
                 yield break;
             }
 
-            LogInfo($"[ProjectCreate] Creating asset from menu: '{menuPath}'");
+            McpLogger.Log($"[ProjectCreate] Creating asset from menu: '{menuPath}'");
 
             if (!menuPath.StartsWith("Assets"))
             {
@@ -82,7 +82,7 @@ namespace Unity.Mcp.Tools
             // 确保目标文件夹存在
             if (!AssetDatabase.IsValidFolder(folderPath))
             {
-                LogInfo($"[ProjectCreate] Creating folder path: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Creating folder path: {folderPath}");
                 CreateFolderRecursive(folderPath);
             }
 
@@ -94,11 +94,11 @@ namespace Unity.Mcp.Tools
             if (folder != null)
             {
                 Selection.activeObject = folder;
-                LogInfo($"[ProjectCreate] Selected folder: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Selected folder: {folderPath}");
             }
             else
             {
-                LogInfo($"[ProjectCreate] Failed to select folder: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Failed to select folder: {folderPath}");
             }
 
             // 执行菜单项
@@ -107,7 +107,7 @@ namespace Unity.Mcp.Tools
             // 检查菜单执行结果
             if (!menuResult["success"].AsBoolDefault(false))
             {
-                LogInfo($"[ProjectCreate] Menu execution failed: {menuResult}");
+                McpLogger.Log($"[ProjectCreate] Menu execution failed: {menuResult}");
                 yield return menuResult;
                 yield break;
             }
@@ -128,7 +128,7 @@ namespace Unity.Mcp.Tools
                     if (obj != null && !previousSelection.Contains(obj))
                     {
                         newAsset = obj;
-                        LogInfo($"[ProjectCreate] Found newly created asset: '{AssetDatabase.GetAssetPath(newAsset)}'");
+                        McpLogger.Log($"[ProjectCreate] Found newly created asset: '{AssetDatabase.GetAssetPath(newAsset)}'");
                         break;
                     }
                 }
@@ -160,7 +160,7 @@ namespace Unity.Mcp.Tools
                     string newPath = Path.Combine(Path.GetDirectoryName(assetPath), fileName + extension);
                     newPath = newPath.Replace('\\', '/');
 
-                    LogInfo($"[ProjectCreate] Renaming asset from '{assetPath}' to '{newPath}'");
+                    McpLogger.Log($"[ProjectCreate] Renaming asset from '{assetPath}' to '{newPath}'");
                     AssetDatabase.MoveAsset(assetPath, newPath);
                     assetPath = newPath;
                     newAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
@@ -233,7 +233,7 @@ namespace Unity.Mcp.Tools
             // 确保目标文件夹存在
             if (!AssetDatabase.IsValidFolder(folderPath))
             {
-                LogInfo($"[ProjectCreate] Creating folder path: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Creating folder path: {folderPath}");
                 CreateFolderRecursive(folderPath);
             }
 
@@ -252,7 +252,7 @@ namespace Unity.Mcp.Tools
                 File.WriteAllText(filePath, content);
                 AssetDatabase.Refresh();
 
-                LogInfo($"[ProjectCreate] Created empty file: '{filePath}'");
+                McpLogger.Log($"[ProjectCreate] Created empty file: '{filePath}'");
 
                 // 获取创建的资源
                 UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(filePath);
@@ -316,7 +316,7 @@ namespace Unity.Mcp.Tools
             // 确保目标文件夹存在
             if (!AssetDatabase.IsValidFolder(folderPath))
             {
-                LogInfo($"[ProjectCreate] Creating folder path: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Creating folder path: {folderPath}");
                 CreateFolderRecursive(folderPath);
             }
 
@@ -352,7 +352,7 @@ namespace Unity.Mcp.Tools
 
                 AssetDatabase.Refresh();
 
-                LogInfo($"[ProjectCreate] Created file from template: '{filePath}'");
+                McpLogger.Log($"[ProjectCreate] Created file from template: '{filePath}'");
 
                 // 获取创建的资源
                 UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(filePath);
@@ -412,7 +412,7 @@ namespace Unity.Mcp.Tools
             // 确保目标文件夹存在
             if (!AssetDatabase.IsValidFolder(folderPath))
             {
-                LogInfo($"[ProjectCreate] Creating folder path: {folderPath}");
+                McpLogger.Log($"[ProjectCreate] Creating folder path: {folderPath}");
                 CreateFolderRecursive(folderPath);
             }
 
@@ -445,7 +445,7 @@ namespace Unity.Mcp.Tools
 
                 AssetDatabase.Refresh();
 
-                LogInfo($"[ProjectCreate] Created file from copy: '{filePath}'");
+                McpLogger.Log($"[ProjectCreate] Created file from copy: '{filePath}'");
 
                 // 获取创建的资源
                 UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(filePath);
@@ -503,11 +503,11 @@ namespace Unity.Mcp.Tools
                     string guid = AssetDatabase.CreateFolder(parentPath, folderName);
                     if (string.IsNullOrEmpty(guid))
                     {
-                        LogInfo($"[ProjectCreate] Failed to create folder: {currentPath}");
+                        McpLogger.Log($"[ProjectCreate] Failed to create folder: {currentPath}");
                     }
                     else
                     {
-                        LogInfo($"[ProjectCreate] Created folder: {currentPath}");
+                        McpLogger.Log($"[ProjectCreate] Created folder: {currentPath}");
                     }
                 }
             }

@@ -60,7 +60,7 @@ namespace Unity.Mcp.Tools
 
                 string formattedMessage = FormatMessage(message, tag, "ERROR");
 
-                LogInfo($"[ConsoleWrite] Writing error log: {formattedMessage}");
+                McpLogger.Log($"[ConsoleWrite] Writing error log: {formattedMessage}");
 
                 if (context != null)
                 {
@@ -93,7 +93,7 @@ namespace Unity.Mcp.Tools
 
                 string formattedMessage = FormatMessage(message, tag, "WARNING");
 
-                LogInfo($"[ConsoleWrite] Writing warning log: {formattedMessage}");
+                McpLogger.Log($"[ConsoleWrite] Writing warning log: {formattedMessage}");
 
                 if (context != null)
                 {
@@ -126,7 +126,7 @@ namespace Unity.Mcp.Tools
 
                 string formattedMessage = FormatMessage(message, tag, "LOG");
 
-                LogInfo($"[ConsoleWrite] Writing log: {formattedMessage}");
+                McpLogger.Log($"[ConsoleWrite] Writing log: {formattedMessage}");
 
                 if (context != null)
                 {
@@ -160,7 +160,7 @@ namespace Unity.Mcp.Tools
 
                 string formattedMessage = FormatAssertMessage(message, tag, condition);
 
-                LogInfo($"[ConsoleWrite] Writing assert log: {formattedMessage}");
+                McpLogger.Log($"[ConsoleWrite] Writing assert log: {formattedMessage}");
 
                 if (context != null)
                 {
@@ -193,7 +193,7 @@ namespace Unity.Mcp.Tools
 
                 string formattedMessage = FormatMessage(message, tag, "EXCEPTION");
 
-                LogInfo($"[ConsoleWrite] Writing exception log: {formattedMessage}");
+                McpLogger.Log($"[ConsoleWrite] Writing exception log: {formattedMessage}");
 
                 // 创建一个简单的异常对象用于日志
                 var exception = new System.Exception(formattedMessage);
@@ -284,12 +284,12 @@ namespace Unity.Mcp.Tools
                     return asset;
                 }
 
-                LogInfo($"[ConsoleWrite] Context object '{contextName}' not found, using null context");
+                McpLogger.Log($"[ConsoleWrite] Context object '{contextName}' not found, using null context");
                 return null;
             }
             catch (Exception e)
             {
-                LogInfo($"[ConsoleWrite] Failed to find context object '{contextName}': {e.Message}");
+                McpLogger.Log($"[ConsoleWrite] Failed to find context object '{contextName}': {e.Message}");
                 return null;
             }
         }

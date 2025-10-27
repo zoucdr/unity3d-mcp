@@ -48,7 +48,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateShader(JsonClass args)
         {
-            LogInfo("[ManageShader] Creating shader");
+            McpLogger.Log("[ManageShader] Creating shader");
             var validationResult = ValidateParameters(args);
             if (!validationResult.IsValid)
             {
@@ -88,7 +88,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleReadShader(JsonClass args)
         {
-            LogInfo("[ManageShader] Reading shader");
+            McpLogger.Log("[ManageShader] Reading shader");
             var validationResult = ValidateParameters(args);
             if (!validationResult.IsValid)
             {
@@ -133,7 +133,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleUpdateShader(JsonClass args)
         {
-            LogInfo("[ManageShader] Updating shader");
+            McpLogger.Log("[ManageShader] Updating shader");
             var validationResult = ValidateParameters(args);
             if (!validationResult.IsValid)
             {
@@ -163,7 +163,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleDeleteShader(JsonClass args)
         {
-            LogInfo("[ManageShader] Deleting shader");
+            McpLogger.Log("[ManageShader] Deleting shader");
             var validationResult = ValidateParameters(args);
             if (!validationResult.IsValid)
             {

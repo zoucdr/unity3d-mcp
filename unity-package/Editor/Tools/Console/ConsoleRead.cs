@@ -144,7 +144,7 @@ namespace Unity.Mcp.Tools
             // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
             {
-                if (McpService.EnableLog) Debug.LogError(
+                McpLogger.LogError(
                     "[ReadConsole] GetConsoleEntriesInternal called but ConsoleController reflection members are not initialized."
                 );
                 return Response.Error(
@@ -158,7 +158,7 @@ namespace Unity.Mcp.Tools
                 var types = ExtractTypes(args);
                 string format = ExtractFormat(args);
 
-                LogInfo($"[ReadConsole] Getting {description}");
+                McpLogger.Log($"[ReadConsole] Getting {description}");
 
                 // 使用 ConsoleController 获取控制台条目
                 var entries = ConsoleUtils.GetConsoleEntries(types, count, filterText, format, includeStacktrace);
@@ -169,7 +169,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ReadConsole] GetConsoleEntriesInternal failed: {e}");
+                McpLogger.LogError($"[ReadConsole] GetConsoleEntriesInternal failed: {e}");
                 return Response.Error($"Internal error processing console entries: {e.Message}");
             }
         }
@@ -182,7 +182,7 @@ namespace Unity.Mcp.Tools
             // 检查 ConsoleController 是否已正确初始化
             if (!ConsoleUtils.AreReflectionMembersInitialized())
             {
-                if (McpService.EnableLog) Debug.LogError(
+                McpLogger.LogError(
                     "[ReadConsole] HandleClearAction called but ConsoleController reflection members are not initialized."
                 );
                 return Response.Error(
@@ -192,13 +192,13 @@ namespace Unity.Mcp.Tools
 
             try
             {
-                LogInfo("[ReadConsole] Clearing console logs");
+                McpLogger.Log("[ReadConsole] Clearing console logs");
                 ConsoleUtils.ClearConsole();
                 return Response.Success("Console cleared successfully.");
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ReadConsole] Clear action failed: {e}");
+                McpLogger.LogError($"[ReadConsole] Clear action failed: {e}");
                 return Response.Error($"Internal error processing clear action: {e.Message}");
             }
         }

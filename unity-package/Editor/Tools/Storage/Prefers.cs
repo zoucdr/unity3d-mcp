@@ -118,12 +118,12 @@ namespace Unity.Mcp.Tools.Storage
                     PlayerPrefs.Save();
                 }
 
-                LogInfo($"[Prefers] Set {prefType}Prefs: {key} = {value} ({valueType})");
+                McpLogger.Log($"[Prefers] Set {prefType}Prefs: {key} = {value} ({valueType})");
                 return Response.Success($"Successfully set {prefType}Prefs key '{key}' to '{value}'.");
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error setting preference: {e.Message}");
+                McpLogger.Log($"[Prefers] Error setting preference: {e.Message}");
                 return Response.Error($"Error setting preference: {e.Message}");
             }
         }
@@ -174,12 +174,12 @@ namespace Unity.Mcp.Tools.Storage
                         break;
                 }
 
-                LogInfo($"[Prefers] Get {prefType}Prefs: {key} = {result}");
+                McpLogger.Log($"[Prefers] Get {prefType}Prefs: {key} = {result}");
                 return Response.Success($"Retrieved {prefType}Prefs key '{key}'.", new { key, value = result, type = valueType });
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error getting preference: {e.Message}");
+                McpLogger.Log($"[Prefers] Error getting preference: {e.Message}");
                 return Response.Error($"Error getting preference: {e.Message}");
             }
         }
@@ -209,12 +209,12 @@ namespace Unity.Mcp.Tools.Storage
                     PlayerPrefs.Save();
                 }
 
-                LogInfo($"[Prefers] Deleted {prefType}Prefs key: {key}");
+                McpLogger.Log($"[Prefers] Deleted {prefType}Prefs key: {key}");
                 return Response.Success($"Successfully deleted {prefType}Prefs key '{key}'.");
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error deleting preference: {e.Message}");
+                McpLogger.Log($"[Prefers] Error deleting preference: {e.Message}");
                 return Response.Error($"Error deleting preference: {e.Message}");
             }
         }
@@ -235,12 +235,12 @@ namespace Unity.Mcp.Tools.Storage
                 bool isEditor = prefType.Equals("editor", StringComparison.OrdinalIgnoreCase);
                 bool hasKey = isEditor ? EditorPrefs.HasKey(key) : PlayerPrefs.HasKey(key);
 
-                LogInfo($"[Prefers] Check {prefType}Prefs has key: {key} = {hasKey}");
+                McpLogger.Log($"[Prefers] Check {prefType}Prefs has key: {key} = {hasKey}");
                 return Response.Success($"Key '{key}' exists: {hasKey}", new { key, exists = hasKey });
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error checking preference: {e.Message}");
+                McpLogger.Log($"[Prefers] Error checking preference: {e.Message}");
                 return Response.Error($"Error checking preference: {e.Message}");
             }
         }
@@ -257,20 +257,20 @@ namespace Unity.Mcp.Tools.Storage
                 if (isEditor)
                 {
                     EditorPrefs.DeleteAll();
-                    LogInfo("[Prefers] Deleted all EditorPrefs");
+                    McpLogger.Log("[Prefers] Deleted all EditorPrefs");
                     return Response.Success("Successfully deleted all EditorPrefs.");
                 }
                 else
                 {
                     PlayerPrefs.DeleteAll();
                     PlayerPrefs.Save();
-                    LogInfo("[Prefers] Deleted all PlayerPrefs");
+                    McpLogger.Log("[Prefers] Deleted all PlayerPrefs");
                     return Response.Success("Successfully deleted all PlayerPrefs.");
                 }
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error deleting all preferences: {e.Message}");
+                McpLogger.Log($"[Prefers] Error deleting all preferences: {e.Message}");
                 return Response.Error($"Error deleting all preferences: {e.Message}");
             }
         }
@@ -288,19 +288,19 @@ namespace Unity.Mcp.Tools.Storage
                 {
                     // EditorPrefs doesn't have a built-in way to get all keys
                     // We can only enumerate known keys or use reflection
-                    LogInfo("[Prefers] EditorPrefs doesn't support enumerating all keys directly");
+                    McpLogger.Log("[Prefers] EditorPrefs doesn't support enumerating all keys directly");
                     return Response.Error("EditorPrefs doesn't support enumerating all keys. Use specific key names.");
                 }
                 else
                 {
                     // PlayerPrefs also doesn't have built-in enumeration
-                    LogInfo("[Prefers] PlayerPrefs doesn't support enumerating all keys directly");
+                    McpLogger.Log("[Prefers] PlayerPrefs doesn't support enumerating all keys directly");
                     return Response.Error("PlayerPrefs doesn't support enumerating all keys. Use specific key names.");
                 }
             }
             catch (Exception e)
             {
-                LogInfo($"[Prefers] Error getting all preferences: {e.Message}");
+                McpLogger.Log($"[Prefers] Error getting all preferences: {e.Message}");
                 return Response.Error($"Error getting all preferences: {e.Message}");
             }
         }

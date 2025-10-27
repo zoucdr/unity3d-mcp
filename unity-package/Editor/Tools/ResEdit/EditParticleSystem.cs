@@ -230,12 +230,12 @@ namespace Unity.Mcp.Tools
                 {
                     ps = Undo.AddComponent<ParticleSystem>(target);
                     isNewComponent = true;
-                    LogInfo($"[EditParticleSystem] Added ParticleSystem component to '{target.name}'");
+                    McpLogger.Log($"[EditParticleSystem] Added ParticleSystem component to '{target.name}'");
                 }
                 else
                 {
                     Undo.RecordObject(ps, "Initialize ParticleSystem");
-                    LogInfo($"[EditParticleSystem] Found existing ParticleSystem on '{target.name}', initializing properties");
+                    McpLogger.Log($"[EditParticleSystem] Found existing ParticleSystem on '{target.name}', initializing properties");
                 }
 
                 // 应用初始属性
@@ -286,7 +286,7 @@ namespace Unity.Mcp.Tools
                 JsonClass args = context.JsonData;
                 ApplyParticleSystemProperties(ps, args);
 
-                LogInfo($"[EditParticleSystem] Set properties on '{target.name}'");
+                McpLogger.Log($"[EditParticleSystem] Set properties on '{target.name}'");
                 return Response.Success($"ParticleSystem properties updated on '{target.name}'.", GetParticleSystemData(ps));
             }
             catch (Exception e)
@@ -309,7 +309,7 @@ namespace Unity.Mcp.Tools
             bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Play(withChildren);
-            LogInfo($"[EditParticleSystem] Playing ParticleSystem on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Playing ParticleSystem on '{target.name}'");
 
             return Response.Success($"ParticleSystem playing on '{target.name}'.", new JsonClass
             {
@@ -333,7 +333,7 @@ namespace Unity.Mcp.Tools
             bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Pause(withChildren);
-            LogInfo($"[EditParticleSystem] Paused ParticleSystem on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Paused ParticleSystem on '{target.name}'");
 
             return Response.Success($"ParticleSystem paused on '{target.name}'.", new JsonClass
             {
@@ -356,7 +356,7 @@ namespace Unity.Mcp.Tools
             bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Stop(withChildren);
-            LogInfo($"[EditParticleSystem] Stopped ParticleSystem on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Stopped ParticleSystem on '{target.name}'");
 
             return Response.Success($"ParticleSystem stopped on '{target.name}'.", new JsonClass
             {
@@ -378,7 +378,7 @@ namespace Unity.Mcp.Tools
             bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Clear(withChildren);
-            LogInfo($"[EditParticleSystem] Cleared ParticleSystem on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Cleared ParticleSystem on '{target.name}'");
 
             return Response.Success($"ParticleSystem cleared on '{target.name}'.");
         }
@@ -398,7 +398,7 @@ namespace Unity.Mcp.Tools
             bool withChildren = args["with_children"].AsBoolDefault(true);
 
             ps.Simulate(time, withChildren, true);
-            LogInfo($"[EditParticleSystem] Simulated {time}s on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Simulated {time}s on '{target.name}'");
 
             return Response.Success($"ParticleSystem simulated {time}s on '{target.name}'.", new JsonClass
             {
@@ -424,7 +424,7 @@ namespace Unity.Mcp.Tools
             ps.Clear(withChildren);
             ps.Play(withChildren);
 
-            LogInfo($"[EditParticleSystem] Restarted ParticleSystem on '{target.name}'");
+            McpLogger.Log($"[EditParticleSystem] Restarted ParticleSystem on '{target.name}'");
             return Response.Success($"ParticleSystem restarted on '{target.name}'.");
         }
 

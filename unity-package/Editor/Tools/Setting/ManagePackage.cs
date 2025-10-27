@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -58,7 +57,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private static void OnCompilationFinished(object obj)
         {
-            LogInfo("[ManagePackage] 编译完成，检查待处理的包操作...");
+            McpLogger.Log("[ManagePackage] 编译完成，检查待处理的包操作...");
 
             // 处理等待中的包操作
             var completedOperations = new List<string>();
@@ -69,7 +68,7 @@ namespace Unity.Mcp.Tools
 
                 if (elapsed > operationInfo.TimeoutSeconds)
                 {
-                    LogWarning($"[ManagePackage] 包操作超时: {operationInfo.PackageName} ({operationInfo.OperationType})");
+                    McpLogger.LogWarning($"[ManagePackage] 包操作超时: {operationInfo.PackageName} ({operationInfo.OperationType})");
                     completedOperations.Add(kvp.Key);
                 }
                 else
@@ -93,7 +92,7 @@ namespace Unity.Mcp.Tools
         {
             // 这里可以添加更复杂的状态检查逻辑
             // 由于Unity Package Manager操作的异步性质，我们主要依赖编译完成事件
-            LogInfo($"[ManagePackage] 检查包操作状态: {operationInfo.PackageName} ({operationInfo.OperationType})");
+            McpLogger.Log($"[ManagePackage] 检查包操作状态: {operationInfo.PackageName} ({operationInfo.OperationType})");
         }
 
         /// <summary>
@@ -110,18 +109,8 @@ namespace Unity.Mcp.Tools
                 TimeoutSeconds = timeoutSeconds
             };
 
-            LogInfo($"[ManagePackage] 注册包操作: {operationId}");
+            McpLogger.Log($"[ManagePackage] 注册包操作: {operationId}");
             return operationId;
-        }
-
-        private static new void LogInfo(string message)
-        {
-            Debug.Log(message);
-        }
-
-        private static new void LogWarning(string message)
-        {
-            Debug.LogWarning(message);
         }
 
         /// <summary>
@@ -204,7 +193,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleAddFromRegistry(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing add package from registry");
+            McpLogger.Log("[ManagePackage] Executing add package from registry");
             // 为包管理操作设置超时时间（180秒）
             return ctx.AsyncReturn(ExecuteAddFromRegistryAsync(ctx), 180f);
         }
@@ -214,7 +203,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleAddFromGitHub(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing add package from GitHub");
+            McpLogger.Log("[ManagePackage] Executing add package from GitHub");
             // 为包管理操作设置超时时间（180秒）
             return ctx.AsyncReturn(ExecuteAddFromGitHubAsync(ctx), 180f);
         }
@@ -224,7 +213,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleAddFromDisk(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing add package from disk");
+            McpLogger.Log("[ManagePackage] Executing add package from disk");
             // 为包管理操作设置超时时间（120秒）
             return ctx.AsyncReturn(ExecuteAddFromDiskAsync(ctx), 120f);
         }
@@ -234,7 +223,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleRemovePackage(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing remove package operation");
+            McpLogger.Log("[ManagePackage] Executing remove package operation");
             // 为包管理操作设置超时时间（120秒）
             return ctx.AsyncReturn(ExecuteRemovePackageAsync(ctx), 120f);
         }
@@ -244,7 +233,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleListPackages(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing list packages operation");
+            McpLogger.Log("[ManagePackage] Executing list packages operation");
             // 为包管理操作设置超时时间（60秒）
             return ctx.AsyncReturn(ExecuteListPackagesAsync(ctx), 60f);
         }
@@ -254,7 +243,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleSearchPackages(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing search packages operation");
+            McpLogger.Log("[ManagePackage] Executing search packages operation");
             // 为包管理操作设置超时时间（120秒）
             return ctx.AsyncReturn(ExecuteSearchPackagesAsync(ctx), 120f);
         }
@@ -264,7 +253,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleRefreshPackages(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing refresh packages operation");
+            McpLogger.Log("[ManagePackage] Executing refresh packages operation");
             // 为包管理操作设置超时时间（120秒）
             return ctx.AsyncReturn(ExecuteRefreshPackagesAsync(ctx), 120f);
         }
@@ -274,7 +263,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleResolvePackages(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Executing resolve packages operation");
+            McpLogger.Log("[ManagePackage] Executing resolve packages operation");
             // 为包管理操作设置超时时间（120秒）
             return ctx.AsyncReturn(ExecuteResolvePackagesAsync(ctx), 120f);
         }
@@ -284,7 +273,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCheckOperationStatus(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Checking operation status");
+            McpLogger.Log("[ManagePackage] Checking operation status");
             return CheckPendingOperationsStatus();
         }
 
@@ -293,13 +282,13 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleRestoreAutoRefresh(StateTreeContext ctx)
         {
-            LogInfo("[ManagePackage] Restoring auto refresh settings");
+            McpLogger.Log("[ManagePackage] Restoring auto refresh settings");
             try
             {
                 AssetDatabase.AllowAutoRefresh();
                 EditorApplication.UnlockReloadAssemblies();
 
-                LogInfo("[ManagePackage] 自动程序集刷新已恢复");
+                McpLogger.Log("[ManagePackage] 自动程序集刷新已恢复");
 
                 return Response.Success(
                     "自动程序集刷新设置已恢复",
@@ -340,7 +329,7 @@ namespace Unity.Mcp.Tools
             bool wasAutoRefreshDisabled = false;
             if (disableAutoRefresh)
             {
-                LogInfo($"[ManagePackage] 禁用自动程序集刷新: {packageName}");
+                McpLogger.Log($"[ManagePackage] 禁用自动程序集刷新: {packageName}");
                 AssetDatabase.DisallowAutoRefresh();
                 EditorApplication.LockReloadAssemblies();
                 wasAutoRefreshDisabled = true;
@@ -369,14 +358,14 @@ namespace Unity.Mcp.Tools
                 {
                     AssetDatabase.AllowAutoRefresh();
                     EditorApplication.UnlockReloadAssemblies();
-                    LogInfo($"[ManagePackage] 恢复自动程序集刷新设置");
+                    McpLogger.Log($"[ManagePackage] 恢复自动程序集刷新设置");
                 }
                 yield return operationResult;
                 yield break;
             }
 
             // 等待请求完成模式 - 等待AddRequest完成但不等待程序集刷新
-            LogInfo($"[ManagePackage] 等待包添加请求完成: {packageName}");
+            McpLogger.Log($"[ManagePackage] 等待包添加请求完成: {packageName}");
             yield return WaitForRequestOnlyAsync(request, "add", timeout, packageName, wasAutoRefreshDisabled);
             yield return operationResult;
         }
@@ -473,7 +462,7 @@ namespace Unity.Mcp.Tools
             bool wasAutoRefreshDisabled = false;
             if (disableAutoRefresh)
             {
-                LogInfo($"[ManagePackage] 禁用自动程序集刷新: {packageName}");
+                McpLogger.Log($"[ManagePackage] 禁用自动程序集刷新: {packageName}");
                 AssetDatabase.DisallowAutoRefresh();
                 EditorApplication.LockReloadAssemblies();
                 wasAutoRefreshDisabled = true;
@@ -488,7 +477,7 @@ namespace Unity.Mcp.Tools
                 }
                 else
                 {
-                    LogInfo($"[ManagePackage] 移除包: {packageName}");
+                    McpLogger.Log($"[ManagePackage] 移除包: {packageName}");
                     request = Client.Remove(packageName);
                 }
             }
@@ -506,14 +495,14 @@ namespace Unity.Mcp.Tools
                 {
                     AssetDatabase.AllowAutoRefresh();
                     EditorApplication.UnlockReloadAssemblies();
-                    LogInfo($"[ManagePackage] 恢复自动程序集刷新设置");
+                    McpLogger.Log($"[ManagePackage] 恢复自动程序集刷新设置");
                 }
                 yield return operationResult;
                 yield break;
             }
 
             // 等待请求完成模式 - 等待RemoveRequest完成但不等待程序集刷新
-            LogInfo($"[ManagePackage] 等待包移除请求完成: {packageName}");
+            McpLogger.Log($"[ManagePackage] 等待包移除请求完成: {packageName}");
             yield return WaitForRequestOnlyAsync(request, "remove", timeout, packageName, wasAutoRefreshDisabled);
             yield return operationResult;
         }
@@ -531,7 +520,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 bool includeIndirect = ctx.JsonData["include_dependencies"].AsBoolDefault(false);
-                LogInfo($"[ManagePackage] 列出包 (包含间接依赖: {includeIndirect})");
+                McpLogger.Log($"[ManagePackage] 列出包 (包含间接依赖: {includeIndirect})");
 
                 request = Client.List(includeIndirect);
             }
@@ -569,13 +558,13 @@ namespace Unity.Mcp.Tools
                 if (string.IsNullOrEmpty(keywords))
                 {
                     // 如果没有关键词，搜索所有包
-                    LogInfo("[ManagePackage] 搜索所有包");
+                    McpLogger.Log("[ManagePackage] 搜索所有包");
                     request = Client.SearchAll();
                 }
                 else
                 {
                     // 搜索特定包
-                    LogInfo($"[ManagePackage] 搜索包: {keywords}");
+                    McpLogger.Log($"[ManagePackage] 搜索包: {keywords}");
                     request = Client.Search(keywords);
                 }
             }
@@ -606,7 +595,7 @@ namespace Unity.Mcp.Tools
 
             try
             {
-                LogInfo("[ManagePackage] 刷新包列表");
+                McpLogger.Log("[ManagePackage] 刷新包列表");
                 Client.Resolve();
 
                 operationResult = Response.Success("Package list refresh operation started", new { operation = "refresh" });
@@ -630,7 +619,7 @@ namespace Unity.Mcp.Tools
 
             try
             {
-                LogInfo("[ManagePackage] 解析包依赖");
+                McpLogger.Log("[ManagePackage] 解析包依赖");
                 Client.Resolve();
 
                 operationResult = Response.Success("Package dependency resolution operation started", new { operation = "resolve" });
@@ -652,7 +641,7 @@ namespace Unity.Mcp.Tools
             int timeout = args["timeout"].AsIntDefault(60); // 增加超时时间到60秒
             float elapsedTime = 0f;
 
-            LogInfo($"[ManagePackage] 开始监控 {operationType} 操作，超时时间: {timeout}秒");
+            McpLogger.Log($"[ManagePackage] 开始监控 {operationType} 操作，超时时间: {timeout}秒");
 
             while (!request.IsCompleted && elapsedTime < timeout)
             {
@@ -661,7 +650,7 @@ namespace Unity.Mcp.Tools
 
                 if (Mathf.FloorToInt(elapsedTime) != Mathf.FloorToInt(elapsedTime - 0.1f))
                 {
-                    LogInfo($"[ManagePackage] {operationType} 操作进行中... 已等待: {elapsedTime:F1}s");
+                    McpLogger.Log($"[ManagePackage] {operationType} 操作进行中... 已等待: {elapsedTime:F1}s");
                 }
             }
 
@@ -682,7 +671,7 @@ namespace Unity.Mcp.Tools
                 operationResult = Response.Error($"Unknown operation status: {request.Status}");
             }
 
-            LogInfo($"[ManagePackage] {operationType} 操作完成");
+            McpLogger.Log($"[ManagePackage] {operationType} 操作完成");
         }
 
         /// <summary>
@@ -692,7 +681,7 @@ namespace Unity.Mcp.Tools
         {
             float elapsedTime = 0f;
 
-            LogInfo($"[ManagePackage] 开始等待 {operationType} 请求完成: {packageName}，超时时间: {timeout}秒");
+            McpLogger.Log($"[ManagePackage] 开始等待 {operationType} 请求完成: {packageName}，超时时间: {timeout}秒");
 
             while (!request.IsCompleted && elapsedTime < timeout)
             {
@@ -701,7 +690,7 @@ namespace Unity.Mcp.Tools
 
                 if (Mathf.FloorToInt(elapsedTime) != Mathf.FloorToInt(elapsedTime - 0.1f))
                 {
-                    LogInfo($"[ManagePackage] 等待 {operationType} 请求完成中... 已等待: {elapsedTime:F1}s");
+                    McpLogger.Log($"[ManagePackage] 等待 {operationType} 请求完成中... 已等待: {elapsedTime:F1}s");
                 }
             }
 
@@ -714,7 +703,7 @@ namespace Unity.Mcp.Tools
             else if (request.Status == StatusCode.Success)
             {
                 // 请求成功完成，立即返回结果，不等待程序集刷新
-                LogInfo($"[ManagePackage] {operationType} 请求成功完成，立即返回结果: {packageName}");
+                McpLogger.Log($"[ManagePackage] {operationType} 请求成功完成，立即返回结果: {packageName}");
 
                 // 处理操作结果并添加刷新控制信息
                 var result = ProcessSuccessfulOperationResult(request, operationType);
@@ -743,12 +732,12 @@ namespace Unity.Mcp.Tools
             // 处理刷新设置
             if (wasAutoRefreshDisabled)
             {
-                LogInfo($"[ManagePackage] 请求完成，程序集刷新被禁用。需要手动控制刷新。");
-                LogInfo($"[ManagePackage] 使用AssetDatabase.AllowAutoRefresh()和EditorApplication.UnlockReloadAssemblies()来恢复自动刷新");
-                LogInfo($"[ManagePackage] 或使用AssetDatabase.Refresh()来手动刷新");
+                McpLogger.Log($"[ManagePackage] 请求完成，程序集刷新被禁用。需要手动控制刷新。");
+                McpLogger.Log($"[ManagePackage] 使用AssetDatabase.AllowAutoRefresh()和EditorApplication.UnlockReloadAssemblies()来恢复自动刷新");
+                McpLogger.Log($"[ManagePackage] 或使用AssetDatabase.Refresh()来手动刷新");
             }
 
-            LogInfo($"[ManagePackage] {operationType} 请求监控完成: {packageName}");
+            McpLogger.Log($"[ManagePackage] {operationType} 请求监控完成: {packageName}");
         }
 
         /// <summary>
@@ -832,7 +821,7 @@ namespace Unity.Mcp.Tools
                 packageIdentifier = $"{packageName}@{version}";
             }
 
-            LogInfo($"[ManagePackage] 从Registry添加包: {packageIdentifier}");
+            McpLogger.Log($"[ManagePackage] 从Registry添加包: {packageIdentifier}");
             return Client.Add(packageIdentifier);
         }
 
@@ -875,7 +864,7 @@ namespace Unity.Mcp.Tools
                 }
             }
 
-            LogInfo($"[ManagePackage] 从GitHub添加包: {repositoryUrl}");
+            McpLogger.Log($"[ManagePackage] 从GitHub添加包: {repositoryUrl}");
             return Client.Add(repositoryUrl);
         }
 
@@ -891,7 +880,7 @@ namespace Unity.Mcp.Tools
             }
 
             string packageUrl = $"file:{path}";
-            LogInfo($"[ManagePackage] 从磁盘添加包: {packageUrl}");
+            McpLogger.Log($"[ManagePackage] 从磁盘添加包: {packageUrl}");
             return Client.Add(packageUrl);
         }
 

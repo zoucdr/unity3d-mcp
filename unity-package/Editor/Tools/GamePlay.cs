@@ -154,7 +154,7 @@ namespace Unity.Mcp.Tools
             {
                 if (!EditorApplication.isPlaying)
                 {
-                    LogInfo("[GamePlay] Entering play mode");
+                    McpLogger.Log("[GamePlay] Entering play mode");
                     EditorApplication.isPlaying = true;
                     return Response.Success("Entered play mode.");
                 }
@@ -162,7 +162,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[GamePlay] Error entering play mode: {e.Message}");
+                McpLogger.Log($"[GamePlay] Error entering play mode: {e.Message}");
                 return Response.Error($"Error entering play mode: {e.Message}");
             }
         }
@@ -178,14 +178,14 @@ namespace Unity.Mcp.Tools
                 {
                     EditorApplication.isPaused = !EditorApplication.isPaused;
                     string statusMessage = EditorApplication.isPaused ? "Game paused." : "Game resumed.";
-                    LogInfo($"[GamePlay] {statusMessage}");
+                    McpLogger.Log($"[GamePlay] {statusMessage}");
                     return Response.Success(statusMessage);
                 }
                 return Response.Error("Cannot pause/resume: Not in play mode.");
             }
             catch (Exception e)
             {
-                LogInfo($"[GamePlay] Error pausing/resuming game: {e.Message}");
+                McpLogger.Log($"[GamePlay] Error pausing/resuming game: {e.Message}");
                 return Response.Error($"Error pausing/resuming game: {e.Message}");
             }
         }
@@ -199,7 +199,7 @@ namespace Unity.Mcp.Tools
             {
                 if (EditorApplication.isPlaying)
                 {
-                    LogInfo("[GamePlay] Exiting play mode");
+                    McpLogger.Log("[GamePlay] Exiting play mode");
                     EditorApplication.isPlaying = false;
                     return Response.Success("Exited play mode.");
                 }
@@ -207,7 +207,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[GamePlay] Error stopping play mode: {e.Message}");
+                McpLogger.Log($"[GamePlay] Error stopping play mode: {e.Message}");
                 return Response.Error($"Error stopping play mode: {e.Message}");
             }
         }
@@ -256,7 +256,7 @@ namespace Unity.Mcp.Tools
                 {
                     // 在游戏运行状态下使用GameView截图
                     result = ScreenCaptureUtil.CaptureGameView(savePath);
-                    LogInfo("[GamePlay] Screenshot captured from Game window (Play mode)");
+                    McpLogger.Log("[GamePlay] Screenshot captured from Game window (Play mode)");
                 }
                 else
                 {
@@ -265,7 +265,7 @@ namespace Unity.Mcp.Tools
                     if (sceneView != null && sceneView.camera != null)
                     {
                         result = ScreenCaptureUtil.CaptureSceneView(savePath);
-                        LogInfo("[GamePlay] Screenshot captured from Scene view");
+                        McpLogger.Log("[GamePlay] Screenshot captured from Scene view");
                     }
                     else
                     {
@@ -279,13 +279,13 @@ namespace Unity.Mcp.Tools
                         if (camera != null)
                         {
                             result = ScreenCaptureUtil.CaptureFromCamera(camera, savePath);
-                            LogInfo("[GamePlay] Screenshot captured from Camera");
+                            McpLogger.Log("[GamePlay] Screenshot captured from Camera");
                         }
                         else
                         {
                             // 最后尝试GameView截图
                             result = ScreenCaptureUtil.CaptureGameView(savePath);
-                            LogInfo("[GamePlay] Screenshot captured from Game window (fallback)");
+                            McpLogger.Log("[GamePlay] Screenshot captured from Game window (fallback)");
                         }
                     }
                 }
@@ -950,7 +950,7 @@ namespace Unity.Mcp.Tools
                 }
             }
 
-            LogInfo($"[GamePlay] Simulated click at ({position.x}, {position.y}) with button {button}");
+            McpLogger.Log($"[GamePlay] Simulated click at ({position.x}, {position.y}) with button {button}");
         }
 
         /// <summary>
@@ -978,7 +978,7 @@ namespace Unity.Mcp.Tools
                 };
             }
 
-            LogInfo($"[GamePlay] Simulated drag from ({start.x}, {start.y}) to ({end.x}, {end.y}) over {duration}s");
+            McpLogger.Log($"[GamePlay] Simulated drag from ({start.x}, {start.y}) to ({end.x}, {end.y}) over {duration}s");
         }
 
         /// <summary>
@@ -1004,7 +1004,7 @@ namespace Unity.Mcp.Tools
                 }
             }
 
-            LogInfo($"[GamePlay] Simulated key: {keyCode}");
+            McpLogger.Log($"[GamePlay] Simulated key: {keyCode}");
         }
 
         /// <summary>
@@ -1019,7 +1019,7 @@ namespace Unity.Mcp.Tools
                 Event.current.delta = new Vector2(0, delta);
             }
 
-            LogInfo($"[GamePlay] Simulated scroll at ({position.x}, {position.y}) with delta {delta}");
+            McpLogger.Log($"[GamePlay] Simulated scroll at ({position.x}, {position.y}) with delta {delta}");
         }
 
         /// <summary>

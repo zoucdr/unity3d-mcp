@@ -149,7 +149,7 @@ namespace Unity.Mcp.Tools
 
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManagePrefab] Created prefab at '{fullPath}'");
+                McpLogger.Log($"[ManagePrefab] Created prefab at '{fullPath}'");
                 return Response.Success($"Prefab '{fullPath}' created successfully.", GetPrefabData(fullPath));
             }
             catch (Exception e)
@@ -200,7 +200,7 @@ namespace Unity.Mcp.Tools
                 {
                     PrefabUtility.SaveAsPrefabAsset(prefabAsset, fullPath);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManagePrefab] Modified prefab at '{fullPath}'");
+                    McpLogger.Log($"[ManagePrefab] Modified prefab at '{fullPath}'");
                     return Response.Success($"Prefab '{fullPath}' modified successfully.", GetPrefabData(fullPath));
                 }
                 else
@@ -244,7 +244,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.CopyAsset(sourcePath, destPath);
                 if (success)
                 {
-                    LogInfo($"[ManagePrefab] Duplicated prefab from '{sourcePath}' to '{destPath}'");
+                    McpLogger.Log($"[ManagePrefab] Duplicated prefab from '{sourcePath}' to '{destPath}'");
                     return Response.Success($"Prefab '{sourcePath}' duplicated to '{destPath}'.", GetPrefabData(destPath));
                 }
                 else
@@ -321,7 +321,7 @@ namespace Unity.Mcp.Tools
                     }
                 }
 
-                LogInfo($"[ManagePrefab] Found {results.Count} prefab(s)");
+                McpLogger.Log($"[ManagePrefab] Found {results.Count} prefab(s)");
                 return Response.Success($"Found {results.Count} prefab(s).", results);
             }
             catch (Exception e)
@@ -392,7 +392,7 @@ namespace Unity.Mcp.Tools
                     }
                 }
 
-                LogInfo($"[ManagePrefab] Instantiated prefab '{fullPath}' at position {pos}");
+                McpLogger.Log($"[ManagePrefab] Instantiated prefab '{fullPath}' at position {pos}");
                 return Response.Success($"Prefab '{fullPath}' instantiated successfully.", new
                 {
                     instance_name = instance.name,
@@ -442,7 +442,7 @@ namespace Unity.Mcp.Tools
                 // PrefabUtility.UnpackPrefab(prefabAsset, mode, InteractionMode.AutomatedAction);
                 LogWarning($"[ManagePrefab] UnpackPrefab method and PrefabUnpackMode enum not supported in current Unity version");
 
-                LogInfo($"[ManagePrefab] Unpacked prefab '{fullPath}' with mode '{unpackMode}'");
+                McpLogger.Log($"[ManagePrefab] Unpacked prefab '{fullPath}' with mode '{unpackMode}'");
                 return Response.Success($"Prefab '{fullPath}' unpacked successfully.");
             }
             catch (Exception e)
@@ -485,7 +485,7 @@ namespace Unity.Mcp.Tools
                 // PrefabUtility.PackPrefab(prefabAsset, mode, InteractionMode.AutomatedAction);
                 LogWarning($"[ManagePrefab] PackPrefab method and PrefabPackMode enum not supported in current Unity version");
 
-                LogInfo($"[ManagePrefab] Packed prefab '{fullPath}' with mode '{packMode}'");
+                McpLogger.Log($"[ManagePrefab] Packed prefab '{fullPath}' with mode '{packMode}'");
                 return Response.Success($"Prefab '{fullPath}' packed successfully.");
             }
             catch (Exception e)
@@ -521,7 +521,7 @@ namespace Unity.Mcp.Tools
                 // 创建预制体变体
                 GameObject variant = PrefabUtility.SaveAsPrefabAssetAndConnect(parentPrefabAsset, fullPath, InteractionMode.AutomatedAction);
 
-                LogInfo($"[ManagePrefab] Created prefab variant '{fullPath}' from parent '{parentFullPath}'");
+                McpLogger.Log($"[ManagePrefab] Created prefab variant '{fullPath}' from parent '{parentFullPath}'");
                 return Response.Success($"Prefab variant '{fullPath}' created successfully.", GetPrefabData(fullPath));
             }
             catch (Exception e)
@@ -556,7 +556,7 @@ namespace Unity.Mcp.Tools
 
                 PrefabUtility.SaveAsPrefabAssetAndConnect(targetGameObject, fullPath, InteractionMode.AutomatedAction);
 
-                LogInfo($"[ManagePrefab] Connected GameObject '{targetObject}' to prefab '{fullPath}'");
+                McpLogger.Log($"[ManagePrefab] Connected GameObject '{targetObject}' to prefab '{fullPath}'");
                 return Response.Success($"GameObject '{targetObject}' connected to prefab '{fullPath}' successfully.");
             }
             catch (Exception e)
@@ -587,7 +587,7 @@ namespace Unity.Mcp.Tools
 
                 PrefabUtility.ApplyPrefabInstance(targetGameObject, InteractionMode.AutomatedAction);
 
-                LogInfo($"[ManagePrefab] Applied changes from GameObject '{targetObject}' to prefab '{fullPath}'");
+                McpLogger.Log($"[ManagePrefab] Applied changes from GameObject '{targetObject}' to prefab '{fullPath}'");
                 return Response.Success($"Changes applied from GameObject '{targetObject}' to prefab '{fullPath}' successfully.");
             }
             catch (Exception e)
@@ -611,7 +611,7 @@ namespace Unity.Mcp.Tools
 
                 PrefabUtility.RevertPrefabInstance(targetGameObject, InteractionMode.AutomatedAction);
 
-                LogInfo($"[ManagePrefab] Reverted changes for GameObject '{targetObject}'");
+                McpLogger.Log($"[ManagePrefab] Reverted changes for GameObject '{targetObject}'");
                 return Response.Success($"Changes reverted for GameObject '{targetObject}' successfully.");
             }
             catch (Exception e)
@@ -637,7 +637,7 @@ namespace Unity.Mcp.Tools
                 // PrefabUtility.UnpackPrefabInstance(targetGameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
                 LogWarning($"[ManagePrefab] UnpackPrefabInstance method not supported in current Unity version");
 
-                LogInfo($"[ManagePrefab] Broke prefab connection for GameObject '{targetObject}'");
+                McpLogger.Log($"[ManagePrefab] Broke prefab connection for GameObject '{targetObject}'");
                 return Response.Success($"Prefab connection broken for GameObject '{targetObject}' successfully.");
             }
             catch (Exception e)

@@ -66,7 +66,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'tagName' parameter required for add_tag.");
             }
 
-            LogInfo($"[TagLayer] Adding tag: {tagName}");
+            McpLogger.Log($"[TagLayer] Adding tag: {tagName}");
             return AddTag(tagName);
         }
 
@@ -81,7 +81,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'tagName' parameter required for remove_tag.");
             }
 
-            LogInfo($"[TagLayer] Removing tag: {tagName}");
+            McpLogger.Log($"[TagLayer] Removing tag: {tagName}");
             return RemoveTag(tagName);
         }
 
@@ -90,7 +90,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetTagsAction(JsonClass args)
         {
-            LogInfo("[TagLayer] Getting tags");
+            McpLogger.Log("[TagLayer] Getting tags");
             return GetTags();
         }
 
@@ -105,7 +105,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'layerName' parameter required for add_layer.");
             }
 
-            LogInfo($"[TagLayer] Adding layer: {layerName}");
+            McpLogger.Log($"[TagLayer] Adding layer: {layerName}");
             return AddLayer(layerName);
         }
 
@@ -120,7 +120,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'layerName' parameter required for remove_layer.");
             }
 
-            LogInfo($"[TagLayer] Removing layer: {layerName}");
+            McpLogger.Log($"[TagLayer] Removing layer: {layerName}");
             return RemoveLayer(layerName);
         }
 
@@ -129,7 +129,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetLayersAction(JsonClass args)
         {
-            LogInfo("[TagLayer] Getting layers");
+            McpLogger.Log("[TagLayer] Getting layers");
             return GetLayers();
         }
 
@@ -360,7 +360,7 @@ namespace Unity.Mcp.Tools
                 );
                 if (tagManagerAssets == null || tagManagerAssets.Length == 0)
                 {
-                    if (McpService.EnableLog) Debug.LogError("[TagLayer] TagManager.asset not found in ProjectSettings.");
+                    McpLogger.LogError("[TagLayer] TagManager.asset not found in ProjectSettings.");
                     return null;
                 }
                 // The first object in the asset file should be the TagManager
@@ -368,7 +368,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[TagLayer] Error accessing TagManager.asset: {e.Message}");
+                McpLogger.LogError($"[TagLayer] Error accessing TagManager.asset: {e.Message}");
                 return null;
             }
         }

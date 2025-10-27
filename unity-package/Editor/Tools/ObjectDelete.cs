@@ -99,12 +99,12 @@ namespace Unity.Mcp.Tools
 
             if (!confirmed)
             {
-                LogInfo($"[ObjectDelete] User cancelled asset deletion for Object '{target.name}'");
+                McpLogger.Log($"[ObjectDelete] User cancelled asset deletion for Object '{target.name}'");
                 yield return Response.Success($"Asset deletion cancelled by user. Object '{target.name}' was not deleted.", new { cancelled = true, target_name = target.name });
                 yield break;
             }
 
-            LogInfo($"[ObjectDelete] User confirmed asset deletion for Object '{target.name}'");
+            McpLogger.Log($"[ObjectDelete] User confirmed asset deletion for Object '{target.name}'");
 
             // 用户确认后执行删除
             var deleteResult = DeleteSingleObject(target);
@@ -148,14 +148,14 @@ namespace Unity.Mcp.Tools
             if (!isAssetDeletion)
             {
                 // 场景Object删除，直接删除无需确认
-                LogInfo($"[ObjectDelete] Direct deletion of {target.GetType().Name} '{target.name}' without confirmation");
+                McpLogger.Log($"[ObjectDelete] Direct deletion of {target.GetType().Name} '{target.name}' without confirmation");
                 var result = DeleteSingleObject(target);
                 yield return result;
                 yield break;
             }
 
             // 资源删除需要用户确认
-            LogInfo($"[ObjectDelete] Asset deletion detected for '{target.name}', showing confirmation dialog");
+            McpLogger.Log($"[ObjectDelete] Asset deletion detected for '{target.name}', showing confirmation dialog");
 
             string confirmationMessage = $"You are about to delete the asset '{target.name}' ({target.GetType().Name}).\n\nThis action cannot be undone. Continue?";
 
@@ -168,12 +168,12 @@ namespace Unity.Mcp.Tools
 
             if (!confirmed)
             {
-                LogInfo($"[ObjectDelete] User cancelled asset deletion for '{target.name}'");
+                McpLogger.Log($"[ObjectDelete] User cancelled asset deletion for '{target.name}'");
                 yield return Response.Success($"Asset deletion cancelled by user. Object '{target.name}' was not deleted.", new { cancelled = true, target_name = target.name });
                 yield break;
             }
 
-            LogInfo($"[ObjectDelete] User confirmed asset deletion for '{target.name}'");
+            McpLogger.Log($"[ObjectDelete] User confirmed asset deletion for '{target.name}'");
 
             // 用户确认后执行删除
             var deleteResult = DeleteSingleObject(target);

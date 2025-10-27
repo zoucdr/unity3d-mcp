@@ -64,7 +64,7 @@ namespace Unity.Mcp.Tools
                 applyType = "connect_to_prefab"; // 默认连接到预制体
             }
 
-            LogInfo($"[Hierarchyapply] Executing apply action with type: '{applyType}'");
+            McpLogger.Log($"[Hierarchyapply] Executing apply action with type: '{applyType}'");
 
             switch (applyType)
             {
@@ -84,7 +84,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleConnectToPrefab(JsonClass args)
         {
-            LogInfo("[Hierarchyapply] Connecting GameObject to prefab");
+            McpLogger.Log("[Hierarchyapply] Connecting GameObject to prefab");
             return ConnectGameObjectToPrefab(args);
         }
 
@@ -93,7 +93,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleApplyPrefabChanges(JsonClass args)
         {
-            LogInfo("[Hierarchyapply] Applying prefab changes");
+            McpLogger.Log("[Hierarchyapply] Applying prefab changes");
             return ApplyPrefabChanges(args);
         }
 
@@ -102,7 +102,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleBreakPrefabConnection(JsonClass args)
         {
-            LogInfo("[Hierarchyapply] Breaking prefab connection");
+            McpLogger.Log("[Hierarchyapply] Breaking prefab connection");
             return BreakPrefabConnection(args);
         }
 
@@ -202,7 +202,7 @@ namespace Unity.Mcp.Tools
                     }
                 }
 
-                LogInfo($"[Hierarchyapply] Successfully connected GameObject '{targetGo.name}' to prefab '{resolvedPath}'");
+                McpLogger.Log($"[Hierarchyapply] Successfully connected GameObject '{targetGo.name}' to prefab '{resolvedPath}'");
 
                 // 选择连接后的对象
                 Selection.activeGameObject = connectedInstance;
@@ -214,7 +214,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Error connecting GameObject to prefab: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Error connecting GameObject to prefab: {e.Message}");
                 return Response.Error($"Error connecting GameObject to prefab: {e.Message}");
             }
         }
@@ -257,7 +257,7 @@ namespace Unity.Mcp.Tools
                 // 应用预制体更改
                 PrefabUtility.ApplyPrefabInstance(targetGo, InteractionMode.UserAction);
 
-                LogInfo($"[Hierarchyapply] Applied changes from instance '{targetGo.name}' to prefab '{prefabPath}'");
+                McpLogger.Log($"[Hierarchyapply] Applied changes from instance '{targetGo.name}' to prefab '{prefabPath}'");
 
                 return Response.Success(
                     $"Successfully applied changes from instance '{targetGo.name}' to prefab '{prefabAsset.name}'.",
@@ -266,7 +266,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Error applying prefab changes: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Error applying prefab changes: {e.Message}");
                 return Response.Error($"Error applying prefab changes: {e.Message}");
             }
         }
@@ -309,7 +309,7 @@ namespace Unity.Mcp.Tools
                 // PrefabUtility.UnpackPrefabInstance(targetGo, PrefabUnpackMode.Completely, InteractionMode.UserAction);
                 LogWarning($"[Hierarchyapply] UnpackPrefabInstance method not supported in current Unity version");
 
-                LogInfo($"[Hierarchyapply] Successfully broke prefab connection for GameObject '{targetGo.name}'");
+                McpLogger.Log($"[Hierarchyapply] Successfully broke prefab connection for GameObject '{targetGo.name}'");
 
                 // 选择断开连接后的对象
                 Selection.activeGameObject = targetGo;
@@ -321,7 +321,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Error breaking prefab connection: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Error breaking prefab connection: {e.Message}");
                 return Response.Error($"Error breaking prefab connection: {e.Message}");
             }
         }
@@ -342,7 +342,7 @@ namespace Unity.Mcp.Tools
                 {
                     if (!gameObjectComponents.Contains(prefabComponentType))
                     {
-                        LogInfo($"[Hierarchyapply] GameObject missing component: {prefabComponentType.Name}");
+                        McpLogger.Log($"[Hierarchyapply] GameObject missing component: {prefabComponentType.Name}");
                         return false;
                     }
                 }
@@ -351,7 +351,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Error checking prefab compatibility: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Error checking prefab compatibility: {e.Message}");
                 return false;
             }
         }
@@ -393,12 +393,12 @@ namespace Unity.Mcp.Tools
                 // 删除原对象
                 Undo.DestroyObjectImmediate(originalGo);
 
-                LogInfo($"[Hierarchyapply] Replaced GameObject with prefab instance: '{originalName}'");
+                McpLogger.Log($"[Hierarchyapply] Replaced GameObject with prefab instance: '{originalName}'");
                 return newInstance;
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Error replacing with prefab instance: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Error replacing with prefab instance: {e.Message}");
                 return null;
             }
         }
@@ -442,7 +442,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[Hierarchyapply] Warning: Could not copy all component properties: {e.Message}");
+                McpLogger.Log($"[Hierarchyapply] Warning: Could not copy all component properties: {e.Message}");
             }
         }
 
@@ -457,7 +457,7 @@ namespace Unity.Mcp.Tools
             if (!prefabPath.Contains("/") && !prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 string prefabNameOnly = prefabPath;
-                LogInfo($"[Hierarchyapply] Searching for prefab named: '{prefabNameOnly}'");
+                McpLogger.Log($"[Hierarchyapply] Searching for prefab named: '{prefabNameOnly}'");
 
                 string[] guids = AssetDatabase.FindAssets($"t:Prefab {prefabNameOnly}");
                 if (guids.Length == 0)
@@ -467,17 +467,17 @@ namespace Unity.Mcp.Tools
                 else if (guids.Length > 1)
                 {
                     string foundPaths = string.Join(", ", guids.Select(g => AssetDatabase.GUIDToAssetPath(g)));
-                    LogInfo($"[Hierarchyapply] Multiple prefabs found matching name '{prefabNameOnly}': {foundPaths}. Using first one.");
+                    McpLogger.Log($"[Hierarchyapply] Multiple prefabs found matching name '{prefabNameOnly}': {foundPaths}. Using first one.");
                 }
 
                 string resolvedPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-                LogInfo($"[Hierarchyapply] Found prefab at path: '{resolvedPath}'");
+                McpLogger.Log($"[Hierarchyapply] Found prefab at path: '{resolvedPath}'");
                 return resolvedPath;
             }
             else if (!prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 // 自动添加.prefab扩展名
-                LogInfo($"[Hierarchyapply] Adding .prefab extension to path: '{prefabPath}'");
+                McpLogger.Log($"[Hierarchyapply] Adding .prefab extension to path: '{prefabPath}'");
                 return prefabPath + ".prefab";
             }
 

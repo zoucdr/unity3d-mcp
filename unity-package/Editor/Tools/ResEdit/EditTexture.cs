@@ -72,7 +72,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'texture_type' parameter is required.");
             }
 
-            LogInfo($"[ManageTexture] Setting texture type to '{textureType}' for '{texturePath}'");
+            McpLogger.Log($"[ManageTexture] Setting texture type to '{textureType}' for '{texturePath}'");
             return SetTextureType(texturePath, textureType);
         }
 
@@ -88,7 +88,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'texture_path' parameter is required.");
             }
 
-            LogInfo($"[ManageTexture] Setting sprite settings for '{texturePath}'");
+            McpLogger.Log($"[ManageTexture] Setting sprite settings for '{texturePath}'");
             return SetSpriteSettings(args, texturePath);
         }
 
@@ -104,7 +104,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'texture_path' parameter is required.");
             }
 
-            LogInfo($"[ManageTexture] Getting texture settings for '{texturePath}'");
+            McpLogger.Log($"[ManageTexture] Getting texture settings for '{texturePath}'");
             return GetTextureSettings(texturePath);
         }
 
@@ -145,12 +145,12 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(textureImporter);
                 textureImporter.SaveAndReimport();
 
-                LogInfo($"[ManageTexture] Successfully set texture type to '{textureType}' for '{texturePath}'");
+                McpLogger.Log($"[ManageTexture] Successfully set texture type to '{textureType}' for '{texturePath}'");
                 return Response.Success($"Texture type set to '{textureType}' for '{texturePath}'.");
             }
             catch (Exception e)
             {
-                LogInfo($"[ManageTexture] Error setting texture type: {e.Message}");
+                McpLogger.Log($"[ManageTexture] Error setting texture type: {e.Message}");
                 return Response.Error($"Error setting texture type: {e.Message}");
             }
         }
@@ -210,12 +210,12 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(textureImporter);
                 textureImporter.SaveAndReimport();
 
-                LogInfo($"[ManageTexture] Successfully applied sprite settings to '{texturePath}'");
+                McpLogger.Log($"[ManageTexture] Successfully applied sprite settings to '{texturePath}'");
                 return Response.Success($"Sprite settings applied to '{texturePath}'.");
             }
             catch (Exception e)
             {
-                LogInfo($"[ManageTexture] Error setting sprite settings: {e.Message}");
+                McpLogger.Log($"[ManageTexture] Error setting sprite settings: {e.Message}");
                 return Response.Error($"Error setting sprite settings: {e.Message}");
             }
         }
@@ -252,7 +252,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[ManageTexture] Error getting texture settings: {e.Message}");
+                McpLogger.Log($"[ManageTexture] Error getting texture settings: {e.Message}");
                 return Response.Error($"Error getting texture settings: {e.Message}");
             }
         }
@@ -270,7 +270,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                LogInfo($"[ManageTexture] Error getting TextureImporter: {e.Message}");
+                McpLogger.Log($"[ManageTexture] Error getting TextureImporter: {e.Message}");
                 return null;
             }
         }

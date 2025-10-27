@@ -170,7 +170,7 @@ namespace Unity.Mcp.Tools
                     AssetDatabase.ImportAsset(fullPath);
                 }
 
-                LogInfo($"[ManageModel] Imported model from '{sourceFile}' to '{fullPath}'");
+                McpLogger.Log($"[ManageModel] Imported model from '{sourceFile}' to '{fullPath}'");
                 return Response.Success($"Model imported successfully to '{fullPath}'.", GetModelData(fullPath));
             }
             catch (Exception e)
@@ -204,7 +204,7 @@ namespace Unity.Mcp.Tools
                 if (modified)
                 {
                     importer.SaveAndReimport();
-                    LogInfo($"[ManageModel] Modified model import settings at '{fullPath}'");
+                    McpLogger.Log($"[ManageModel] Modified model import settings at '{fullPath}'");
                     return Response.Success($"Model '{fullPath}' modified successfully.", GetModelData(fullPath));
                 }
                 else
@@ -248,7 +248,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.CopyAsset(sourcePath, destPath);
                 if (success)
                 {
-                    LogInfo($"[ManageModel] Duplicated model from '{sourcePath}' to '{destPath}'");
+                    McpLogger.Log($"[ManageModel] Duplicated model from '{sourcePath}' to '{destPath}'");
                     return Response.Success($"Model '{sourcePath}' duplicated to '{destPath}'.", GetModelData(destPath));
                 }
                 else
@@ -278,7 +278,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.DeleteAsset(fullPath);
                 if (success)
                 {
-                    LogInfo($"[ManageModel] Deleted model at '{fullPath}'");
+                    McpLogger.Log($"[ManageModel] Deleted model at '{fullPath}'");
                     return Response.Success($"Model '{fullPath}' deleted successfully.");
                 }
                 else
@@ -353,7 +353,7 @@ namespace Unity.Mcp.Tools
                     }
                 }
 
-                LogInfo($"[ManageModel] Found {results.Count} model(s)");
+                McpLogger.Log($"[ManageModel] Found {results.Count} model(s)");
                 return Response.Success($"Found {results.Count} model(s).", results);
             }
             catch (Exception e)
@@ -387,7 +387,7 @@ namespace Unity.Mcp.Tools
                 if (modified)
                 {
                     importer.SaveAndReimport();
-                    LogInfo($"[ManageModel] Set import settings on model '{fullPath}'");
+                    McpLogger.Log($"[ManageModel] Set import settings on model '{fullPath}'");
                     return Response.Success($"Import settings set on model '{fullPath}'.", GetModelData(fullPath));
                 }
                 else
@@ -433,7 +433,7 @@ namespace Unity.Mcp.Tools
 
                 importer.SaveAndReimport();
 
-                LogInfo($"[ManageModel] Extracted materials from model '{fullPath}'");
+                McpLogger.Log($"[ManageModel] Extracted materials from model '{fullPath}'");
                 return Response.Success($"Materials extracted from model '{fullPath}'.", GetModelData(fullPath));
             }
             catch (Exception e)
@@ -470,7 +470,7 @@ namespace Unity.Mcp.Tools
 
                 importer.SaveAndReimport();
 
-                LogInfo($"[ManageModel] Optimized model '{fullPath}'");
+                McpLogger.Log($"[ManageModel] Optimized model '{fullPath}'");
                 return Response.Success($"Model '{fullPath}' optimized successfully.", GetModelData(fullPath));
             }
             catch (Exception e)
@@ -524,7 +524,7 @@ namespace Unity.Mcp.Tools
                     importer.AddRemap(id, targetMaterial);
                     remapCount++;
 
-                    LogInfo($"[RemapMaterials] Remapped material '{sourceName}' to '{targetPath}'");
+                    McpLogger.Log($"[RemapMaterials] Remapped material '{sourceName}' to '{targetPath}'");
                 }
 
                 if (remapCount > 0)

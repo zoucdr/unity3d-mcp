@@ -115,7 +115,7 @@ namespace Unity.Mcp
         {
             var copyContext = new StateTreeContext(args.JsonData, args.ObjectReferences);
             // 第一阶段：使用目标定位树找到目标
-            LogInfo("[DualStateMethodBase] Phase 1: Target Location");
+            McpLogger.Log("[DualStateMethodBase] Phase 1: Target Location");
             var targetResult = _targetTree.Run(copyContext);
 
             // 检查目标定位阶段的错误
@@ -149,9 +149,9 @@ namespace Unity.Mcp
                 return;
             }
 
-            LogInfo($"[DualStateMethodBase] Target located successfully: {processedTarget?.GetType()?.Name ?? "Unknown"}");
+            McpLogger.Log($"[DualStateMethodBase] Target located successfully: {processedTarget?.GetType()?.Name ?? "Unknown"}");
             // 第二阶段：创建执行上下文并执行操作
-            LogInfo("[DualStateMethodBase] Phase 2: Action Execution");
+            McpLogger.Log("[DualStateMethodBase] Phase 2: Action Execution");
             args.SetObjectReference("_resolved_targets", processedTarget);
 
             var actionResult = _actionTree.Run(args);
@@ -164,7 +164,7 @@ namespace Unity.Mcp
                 return;
             }
 
-            LogInfo("[DualStateMethodBase] Action executed successfully");
+            McpLogger.Log("[DualStateMethodBase] Action executed successfully");
             if (actionResult == null && !string.IsNullOrEmpty(_actionTree.ErrorMessage))
             {
                 Debug.LogError($"[DualStateMethodBase] Action execution failed: {_actionTree.ErrorMessage}");
@@ -178,7 +178,7 @@ namespace Unity.Mcp
             else
             {
                 // 异步执行完成
-                LogInfo("[DualStateMethodBase] Execution completed!");
+                McpLogger.Log("[DualStateMethodBase] Execution completed!");
             }
         }
 
@@ -201,16 +201,6 @@ namespace Unity.Mcp
             }
             // 否则返回原始目标结果
             return targetResult;
-        }
-
-        /// <summary>
-        /// 记录信息日志，仅在 McpService.EnableLog 为 true 时输出。
-        /// 子类可用此方法记录执行过程中的信息。
-        /// </summary>
-        /// <param name="message">要记录的日志消息</param>
-        public virtual void LogInfo(string message)
-        {
-            if (McpService.EnableLog) Debug.Log(message);
         }
     }
 }

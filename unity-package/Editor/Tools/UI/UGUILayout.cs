@@ -162,7 +162,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
         {
-            LogInfo("[UGUILayout] No action specified, using default do_layout action");
+            McpLogger.Log("[UGUILayout] No action specified, using default do_layout action");
             return HandleDoLayoutAction(args);
         }
 
@@ -820,7 +820,7 @@ namespace Unity.Mcp.Tools
 
                 EditorUtility.SetDirty(rectTransform);
 
-                LogInfo($"[EditRectTransform] Set property '{propertyName}' on {targetGo.name}");
+                McpLogger.Log($"[EditRectTransform] Set property '{propertyName}' on {targetGo.name}");
 
                 return Response.Success(
                     $"RectTransform property '{propertyName}' set successfully on {targetGo.name}.",
@@ -852,7 +852,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 var value = GetPropertyValue(rectTransform, propertyName);
-                LogInfo($"[EditRectTransform] Got property '{propertyName}' from {targetGo.name}: {value}");
+                McpLogger.Log($"[EditRectTransform] Got property '{propertyName}' from {targetGo.name}: {value}");
 
                 return Response.Success(
                     $"RectTransform property '{propertyName}' retrieved successfully from {targetGo.name}.",

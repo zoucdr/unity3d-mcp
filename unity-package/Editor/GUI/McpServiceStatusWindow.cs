@@ -80,12 +80,12 @@ namespace Unity.Mcp.Gui
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Unity MCP Services", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // 日志开关
-            bool newEnableLog = EditorGUILayout.ToggleLeft("日志", McpService.GetEnableLog(), GUILayout.Width(60));
-            if (newEnableLog != McpService.GetEnableLog())
+            // 日志级别下拉菜单
+            var currentLogLevel = McpLogger.GetLogLevel();
+            var newLogLevel = (McpLogger.LogLevel)EditorGUILayout.EnumPopup("日志级别", currentLogLevel, GUILayout.Width(150));
+            if (newLogLevel != currentLogLevel)
             {
-                McpService.SetEnableLog(newEnableLog);
-                EditorPrefs.SetBool("mcp_enable_log", newEnableLog);
+                McpLogger.SetLogLevel(newLogLevel);
             }
             EditorGUILayout.EndHorizontal();
             var installStatusRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(20));
@@ -309,7 +309,7 @@ namespace Unity.Mcp.Gui
             }
 
             // 等待0.5秒确保资源释放（不能在try-catch中使用yield return）
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1);
 
             EditorUtility.DisplayProgressBar("重启MCP服务器", "正在启动服务器...", 0.7f);
 

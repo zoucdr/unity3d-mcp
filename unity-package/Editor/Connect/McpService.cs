@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using Unity.Mcp.Models;
 using Unity.Mcp.Executer;
+using System.Collections;
 
 namespace Unity.Mcp
 {
@@ -31,17 +32,22 @@ namespace Unity.Mcp
             }
         }
 
-        private HttpListener listener;
+        private List<HttpListener> listeners = new List<HttpListener>();
         private bool isRunning = false;
         private readonly object lockObj = new();
         private Dictionary<
             string,
             (string commandJson, TaskCompletionSource<string> tcs)
         > commandQueue = new();
-        public static readonly int unityPortStart = 8100; // Start of port range
+         public static readonly int unityPortStart = 8101; // Start of port range
         public static readonly int unityPortEnd = 8105;   // End of port range
         private List<int> activePorts = new(); // Successfully started ports
         public bool IsRunning => isRunning;
+        
+        // 缓存McpTool类型和实例
+        private readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
+        //通用函数执行
+        private ToolsCall methodsCall = new ToolsCall();
 
         // 获取所有活动端口的只读列表
         public List<int> ActivePorts
@@ -76,6 +82,23 @@ namespace Unity.Mcp
             }
         }
 
+        [InitializeOnLoadMethod]
+        static void AutoInit()
+        {
+            // 确保在编辑器中运行时，McpService 的静态构造函数被调用
+            if (Application.isEditor)
+            {
+                _ =  Instance;
+            }
+        }
+
+        // 实例析构函数
+        ~McpService()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= ForceStop;
+            ForceStop();
+        }
+
         // 静态访问器，方便外部调用
         public static int GetConnectedClientCount()
         {
@@ -96,69 +119,20 @@ namespace Unity.Mcp
             return Instance.GetConnectedClients();
         }
 
-        // 客户端信息类
-        public class ClientInfo
-        {
-            public string Id { get; set; }
-            public string EndPoint { get; set; }
-            public DateTime ConnectedAt { get; set; }
-            public DateTime LastActivity { get; set; }
-            public int CommandCount { get; set; }
-        }
-
-        // 缓存McpTool类型和实例
-        private readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
-        //通用函数执行
-        private ToolsCall methodsCall = new ToolsCall();
-        // 在 Unity.Mcp 类中添加日志开关
-        private bool enableLog = false;
-        public static bool EnableLog
-        {
-            get { return Instance.enableLog; }
-            set { Instance.enableLog = value; }
-        }
-
-        // 静态访问器，方便外部调用
-        public static bool GetEnableLog()
-        {
-            return EnableLog;
-        }
-
-        public static void SetEnableLog(bool value)
-        {
-            EnableLog = value;
-        }
-
         // 统一的日志输出方法
         private void Log(string message)
         {
-            if (enableLog) Debug.Log(message);
+            McpLogger.Log(message);
         }
 
         private void LogWarning(string message)
         {
-            if (enableLog) Debug.LogWarning(message);
+            McpLogger.LogWarning(message);
         }
 
         private void LogError(string message)
         {
-            if (enableLog) Debug.LogError(message);
-        }
-
-        // 静态日志方法，方便外部调用
-        public static void LogMessage(string message)
-        {
-            Instance.Log(message);
-        }
-
-        public static void LogWarningMessage(string message)
-        {
-            Instance.LogWarning(message);
-        }
-
-        public static void LogErrorMessage(string message)
-        {
-            Instance.LogError(message);
+            McpLogger.LogError(message);
         }
 
         public static bool FolderExists(string path)
@@ -186,39 +160,45 @@ namespace Unity.Mcp
             // 初始化实例
             if (EditorPrefs.HasKey("mcp_open_state") && EditorPrefs.GetBool("mcp_open_state"))
             {
-                StartService();
+                CoroutineRunner.StartCoroutine(StartServiceDelay());
             }
+            //监听程序集刷新前事件
+            AssemblyReloadEvents.beforeAssemblyReload += ForceStop;
         }
 
-        // 实例析构函数
-        ~McpService()
+        private IEnumerator StartServiceDelay()
         {
-            ForceStop();
+            yield return new WaitForSeconds(1f);
+            if (!isRunning)
+                StartService();
         }
-
         /// <summary>
         /// 强制停止服务，确保资源完全释放
         /// </summary>
         private void ForceStop()
         {
-            if(isRunning)
+            Log("[Unity.Mcp] 正在强制停止服务...");
+            if (isRunning)
             {
                 Stop();
             }
 
             // 额外确保 HttpListener 被释放
-            if (listener != null)
+            if (listeners.Count > 0)
             {
-                try
+                foreach (var l in listeners)
                 {
-                    listener.Close();
-                    listener = null;
-                    Debug.Log("[Unity.Mcp] HttpListener 已强制关闭");
+                    try
+                    {
+                        l.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[Unity.Mcp] 强制关闭 HttpListener 时发生错误: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[Unity.Mcp] 强制关闭 HttpListener 时发生错误: {ex.Message}");
-                }
+                listeners.Clear();
+                Debug.Log("[Unity.Mcp] 所有 HttpListeners 已强制关闭");
             }
 
             // 确保标记为已停止
@@ -258,7 +238,7 @@ namespace Unity.Mcp
         public void Start()
         {
             // 从EditorPrefs读取日志设置，默认为false
-            enableLog = EditorPrefs.GetBool("mcp_enable_log", false);
+            var enableLog = EditorPrefs.GetBool("mcp_enable_log", false);
             Debug.Log($"[Unity.Mcp] <color=green>正在启动UnityMcp HTTP服务器...</color>");
 
             // 确保先停止现有服务
@@ -274,44 +254,42 @@ namespace Unity.Mcp
             }
 
             // 创建 HttpListener 并尝试监听所有端口
-            listener = new HttpListener();
+            listeners.Clear();
             activePorts.Clear();
 
             // 记录被占用的端口
             List<int> occupiedPorts = new List<int>();
 
-            // 第一轮：检查端口占用情况
+            // 尝试为每个端口创建一个监听器
             for (int port = unityPortStart; port <= unityPortEnd; port++)
             {
                 if (IsPortInUse(port))
                 {
                     Debug.LogWarning($"[Unity.Mcp] <color=orange>端口 {port} 被占用</color>");
                     occupiedPorts.Add(port);
-                }
-            }
-
-            // 尝试添加所有未被占用的端口
-            for (int port = unityPortStart; port <= unityPortEnd; port++)
-            {
-                if (occupiedPorts.Contains(port))
                     continue;
+                }
 
                 try
                 {
-                    // 同时添加 localhost 和 127.0.0.1 前缀
-                    string prefix1 = $"http://127.0.0.1:{port}/";
-                    listener.Prefixes.Add(prefix1);
+                    var listener = new HttpListener();
+                    string prefix = $"http://127.0.0.1:{port}/";
+                    listener.Prefixes.Add(prefix);
+                    listener.Start();
+                    listeners.Add(listener);
                     activePorts.Add(port);
+                    Task.Run(() => ListenerLoop(listener));
+                    Log($"[Unity.Mcp] 成功在端口 {port} 启动监听。");
                 }
                 catch (Exception ex)
                 {
-                    LogWarning($"[Unity.Mcp] 无法添加端口 {port}: {ex.Message}");
+                    LogWarning($"[Unity.Mcp] 无法在端口 {port} 启动监听: {ex.Message}");
                 }
             }
 
             if (activePorts.Count == 0)
             {
-                Debug.LogError($"[Unity.Mcp] <color=red>无法添加任何监听端口 ({unityPortStart}-{unityPortEnd})，所有端口都被占用</color>");
+                Debug.LogError($"[Unity.Mcp] <color=red>无法添加任何监听端口 ({unityPortStart}-{unityPortEnd})，所有端口都被占用或启动失败</color>");
 
                 // 显示占用端口信息
                 if (occupiedPorts.Count > 0)
@@ -323,39 +301,17 @@ namespace Unity.Mcp
                 return;
             }
 
-            try
-            {
-                listener.Start();
-                isRunning = true;
+            isRunning = true;
+            // 增加更明显的启动日志，不受EnableLog影响
+            string portsInfo = string.Join(", ", activePorts);
+            Debug.Log($"[Unity.Mcp] <color=green>HTTP服务器成功启动!</color> 监听端口: {portsInfo}");
 
-                // 增加更明显的启动日志，不受EnableLog影响
-                string portsInfo = string.Join(", ", activePorts);
-                Debug.Log($"[Unity.Mcp] <color=green>HTTP服务器成功启动!</color> 监听端口: {portsInfo}");
+            // 保存状态到 EditorPrefs
+            EditorPrefs.SetBool("mcp_open_state", true);
 
-                // 保存状态到 EditorPrefs
-                EditorPrefs.SetBool("mcp_open_state", true);
-
-                // Start the listener loop and command processing
-                Task.Run(ListenerLoop);
-                EditorApplication.update += ProcessCommands;
-                Log($"[Unity.Mcp] 启动完成，监听循环已开始，命令处理已注册");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[Unity.Mcp] <color=red>启动HTTP监听器失败: {ex.Message}</color>");
-                isRunning = false;
-                activePorts.Clear();
-                try
-                {
-                    listener?.Stop();
-                    listener?.Close();
-                }
-                catch { }
-                listener = null;
-
-                // 保存状态到 EditorPrefs
-                EditorPrefs.SetBool("mcp_open_state", false);
-            }
+            // Start the command processing
+            EditorApplication.update += ProcessCommands;
+            Log($"[Unity.Mcp] 启动完成，命令处理已注册");
         }
 
         // 静态方法，方便外部调用
@@ -367,7 +323,7 @@ namespace Unity.Mcp
         // 实例方法
         public void Stop()
         {
-            if (!isRunning && listener == null)
+            if (!isRunning && listeners.Count == 0)
             {
                 return;
             }
@@ -405,25 +361,24 @@ namespace Unity.Mcp
                 }
 
                 // 关闭和释放 HttpListener
-                if (listener != null)
+                if (listeners.Count > 0)
                 {
-                    try
+                    foreach (var l in listeners)
                     {
-                        // 先停止接受新请求
-                        listener.Stop();
-                        Debug.Log("[Unity.Mcp] HttpListener 已停止接受新请求");
-
-                        // 关闭监听器
-                        listener.Close();
-                        Debug.Log("[Unity.Mcp] HttpListener 已关闭");
-
-                        // 释放引用
-                        listener = null;
+                        try
+                        {
+                            // 先停止接受新请求
+                            l.Stop();
+                            // 关闭监听器
+                            l.Close();
+                        }
+                        catch (Exception listenerEx)
+                        {
+                            Debug.LogError($"[Unity.Mcp] 关闭 HttpListener 时发生错误: {listenerEx.Message}");
+                        }
                     }
-                    catch (Exception listenerEx)
-                    {
-                        Debug.LogError($"[Unity.Mcp] 关闭 HttpListener 时发生错误: {listenerEx.Message}");
-                    }
+                    listeners.Clear();
+                    Debug.Log("[Unity.Mcp] 所有 HttpListeners 已关闭");
                 }
 
                 // 标记状态
@@ -441,7 +396,7 @@ namespace Unity.Mcp
 
                 // 确保状态正确
                 isRunning = false;
-                listener = null;
+                listeners.Clear();
                 activePorts.Clear();
             }
         }
@@ -452,11 +407,11 @@ namespace Unity.Mcp
             Instance.Stop();
         }
 
-        private async Task ListenerLoop()
+        private async Task ListenerLoop(HttpListener listener)
         {
-            Log($"[Unity.Mcp] HTTP监听循环已启动");
+            Log($"[Unity.Mcp] HTTP监听循环已启动 on port {(listener.Prefixes.FirstOrDefault() ?? "N/A").Split(':')[2].Trim('/')}");
 
-            while (isRunning)
+            while (isRunning && listener.IsListening)
             {
                 try
                 {
@@ -476,6 +431,12 @@ namespace Unity.Mcp
                     {
                         Log($"[Unity.Mcp] HTTP监听器已停止");
                     }
+                    break; // Exit loop if listener is closed or has an error
+                }
+                catch (ObjectDisposedException)
+                {
+                    Log($"[Unity.Mcp] HTTP监听器已被释放，循环终止。");
+                    break; // Exit loop if listener is disposed
                 }
                 catch (Exception ex)
                 {
@@ -486,7 +447,7 @@ namespace Unity.Mcp
                 }
             }
 
-            Log($"[Unity.Mcp] HTTP监听循环已结束");
+            Log($"[Unity.Mcp] HTTP监听循环已结束 on port {(listener.Prefixes.FirstOrDefault() ?? "N/A").Split(':')[2].Trim('/')}");
         }
 
         /// <summary>
@@ -1136,5 +1097,16 @@ namespace Unity.Mcp
             }
         }
     }
+    
+   // 客户端信息类
+   public class ClientInfo
+   {
+       public string Id { get; set; }
+       public string EndPoint { get; set; }
+       public DateTime ConnectedAt { get; set; }
+       public DateTime LastActivity { get; set; }
+       public int CommandCount { get; set; }
+   }
 }
+
 

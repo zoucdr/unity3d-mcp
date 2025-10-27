@@ -1244,7 +1244,7 @@ log_level: str = "DEBUG"
 #### Unity控制台调试
 ```csharp
 // 在Unity中启用详细日志
-McpService.EnableLog = true;
+McpLogger.EnableLog = true;
 ```
 
 #### 网络抓包分析

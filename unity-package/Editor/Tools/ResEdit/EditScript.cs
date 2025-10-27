@@ -68,12 +68,12 @@ namespace Unity.Mcp.Tools
                 if (dirResult != null)
                     return dirResult;
 
-                LogInfo($"[ManageScript] Creating script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
+                McpLogger.Log($"[ManageScript] Creating script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
                 return CreateScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents, scriptInfo.NamespaceName);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Create action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Create action failed: {e}");
                 return Response.Error($"Internal error processing create action: {e.Message}");
             }
         }
@@ -89,12 +89,12 @@ namespace Unity.Mcp.Tools
                 if (scriptInfo.ErrorResponse != null)
                     return scriptInfo.ErrorResponse;
 
-                LogInfo($"[ManageScript] Reading script at '{scriptInfo.RelativePath}'");
+                McpLogger.Log($"[ManageScript] Reading script at '{scriptInfo.RelativePath}'");
                 return ReadScript(scriptInfo.FullPath, scriptInfo.RelativePath);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Read action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Read action failed: {e}");
                 return Response.Error($"Internal error processing read action: {e.Message}");
             }
         }
@@ -110,12 +110,12 @@ namespace Unity.Mcp.Tools
                 if (scriptInfo.ErrorResponse != null)
                     return scriptInfo.ErrorResponse;
 
-                LogInfo($"[ManageScript] Modifying script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
+                McpLogger.Log($"[ManageScript] Modifying script '{scriptInfo.Name}.cs' at '{scriptInfo.RelativePath}'");
                 return ModifyScript(scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name, scriptInfo.Contents);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Modify action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Modify action failed: {e}");
                 return Response.Error($"Internal error processing modify action: {e.Message}");
             }
         }
@@ -131,12 +131,12 @@ namespace Unity.Mcp.Tools
                 if (scriptInfo.ErrorResponse != null)
                     return scriptInfo.ErrorResponse;
 
-                LogInfo($"[ManageScript] Deleting script at '{scriptInfo.RelativePath}'");
+                McpLogger.Log($"[ManageScript] Deleting script at '{scriptInfo.RelativePath}'");
                 return DeleteScript(scriptInfo.FullPath, scriptInfo.RelativePath);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Delete action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Delete action failed: {e}");
                 return Response.Error($"Internal error processing delete action: {e.Message}");
             }
         }
@@ -154,7 +154,7 @@ namespace Unity.Mcp.Tools
                     return Response.Error("Query parameter is required for search action.");
                 }
 
-                LogInfo($"[ManageScript] Searching for types matching '{query}'");
+                McpLogger.Log($"[ManageScript] Searching for types matching '{query}'");
                 var searchResults = SearchTypes(query);
 
                 return Response.Success(
@@ -164,7 +164,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Search action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Search action failed: {e}");
                 return Response.Error($"Internal error processing search action: {e.Message}");
             }
         }
@@ -311,12 +311,12 @@ namespace Unity.Mcp.Tools
                 if (dirResult != null)
                     return dirResult;
 
-                LogInfo($"[ManageScript] Importing script from '{scriptInfo.SourcePath}' to '{scriptInfo.RelativePath}'");
+                McpLogger.Log($"[ManageScript] Importing script from '{scriptInfo.SourcePath}' to '{scriptInfo.RelativePath}'");
                 return ImportScript(scriptInfo.SourcePath, scriptInfo.FullPath, scriptInfo.RelativePath, scriptInfo.Name);
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ManageScript] Import action failed: {e}");
+                McpLogger.LogError($"[ManageScript] Import action failed: {e}");
                 return Response.Error($"Internal error processing import action: {e.Message}");
             }
         }
@@ -348,7 +348,7 @@ namespace Unity.Mcp.Tools
             {
                 // Optionally return a specific error or warning about syntax
                 // return Response.Error("Provided script content has potential syntax errors.");
-                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being created: {name}");
+                McpLogger.LogWarning($"Potential syntax error in script being created: {name}");
             }
 
             try
@@ -418,7 +418,7 @@ namespace Unity.Mcp.Tools
             // Validate syntax (basic check)
             if (!ValidateScriptSyntax(contents))
             {
-                if (McpService.EnableLog) Debug.LogWarning($"Potential syntax error in script being modified: {name}");
+                McpLogger.LogWarning($"Potential syntax error in script being modified: {name}");
                 // Consider if this should be a hard error or just a warning
             }
 
@@ -647,7 +647,7 @@ namespace Unity.Mcp.Tools
                 catch (Exception ex)
                 {
                     // 记录错误但继续处理其他程序集
-                    if (McpService.EnableLog) Debug.LogWarning($"Error searching in assembly {assembly.FullName}: {ex.Message}");
+                    McpLogger.LogWarning($"Error searching in assembly {assembly.FullName}: {ex.Message}");
                 }
             }
 

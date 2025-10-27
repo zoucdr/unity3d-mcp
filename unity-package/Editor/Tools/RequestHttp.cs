@@ -75,7 +75,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetRequest(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Executing GET request");
+            McpLogger.Log("[RequestHttp] Executing GET request");
             return ExecuteHttpRequest(ctx, "GET");
         }
 
@@ -84,7 +84,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandlePostRequest(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Executing POST request");
+            McpLogger.Log("[RequestHttp] Executing POST request");
             return ExecuteHttpRequest(ctx, "POST");
         }
 
@@ -93,7 +93,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandlePutRequest(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Executing PUT request");
+            McpLogger.Log("[RequestHttp] Executing PUT request");
             return ExecuteHttpRequest(ctx, "PUT");
         }
 
@@ -102,7 +102,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleDeleteRequest(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Executing DELETE request");
+            McpLogger.Log("[RequestHttp] Executing DELETE request");
             return ExecuteHttpRequest(ctx, "DELETE");
         }
 
@@ -111,7 +111,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleDownloadFile(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Starting coroutine file download");
+            McpLogger.Log("[RequestHttp] Starting coroutine file download");
             return DownloadFileCoroutine(ctx);
         }
 
@@ -137,7 +137,7 @@ namespace Unity.Mcp.Tools
                 return null;
             }
 
-            LogInfo($"[RequestHttp] 启动协程下载: {url}");
+            McpLogger.Log($"[RequestHttp] 启动协程下载: {url}");
 
             // 启动协程下载
             CoroutineRunner.StartCoroutine(DownloadFileAsync(url, savePath, timeout, (result) =>
@@ -154,7 +154,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleUploadFile(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Starting file upload");
+            McpLogger.Log("[RequestHttp] Starting file upload");
             return UploadFile(ctx);
         }
 
@@ -163,7 +163,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandlePingRequest(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Executing PING request");
+            McpLogger.Log("[RequestHttp] Executing PING request");
             return PingHost(ctx);
         }
 
@@ -172,7 +172,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleBatchDownload(StateTreeContext ctx)
         {
-            LogInfo("[RequestHttp] Starting coroutine batch download");
+            McpLogger.Log("[RequestHttp] Starting coroutine batch download");
             return BatchDownloadCoroutine(ctx);
         }
 
@@ -197,7 +197,7 @@ namespace Unity.Mcp.Tools
                 return null;
             }
 
-            LogInfo($"[RequestHttp] 启动协程批量下载");
+            McpLogger.Log($"[RequestHttp] 启动协程批量下载");
 
             // 启动协程批量下载
             CoroutineRunner.StartCoroutine(BatchDownloadAsync(ctx, (result) =>
@@ -611,7 +611,7 @@ namespace Unity.Mcp.Tools
         IEnumerator DownloadFileAsync(string url, string savePath, float timeout, Action<JsonClass> callback,
             Action<float> progressCallback = null, StateTreeContext ctx = null)
         {
-            LogInfo($"[RequestHttp] 开始协程下载: {url}");
+            McpLogger.Log($"[RequestHttp] 开始协程下载: {url}");
 
             // 参数验证
             if (string.IsNullOrEmpty(url))
@@ -701,7 +701,7 @@ namespace Unity.Mcp.Tools
                             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                         }
 
-                        LogInfo($"[RequestHttp] 协程下载成功: {Path.GetFileName(fullSavePath)}");
+                        McpLogger.Log($"[RequestHttp] 协程下载成功: {Path.GetFileName(fullSavePath)}");
 
                         // 成功回调 - 使用ProcessHttpResponse获得一致的文件路径返回
                         var response = ProcessHttpResponse(request, fullSavePath);
@@ -773,7 +773,7 @@ namespace Unity.Mcp.Tools
                 yield break;
             }
 
-            LogInfo($"[RequestHttp] 开始批量协程下载 {urls.Length} 个文件到: {fullSaveDirectory}");
+            McpLogger.Log($"[RequestHttp] 开始批量协程下载 {urls.Length} 个文件到: {fullSaveDirectory}");
 
             var downloadResults = new List<object>();
             var errors = new List<string>();
@@ -803,7 +803,7 @@ namespace Unity.Mcp.Tools
 
                 string filePath = Path.Combine(fullSaveDirectory, fileName);
 
-                LogInfo($"[RequestHttp] 协程下载文件 {i + 1}/{total}: {url}");
+                McpLogger.Log($"[RequestHttp] 协程下载文件 {i + 1}/{total}: {url}");
 
                 activeDownloads++;
 
@@ -839,7 +839,7 @@ namespace Unity.Mcp.Tools
                         completed++;
                         activeDownloads--;
 
-                        LogInfo($"[RequestHttp] 批量下载进度: {completed}/{total} ({(completed * 100f / total):F1}%)");
+                        McpLogger.Log($"[RequestHttp] 批量下载进度: {completed}/{total} ({(completed * 100f / total):F1}%)");
                     }
                 }, null, ctx));
             }
@@ -870,7 +870,7 @@ namespace Unity.Mcp.Tools
                 }
             );
 
-            LogInfo($"[RequestHttp] 批量协程下载完成: {successCount}/{total} 成功");
+            McpLogger.Log($"[RequestHttp] 批量协程下载完成: {successCount}/{total} 成功");
             callback?.Invoke(finalResult);
         }
 
@@ -1209,7 +1209,7 @@ namespace Unity.Mcp.Tools
                 var downloadResults = new List<object>();
                 var errors = new List<string>();
 
-                LogInfo($"[RequestHttp] 开始批量下载 {urls.Length} 个文件到 {fullSaveDirectory}");
+                McpLogger.Log($"[RequestHttp] 开始批量下载 {urls.Length} 个文件到 {fullSaveDirectory}");
 
                 // 逐个下载文件
                 for (int i = 0; i < urls.Length; i++)
@@ -1240,7 +1240,7 @@ namespace Unity.Mcp.Tools
                         if (ctx["basic_auth"]?.ToString() != null) downloadArgs["basic_auth"] = ctx.JsonData["basic_auth"];
                         if (ctx["user_agent"]?.ToString() != null) downloadArgs["user_agent"] = ctx.JsonData["user_agent"];
 
-                        LogInfo($"[RequestHttp] 下载文件 {i + 1}/{urls.Length}: {url}");
+                        McpLogger.Log($"[RequestHttp] 下载文件 {i + 1}/{urls.Length}: {url}");
 
                         // 调用单个文件下载方法
                         var downloadContext = new StateTreeContext(downloadArgs);
@@ -1259,7 +1259,7 @@ namespace Unity.Mcp.Tools
 
                         // 每下载完成一个文件，立即输出日志并刷新控制台
                         string statusMessage = downloadSuccess ? "✅ 成功" : "❌ 失败";
-                        LogInfo($"[RequestHttp] 文件 {i + 1}/{urls.Length} {statusMessage}: {fileName}");
+                        McpLogger.Log($"[RequestHttp] 文件 {i + 1}/{urls.Length} {statusMessage}: {fileName}");
 
                         // 强制刷新Unity控制台，让用户实时看到进度
                         System.Threading.Thread.Yield(); // 让Unity有时间处理日志显示

@@ -112,7 +112,7 @@ namespace Unity.Mcp.Tools
                 AssetDatabase.CreateAsset(material, fullPath);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageMaterial] Created material at '{fullPath}' with shader '{shader.name}'");
+                McpLogger.Log($"[ManageMaterial] Created material at '{fullPath}' with shader '{shader.name}'");
                 return Response.Success($"Material '{fullPath}' created successfully.", GetMaterialData(fullPath));
             }
             catch (Exception e)
@@ -149,7 +149,7 @@ namespace Unity.Mcp.Tools
                 {
                     EditorUtility.SetDirty(material);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManageMaterial] Set properties on material at '{fullPath}'");
+                    McpLogger.Log($"[ManageMaterial] Set properties on material at '{fullPath}'");
                     return Response.Success($"Material '{fullPath}' properties set successfully.", GetMaterialData(fullPath));
                 }
                 else
@@ -193,7 +193,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.CopyAsset(sourcePath, destPath);
                 if (success)
                 {
-                    LogInfo($"[ManageMaterial] Duplicated material from '{sourcePath}' to '{destPath}'");
+                    McpLogger.Log($"[ManageMaterial] Duplicated material from '{sourcePath}' to '{destPath}'");
                     return Response.Success($"Material '{sourcePath}' duplicated to '{destPath}'.", GetMaterialData(destPath));
                 }
                 else
@@ -266,7 +266,7 @@ namespace Unity.Mcp.Tools
                     results.Add(GetMaterialData(assetPath));
                 }
 
-                LogInfo($"[ManageMaterial] Found {results.Count} material(s)");
+                McpLogger.Log($"[ManageMaterial] Found {results.Count} material(s)");
                 return Response.Success($"Found {results.Count} material(s).", results);
             }
             catch (Exception e)
@@ -346,7 +346,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(destMaterial);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageMaterial] Copied properties from '{sourceFullPath}' to '{destFullPath}'");
+                McpLogger.Log($"[ManageMaterial] Copied properties from '{sourceFullPath}' to '{destFullPath}'");
                 return Response.Success($"Material properties copied from '{sourceFullPath}' to '{destFullPath}'.", GetMaterialData(destFullPath));
             }
             catch (Exception e)
@@ -389,7 +389,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(material);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageMaterial] Changed shader to '{shader.name}' on material '{fullPath}'");
+                McpLogger.Log($"[ManageMaterial] Changed shader to '{shader.name}' on material '{fullPath}'");
                 return Response.Success($"Shader changed to '{shader.name}' on material '{fullPath}'.", GetMaterialData(fullPath));
             }
             catch (Exception e)
@@ -423,7 +423,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(material);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageMaterial] Enabled keyword '{keyword}' on material '{fullPath}'");
+                McpLogger.Log($"[ManageMaterial] Enabled keyword '{keyword}' on material '{fullPath}'");
                 return Response.Success($"Keyword '{keyword}' enabled on material '{fullPath}'.", GetMaterialData(fullPath));
             }
             catch (Exception e)
@@ -457,7 +457,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(material);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageMaterial] Disabled keyword '{keyword}' on material '{fullPath}'");
+                McpLogger.Log($"[ManageMaterial] Disabled keyword '{keyword}' on material '{fullPath}'");
                 return Response.Success($"Keyword '{keyword}' disabled on material '{fullPath}'.", GetMaterialData(fullPath));
             }
             catch (Exception e)

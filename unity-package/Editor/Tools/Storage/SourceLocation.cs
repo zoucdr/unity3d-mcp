@@ -90,12 +90,12 @@ namespace Unity.Mcp.Tools.Storage
                 // 使用Unity内置方法在系统文件浏览器中显示
                 EditorUtility.RevealInFinder(fullPath);
 
-                LogInfo($"[SourceLocation] Revealed in finder: {fullPath}");
+                McpLogger.Log($"[SourceLocation] Revealed in finder: {fullPath}");
                 return Response.Success($"Revealed in finder: {assetPath}", new { assetPath, fullPath });
             }
             catch (Exception e)
             {
-                LogInfo($"[SourceLocation] Error revealing in finder: {e.Message}");
+                McpLogger.Log($"[SourceLocation] Error revealing in finder: {e.Message}");
                 return Response.Error($"Error revealing in finder: {e.Message}");
             }
         }
@@ -145,12 +145,12 @@ namespace Unity.Mcp.Tools.Storage
                     Verb = "open"
                 });
 
-                LogInfo($"[SourceLocation] Opened folder: {fullPath}");
+                McpLogger.Log($"[SourceLocation] Opened folder: {fullPath}");
                 return Response.Success($"Opened folder: {folderPath}", new { folderPath, fullPath });
             }
             catch (Exception e)
             {
-                LogInfo($"[SourceLocation] Error opening folder: {e.Message}");
+                McpLogger.Log($"[SourceLocation] Error opening folder: {e.Message}");
                 return Response.Error($"Error opening folder: {e.Message}");
             }
         }
@@ -201,7 +201,7 @@ namespace Unity.Mcp.Tools.Storage
                 // 在Project或Hierarchy窗口中高亮显示
                 EditorGUIUtility.PingObject(targetObject);
 
-                LogInfo($"[SourceLocation] Pinged object: {targetObject.name}");
+                McpLogger.Log($"[SourceLocation] Pinged object: {targetObject.name}");
                 return Response.Success($"Pinged object: {targetObject.name}", new
                 {
                     name = targetObject.name,
@@ -211,7 +211,7 @@ namespace Unity.Mcp.Tools.Storage
             }
             catch (Exception e)
             {
-                LogInfo($"[SourceLocation] Error ping asset: {e.Message}");
+                McpLogger.Log($"[SourceLocation] Error ping asset: {e.Message}");
                 return Response.Error($"Error ping asset: {e.Message}");
             }
         }
@@ -263,7 +263,7 @@ namespace Unity.Mcp.Tools.Storage
                 Selection.activeObject = targetObject;
                 EditorGUIUtility.PingObject(targetObject);
 
-                LogInfo($"[SourceLocation] Selected object: {targetObject.name}");
+                McpLogger.Log($"[SourceLocation] Selected object: {targetObject.name}");
                 return Response.Success($"Selected object: {targetObject.name}", new
                 {
                     name = targetObject.name,
@@ -274,7 +274,7 @@ namespace Unity.Mcp.Tools.Storage
             }
             catch (Exception e)
             {
-                LogInfo($"[SourceLocation] Error selecting asset: {e.Message}");
+                McpLogger.Log($"[SourceLocation] Error selecting asset: {e.Message}");
                 return Response.Error($"Error selecting asset: {e.Message}");
             }
         }
@@ -337,12 +337,12 @@ namespace Unity.Mcp.Tools.Storage
                     isSceneObject = string.IsNullOrEmpty(assetPath)
                 };
 
-                LogInfo($"[SourceLocation] Got asset path: {targetObject.name}");
+                McpLogger.Log($"[SourceLocation] Got asset path: {targetObject.name}");
                 return Response.Success($"Retrieved path for: {targetObject.name}", pathInfo);
             }
             catch (Exception e)
             {
-                LogInfo($"[SourceLocation] Error getting asset path: {e.Message}");
+                McpLogger.Log($"[SourceLocation] Error getting asset path: {e.Message}");
                 return Response.Error($"Error getting asset path: {e.Message}");
             }
         }

@@ -114,7 +114,7 @@ namespace Unity.Mcp.Tools
                 AssetDatabase.CreateAsset(clip, fullPath);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[ManageAnimClip] Created animation clip at '{fullPath}' with length {length}s and frame rate {frameRate}fps");
+                McpLogger.Log($"[ManageAnimClip] Created animation clip at '{fullPath}' with length {length}s and frame rate {frameRate}fps");
                 return Response.Success($"Animation clip '{fullPath}' created successfully.", GetAnimClipData(fullPath));
             }
             catch (Exception e)
@@ -169,7 +169,7 @@ namespace Unity.Mcp.Tools
                 {
                     EditorUtility.SetDirty(clip);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManageAnimClip] Modified animation clip at '{fullPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Modified animation clip at '{fullPath}'");
                     return Response.Success($"Animation clip '{fullPath}' modified successfully.", GetAnimClipData(fullPath));
                 }
                 else
@@ -213,7 +213,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.CopyAsset(sourcePath, destPath);
                 if (success)
                 {
-                    LogInfo($"[ManageAnimClip] Duplicated animation clip from '{sourcePath}' to '{destPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Duplicated animation clip from '{sourcePath}' to '{destPath}'");
                     return Response.Success($"Animation clip '{sourcePath}' duplicated to '{destPath}'.", GetAnimClipData(destPath));
                 }
                 else
@@ -243,7 +243,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.DeleteAsset(fullPath);
                 if (success)
                 {
-                    LogInfo($"[ManageAnimClip] Deleted animation clip at '{fullPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Deleted animation clip at '{fullPath}'");
                     return Response.Success($"Animation clip '{fullPath}' deleted successfully.");
                 }
                 else
@@ -314,7 +314,7 @@ namespace Unity.Mcp.Tools
                     results.Add(GetAnimClipData(assetPath));
                 }
 
-                LogInfo($"[ManageAnimClip] Found {results.Count} animation clip(s)");
+                McpLogger.Log($"[ManageAnimClip] Found {results.Count} animation clip(s)");
                 return Response.Success($"Found {results.Count} animation clip(s).", results);
             }
             catch (Exception e)
@@ -351,7 +351,7 @@ namespace Unity.Mcp.Tools
                 {
                     EditorUtility.SetDirty(clip);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManageAnimClip] Set curves on animation clip '{fullPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Set curves on animation clip '{fullPath}'");
                     return Response.Success($"Curves set on animation clip '{fullPath}'.", GetAnimClipData(fullPath));
                 }
                 else
@@ -393,7 +393,7 @@ namespace Unity.Mcp.Tools
                 {
                     EditorUtility.SetDirty(clip);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManageAnimClip] Set events on animation clip '{fullPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Set events on animation clip '{fullPath}'");
                     return Response.Success($"Events set on animation clip '{fullPath}'.", GetAnimClipData(fullPath));
                 }
                 else
@@ -435,7 +435,7 @@ namespace Unity.Mcp.Tools
                 {
                     EditorUtility.SetDirty(clip);
                     AssetDatabase.SaveAssets();
-                    LogInfo($"[ManageAnimClip] Set settings on animation clip '{fullPath}'");
+                    McpLogger.Log($"[ManageAnimClip] Set settings on animation clip '{fullPath}'");
                     return Response.Success($"Settings set on animation clip '{fullPath}'.", GetAnimClipData(fullPath));
                 }
                 else

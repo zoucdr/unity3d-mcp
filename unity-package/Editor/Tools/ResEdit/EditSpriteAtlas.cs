@@ -75,7 +75,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Creating sprite atlas at '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Creating sprite atlas at '{atlasPath}'");
             return CreateSpriteAtlas(args, atlasPath);
         }
 
@@ -91,7 +91,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Adding sprites to atlas '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Adding sprites to atlas '{atlasPath}'");
             return AddSpritesToAtlas(args, atlasPath);
         }
 
@@ -107,7 +107,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Removing sprites from atlas '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Removing sprites from atlas '{atlasPath}'");
             return RemoveSpritesFromAtlas(args, atlasPath);
         }
 
@@ -123,7 +123,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Setting atlas settings for '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Setting atlas settings for '{atlasPath}'");
             return SetAtlasSettings(args, atlasPath);
         }
 
@@ -139,7 +139,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Getting atlas settings for '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Getting atlas settings for '{atlasPath}'");
             return GetAtlasSettings(atlasPath);
         }
 
@@ -155,7 +155,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'atlas_path' parameter is required.");
             }
 
-            LogInfo($"[EditSpriteAtlas] Packing atlas '{atlasPath}'");
+            McpLogger.Log($"[EditSpriteAtlas] Packing atlas '{atlasPath}'");
             return PackAtlas(atlasPath);
         }
 
@@ -220,7 +220,7 @@ namespace Unity.Mcp.Tools
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
-                LogInfo($"[EditSpriteAtlas] Successfully created sprite atlas at '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Successfully created sprite atlas at '{atlasPath}'");
                 return Response.Success($"Sprite Atlas created at '{atlasPath}'.");
             }
             catch (Exception e)
@@ -312,7 +312,7 @@ namespace Unity.Mcp.Tools
                     AssetDatabase.Refresh();
                 }
 
-                LogInfo($"[EditSpriteAtlas] Added {objectsToAdd.Count} objects to sprite atlas '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Added {objectsToAdd.Count} objects to sprite atlas '{atlasPath}'");
                 return Response.Success($"Added {objectsToAdd.Count} objects to sprite atlas '{atlasPath}'.");
             }
             catch (Exception e)
@@ -392,7 +392,7 @@ namespace Unity.Mcp.Tools
                     AssetDatabase.Refresh();
                 }
 
-                LogInfo($"[EditSpriteAtlas] Removed {objectsToRemove.Count} objects from sprite atlas '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Removed {objectsToRemove.Count} objects from sprite atlas '{atlasPath}'");
                 return Response.Success($"Removed {objectsToRemove.Count} objects from sprite atlas '{atlasPath}'.");
             }
             catch (Exception e)
@@ -423,7 +423,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(atlas);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[EditSpriteAtlas] Successfully applied settings to sprite atlas '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Successfully applied settings to sprite atlas '{atlasPath}'");
                 return Response.Success($"Settings applied to sprite atlas '{atlasPath}'.");
             }
             catch (Exception e)
@@ -503,7 +503,7 @@ namespace Unity.Mcp.Tools
                     settings.Add("platformSettings", platformSettings);
                 }
 
-                LogInfo($"[EditSpriteAtlas] Successfully retrieved settings for sprite atlas '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Successfully retrieved settings for sprite atlas '{atlasPath}'");
                 return Response.Success($"Retrieved settings for sprite atlas '{atlasPath}'.", settings);
             }
             catch (Exception e)
@@ -531,7 +531,7 @@ namespace Unity.Mcp.Tools
                 EditorUtility.SetDirty(atlas);
                 UnityEditor.U2D.SpriteAtlasUtility.PackAtlases(new[] { atlas }, EditorUserBuildSettings.activeBuildTarget);
 
-                LogInfo($"[EditSpriteAtlas] Successfully packed sprite atlas '{atlasPath}'");
+                McpLogger.Log($"[EditSpriteAtlas] Successfully packed sprite atlas '{atlasPath}'");
                 return Response.Success($"Packed sprite atlas '{atlasPath}'.");
             }
             catch (Exception e)
@@ -639,7 +639,7 @@ namespace Unity.Mcp.Tools
                     if (Enum.TryParse<TextureImporterFormat>(formatStr, true, out TextureImporterFormat format))
                     {
                         platformSettings.format = format;
-                        LogInfo($"[EditSpriteAtlas] Set format to {format} for platform '{platform}'");
+                        McpLogger.Log($"[EditSpriteAtlas] Set format to {format} for platform '{platform}'");
                     }
                     else
                     {
@@ -651,7 +651,7 @@ namespace Unity.Mcp.Tools
                     // 如果没有指定格式，使用平台推荐的默认格式
                     TextureImporterFormat defaultFormat = GetDefaultFormatForPlatform(platform);
                     platformSettings.format = defaultFormat;
-                    LogInfo($"[EditSpriteAtlas] Using default format {defaultFormat} for platform '{platform}'");
+                    McpLogger.Log($"[EditSpriteAtlas] Using default format {defaultFormat} for platform '{platform}'");
                 }
 
                 // 设置压缩质量（默认50）
@@ -659,19 +659,19 @@ namespace Unity.Mcp.Tools
                 if (compressionQuality >= 0 && compressionQuality <= 100)
                 {
                     platformSettings.compressionQuality = compressionQuality;
-                    LogInfo($"[EditSpriteAtlas] Set compression quality to {compressionQuality} for platform '{platform}'");
+                    McpLogger.Log($"[EditSpriteAtlas] Set compression quality to {compressionQuality} for platform '{platform}'");
                 }
                 else
                 {
                     // 如果没有指定，使用默认值50
                     platformSettings.compressionQuality = 50;
-                    LogInfo($"[EditSpriteAtlas] Using default compression quality 50 for platform '{platform}'");
+                    McpLogger.Log($"[EditSpriteAtlas] Using default compression quality 50 for platform '{platform}'");
                 }
 
                 // 应用平台设置
                 atlas.SetPlatformSettings(platformSettings);
 
-                LogInfo($"[EditSpriteAtlas] Applied platform settings for '{platform}': maxSize={platformSettings.maxTextureSize}, format={platformSettings.format}, quality={platformSettings.compressionQuality}, override={platformSettings.overridden}");
+                McpLogger.Log($"[EditSpriteAtlas] Applied platform settings for '{platform}': maxSize={platformSettings.maxTextureSize}, format={platformSettings.format}, quality={platformSettings.compressionQuality}, override={platformSettings.overridden}");
             }
             catch (Exception e)
             {

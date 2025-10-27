@@ -93,7 +93,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleExecuteCode(StateTreeContext ctx)
         {
-            LogInfo("[CodeRunner] Executing C# code");
+            McpLogger.Log("[CodeRunner] Executing C# code");
             // 为C#代码执行设置超时时间（90秒）
             return ctx.AsyncReturn(ExecuteCodeCoroutine(ctx.JsonData), 90f);
         }
@@ -103,7 +103,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleValidateCode(StateTreeContext ctx)
         {
-            LogInfo("[CodeRunner] Validating C# code");
+            McpLogger.Log("[CodeRunner] Validating C# code");
             // 为C#代码验证设置超时时间（30秒）
             return ctx.AsyncReturn(ValidateCodeCoroutine(ctx.JsonData), 30f);
         }
@@ -142,7 +142,7 @@ namespace Unity.Mcp.Tools
                 bool cleanup = args["cleanup"].AsBoolDefault(true);
                 bool returnOutput = args["return_output"].AsBoolDefault(true);
 
-                LogInfo($"[CodeRunner] Executing method: {namespaceName}.{className}.{methodName}");
+                McpLogger.Log($"[CodeRunner] Executing method: {namespaceName}.{className}.{methodName}");
 
                 // 使用协程执行代码
                 yield return ExecuteCodeCoroutineInternal(code, className, methodName, namespaceName, includes, parameters, timeout, cleanup, returnOutput,
@@ -188,7 +188,7 @@ namespace Unity.Mcp.Tools
 
                 var includes = (args["includes"] as JsonArray)?.ToStringList()?.ToArray() ?? new string[0];
 
-                LogInfo($"[CodeRunner] Validating code class: {namespaceName}.{className}");
+                McpLogger.Log($"[CodeRunner] Validating code class: {namespaceName}.{className}");
 
                 // 在协程外部处理异常
                 validationResult = null;
@@ -198,7 +198,7 @@ namespace Unity.Mcp.Tools
                 try
                 {
                     fullCode = GenerateFullCode(code, className, methodName, namespaceName, includes);
-                    LogInfo($"[CodeRunner] Generated code for validation");
+                    McpLogger.Log($"[CodeRunner] Generated code for validation");
                 }
                 catch (Exception e)
                 {
@@ -273,7 +273,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 fullCode = GenerateFullCode(code, className, methodName, namespaceName, includes);
-                LogInfo($"[CodeRunner] Generated complete code");
+                McpLogger.Log($"[CodeRunner] Generated complete code");
             }
             catch (Exception e)
             {
@@ -372,7 +372,7 @@ namespace Unity.Mcp.Tools
             if (isCompleteCode)
             {
                 // 如果是完整代码，直接返回，不添加任何包装
-                LogInfo("[CodeRunner] 检测到完整代码，直接使用");
+                McpLogger.Log("[CodeRunner] 检测到完整代码，直接使用");
                 return code;
             }
 
@@ -406,7 +406,7 @@ namespace Unity.Mcp.Tools
                 if (!allIncludes.Contains(extracted))
                 {
                     allIncludes.Add(extracted);
-                    LogInfo($"[CodeRunner] 自动添加命名空间: {extracted}");
+                    McpLogger.Log($"[CodeRunner] 自动添加命名空间: {extracted}");
                 }
             }
 
@@ -423,7 +423,7 @@ namespace Unity.Mcp.Tools
                     if (trimmedLine.Contains("="))
                     {
                         existingTypeAliases.Add(trimmedLine);
-                        LogInfo($"[CodeRunner] 保留类型别名声明: {trimmedLine}");
+                        McpLogger.Log($"[CodeRunner] 保留类型别名声明: {trimmedLine}");
                     }
                     else
                     {
@@ -432,7 +432,7 @@ namespace Unity.Mcp.Tools
                         if (!allIncludes.Contains(usingNamespace))
                         {
                             allIncludes.Add(usingNamespace);
-                            LogInfo($"[CodeRunner] 提取using语句: {usingNamespace}");
+                            McpLogger.Log($"[CodeRunner] 提取using语句: {usingNamespace}");
                         }
                     }
                 }
@@ -453,7 +453,7 @@ namespace Unity.Mcp.Tools
                 if (!allIncludes.Contains(analyzed))
                 {
                     allIncludes.Add(analyzed);
-                    LogInfo($"[CodeRunner] 自动添加命名空间: {analyzed}");
+                    McpLogger.Log($"[CodeRunner] 自动添加命名空间: {analyzed}");
                 }
             }
 
@@ -522,7 +522,7 @@ namespace Unity.Mcp.Tools
             else
             {
                 // 顶层语句代码 - 包装在方法中
-                LogInfo("[CodeRunner] 检测到顶层语句，包装为方法");
+                McpLogger.Log("[CodeRunner] 检测到顶层语句，包装为方法");
                 var noReturn = !code.ToLower().Contains("return") || code.ToLower().Contains("return;");
                 var returnType = noReturn ? "void" : "object";
                 sb.AppendLine($"        public static {returnType} {methodName}()");
@@ -558,10 +558,10 @@ namespace Unity.Mcp.Tools
             var generatedCode = sb.ToString();
 
             // 输出生成的完整代码用于调试
-            LogInfo($"[CodeRunner] Generated code ({generatedCode.Length} chars):");
-            LogInfo($"[CodeRunner] ===== Generated Code Start =====");
-            LogInfo(generatedCode);
-            LogInfo($"[CodeRunner] ===== Generated Code End =====");
+            McpLogger.Log($"[CodeRunner] Generated code ({generatedCode.Length} chars):");
+            McpLogger.Log($"[CodeRunner] ===== Generated Code Start =====");
+            McpLogger.Log(generatedCode);
+            McpLogger.Log($"[CodeRunner] ===== Generated Code End =====");
 
             return generatedCode;
         }
@@ -596,7 +596,7 @@ namespace Unity.Mcp.Tools
                     // 默认使用UnityEngine命名空间
                     string aliasStatement = $"using {typeName} = {namespaces.Item2}.{typeName};";
                     typeAliases.Add(aliasStatement);
-                    LogInfo($"[CodeRunner] 添加类型别名: {aliasStatement}");
+                    McpLogger.Log($"[CodeRunner] 添加类型别名: {aliasStatement}");
                 }
             }
 
@@ -609,13 +609,13 @@ namespace Unity.Mcp.Tools
         private IEnumerator CompileCodeCoroutine(string code, System.Action<string, string> onTempFilesCreated, System.Action<bool, ReflectionAssembly, string[], CompilerMessage[]> callback)
         {
             // 打印最终参与编译的完整代码
-            LogInfo($"[CodeRunner] ========================================");
-            LogInfo($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
-            LogInfo($"[CodeRunner] ========================================");
-            LogInfo(code);
-            LogInfo($"[CodeRunner] ========================================");
-            LogInfo($"[CodeRunner] 代码打印完成");
-            LogInfo($"[CodeRunner] ========================================");
+            McpLogger.Log($"[CodeRunner] ========================================");
+            McpLogger.Log($"[CodeRunner] 最终编译代码 ({code.Length} 字符):");
+            McpLogger.Log($"[CodeRunner] ========================================");
+            McpLogger.Log(code);
+            McpLogger.Log($"[CodeRunner] ========================================");
+            McpLogger.Log($"[CodeRunner] 代码打印完成");
+            McpLogger.Log($"[CodeRunner] ========================================");
 
             // 创建基于代码内容的临时目录
             var baseDir = Path.Combine(Application.temporaryCachePath, "CodeRunner");
@@ -643,14 +643,14 @@ namespace Unity.Mcp.Tools
                 // 检查是否已经存在编译好的程序集
                 if (File.Exists(tempAssemblyPath))
                 {
-                    LogInfo($"[CodeRunner] 发现已编译的程序集，直接加载: {tempAssemblyPath}");
+                    McpLogger.Log($"[CodeRunner] 发现已编译的程序集，直接加载: {tempAssemblyPath}");
                     try
                     {
                         var assemblyBytes = File.ReadAllBytes(tempAssemblyPath);
                         if (assemblyBytes.Length > 0)
                         {
                             var loadedAssembly = ReflectionAssembly.Load(assemblyBytes);
-                            LogInfo($"[CodeRunner] 程序集重用成功: {assemblyBytes.Length} bytes");
+                            McpLogger.Log($"[CodeRunner] 程序集重用成功: {assemblyBytes.Length} bytes");
                             callback(true, loadedAssembly, null, null);
                             yield break;
                         }
@@ -665,8 +665,8 @@ namespace Unity.Mcp.Tools
 
                 // 写入代码到临时文件
                 File.WriteAllText(tempFilePath, code);
-                LogInfo($"[CodeRunner] 临时文件路径: {tempFilePath}");
-                LogInfo($"[CodeRunner] 目标程序集路径: {tempAssemblyPath}");
+                McpLogger.Log($"[CodeRunner] 临时文件路径: {tempFilePath}");
+                McpLogger.Log($"[CodeRunner] 目标程序集路径: {tempAssemblyPath}");
 
             }
             catch (Exception e)
@@ -683,7 +683,7 @@ namespace Unity.Mcp.Tools
 
                 // 收集程序集引用
                 var references = new List<string>();
-                LogInfo("[CodeRunner] 开始收集程序集引用...");
+                McpLogger.Log("[CodeRunner] 开始收集程序集引用...");
 
                 foreach (var assembly in CompilationPipeline.GetAssemblies())
                 {
@@ -713,18 +713,18 @@ namespace Unity.Mcp.Tools
                 references.Add(typeof(UnityEditor.EditorApplication).Assembly.Location);
 
                 var uniqueReferences = references.Distinct().Where(r => !string.IsNullOrEmpty(r) && File.Exists(r)).ToArray();
-                LogInfo($"[CodeRunner] 收集到 {uniqueReferences.Length} 个有效引用");
+                McpLogger.Log($"[CodeRunner] 收集到 {uniqueReferences.Length} 个有效引用");
 
                 assemblyBuilder.referencesOptions = ReferencesOptions.UseEngineModules;
                 assemblyBuilder.additionalReferences = uniqueReferences;
 
                 // 记录详细的编译参数
-                LogInfo($"[CodeRunner] 编译参数:");
-                LogInfo($"  - 源文件: {tempFilePath}");
-                LogInfo($"  - 目标程序集: {tempAssemblyPath}");
-                LogInfo($"  - 引用选项: {assemblyBuilder.referencesOptions}");
-                LogInfo($"  - 额外引用数量: {uniqueReferences.Length}");
-                LogInfo($"  - 前20个引用: {string.Join(", ", uniqueReferences.Take(477).Select(Path.GetFileName))}");
+                McpLogger.Log($"[CodeRunner] 编译参数:");
+                McpLogger.Log($"  - 源文件: {tempFilePath}");
+                McpLogger.Log($"  - 目标程序集: {tempAssemblyPath}");
+                McpLogger.Log($"  - 引用选项: {assemblyBuilder.referencesOptions}");
+                McpLogger.Log($"  - 额外引用数量: {uniqueReferences.Length}");
+                McpLogger.Log($"  - 前20个引用: {string.Join(", ", uniqueReferences.Take(477).Select(Path.GetFileName))}");
             }
             catch (Exception e)
             {
@@ -734,7 +734,7 @@ namespace Unity.Mcp.Tools
             }
 
             // 启动编译
-            LogInfo("[CodeRunner] 尝试启动编译...");
+            McpLogger.Log("[CodeRunner] 尝试启动编译...");
             bool started = false;
 
             // 用于存储编译消息的变量
@@ -744,7 +744,7 @@ namespace Unity.Mcp.Tools
             // 添加编译事件监听
             System.Action<object> buildStarted = (context) =>
             {
-                EditorApplication.delayCall += () => LogInfo($"[CodeRunner] 编译开始");
+                EditorApplication.delayCall += () => McpLogger.Log($"[CodeRunner] 编译开始");
             };
 
             System.Action<string, CompilerMessage[]> buildFinished = (assemblyPath, messages) =>
@@ -753,20 +753,20 @@ namespace Unity.Mcp.Tools
                 compilationFinished = true;
                 EditorApplication.delayCall += () =>
                 {
-                    LogInfo($"[CodeRunner] 编译完成: {assemblyPath}");
+                    McpLogger.Log($"[CodeRunner] 编译完成: {assemblyPath}");
                     if (messages != null && messages.Length > 0)
                     {
-                        LogInfo($"[CodeRunner] 收到 {messages.Length} 条编译消息");
+                        McpLogger.Log($"[CodeRunner] 收到 {messages.Length} 条编译消息");
                         foreach (var msg in messages)
                         {
                             var logLevel = msg.type == CompilerMessageType.Error ? "ERROR" :
                                          msg.type == CompilerMessageType.Warning ? "WARNING" : "INFO";
-                            LogInfo($"[CodeRunner] {logLevel}: {msg.message} (Line: {msg.line}, Column: {msg.column})");
+                            McpLogger.Log($"[CodeRunner] {logLevel}: {msg.message} (Line: {msg.line}, Column: {msg.column})");
                         }
                     }
                     else
                     {
-                        LogInfo("[CodeRunner] 没有收到编译消息");
+                        McpLogger.Log("[CodeRunner] 没有收到编译消息");
                     }
                 };
             };
@@ -779,19 +779,19 @@ namespace Unity.Mcp.Tools
             try
             {
                 // 在启动编译前，先验证源文件内容
-                LogInfo($"[CodeRunner] 验证源文件: {tempFilePath}");
+                McpLogger.Log($"[CodeRunner] 验证源文件: {tempFilePath}");
                 if (File.Exists(tempFilePath))
                 {
                     sourceContent = File.ReadAllText(tempFilePath);
-                    LogInfo($"[CodeRunner] 源文件大小: {sourceContent.Length} 字符");
-                    LogInfo($"[CodeRunner] 编译的代码文件: {sourceContent}");
+                    McpLogger.Log($"[CodeRunner] 源文件大小: {sourceContent.Length} 字符");
+                    McpLogger.Log($"[CodeRunner] 编译的代码文件: {sourceContent}");
                 }
 
                 started = assemblyBuilder.Build();
-                LogInfo($"[CodeRunner] 编译启动结果: {started}");
+                McpLogger.Log($"[CodeRunner] 编译启动结果: {started}");
 
                 // 记录AssemblyBuilder的初始状态
-                LogInfo($"[CodeRunner] 初始编译状态: {assemblyBuilder.status}");
+                McpLogger.Log($"[CodeRunner] 初始编译状态: {assemblyBuilder.status}");
             }
             catch (Exception e)
             {
@@ -821,7 +821,7 @@ namespace Unity.Mcp.Tools
                 yield break;
             }
 
-            LogInfo("[CodeRunner] 编译已启动，等待完成...");
+            McpLogger.Log("[CodeRunner] 编译已启动，等待完成...");
 
             // 使用协程等待编译完成
             float timeout = 30f;
@@ -836,13 +836,13 @@ namespace Unity.Mcp.Tools
                 // 监控状态变化
                 if (assemblyBuilder.status != lastStatus)
                 {
-                    LogInfo($"[CodeRunner] 编译状态变化: {lastStatus} -> {assemblyBuilder.status}");
+                    McpLogger.Log($"[CodeRunner] 编译状态变化: {lastStatus} -> {assemblyBuilder.status}");
                     lastStatus = assemblyBuilder.status;
                 }
 
                 if (Mathf.FloorToInt(elapsedTime) != Mathf.FloorToInt(elapsedTime - 0.1f))
                 {
-                    LogInfo($"[CodeRunner] 编译中... 状态: {assemblyBuilder.status}, 已等待: {elapsedTime:F1}s");
+                    McpLogger.Log($"[CodeRunner] 编译中... 状态: {assemblyBuilder.status}, 已等待: {elapsedTime:F1}s");
                 }
             }
 
@@ -853,25 +853,25 @@ namespace Unity.Mcp.Tools
             {
                 yield return new WaitForSeconds(0.1f);
                 messageWaitTime += 0.1f;
-                LogInfo($"[CodeRunner] 等待编译消息... {messageWaitTime:F1}s");
+                McpLogger.Log($"[CodeRunner] 等待编译消息... {messageWaitTime:F1}s");
             }
 
-            LogInfo($"[CodeRunner] 编译完成, 最终状态: {assemblyBuilder.status}, 消息已接收: {compilationFinished}");
+            McpLogger.Log($"[CodeRunner] 编译完成, 最终状态: {assemblyBuilder.status}, 消息已接收: {compilationFinished}");
 
             // 处理编译结果
             if (assemblyBuilder.status == AssemblyBuilderStatus.Finished)
             {
-                LogInfo($"[CodeRunner] 编译状态为Finished，开始验证结果...");
+                McpLogger.Log($"[CodeRunner] 编译状态为Finished，开始验证结果...");
 
                 // 立即检查文件是否存在
                 var assemblyPath = assemblyBuilder.assemblyPath;
-                LogInfo($"[CodeRunner] 预期程序集路径: {assemblyPath}");
-                LogInfo($"[CodeRunner] 文件是否存在: {File.Exists(assemblyPath)}");
+                McpLogger.Log($"[CodeRunner] 预期程序集路径: {assemblyPath}");
+                McpLogger.Log($"[CodeRunner] 文件是否存在: {File.Exists(assemblyPath)}");
 
                 if (File.Exists(assemblyPath))
                 {
                     var fileInfo = new FileInfo(assemblyPath);
-                    LogInfo($"[CodeRunner] 文件大小: {fileInfo.Length} bytes, 修改时间: {fileInfo.LastWriteTime}");
+                    McpLogger.Log($"[CodeRunner] 文件大小: {fileInfo.Length} bytes, 修改时间: {fileInfo.LastWriteTime}");
                 }
 
                 yield return HandleCompilationSuccess(assemblyBuilder, compilationMessages, callback);
@@ -894,7 +894,7 @@ namespace Unity.Mcp.Tools
                 // 首先检查是否有编译消息
                 if (compilationMessages != null && compilationMessages.Length > 0)
                 {
-                    LogInfo($"[CodeRunner] 处理 {compilationMessages.Length} 条编译消息");
+                    McpLogger.Log($"[CodeRunner] 处理 {compilationMessages.Length} 条编译消息");
                     var errorMsgs = new List<string>();
                     var warningMsgs = new List<string>();
 
@@ -981,7 +981,7 @@ namespace Unity.Mcp.Tools
                         if (Directory.Exists(tempDirPath))
                         {
                             var allFiles = Directory.GetFiles(tempDirPath);
-                            LogInfo($"[CodeRunner] 临时目录文件: {string.Join(", ", allFiles.Select(Path.GetFileName))}");
+                            McpLogger.Log($"[CodeRunner] 临时目录文件: {string.Join(", ", allFiles.Select(Path.GetFileName))}");
 
                             if (!foundLog)
                             {
@@ -1038,7 +1038,7 @@ namespace Unity.Mcp.Tools
             float waitTime = 0f;
             const float maxWaitTime = 2f;
 
-            LogInfo($"[CodeRunner] 等待程序集文件生成: {assemblyPath}");
+            McpLogger.Log($"[CodeRunner] 等待程序集文件生成: {assemblyPath}");
 
             // 等待文件存在
             while (!File.Exists(assemblyPath) && waitTime < maxWaitTime)
@@ -1054,7 +1054,7 @@ namespace Unity.Mcp.Tools
                         if (Directory.Exists(tempDir))
                         {
                             var files = Directory.GetFiles(tempDir);
-                            LogInfo($"[CodeRunner] 临时目录文件 ({waitTime:F1}s): {string.Join(", ", files.Select(Path.GetFileName))}");
+                            McpLogger.Log($"[CodeRunner] 临时目录文件 ({waitTime:F1}s): {string.Join(", ", files.Select(Path.GetFileName))}");
                         }
                     }
                     catch (Exception ex)
@@ -1072,12 +1072,12 @@ namespace Unity.Mcp.Tools
                 try
                 {
                     var assemblyBytes = File.ReadAllBytes(assemblyPath);
-                    LogInfo($"[CodeRunner] 程序集文件大小: {assemblyBytes.Length} bytes");
+                    McpLogger.Log($"[CodeRunner] 程序集文件大小: {assemblyBytes.Length} bytes");
 
                     if (assemblyBytes.Length > 0)
                     {
                         var loadedAssembly = ReflectionAssembly.Load(assemblyBytes);
-                        LogInfo($"[CodeRunner] 程序集加载成功: {assemblyBytes.Length} bytes");
+                        McpLogger.Log($"[CodeRunner] 程序集加载成功: {assemblyBytes.Length} bytes");
                         callback(true, loadedAssembly, null, compilationMessages);
                     }
                     else
@@ -1113,7 +1113,7 @@ namespace Unity.Mcp.Tools
                         var dllFiles = allFiles.Where(f => f.EndsWith(".dll")).ToArray();
                         if (dllFiles.Length > 0)
                         {
-                            LogInfo($"[CodeRunner] 找到其他DLL文件: {string.Join(", ", dllFiles.Select(Path.GetFileName))}");
+                            McpLogger.Log($"[CodeRunner] 找到其他DLL文件: {string.Join(", ", dllFiles.Select(Path.GetFileName))}");
                             errorMessages.Add($"Other DLL files found: {string.Join(", ", dllFiles.Select(Path.GetFileName))}");
                         }
 
@@ -1168,7 +1168,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 var types = assembly.GetTypes();
-                LogInfo($"[CodeRunner] 在完整代码中找到 {types.Length} 个类型");
+                McpLogger.Log($"[CodeRunner] 在完整代码中找到 {types.Length} 个类型");
 
                 foreach (var type in types)
                 {
@@ -1179,7 +1179,7 @@ namespace Unity.Mcp.Tools
                         if (method.IsSpecialName || method.Name.StartsWith("get_") || method.Name.StartsWith("set_"))
                             continue;
 
-                        LogInfo($"[CodeRunner] 尝试执行方法: {type.FullName}.{method.Name}");
+                        McpLogger.Log($"[CodeRunner] 尝试执行方法: {type.FullName}.{method.Name}");
 
                         var executionResult = new ExecutionResult
                         {
@@ -1226,10 +1226,10 @@ namespace Unity.Mcp.Tools
                             executionResult.Message = "Method executed successfully";
                             executionResult.ReturnValue = returnValue;
 
-                            LogInfo($"[CodeRunner] 方法 {method.Name} 执行成功");
+                            McpLogger.Log($"[CodeRunner] 方法 {method.Name} 执行成功");
                             if (returnValue != null)
                             {
-                                LogInfo($"[CodeRunner] 方法返回值: {returnValue}");
+                                McpLogger.Log($"[CodeRunner] 方法返回值: {returnValue}");
                             }
                         }
                         catch (TargetInvocationException tie)
@@ -1262,7 +1262,7 @@ namespace Unity.Mcp.Tools
                             executionResult.Duration = (DateTime.Now - startTime).TotalMilliseconds;
                         }
 
-                        LogInfo($"[CodeRunner] 方法 {method.Name}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
+                        McpLogger.Log($"[CodeRunner] 方法 {method.Name}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
 
                         // 保存第一个结果（无论成功或失败）
                         if (result == null)
@@ -1419,12 +1419,12 @@ namespace Unity.Mcp.Tools
                 executionResult.Message = "Code executed successfully";
                 executionResult.ReturnValue = returnValue;
 
-                LogInfo($"[CodeRunner] Method {methodName} executed successfully");
+                McpLogger.Log($"[CodeRunner] Method {methodName} executed successfully");
 
                 // 如果方法执行了Unity相关操作，确保它们被正确记录
                 if (returnValue != null)
                 {
-                    LogInfo($"[CodeRunner] Method returned: {returnValue}");
+                    McpLogger.Log($"[CodeRunner] Method returned: {returnValue}");
                 }
             }
             catch (TargetInvocationException tie)
@@ -1457,7 +1457,7 @@ namespace Unity.Mcp.Tools
                 executionResult.Duration = (DateTime.Now - startTime).TotalMilliseconds;
             }
 
-            LogInfo($"[CodeRunner] Method {methodName}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
+            McpLogger.Log($"[CodeRunner] Method {methodName}: {(executionResult.Success ? "SUCCESS" : "FAILED")} ({executionResult.Duration:F2}ms)");
 
             return executionResult;
         }
@@ -1666,7 +1666,7 @@ namespace Unity.Mcp.Tools
                         // 如果是ambiguousTypes中的类型，添加别名声明
                         string aliasStatement = $"using {typeName} = {namespaceName}.{typeName};";
                         typeAliases.Add(aliasStatement);
-                        LogInfo($"[CodeRunner] 添加类型别名: {aliasStatement}");
+                        McpLogger.Log($"[CodeRunner] 添加类型别名: {aliasStatement}");
 
                         // 同时添加可能冲突的命名空间
                         if (namespaces.Item1 != namespaceName)
@@ -1679,12 +1679,12 @@ namespace Unity.Mcp.Tools
             var result = additionalIncludes.ToArray();
             if (result.Length > 0)
             {
-                LogInfo($"[CodeRunner] 代码分析发现额外需要的命名空间: {string.Join(", ", result)}");
+                McpLogger.Log($"[CodeRunner] 代码分析发现额外需要的命名空间: {string.Join(", ", result)}");
             }
 
             if (typeAliases.Count > 0)
             {
-                LogInfo($"[CodeRunner] 添加类型别名: {string.Join(", ", typeAliases)}");
+                McpLogger.Log($"[CodeRunner] 添加类型别名: {string.Join(", ", typeAliases)}");
             }
 
             // 返回命名空间列表，类型别名会在GenerateFullCode中处理
@@ -1702,7 +1702,7 @@ namespace Unity.Mcp.Tools
                 var hash = sha256.ComputeHash(bytes);
                 // 取前8个字节转换为16进制字符串
                 var hashString = BitConverter.ToString(hash, 0, 8).Replace("-", "").ToLower();
-                LogInfo($"[CodeRunner] 代码哈希值: {hashString}");
+                McpLogger.Log($"[CodeRunner] 代码哈希值: {hashString}");
                 return hashString;
             }
         }
@@ -1723,7 +1723,7 @@ namespace Unity.Mcp.Tools
                 var dllFiles = Directory.GetFiles(tempDir, "*.dll", SearchOption.AllDirectories);
                 if (dllFiles == null || dllFiles.Length == 0)
                 {
-                    LogInfo($"[CodeRunner] 临时目录中未找到dll文件，无需清理: {tempDir}");
+                    McpLogger.Log($"[CodeRunner] 临时目录中未找到dll文件，无需清理: {tempDir}");
                     return;
                 }
             }
@@ -1741,7 +1741,7 @@ namespace Unity.Mcp.Tools
                 try
                 {
                     Directory.Delete(tempDir, true);
-                    LogInfo($"[CodeRunner] 临时目录清理成功: {tempDir}");
+                    McpLogger.Log($"[CodeRunner] 临时目录清理成功: {tempDir}");
                     return; // 成功删除，退出
                 }
                 catch (IOException ex)
@@ -1749,7 +1749,7 @@ namespace Unity.Mcp.Tools
                     retryCount++;
                     if (retryCount < maxRetries)
                     {
-                        LogInfo($"[CodeRunner] 清理临时目录失败，重试 {retryCount}/{maxRetries}: {tempDir}");
+                        McpLogger.Log($"[CodeRunner] 清理临时目录失败，重试 {retryCount}/{maxRetries}: {tempDir}");
                         System.Threading.Thread.Sleep(100 * retryCount);
                     }
                     else
@@ -1844,7 +1844,7 @@ namespace Unity.Mcp.Tools
                     retryCount++;
                     if (retryCount < maxRetries)
                     {
-                        LogInfo($"[CodeRunner] Failed to clean file, retry {retryCount}/{maxRetries}: {filePath}");
+                        McpLogger.Log($"[CodeRunner] Failed to clean file, retry {retryCount}/{maxRetries}: {filePath}");
                         System.Threading.Thread.Sleep(100 * retryCount);
                     }
                     else

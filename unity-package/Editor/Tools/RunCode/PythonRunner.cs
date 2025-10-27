@@ -86,7 +86,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleExecutePython(StateTreeContext ctx)
         {
-            LogInfo("[PythonRunner] Executing Python code");
+            McpLogger.Log("[PythonRunner] Executing Python code");
             // 为Python代码执行设置超时时间（90秒）
             return ctx.AsyncReturn(ExecutePythonCoroutine(ctx.JsonData), 90f);
         }
@@ -96,7 +96,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleValidatePython(StateTreeContext ctx)
         {
-            LogInfo("[PythonRunner] Validating Python code or script");
+            McpLogger.Log("[PythonRunner] Validating Python code or script");
             // 为Python代码验证设置超时时间（30秒）
             return ctx.AsyncReturn(ValidatePythonCoroutine(ctx.JsonData), 30f);
         }
@@ -106,7 +106,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleInstallPackage(StateTreeContext ctx)
         {
-            LogInfo("[PythonRunner] Installing Python packages");
+            McpLogger.Log("[PythonRunner] Installing Python packages");
             // 为Python包安装设置超时时间（180秒）
             return ctx.AsyncReturn(InstallPackageCoroutine(ctx.JsonData), 180f);
         }
@@ -116,7 +116,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateScript(StateTreeContext ctx)
         {
-            LogInfo("[PythonRunner] Creating Python script");
+            McpLogger.Log("[PythonRunner] Creating Python script");
             // 为Python脚本创建设置超时时间（30秒）
             return ctx.AsyncReturn(CreateScriptCoroutine(ctx.JsonData), 30f);
         }
@@ -146,7 +146,7 @@ namespace Unity.Mcp.Tools
                 // 如果同时提供了两个参数，优先使用 script_path
                 if (!string.IsNullOrEmpty(pythonCode) && !string.IsNullOrEmpty(scriptPath))
                 {
-                    LogInfo("[PythonRunner] Both code and script_path provided, using script_path");
+                    McpLogger.Log("[PythonRunner] Both code and script_path provided, using script_path");
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
@@ -170,7 +170,7 @@ namespace Unity.Mcp.Tools
                         yield break;
                     }
 
-                    LogInfo($"[PythonRunner] Executing existing Python script: {scriptPath}");
+                    McpLogger.Log($"[PythonRunner] Executing existing Python script: {scriptPath}");
 
                     // 直接执行现有脚本
                     yield return ExecutePythonScript(scriptPath, pythonPath, workingDirectory, timeout, virtualEnv, (result) =>
@@ -194,7 +194,7 @@ namespace Unity.Mcp.Tools
                             {
                                 EditorApplication.delayCall += () =>
                                 {
-                                    LogInfo("[PythonRunner] Refreshing Unity project...");
+                                    McpLogger.Log("[PythonRunner] Refreshing Unity project...");
                                     AssetDatabase.Refresh();
                                 };
                             }
@@ -210,7 +210,7 @@ namespace Unity.Mcp.Tools
                 else
                 {
                     // 模式2: 从code创建临时文件并执行
-                    LogInfo($"[PythonRunner] Executing Python code as script: {scriptName}");
+                    McpLogger.Log($"[PythonRunner] Executing Python code as script: {scriptName}");
 
                     // 使用协程执行Python
                     isTemporaryFile = true;
@@ -252,7 +252,7 @@ namespace Unity.Mcp.Tools
                 // 如果同时提供了两个参数，优先使用 script_path
                 if (!string.IsNullOrEmpty(pythonCode) && !string.IsNullOrEmpty(scriptPath))
                 {
-                    LogInfo("[PythonRunner] Both code and script_path provided, using script_path for validation");
+                    McpLogger.Log("[PythonRunner] Both code and script_path provided, using script_path for validation");
                     pythonCode = null; // 清空code，优先使用script_path
                 }
 
@@ -273,13 +273,13 @@ namespace Unity.Mcp.Tools
                         yield break;
                     }
 
-                    LogInfo($"[PythonRunner] Validating existing Python script: {scriptPath}");
+                    McpLogger.Log($"[PythonRunner] Validating existing Python script: {scriptPath}");
                     targetScriptPath = scriptPath;
                 }
                 else
                 {
                     // 模式2: 从code创建临时文件并验证
-                    LogInfo($"[PythonRunner] Validating Python code as script: {scriptName}");
+                    McpLogger.Log($"[PythonRunner] Validating Python code as script: {scriptName}");
 
                     // 创建临时文件
                     var tempDir = Path.Combine(Application.temporaryCachePath, "PythonRunner");
@@ -355,7 +355,7 @@ namespace Unity.Mcp.Tools
                 yield break;
             }
 
-            LogInfo("[PythonRunner] Installing Python packages");
+            McpLogger.Log("[PythonRunner] Installing Python packages");
 
             object installResult = null;
 
@@ -429,7 +429,7 @@ namespace Unity.Mcp.Tools
                     if (!Directory.Exists(pythonDir))
                     {
                         Directory.CreateDirectory(pythonDir);
-                        LogInfo($"[PythonRunner] Created Python directory: {pythonDir}");
+                        McpLogger.Log($"[PythonRunner] Created Python directory: {pythonDir}");
                     }
                     targetPath = Path.Combine(pythonDir, scriptName);
                 }
@@ -445,10 +445,10 @@ namespace Unity.Mcp.Tools
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
-                    LogInfo($"[PythonRunner] Created directory: {directory}");
+                    McpLogger.Log($"[PythonRunner] Created directory: {directory}");
                 }
 
-                LogInfo($"[PythonRunner] Creating Python script: {targetPath}");
+                McpLogger.Log($"[PythonRunner] Creating Python script: {targetPath}");
 
                 // 写入脚本文件
                 File.WriteAllText(targetPath, pythonCode, Encoding.UTF8);
@@ -557,7 +557,7 @@ builtins.print = unity_print
 ";
                 string finalCode = encodingSolutionCode + pythonCode;
                 File.WriteAllText(tempFilePath, finalCode, Encoding.UTF8);
-                LogInfo($"[PythonRunner] 临时文件路径: {tempFilePath}");
+                McpLogger.Log($"[PythonRunner] 临时文件路径: {tempFilePath}");
 
                 onTempFileCreated?.Invoke(tempFilePath);
                 fileCreated = true;
@@ -597,7 +597,7 @@ builtins.print = unity_print
                     {
                         EditorApplication.delayCall += () =>
                         {
-                            LogInfo("[PythonRunner] Refreshing Unity project...");
+                            McpLogger.Log("[PythonRunner] Refreshing Unity project...");
                             AssetDatabase.Refresh();
                         };
                     }
@@ -634,7 +634,7 @@ builtins.print = unity_print
             {
                 if (File.Exists(path))
                 {
-                    LogInfo($"[PythonRunner] Found Python at: {path}");
+                    McpLogger.Log($"[PythonRunner] Found Python at: {path}");
                     return path;
                 }
             }
@@ -662,7 +662,7 @@ builtins.print = unity_print
                     string firstPath = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
                     if (File.Exists(firstPath))
                     {
-                        LogInfo($"[PythonRunner] Found Python via 'where': {firstPath}");
+                        McpLogger.Log($"[PythonRunner] Found Python via 'where': {firstPath}");
                         return firstPath;
                     }
                 }
@@ -697,7 +697,7 @@ builtins.print = unity_print
             if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
             {
                 pythonExecutable = FindPythonExecutable();
-                LogInfo($"[PythonRunner] Auto-detected Python: {pythonExecutable}");
+                McpLogger.Log($"[PythonRunner] Auto-detected Python: {pythonExecutable}");
             }
 
             if (!string.IsNullOrEmpty(virtualEnv))
@@ -741,8 +741,8 @@ builtins.print = unity_print
             processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
             processStartInfo.EnvironmentVariables["LC_ALL"] = "en_US.UTF-8";
 
-            LogInfo($"[PythonRunner] 执行命令: {pythonExecutable} \"{scriptPath}\"");
-            LogInfo($"[PythonRunner] 工作目录: {workingDirectory}");
+            McpLogger.Log($"[PythonRunner] 执行命令: {pythonExecutable} \"{scriptPath}\"");
+            McpLogger.Log($"[PythonRunner] 工作目录: {workingDirectory}");
 
             // 在协程外部处理进程启动异常
             try
@@ -833,7 +833,7 @@ builtins.print = unity_print
                         var currentError = errorBuilder?.ToString() ?? "";
                         if (!string.IsNullOrEmpty(currentOutput) || !string.IsNullOrEmpty(currentError))
                         {
-                            LogInfo($"[PythonRunner] 进程运行中 ({elapsedTime:F1}s), 已获得输出: {currentOutput.Length} 字符");
+                            McpLogger.Log($"[PythonRunner] 进程运行中 ({elapsedTime:F1}s), 已获得输出: {currentOutput.Length} 字符");
                         }
                     }
                 }
@@ -869,9 +869,9 @@ builtins.print = unity_print
                         result.Error = errorBuilder?.ToString() ?? "";
                         result.ExitCode = process.ExitCode;
 
-                        LogInfo($"[PythonRunner] Python script completed with exit code: {process.ExitCode}");
+                        McpLogger.Log($"[PythonRunner] Python script completed with exit code: {process.ExitCode}");
                         if (!string.IsNullOrEmpty(result.Output))
-                            LogInfo($"[PythonRunner] Output ({result.Output.Length} chars):\n{result.Output}");
+                            McpLogger.Log($"[PythonRunner] Output ({result.Output.Length} chars):\n{result.Output}");
                         if (!string.IsNullOrEmpty(result.Error))
                             LogWarning($"[PythonRunner] Error ({result.Error.Length} chars):\n{result.Error}");
                     }
@@ -907,7 +907,7 @@ builtins.print = unity_print
             if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
             {
                 pythonExecutable = FindPythonExecutable();
-                LogInfo($"[PythonRunner] Auto-detected Python for validation: {pythonExecutable}");
+                McpLogger.Log($"[PythonRunner] Auto-detected Python for validation: {pythonExecutable}");
             }
 
             if (!string.IsNullOrEmpty(virtualEnv))
@@ -938,7 +938,7 @@ builtins.print = unity_print
             processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
             processStartInfo.EnvironmentVariables["LC_ALL"] = "en_US.UTF-8";
 
-            LogInfo($"[PythonRunner] 验证语法: {pythonExecutable} -m py_compile \"{scriptPath}\"");
+            McpLogger.Log($"[PythonRunner] 验证语法: {pythonExecutable} -m py_compile \"{scriptPath}\"");
 
             Process process = null;
             StringBuilder outputBuilder = null;
@@ -1069,7 +1069,7 @@ builtins.print = unity_print
             if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
             {
                 pythonExecutable = FindPythonExecutable();
-                LogInfo($"[PythonRunner] Auto-detected Python for package install: {pythonExecutable}");
+                McpLogger.Log($"[PythonRunner] Auto-detected Python for package install: {pythonExecutable}");
             }
 
             if (!string.IsNullOrEmpty(virtualEnv))
@@ -1101,7 +1101,7 @@ builtins.print = unity_print
             processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
             processStartInfo.EnvironmentVariables["LC_ALL"] = "en_US.UTF-8";
 
-            LogInfo($"[PythonRunner] 安装包: {pythonExecutable} -m pip install {packageList}");
+            McpLogger.Log($"[PythonRunner] 安装包: {pythonExecutable} -m pip install {packageList}");
 
             Process process = null;
             StringBuilder outputBuilder = null;
@@ -1263,7 +1263,7 @@ builtins.print = unity_print
             if (string.IsNullOrEmpty(pythonExecutable) || pythonExecutable == "python")
             {
                 pythonExecutable = FindPythonExecutable();
-                LogInfo($"[PythonRunner] Auto-detected Python for requirements install: {pythonExecutable}");
+                McpLogger.Log($"[PythonRunner] Auto-detected Python for requirements install: {pythonExecutable}");
             }
 
             if (!string.IsNullOrEmpty(virtualEnv))
@@ -1294,7 +1294,7 @@ builtins.print = unity_print
             processStartInfo.EnvironmentVariables["LANG"] = "en_US.UTF-8";
             processStartInfo.EnvironmentVariables["LC_ALL"] = "en_US.UTF-8";
 
-            LogInfo($"[PythonRunner] 从requirements安装: {pythonExecutable} -m pip install -r \"{requirementsFile}\"");
+            McpLogger.Log($"[PythonRunner] 从requirements安装: {pythonExecutable} -m pip install -r \"{requirementsFile}\"");
 
             Process process = null;
             StringBuilder outputBuilder = null;
@@ -1622,7 +1622,7 @@ builtins.print = unity_print
                 try
                 {
                     File.Delete(filePath);
-                    LogInfo($"[PythonRunner] Cleaned temporary file: {filePath}");
+                    McpLogger.Log($"[PythonRunner] Cleaned temporary file: {filePath}");
                     return;
                 }
                 catch (IOException ex)
@@ -1630,7 +1630,7 @@ builtins.print = unity_print
                     retryCount++;
                     if (retryCount < maxRetries)
                     {
-                        LogInfo($"[PythonRunner] Failed to clean file, retry {retryCount}/{maxRetries}: {filePath}");
+                        McpLogger.Log($"[PythonRunner] Failed to clean file, retry {retryCount}/{maxRetries}: {filePath}");
                         System.Threading.Thread.Sleep(100 * retryCount);
                     }
                     else

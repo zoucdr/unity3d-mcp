@@ -86,7 +86,7 @@ namespace Unity.Mcp.Tools
                 }
 
                 // 使用ctx.AsyncReturn处理异步操作
-                LogInfo($"[UIRuleManage] 启动异步获取原型图片: {uiName}");
+                McpLogger.Log($"[UIRuleManage] 启动异步获取原型图片: {uiName}");
                 // 为原型图片获取设置超时时间（60秒）
                 return ctx.AsyncReturn(GetPrototypePicCoroutine(figmaObj, uiName), 60f);
             }
@@ -102,7 +102,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private IEnumerator GetPrototypePicCoroutine(UIDefineRuleObject figmaObj, string uiName)
         {
-            LogInfo($"[UIRuleManage] 启动协程获取原型图片: {uiName}");
+            McpLogger.Log($"[UIRuleManage] 启动协程获取原型图片: {uiName}");
 
             string prototypePicBase64 = null;
 
@@ -114,7 +114,7 @@ namespace Unity.Mcp.Tools
 
             bool hasPrototypePic = !string.IsNullOrEmpty(prototypePicBase64);
 
-            LogInfo($"[UIRuleManage] 原型图片加载完成: {uiName}, 成功: {hasPrototypePic}");
+            McpLogger.Log($"[UIRuleManage] 原型图片加载完成: {uiName}, 成功: {hasPrototypePic}");
 
             yield return Response.Success($"Retrieved prototype picture for UI '{uiName}'.", new
             {
@@ -166,7 +166,7 @@ namespace Unity.Mcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[UIRuleManage] Recorded modify for UI '{uiName}': {modify_desc}");
+                McpLogger.Log($"[UIRuleManage] Recorded modify for UI '{uiName}': {modify_desc}");
 
                 return Response.Success($"Modify record added to UIDefineRule for UI '{uiName}'.",
                     new
@@ -281,7 +281,7 @@ namespace Unity.Mcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[UIRuleManage] Batch recorded node renames for UI '{uiName}': {addedCount} added, {updatedCount} updated");
+                McpLogger.Log($"[UIRuleManage] Batch recorded node renames for UI '{uiName}': {addedCount} added, {updatedCount} updated");
 
                 return Response.Success($"Batch node renames recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated.",
                     new
@@ -442,7 +442,7 @@ namespace Unity.Mcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                LogInfo($"[UIRuleManage] Batch recorded downloaded sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded");
+                McpLogger.Log($"[UIRuleManage] Batch recorded downloaded sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded");
 
                 return Response.Success($"Batch downloaded sprites recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated" +
                     (autoLoadSprites ? $", {loadedSpritesCount} sprites loaded" : ""),
@@ -563,7 +563,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private IEnumerator LoadImageAsBase64(string imagePath, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 开始加载图片: {imagePath}");
+            McpLogger.Log($"[UIRuleManage] 开始加载图片: {imagePath}");
 
             // 判断是本地路径还是网络路径
             if (IsNetworkPath(imagePath))
@@ -583,7 +583,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private IEnumerator LoadNetworkImageAsBase64(string url, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 从网络加载图片: {url}");
+            McpLogger.Log($"[UIRuleManage] 从网络加载图片: {url}");
 
             using (var request = UnityWebRequest.Get(url))
             {
@@ -619,7 +619,7 @@ namespace Unity.Mcp.Tools
                         string contentType = request.GetResponseHeader("Content-Type") ?? "image/png";
                         string dataUri = $"data:{contentType};base64,{base64String}";
 
-                        LogInfo($"[UIRuleManage] 网络图片转换为Base64成功，大小: {imageData.Length} bytes");
+                        McpLogger.Log($"[UIRuleManage] 网络图片转换为Base64成功，大小: {imageData.Length} bytes");
                         callback?.Invoke(dataUri);
                     }
                     catch (Exception e)
@@ -641,7 +641,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private IEnumerator LoadLocalImageAsBase64(string filePath, Action<string> callback)
         {
-            LogInfo($"[UIRuleManage] 从本地加载图片: {filePath}");
+            McpLogger.Log($"[UIRuleManage] 从本地加载图片: {filePath}");
 
             // 规范化路径
             string fullPath = GetFullImagePath(filePath);
@@ -686,7 +686,7 @@ namespace Unity.Mcp.Tools
             string base64String = Convert.ToBase64String(imageData);
             string dataUri = $"data:{mimeType};base64,{base64String}";
 
-            LogInfo($"[UIRuleManage] 本地图片转换为Base64成功，大小: {imageData.Length} bytes");
+            McpLogger.Log($"[UIRuleManage] 本地图片转换为Base64成功，大小: {imageData.Length} bytes");
             callback?.Invoke(dataUri);
         }
 

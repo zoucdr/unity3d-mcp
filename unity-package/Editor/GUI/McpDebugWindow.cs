@@ -52,7 +52,7 @@ namespace Unity.Mcp.Gui
         // UI状态变量
         private Vector2 inputScrollPosition;
         private Vector2 resultScrollPosition;
-        private string inputJson = "{\n  \"func\": \"hierarchy_create\",\n  \"args\": {\n    \"from\": \"primitive\",\n    \"primitive_type\": \"Cube\",\n    \"name\": \"RedCube\",\n    \"position\": [\n      0,\n      0,\n      0\n    ]\n  }\n}";
+        private string inputJson = "{\n  \"func\": \"hierarchy_create\",\n  \"args\": {\n    \"source\": \"primitive\",\n    \"primitive_type\": \"Cube\",\n    \"name\": \"RedCube\",\n    \"position\": [\n      0,\n      0,\n      0\n    ]\n  }\n}";
         private string resultText = "";
         private bool showResult = false;
         private bool isExecuting = false;
@@ -304,6 +304,35 @@ namespace Unity.Mcp.Gui
             HandleSplitterEvents(headerHeight);
         }
 
+        /// <summary>
+        /// 在右上角绘制连接状态和详情按钮
+        /// </summary>
+        private void DrawConnectionStatus(Rect rect)
+        {
+            // Style for the status button, looks like a label but is clickable
+            GUIStyle statusButtonStyle = new GUIStyle(EditorStyles.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                richText = true
+            };
+
+            // Generate the status text
+            bool isRunning = McpService.Instance.IsRunning;
+            Color statusColor = isRunning ? new Color(0.2f, 0.8f, 0.2f) : Color.red;
+            string statusText = isRunning ? "已连接" : "已断开";
+            int clientCount = McpService.Instance.ConnectedClientCount;
+            var activePorts = McpService.Instance.ActivePorts;
+            string portText = activePorts.Count > 0 ? $" on port(s) {string.Join(", ", activePorts)}" : "";
+
+            string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} clients{portText})";
+
+            // Draw a single button that covers the whole area and acts as the status display
+            if (GUI.Button(rect, fullStatusText, statusButtonStyle))
+            {
+                McpServiceStatusWindow.ShowWindow();
+            }
+        }
+
         private void DrawSplitView(float headerHeight)
         {
             Rect windowRect = new Rect(0, headerHeight, position.width, position.height - headerHeight);
@@ -408,8 +437,9 @@ namespace Unity.Mcp.Gui
 
         private void DrawRightPanel(float headerHeight, Rect rect)
         {
+            var rightWidth = position.width - rect.x;
             // 先绘制标题在顶部居中
-            Rect titleRect = new Rect(rect.x, 0, position.width, headerHeight);
+            Rect titleRect = new Rect(rect.x, 0, rightWidth, headerHeight);
             GUI.BeginGroup(titleRect);
             GUILayout.BeginArea(new Rect(0, 0, titleRect.width, titleRect.height));
             GUILayout.Space(8); // 顶部间距
@@ -417,6 +447,10 @@ namespace Unity.Mcp.Gui
             GUILayout.EndArea();
             GUI.EndGroup();
 
+            // 在右上角绘制连接状态
+            Rect statusRect = new Rect(rect.x , titleRect.yMax -2 * EditorGUIUtility.singleLineHeight, rightWidth, 40);
+            // GUI.Label(statusRect, "连接状态",EditorStyles.textField);
+            DrawConnectionStatus(statusRect);
 
             GUILayout.BeginArea(rect);
 

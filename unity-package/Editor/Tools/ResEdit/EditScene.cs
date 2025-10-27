@@ -72,7 +72,7 @@ namespace Unity.Mcp.Tools
             if (pathInfo.error != null)
                 return pathInfo.error;
 
-            LogInfo($"[ManageScene] Creating scene: '{name}' at path: '{pathInfo.relativePath}'");
+            McpLogger.Log($"[ManageScene] Creating scene: '{name}' at path: '{pathInfo.relativePath}'");
             return CreateScene(pathInfo.fullPath, pathInfo.relativePath);
         }
 
@@ -94,7 +94,7 @@ namespace Unity.Mcp.Tools
             if (pathInfo.error != null)
                 return pathInfo.error;
 
-            LogInfo($"[ManageScene] Loading scene by path: '{pathInfo.relativePath}'");
+            McpLogger.Log($"[ManageScene] Loading scene by path: '{pathInfo.relativePath}'");
             return LoadScene(pathInfo.relativePath);
         }
 
@@ -112,7 +112,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'buildIndex' parameter is required when loading by build index.");
             }
 
-            LogInfo($"[ManageScene] Loading scene by build index: {buildIndex.Value}");
+            McpLogger.Log($"[ManageScene] Loading scene by build index: {buildIndex.Value}");
             return LoadScene(buildIndex.Value);
         }
 
@@ -129,7 +129,7 @@ namespace Unity.Mcp.Tools
             if (pathInfo.error != null)
                 return pathInfo.error;
 
-            LogInfo($"[ManageScene] Saving scene to path: '{pathInfo.relativePath}'");
+            McpLogger.Log($"[ManageScene] Saving scene to path: '{pathInfo.relativePath}'");
             return SaveScene(pathInfo.fullPath, pathInfo.relativePath);
         }
 
@@ -138,7 +138,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetHierarchyAction(JsonClass args)
         {
-            LogInfo("[ManageScene] Getting scene hierarchy");
+            McpLogger.Log("[ManageScene] Getting scene hierarchy");
             return GetSceneHierarchy();
         }
 
@@ -147,7 +147,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetActiveAction(JsonClass args)
         {
-            LogInfo("[ManageScene] Getting active scene info");
+            McpLogger.Log("[ManageScene] Getting active scene info");
             return GetActiveSceneInfo();
         }
 
@@ -156,7 +156,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetBuildSettingsAction(JsonClass args)
         {
-            LogInfo("[ManageScene] Getting build settings scenes");
+            McpLogger.Log("[ManageScene] Getting build settings scenes");
             return GetBuildSettingsScenes();
         }
 

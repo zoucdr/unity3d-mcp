@@ -56,7 +56,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetStateAction(JsonClass args)
         {
-            LogInfo("[BaseEditor] Getting editor state");
+            McpLogger.Log("[BaseEditor] Getting editor state");
             return GetEditorState();
         }
 
@@ -65,7 +65,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetWindowsAction(JsonClass args)
         {
-            LogInfo("[BaseEditor] Getting editor windows");
+            McpLogger.Log("[BaseEditor] Getting editor windows");
             return GetEditorWindows();
         }
 
@@ -74,7 +74,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleGetSelectionAction(JsonClass args)
         {
-            LogInfo("[BaseEditor] Getting selection");
+            McpLogger.Log("[BaseEditor] Getting selection");
             return GetSelection();
         }
 
@@ -144,7 +144,7 @@ namespace Unity.Mcp.Tools
                     }
                     catch (Exception ex)
                     {
-                        if (McpService.EnableLog) Debug.LogWarning(
+                        McpLogger.LogWarning(
                             $"Could not get info for window {window.GetType().Name}: {ex.Message}"
                         );
                     }

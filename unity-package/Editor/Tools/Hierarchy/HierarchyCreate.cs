@@ -84,7 +84,7 @@ namespace Unity.Mcp.Tools
                 yield break;
             }
 
-            LogInfo($"[HierarchyCreate] Creating GameObject source menu: '{menuPath}'");
+            McpLogger.Log($"[HierarchyCreate] Creating GameObject source menu: '{menuPath}'");
 
             if (!menuPath.StartsWith("GameObject"))
             {
@@ -102,7 +102,7 @@ namespace Unity.Mcp.Tools
             // 检查菜单执行结果
             if (!menuResult["success"].AsBoolDefault(false))
             {
-                LogInfo($"[HierarchyCreate] Menu execution failed: {menuResult}");
+                McpLogger.Log($"[HierarchyCreate] Menu execution failed: {menuResult}");
                 yield return menuResult;
                 yield break;
             }
@@ -120,7 +120,7 @@ namespace Unity.Mcp.Tools
                 if (newObject != null &&
                     (previousSelection == null || newObject.GetInstanceID() != previousSelectionID))
                 {
-                    LogInfo($"[HierarchyCreate] Found newly created object: '{newObject.name}' (ID: {newObject.GetInstanceID()}) after {retryCount} retries");
+                    McpLogger.Log($"[HierarchyCreate] Found newly created object: '{newObject.name}' (ID: {newObject.GetInstanceID()}) after {retryCount} retries");
                     break;
                 }
 
@@ -139,7 +139,7 @@ namespace Unity.Mcp.Tools
                 // 再次等待一帧，确保对象完全初始化
                 yield return null;
 
-                LogInfo($"[HierarchyCreate] Finalizing newly created object: '{newObject.name}' (ID: {newObject.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Finalizing newly created object: '{newObject.name}' (ID: {newObject.GetInstanceID()})");
 
                 // 先取消选中以退出重命名模式
                 Selection.activeGameObject = null;
@@ -159,14 +159,14 @@ namespace Unity.Mcp.Tools
 
                 // 应用其他设置（名称、位置等）
                 var finalizeResult = FinalizeGameObjectCreation(ctx.JsonData, newObject, false);
-                LogInfo($"[HierarchyCreate] Finalization result: {finalizeResult}");
+                McpLogger.Log($"[HierarchyCreate] Finalization result: {finalizeResult}");
                 yield return finalizeResult;
                 yield break;
             }
             else
             {
                 // 如果没有找到新对象，但菜单执行成功
-                LogInfo($"[HierarchyCreate] Menu executed but no new object was detected after {maxRetries} retries. Previous: {previousSelection?.name}, Current: {newObject?.name}");
+                McpLogger.Log($"[HierarchyCreate] Menu executed but no new object was detected after {maxRetries} retries. Previous: {previousSelection?.name}, Current: {newObject?.name}");
                 yield return Response.Success($"Menu item '{menuPath}' executed successfully, but no new GameObject was detected.");
                 yield break;
             }
@@ -192,7 +192,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'prefab_path' parameter is required for prefab instantiation.");
             }
 
-            LogInfo($"[HierarchyCreate] Creating GameObject source prefab: '{prefabPath}'");
+            McpLogger.Log($"[HierarchyCreate] Creating GameObject source prefab: '{prefabPath}'");
             return CreateGameObjectFromPrefab(args, prefabPath);
         }
 
@@ -206,10 +206,10 @@ namespace Unity.Mcp.Tools
             {
                 // 默认使用Cube作为基元类型
                 primitiveType = "Cube";
-                LogInfo("[HierarchyCreate] No primitive_type specified, using default: Cube");
+                McpLogger.Log("[HierarchyCreate] No primitive_type specified, using default: Cube");
             }
 
-            LogInfo($"[HierarchyCreate] Creating GameObject source primitive: '{primitiveType}'");
+            McpLogger.Log($"[HierarchyCreate] Creating GameObject source primitive: '{primitiveType}'");
             return CreateGameObjectFromPrimitive(args, primitiveType);
         }
 
@@ -218,7 +218,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateCube(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Cube primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Cube primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Cube");
         }
 
@@ -227,7 +227,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateSphere(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Sphere primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Sphere primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Sphere");
         }
 
@@ -236,7 +236,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateCylinder(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Cylinder primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Cylinder primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Cylinder");
         }
 
@@ -245,7 +245,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateCapsule(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Capsule primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Capsule primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Capsule");
         }
 
@@ -254,7 +254,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreatePlane(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Plane primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Plane primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Plane");
         }
 
@@ -263,7 +263,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleCreateQuad(JsonClass args)
         {
-            LogInfo("[HierarchyCreate] Creating Quad primitive using specialized handler");
+            McpLogger.Log("[HierarchyCreate] Creating Quad primitive using specialized handler");
             return CreateGameObjectFromPrimitive(args, "Quad");
         }
 
@@ -276,15 +276,15 @@ namespace Unity.Mcp.Tools
             if (string.IsNullOrEmpty(name))
             {
                 name = "GameObject";
-                LogInfo("[HierarchyCreate] No name specified for empty GameObject, using default: 'GameObject'");
+                McpLogger.Log("[HierarchyCreate] No name specified for empty GameObject, using default: 'GameObject'");
             }
 
-            LogInfo($"[HierarchyCreate] Creating empty GameObject: '{name}'");
+            McpLogger.Log($"[HierarchyCreate] Creating empty GameObject: '{name}'");
 
             try
             {
                 // 预先选中父对象（如果指定了）
-                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+                GameObjectUtils.PreselectParentIfSpecified(args, McpLogger.Log);
 
                 // 获取父对象
                 GameObject parentObject = Selection.activeGameObject;
@@ -292,7 +292,7 @@ namespace Unity.Mcp.Tools
                 // 检查父对象是否有RectTransform（UI元素）
                 bool parentIsUI = parentObject != null && parentObject.GetComponent<RectTransform>() != null;
 
-                LogInfo($"[HierarchyCreate] Parent is UI: {parentIsUI}, creating appropriate empty object");
+                McpLogger.Log($"[HierarchyCreate] Parent is UI: {parentIsUI}, creating appropriate empty object");
 
                 GameObject newGo = null;
 
@@ -307,7 +307,7 @@ namespace Unity.Mcp.Tools
                         newGo.transform.SetParent(parentObject.transform, false);
                     }
 
-                    LogInfo($"[HierarchyCreate] Created UI GameObject with RectTransform: '{newGo.name}'");
+                    McpLogger.Log($"[HierarchyCreate] Created UI GameObject with RectTransform: '{newGo.name}'");
                 }
                 else
                 {
@@ -320,20 +320,20 @@ namespace Unity.Mcp.Tools
                         newGo.transform.SetParent(parentObject.transform, true);
                     }
 
-                    LogInfo($"[HierarchyCreate] Created standard GameObject: '{newGo.name}'");
+                    McpLogger.Log($"[HierarchyCreate] Created standard GameObject: '{newGo.name}'");
                 }
 
                 // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Create Empty GameObject '{newGo.name}'");
 
-                LogInfo($"[HierarchyCreate] Finalizing empty object: '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Finalizing empty object: '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
                 // 应用其他设置（名称、位置等）
                 return FinalizeGameObjectCreation(args, newGo, true);
             }
             catch (Exception e)
             {
-                LogInfo($"[HierarchyCreate] Failed to create empty GameObject '{name}': {e.Message}");
+                McpLogger.Log($"[HierarchyCreate] Failed to create empty GameObject '{name}': {e.Message}");
                 return Response.Error($"Failed to create empty GameObject '{name}': {e.Message}");
             }
         }
@@ -349,7 +349,7 @@ namespace Unity.Mcp.Tools
                 return Response.Error("'copy_source' parameter is required for copy creation.");
             }
 
-            LogInfo($"[HierarchyCreate] Copying GameObject from source: '{copySource}'");
+            McpLogger.Log($"[HierarchyCreate] Copying GameObject from source: '{copySource}'");
             return CreateGameObjectFromCopy(args, copySource);
         }
 
@@ -363,20 +363,20 @@ namespace Unity.Mcp.Tools
             try
             {
                 // 预先选中父对象（如果指定了）
-                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+                GameObjectUtils.PreselectParentIfSpecified(args, McpLogger.Log);
 
                 // 处理预制体路径查找逻辑
                 string resolvedPath = ResolvePrefabPath(prefabPath);
                 if (string.IsNullOrEmpty(resolvedPath))
                 {
-                    LogInfo($"[HierarchyCreate] Prefab not found at path: '{prefabPath}'");
+                    McpLogger.Log($"[HierarchyCreate] Prefab not found at path: '{prefabPath}'");
                     return Response.Error($"Prefab not found at path: '{prefabPath}'");
                 }
 
                 GameObject prefabAsset = AssetDatabase.LoadAssetAtPath<GameObject>(resolvedPath);
                 if (prefabAsset == null)
                 {
-                    LogInfo($"[HierarchyCreate] Failed to load prefab asset at: '{resolvedPath}'");
+                    McpLogger.Log($"[HierarchyCreate] Failed to load prefab asset at: '{resolvedPath}'");
                     return Response.Error($"Failed to load prefab asset at: '{resolvedPath}'");
                 }
 
@@ -384,7 +384,7 @@ namespace Unity.Mcp.Tools
                 GameObject newGo = PrefabUtility.InstantiatePrefab(prefabAsset) as GameObject;
                 if (newGo == null)
                 {
-                    LogInfo($"[HierarchyCreate] Failed to instantiate prefab: '{resolvedPath}'");
+                    McpLogger.Log($"[HierarchyCreate] Failed to instantiate prefab: '{resolvedPath}'");
                     return Response.Error($"Failed to instantiate prefab: '{resolvedPath}'");
                 }
 
@@ -400,13 +400,13 @@ namespace Unity.Mcp.Tools
 
                 // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Instantiate Prefab '{prefabAsset.name}' as '{newGo.name}'");
-                LogInfo($"[HierarchyCreate] Instantiated prefab '{prefabAsset.name}' source path '{resolvedPath}' as '{newGo.name}'");
+                McpLogger.Log($"[HierarchyCreate] Instantiated prefab '{prefabAsset.name}' source path '{resolvedPath}' as '{newGo.name}'");
 
                 return FinalizeGameObjectCreation(args, newGo, false);
             }
             catch (Exception e)
             {
-                LogInfo($"[HierarchyCreate] Error instantiating prefab '{prefabPath}': {e.Message}");
+                McpLogger.Log($"[HierarchyCreate] Error instantiating prefab '{prefabPath}': {e.Message}");
                 return Response.Error($"Error instantiating prefab '{prefabPath}': {e.Message}");
             }
         }
@@ -419,7 +419,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 // 预先选中父对象（如果指定了）
-                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+                GameObjectUtils.PreselectParentIfSpecified(args, McpLogger.Log);
 
                 PrimitiveType type = (PrimitiveType)Enum.Parse(typeof(PrimitiveType), primitiveType, true);
                 GameObject newGo = GameObject.CreatePrimitive(type);
@@ -435,7 +435,7 @@ namespace Unity.Mcp.Tools
                 }
                 else
                 {
-                    LogInfo("[HierarchyCreate] 'name' parameter is recommended when creating a primitive.");
+                    McpLogger.Log("[HierarchyCreate] 'name' parameter is recommended when creating a primitive.");
                 }
 
                 // 注册撤销操作
@@ -444,12 +444,12 @@ namespace Unity.Mcp.Tools
             }
             catch (ArgumentException)
             {
-                LogInfo($"[HierarchyCreate] Invalid primitive type: '{primitiveType}'. Valid types: {string.Join(", ", Enum.GetNames(typeof(PrimitiveType)))}");
+                McpLogger.Log($"[HierarchyCreate] Invalid primitive type: '{primitiveType}'. Valid types: {string.Join(", ", Enum.GetNames(typeof(PrimitiveType)))}");
                 return Response.Error($"Invalid primitive type: '{primitiveType}'. Valid types: {string.Join(", ", Enum.GetNames(typeof(PrimitiveType)))}");
             }
             catch (Exception e)
             {
-                LogInfo($"[HierarchyCreate] Failed to create primitive '{primitiveType}': {e.Message}");
+                McpLogger.Log($"[HierarchyCreate] Failed to create primitive '{primitiveType}': {e.Message}");
                 return Response.Error($"Failed to create primitive '{primitiveType}': {e.Message}");
             }
         }
@@ -463,7 +463,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 // 预先选中父对象（如果指定了）
-                GameObjectUtils.PreselectParentIfSpecified(args, LogInfo);
+                GameObjectUtils.PreselectParentIfSpecified(args, McpLogger.Log);
 
                 // 查找源对象
                 GameObject sourceObject = GameObject.Find(copySource);
@@ -476,19 +476,19 @@ namespace Unity.Mcp.Tools
 
                     if (sourceObject == null)
                     {
-                        LogInfo($"[HierarchyCreate] Source GameObject '{copySource}' not found in scene");
+                        McpLogger.Log($"[HierarchyCreate] Source GameObject '{copySource}' not found in scene");
                         return Response.Error($"Source GameObject '{copySource}' not found in scene");
                     }
                 }
 
-                LogInfo($"[HierarchyCreate] Found source object: '{sourceObject.name}' (ID: {sourceObject.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Found source object: '{sourceObject.name}' (ID: {sourceObject.GetInstanceID()})");
 
                 // 复制对象
                 GameObject newGo = UnityEngine.Object.Instantiate(sourceObject);
 
                 if (newGo == null)
                 {
-                    LogInfo($"[HierarchyCreate] Failed to instantiate copy of '{copySource}'");
+                    McpLogger.Log($"[HierarchyCreate] Failed to instantiate copy of '{copySource}'");
                     return Response.Error($"Failed to instantiate copy of '{copySource}'");
                 }
 
@@ -504,19 +504,19 @@ namespace Unity.Mcp.Tools
                 else
                 {
                     // 默认使用源对象名称（Unity会自动添加(Clone)后缀）
-                    LogInfo($"[HierarchyCreate] No name specified, copied object named: '{newGo.name}'");
+                    McpLogger.Log($"[HierarchyCreate] No name specified, copied object named: '{newGo.name}'");
                 }
 
                 // 注册撤销操作
                 Undo.RegisterCreatedObjectUndo(newGo, $"Copy GameObject '{sourceObject.name}' as '{newGo.name}'");
 
-                LogInfo($"[HierarchyCreate] Successfully copied '{sourceObject.name}' to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Successfully copied '{sourceObject.name}' to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
                 return FinalizeGameObjectCreation(args, newGo, true);
             }
             catch (Exception e)
             {
-                LogInfo($"[HierarchyCreate] Error copying GameObject '{copySource}': {e.Message}");
+                McpLogger.Log($"[HierarchyCreate] Error copying GameObject '{copySource}': {e.Message}");
                 return Response.Error($"Error copying GameObject '{copySource}': {e.Message}");
             }
         }
@@ -530,7 +530,7 @@ namespace Unity.Mcp.Tools
             if (!prefabPath.Contains("/") && !prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 string prefabNameOnly = prefabPath;
-                LogInfo($"[HierarchyCreate] Searching for prefab named: '{prefabNameOnly}'");
+                McpLogger.Log($"[HierarchyCreate] Searching for prefab named: '{prefabNameOnly}'");
 
                 string[] guids = AssetDatabase.FindAssets($"t:Prefab {prefabNameOnly}");
                 if (guids.Length == 0)
@@ -540,17 +540,17 @@ namespace Unity.Mcp.Tools
                 else if (guids.Length > 1)
                 {
                     string foundPaths = string.Join(", ", guids.Select(g => AssetDatabase.GUIDToAssetPath(g)));
-                    LogInfo($"[HierarchyCreate] Multiple prefabs found matching name '{prefabNameOnly}': {foundPaths}. Using first one.");
+                    McpLogger.Log($"[HierarchyCreate] Multiple prefabs found matching name '{prefabNameOnly}': {foundPaths}. Using first one.");
                 }
 
                 string resolvedPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-                LogInfo($"[HierarchyCreate] Found prefab at path: '{resolvedPath}'");
+                McpLogger.Log($"[HierarchyCreate] Found prefab at path: '{resolvedPath}'");
                 return resolvedPath;
             }
             else if (!prefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
                 // 自动添加.prefab扩展名
-                LogInfo($"[HierarchyCreate] Adding .prefab extension to path: '{prefabPath}'");
+                McpLogger.Log($"[HierarchyCreate] Adding .prefab extension to path: '{prefabPath}'");
                 return prefabPath + ".prefab";
             }
 
@@ -569,16 +569,16 @@ namespace Unity.Mcp.Tools
 
             try
             {
-                LogInfo($"[HierarchyCreate] Starting finalization for '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Starting finalization for '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
                 // 记录变换和属性的变更
                 Undo.RecordObject(newGo.transform, "Set GameObject Transform");
                 Undo.RecordObject(newGo, "Set GameObject Properties");
 
                 // 应用通用设置（包括名称设置）
-                GameObjectUtils.ApplyCommonGameObjectSettings(args, newGo, LogInfo);
+                GameObjectUtils.ApplyCommonGameObjectSettings(args, newGo, McpLogger.Log);
 
-                LogInfo($"[HierarchyCreate] Applied settings to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Applied settings to '{newGo.name}' (ID: {newGo.GetInstanceID()})");
 
                 // 处理预制体保存
                 GameObject finalInstance = newGo;
@@ -621,7 +621,7 @@ namespace Unity.Mcp.Tools
                     }
                 };
 
-                LogInfo($"[HierarchyCreate] Finalized '{finalInstance.name}' (ID: {finalInstance.GetInstanceID()})");
+                McpLogger.Log($"[HierarchyCreate] Finalized '{finalInstance.name}' (ID: {finalInstance.GetInstanceID()})");
 
                 // 生成成功消息
                 string successMessage = GenerateCreationSuccessMessage(args, finalInstance, createdNewObject, saveAsPrefab);
@@ -649,14 +649,14 @@ namespace Unity.Mcp.Tools
             string prefabPath = args["prefab_path"]?.Value;
             if (string.IsNullOrEmpty(prefabPath))
             {
-                LogInfo("[HierarchyCreate] 'prefab_path' is required when 'save_as_prefab' is true.");
+                McpLogger.Log("[HierarchyCreate] 'prefab_path' is required when 'save_as_prefab' is true.");
                 return null;
             }
 
             string finalPrefabPath = prefabPath;
             if (!finalPrefabPath.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase))
             {
-                LogInfo($"[HierarchyCreate] Adding .prefab extension to save path: '{finalPrefabPath}'");
+                McpLogger.Log($"[HierarchyCreate] Adding .prefab extension to save path: '{finalPrefabPath}'");
                 finalPrefabPath += ".prefab";
             }
 
@@ -668,7 +668,7 @@ namespace Unity.Mcp.Tools
                 {
                     System.IO.Directory.CreateDirectory(directoryPath);
                     AssetDatabase.Refresh();
-                    LogInfo($"[HierarchyCreate] Created directory for prefab: {directoryPath}");
+                    McpLogger.Log($"[HierarchyCreate] Created directory for prefab: {directoryPath}");
 
                     // 等待Unity完成目录创建
                     //Thread.Sleep(50);
@@ -690,12 +690,12 @@ namespace Unity.Mcp.Tools
                 // 等待预制体保存完成
                 //Thread.Sleep(10);
 
-                LogInfo($"[HierarchyCreate] GameObject '{newGo.name}' saved as prefab to '{finalPrefabPath}' and instance connected.");
+                McpLogger.Log($"[HierarchyCreate] GameObject '{newGo.name}' saved as prefab to '{finalPrefabPath}' and instance connected.");
                 return finalInstance;
             }
             catch (Exception e)
             {
-                LogInfo($"[HierarchyCreate] Error saving prefab '{finalPrefabPath}': {e.Message}");
+                McpLogger.Log($"[HierarchyCreate] Error saving prefab '{finalPrefabPath}': {e.Message}");
                 UnityEngine.Object.DestroyImmediate(newGo);
                 return null;
             }

@@ -122,7 +122,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private object HandleDefaultAction(StateTreeContext args)
         {
-            LogInfo("[GameObjectModify] No action specified, using default modify action");
+            McpLogger.Log("[GameObjectModify] No action specified, using default modify action");
             if (args.TryGetValue("action", out object actionObj))
             {
                 return Response.Error("Invalid action specified: " + actionObj);
@@ -453,7 +453,7 @@ namespace Unity.Mcp.Tools
                         // Check if the error is specifically because the tag doesn't exist
                         if (ex.Message.Contains("is not defined"))
                         {
-                            LogInfo($"[GameObjectModify] Tag '{tagToSet}' not found. Attempting to create it.");
+                            McpLogger.Log($"[GameObjectModify] Tag '{tagToSet}' not found. Attempting to create it.");
                             try
                             {
                                 // Attempt to create the tag using internal utility
@@ -463,7 +463,7 @@ namespace Unity.Mcp.Tools
 
                                 // Retry setting the tag immediately after creation
                                 targetGo.tag = tagToSet;
-                                LogInfo($"[GameObjectModify] Tag '{tagToSet}' created and assigned successfully.");
+                                McpLogger.Log($"[GameObjectModify] Tag '{tagToSet}' created and assigned successfully.");
                                 return true;
                             }
                             catch (Exception innerEx)
@@ -605,7 +605,7 @@ namespace Unity.Mcp.Tools
                     target.transform.SetParent(newParent?.transform, true);
                 }
 
-                LogInfo($"[EditGameObject] Set parent of '{target.name}' to '{newParent?.name ?? "null"}'");
+                McpLogger.Log($"[EditGameObject] Set parent of '{target.name}' to '{newParent?.name ?? "null"}'");
 
                 return Response.Success(
                     $"Successfully set parent of '{target.name}' to '{newParent?.name ?? "null"}'.",
@@ -2040,7 +2040,7 @@ namespace Unity.Mcp.Tools
                 }
 
                 Undo.RegisterCreatedObjectUndo(addedComponent, $"Add Component {typeName}");
-                LogInfo($"[EditGameObject] Successfully added component '{typeName}' to '{targetGo.name}'");
+                McpLogger.Log($"[EditGameObject] Successfully added component '{typeName}' to '{targetGo.name}'");
 
                 return null; // Success
             }

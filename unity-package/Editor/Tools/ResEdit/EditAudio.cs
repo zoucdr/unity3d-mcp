@@ -132,7 +132,7 @@ namespace Unity.Mcp.Tools
                     AssetDatabase.ImportAsset(fullPath);
                 }
 
-                LogInfo($"[EditAudio] Imported audio from '{sourceFile}' to '{fullPath}'");
+                McpLogger.Log($"[EditAudio] Imported audio from '{sourceFile}' to '{fullPath}'");
                 return Response.Success($"Audio imported successfully to '{fullPath}'.", GetAudioData(fullPath));
             }
             catch (Exception e)
@@ -174,7 +174,7 @@ namespace Unity.Mcp.Tools
                 if (modified)
                 {
                     importer.SaveAndReimport();
-                    LogInfo($"[EditAudio] Modified audio import settings at '{fullPath}'");
+                    McpLogger.Log($"[EditAudio] Modified audio import settings at '{fullPath}'");
                     return Response.Success($"Audio '{fullPath}' modified successfully.", GetAudioData(fullPath));
                 }
                 else
@@ -226,7 +226,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.CopyAsset(sourcePath, destPath);
                 if (success)
                 {
-                    LogInfo($"[EditAudio] Duplicated audio from '{sourcePath}' to '{destPath}'");
+                    McpLogger.Log($"[EditAudio] Duplicated audio from '{sourcePath}' to '{destPath}'");
                     return Response.Success($"Audio '{sourcePath}' duplicated to '{destPath}'.", GetAudioData(destPath));
                 }
                 else
@@ -264,7 +264,7 @@ namespace Unity.Mcp.Tools
                 bool success = AssetDatabase.DeleteAsset(fullPath);
                 if (success)
                 {
-                    LogInfo($"[EditAudio] Deleted audio at '{fullPath}'");
+                    McpLogger.Log($"[EditAudio] Deleted audio at '{fullPath}'");
                     return Response.Success($"Audio '{fullPath}' deleted successfully.");
                 }
                 else
@@ -348,7 +348,7 @@ namespace Unity.Mcp.Tools
                 folderScope = new string[] { SanitizeAssetPath(pathScope) };
                 if (!AssetDatabase.IsValidFolder(folderScope[0]))
                 {
-                    LogInfo($"Search path '{folderScope[0]}' is not a valid folder. Searching entire project.");
+                    McpLogger.Log($"Search path '{folderScope[0]}' is not a valid folder. Searching entire project.");
                     folderScope = null;
                 }
             }
@@ -367,7 +367,7 @@ namespace Unity.Mcp.Tools
                     results.Add(GetAudioData(assetPath));
                 }
 
-                LogInfo($"[EditAudio] Found {results.Count} audio(s)");
+                McpLogger.Log($"[EditAudio] Found {results.Count} audio(s)");
                 return Response.Success($"Found {results.Count} audio(s).", results);
             }
             catch (Exception e)
@@ -409,7 +409,7 @@ namespace Unity.Mcp.Tools
                 if (modified)
                 {
                     importer.SaveAndReimport();
-                    LogInfo($"[EditAudio] Set import settings on audio '{fullPath}'");
+                    McpLogger.Log($"[EditAudio] Set import settings on audio '{fullPath}'");
                     return Response.Success($"Import settings set on audio '{fullPath}'.", GetAudioData(fullPath));
                 }
                 else
@@ -486,7 +486,7 @@ namespace Unity.Mcp.Tools
                 importer.defaultSampleSettings = settings;
                 importer.SaveAndReimport();
 
-                LogInfo($"[EditAudio] Converted audio '{fullPath}' to format '{targetFormat}'");
+                McpLogger.Log($"[EditAudio] Converted audio '{fullPath}' to format '{targetFormat}'");
                 return Response.Success($"Audio '{fullPath}' converted to format '{targetFormat}'.", GetAudioData(fullPath));
             }
             catch (Exception e)
@@ -536,7 +536,7 @@ namespace Unity.Mcp.Tools
                     // spatialize_post_effects = targetAudioClip.spatializePostEffects
                 };
 
-                LogInfo($"[EditAudio] Extracted metadata from audio '{fullPath}'");
+                McpLogger.Log($"[EditAudio] Extracted metadata from audio '{fullPath}'");
                 return Response.Success($"Audio metadata extracted from '{fullPath}'.", metadata);
             }
             catch (Exception e)
@@ -623,7 +623,7 @@ namespace Unity.Mcp.Tools
                                 bool forceToMono = settingValue.AsBool;
                                 // 注意：forceToMono 属性在某些Unity版本中可能不可用
                                 // 这里使用注释掉的方式，避免编译错误
-                                LogInfo($"[ApplyAudioImportSettings] forceToMono setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] forceToMono setting not supported in current Unity version");
                             }
                             break;
                         case "load_type":
@@ -738,7 +738,7 @@ namespace Unity.Mcp.Tools
                             {
                                 bool preloadAudioData = settingValue.AsBool;
                                 // 注意：preloadAudioData 属性在某些Unity版本中可能不可用
-                                LogInfo($"[ApplyAudioImportSettings] preloadAudioData setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] preloadAudioData setting not supported in current Unity version");
                             }
                             break;
                         case "load_in_background":
@@ -746,7 +746,7 @@ namespace Unity.Mcp.Tools
                             {
                                 bool loadInBackground = settingValue.AsBool;
                                 // 注意：loadInBackground 属性在某些Unity版本中可能不可用
-                                LogInfo($"[ApplyAudioImportSettings] loadInBackground setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] loadInBackground setting not supported in current Unity version");
                             }
                             break;
                         case "ambisonic_rendering":
@@ -759,7 +759,7 @@ namespace Unity.Mcp.Tools
                                 //     sampleSettings.ambisonicRendering = ambisonicRendering;
                                 //     modified = true;
                                 // }
-                                LogInfo($"[ApplyAudioImportSettings] ambisonicRendering setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] ambisonicRendering setting not supported in current Unity version");
                             }
                             break;
                         case "dsp_buffer_size":
@@ -783,7 +783,7 @@ namespace Unity.Mcp.Tools
                                 //         break;
                                 // }
 
-                                LogInfo($"[ApplyAudioImportSettings] DSPBufferSize enum and dspBufferSize setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] DSPBufferSize enum and dspBufferSize setting not supported in current Unity version");
                             }
                             break;
                         case "virtualize_when_silent":
@@ -796,7 +796,7 @@ namespace Unity.Mcp.Tools
                                 //     sampleSettings.virtualizeWhenSilent = virtualizeWhenSilent;
                                 //     modified = true;
                                 // }
-                                LogInfo($"[ApplyAudioImportSettings] virtualizeWhenSilent setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] virtualizeWhenSilent setting not supported in current Unity version");
                             }
                             break;
                         case "spatialize":
@@ -804,7 +804,7 @@ namespace Unity.Mcp.Tools
                             {
                                 bool spatialize = settingValue.AsBool;
                                 // 注意：spatialize 属性在某些Unity版本中可能不可用
-                                LogInfo($"[ApplyAudioImportSettings] spatialize setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] spatialize setting not supported in current Unity version");
                             }
                             break;
                         case "spatialize_post_effects":
@@ -812,14 +812,14 @@ namespace Unity.Mcp.Tools
                             {
                                 bool spatializePostEffects = settingValue.AsBool;
                                 // 注意：spatializePostEffects 属性在某些Unity版本中可能不可用
-                                LogInfo($"[ApplyAudioImportSettings] spatializePostEffects setting not supported in current Unity version");
+                                McpLogger.Log($"[ApplyAudioImportSettings] spatializePostEffects setting not supported in current Unity version");
                             }
                             break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogInfo($"[ApplyAudioImportSettings] Error setting '{settingName}': {ex.Message}");
+                    McpLogger.Log($"[ApplyAudioImportSettings] Error setting '{settingName}': {ex.Message}");
                 }
             }
 

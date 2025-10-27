@@ -574,7 +574,7 @@ namespace Unity.Mcp.Tools
                 // 方法1: 使用Unity内置的引用查找（更高效）
                 if (TryFindReferencesUsingBuiltinAPI(fullPath, targetGuid, referencingPaths, maxResults))
                 {
-                    LogInfo($"[SelectUsages] Used builtin API to find references");
+                    McpLogger.Log($"[SelectUsages] Used builtin API to find references");
                 }
                 else
                 {
@@ -646,7 +646,7 @@ namespace Unity.Mcp.Tools
             }
             catch (Exception ex)
             {
-                LogInfo($"[SelectUsages] Builtin API not available or failed: {ex.Message}");
+                McpLogger.Log($"[SelectUsages] Builtin API not available or failed: {ex.Message}");
             }
             return false;
         }
@@ -732,7 +732,7 @@ namespace Unity.Mcp.Tools
                 bool saveBeforeRefresh = args["save_before_refresh"].AsBoolDefault(true);
                 string specificPath = args["path"]?.Value;
 
-                LogInfo($"[ProjectOperate] Starting project reload with type: {refreshType}");
+                McpLogger.Log($"[ProjectOperate] Starting project reload with type: {refreshType}");
 
                 // 记录开始时间用于性能监控
                 var startTime = System.DateTime.Now;
@@ -740,7 +740,7 @@ namespace Unity.Mcp.Tools
                 // 保存所有待保存的资产
                 if (saveBeforeRefresh)
                 {
-                    LogInfo("[ProjectOperate] Saving all modified assets before refresh...");
+                    McpLogger.Log("[ProjectOperate] Saving all modified assets before refresh...");
                     AssetDatabase.SaveAssets();
                 }
 
@@ -748,7 +748,7 @@ namespace Unity.Mcp.Tools
                 switch (refreshType)
                 {
                     case "all":
-                        LogInfo("[ProjectOperate] Performing full project refresh...");
+                        McpLogger.Log("[ProjectOperate] Performing full project refresh...");
                         // 全面刷新：包括资产导入、脚本编译等
                         if (!string.IsNullOrEmpty(specificPath))
                         {
@@ -756,18 +756,18 @@ namespace Unity.Mcp.Tools
                             if (AssetExists(sanitizedPath))
                             {
                                 AssetDatabase.ImportAsset(sanitizedPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
-                                LogInfo($"[ProjectOperate] Refreshed specific path: {sanitizedPath}");
+                                McpLogger.Log($"[ProjectOperate] Refreshed specific path: {sanitizedPath}");
                             }
                             else
                             {
-                                LogInfo($"[ProjectOperate] Specified path '{specificPath}' not found, performing full refresh");
+                                McpLogger.Log($"[ProjectOperate] Specified path '{specificPath}' not found, performing full refresh");
                             }
                         }
                         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
                         break;
 
                     case "assets":
-                        LogInfo("[ProjectOperate] Performing assets-only refresh...");
+                        McpLogger.Log("[ProjectOperate] Performing assets-only refresh...");
                         // 仅刷新资产，不触发脚本重新编译
                         if (!string.IsNullOrEmpty(specificPath))
                         {
@@ -781,7 +781,7 @@ namespace Unity.Mcp.Tools
                         break;
 
                     case "scripts":
-                        LogInfo("[ProjectOperate] Performing scripts-only refresh...");
+                        McpLogger.Log("[ProjectOperate] Performing scripts-only refresh...");
                         // 主要针对脚本文件的重新编译
                         AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                         // 强制请求脚本重新编译
@@ -798,7 +798,7 @@ namespace Unity.Mcp.Tools
                 // 获取项目统计信息
                 var projectStats = GetProjectStatistics();
 
-                LogInfo($"[ProjectOperate] Project reload completed in {duration.TotalSeconds:F2} seconds");
+                McpLogger.Log($"[ProjectOperate] Project reload completed in {duration.TotalSeconds:F2} seconds");
 
                 return Response.Success(
                     $"Project reloaded successfully with type '{refreshType}' in {duration.TotalSeconds:F2} seconds.",
@@ -901,7 +901,7 @@ namespace Unity.Mcp.Tools
                     return Response.Error($"Path '{rootPath}' is not a valid folder.");
                 }
 
-                LogInfo($"[ProjectOperate] Getting folder structure for: {rootPath}");
+                McpLogger.Log($"[ProjectOperate] Getting folder structure for: {rootPath}");
 
                 var startTime = System.DateTime.Now;
 

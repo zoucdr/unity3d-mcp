@@ -96,7 +96,7 @@ namespace Unity.Mcp
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError(
+                McpLogger.LogError(
                     $"[ConsoleController] Static Initialization Failed: Could not setup reflection for LogEntries/LogEntry. Console reading/clearing will likely fail. Specific Error: {e.Message}"
                 );
                 // 将成员设置为null以防止后续的NullReferenceExceptions
@@ -143,7 +143,7 @@ namespace Unity.Mcp
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ConsoleController] Failed to clear console: {e}");
+                McpLogger.LogError($"[ConsoleController] Failed to clear console: {e}");
                 throw new InvalidOperationException($"Failed to clear console: {e.Message}", e);
             }
         }
@@ -274,7 +274,7 @@ namespace Unity.Mcp
             }
             catch (Exception e)
             {
-                if (McpService.EnableLog) Debug.LogError($"[ConsoleController] Error while retrieving log entries: {e}");
+                McpLogger.LogError($"[ConsoleController] Error while retrieving log entries: {e}");
                 // 即使在迭代期间出现错误，也要确保调用EndGettingEntries
                 try
                 {
@@ -293,7 +293,7 @@ namespace Unity.Mcp
                 }
                 catch (Exception e)
                 {
-                    if (McpService.EnableLog) Debug.LogError($"[ConsoleController] Failed to call EndGettingEntries: {e}");
+                    McpLogger.LogError($"[ConsoleController] Failed to call EndGettingEntries: {e}");
                     // 这里不返回错误，因为我们可能有有效数据，但要记录它。
                 }
             }
