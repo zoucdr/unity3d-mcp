@@ -24,10 +24,10 @@ namespace Unity.Mcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "操作类型: fetch_document(拉取节点数据), download_images(批量下载指定节点图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)", false),
+                new MethodKey("action", "操作类型: fetch_document(拉取节点数据), download_images(批量下载指定节点图片，必须使用node_imgs参数), preview(预览图片并返回base64编码，使用node_id), get_conversion_rules(获取UI框架转换规则)", false),
                 new MethodKey("file_key", "Figma文件Key", true),
-                new MethodKey("node_imgs", "节点图片映射：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。提供此参数时将直接使用指定文件名，无需额外API调用", true),
-                new MethodKey("node_id", "节点ID：用于智能扫描下载或预览的节点ID", true),
+                new MethodKey("node_imgs", "节点图片映射【必须】：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。download_images操作必须使用此参数，不允许使用node_id下载图片", true),
+                new MethodKey("node_id", "节点ID：仅用于preview操作的单个节点ID，禁止用于download_images操作", true),
                 new MethodKey("save_path", "保存路径，默认为由ProjectSettings → MCP → Figma中的img_save_to配置", true),
                 new MethodKey("image_format", "图片格式: png, jpg, svg, pdf，默认为png", true),
                 new MethodKey("image_scale", "图片缩放比例，默认为1", true),
@@ -119,13 +119,15 @@ namespace Unity.Mcp.Tools
         /// 批量下载指定节点图片功能 - 按需下载指定的节点图片
         /// 
         /// 使用方式：
-        /// 1. 在线下载：提供file_key和必需的node_id（多个用逗号分隔），直接从Figma API下载指定节点
-        /// 2. 本地JSON下载：提供file_key、node_id和local_json_path，从本地JSON文件中读取指定节点数据并下载
+        /// 1. 在线下载：提供file_key和必需的node_imgs（格式为{"节点ID":"文件名"}），直接从Figma API下载指定节点
+        /// 2. 本地JSON下载：提供file_key、node_imgs和local_json_path，从本地JSON文件中读取指定节点数据并下载
         /// 
         /// 本地JSON文件格式支持：
         /// - FetchNodes保存的完整JSON格式（包含nodes字段）
         /// - 简化后的单节点JSON数据
         /// - 包含document字段的节点数据
+        /// 
+        /// 注意：禁止使用node_id参数下载图片，必须使用node_imgs参数
         /// </summary>
         private object DownloadNodeImages(StateTreeContext ctx)
         {
@@ -149,7 +151,7 @@ namespace Unity.Mcp.Tools
             // 解析节点参数
             if (!ParseNodeParameters(nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("节点参数格式无效，请提供有效的node_id或node_imgs");
+                return Response.Error("节点参数格式无效，请提供有效的node_imgs参数（格式为{\"节点ID\":\"文件名\"}）。下载图片必须使用node_imgs参数，禁止使用node_id");
             }
 
             // 如果提供了本地JSON文件路径，则使用本地数据

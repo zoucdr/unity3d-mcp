@@ -21,7 +21,7 @@ def register_figma_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="要执行的Figma操作: fetch_document(拉取节点数据), download_images(批量下载图片), preview(预览图片并返回base64编码), get_conversion_rules(获取UI框架转换规则)",
+            description="要执行的Figma操作: fetch_document(拉取节点数据), download_images(批量下载图片，必须使用node_imgs参数), preview(预览图片并返回base64编码，使用node_id), get_conversion_rules(获取UI框架转换规则)",
             examples=["fetch_document", "download_images", "preview", "get_conversion_rules"]
         )],
         file_key: Annotated[Optional[str], Field(
@@ -31,14 +31,14 @@ def register_figma_manage_tools(mcp: FastMCP):
             examples=["abc123def456", "xyz789uvw012"]
         )] = None,
         node_imgs: Annotated[Optional[Dict[str, str]], Field(
-            title="节点图片映射",
-            description="节点名称映射，字典格式，格式为{节点ID: 文件名}。当提供此参数时，将直接使用指定的文件名，无需调用Figma API获取节点数据，提高下载效率",
+            title="节点图片映射【必须】",
+            description="【必须使用】节点ID到文件名的映射字典，格式为{节点ID: 文件名}。download_images操作必须使用此参数，禁止使用node_id下载图片。此方式无需调用Figma API获取节点数据，大幅提高下载效率",
             default=None,
             examples=[{"1:4":"image1","1:5":"image2","1:6":"image3"}, {"123:456":"login_button","789:012":"app_icon"}]
         )] = None,
         node_id: Annotated[Optional[str], Field(
-            title="节点ID",
-            description="指定节点ID，用于从该节点开始扫描所有可下载的子节点",
+            title="单个节点ID（仅用于预览）",
+            description="单个节点ID，仅用于preview操作。禁止用于download_images操作下载图片，下载图片必须使用node_imgs参数",
             default=None,
             examples=["1:2", "0:1", "123:456"]
         )] = None,
@@ -92,17 +92,25 @@ def register_figma_manage_tools(mcp: FastMCP):
         - 图片预览：下载图片并返回base64编码
         - 转换规则：获取UI框架坐标转换规则
         
-        节点参数说明：
-        - node_id: 节点ID，用于节点信息拉取（如"1:2"）
-        - node_imgs: 字典格式的节点映射（如{"1:4":"image1","1:5":"image2"}）
+        节点参数说明（重要）：
+        - node_imgs: 【必须使用】字典格式的节点映射（如{"1:4":"image1","1:5":"image2"}），下载图片时必须使用此参数，效率最高
+        - node_id: 仅用于单个图片预览(preview操作)，严禁用于下载图片(download_images操作)
+        
         preview功能说明：
         - 提供file_key和node_id，下载图片并返回base64编码
         - 返回的base64数据包含完整的data URL格式：data:image/png;base64,...
         
         下载图片功能说明：
-        - 示例 - 高效下载（直接指定文件名）:
-           action="download_images", node_imgs={"1:4":"login_button","1:5":"app_icon","1:6":"background"}
-        - 示例 - 图片预览（返回base64）:
+        - 【唯一允许的方式】批量高效下载（使用node_imgs直接指定文件名）:
+           action="download_images", 
+           node_imgs={"1:4":"login_button","1:5":"app_icon","1:6":"background"},
+           save_path="Assets/Images/Figma"
+           
+        - 【严格禁止】使用node_id下载图片:
+           ❌ 禁止使用node_id参数执行download_images操作
+           ❌ 必须使用node_imgs参数指定要下载的节点和文件名
+           
+        - 单图片预览（返回base64，这是node_id唯一允许的用途）:
           action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_id="1:4"
         
         获取转换规则功能说明：

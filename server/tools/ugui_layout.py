@@ -123,7 +123,10 @@ def register_ugui_layout_tools(mcp: FastMCP):
         5. 获取布局属性：
            {"action": "get_layout", "path": "Canvas/Button"}
            
-        注意：do_layout操作不支持tattoo相关参数，如需设置锚点预设请使用tattoo操作。
+        注意：
+            - do_layout操作不支持tattoo相关参数，如需设置锚点预设请使用tattoo操作。
+            - tattoo操作不影响当前元素视觉上的位置和大小。
+            - tattoo操作的tattoo_self参数为true时，锚点预设将基于元素当前位置而不是父容器的预设位置。
         """
         return send_to_unity("ugui_layout", {
             "instance_id": instance_id,

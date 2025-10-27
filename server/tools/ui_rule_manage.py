@@ -1,9 +1,8 @@
 """
 UI制作规则文件管理工具
-管理UI制作规则文件，包括获取原型图片、记录修改、批量记录节点重命名和已下载Sprite信息
+管理UI制作规则文件，包括记录修改、批量记录节点重命名和已下载Sprite信息
 
 支持的操作:
-- get_prototype_pic: 获取原型图片（Base64格式）
 - record_modify: 记录UI修改记录
 - record_renames: 批量记录节点重命名信息
 - get_renames: 获取节点重命名信息
@@ -25,8 +24,8 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         ctx: Context,
         action: Annotated[str, Field(
             title="操作类型",
-            description="操作类型: get_prototype_pic(获取原型图片base64), record_modify(记录修改), record_renames(批量记录节点重命名信息), get_renames(获取节点重命名信息), record_download_sprites(批量记录已下载sprite信息), get_download_sprites(获取已下载sprite信息)",
-            examples=["get_prototype_pic", "record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites"]
+            description="操作类型: record_modify(记录修改), record_renames(批量记录节点重命名信息), get_renames(获取节点重命名信息), record_download_sprites(批量记录已下载sprite信息), get_download_sprites(获取已下载sprite信息)",
+            examples=["record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites"]
         )],
         name: Annotated[str, Field(
             title="UI名称",
@@ -73,24 +72,20 @@ def register_ui_rule_manage_tools(mcp: FastMCP):
         UI制作规则文件管理工具
         
         主要功能：
-        1. get_prototype_pic - 获取原型图片的Base64编码
-        2. record_modify - 记录UI修改记录（带时间戳）
-        3. record_renames - 批量记录Figma节点ID到Unity对象名的重命名映射
-        4. get_renames - 获取已记录的节点重命名信息
-        5. record_download_sprites - 批量记录已下载的节点Sprite信息（自动加载sprite）
-        6. get_download_sprites - 获取已记录的已下载Sprite信息
+        1. record_modify - 记录UI修改记录（带时间戳）
+        2. record_renames - 批量记录Figma节点ID到Unity对象名的重命名映射
+        3. get_renames - 获取已记录的节点重命名信息
+        4. record_download_sprites - 批量记录已下载的节点Sprite信息（自动加载sprite）
+        5. get_download_sprites - 获取已记录的已下载Sprite信息
         
         示例用法：
-        1. 获取原型图片:
-           {"action": "get_prototype_pic", "name": "SimpleUI"}
-        
-        2. 记录修改:
+        1. 记录修改:
            {"action": "record_modify", "name": "SimpleUI", "modify_desc": "调整按钮位置"}
         
-        3. 记录节点重命名:
+        2. 记录节点重命名:
            {"action": "record_renames", "name": "SimpleUI", "names_data": {"1:2":{"name":"RootFrame","originName":"RootFrame"},"1:3":{"name":"TitleText","originName":"TitleText"},"1:4":{"name":"Image1","originName":"image 1"}}}
 
-        4. 记录已下载的Sprite信息:
+        3. 记录已下载的Sprite信息:
            {"action": "record_download_sprites", "name": "SimpleUI", "sprites_data": {"1:4":"image1_xxxxxx.png","1:5":"image2_xxxxxx.png","1:6":"image3_xxxxxx.png"}}
         """
         return send_to_unity("ui_rule_manage", {

@@ -18,7 +18,6 @@ namespace Unity.Mcp.Gui
 
         private SerializedProperty linkUrlProp;
         private SerializedProperty pictureUrlProp;
-        private SerializedProperty prototypePicProp;
         private SerializedProperty imageScaleProp;
         private SerializedProperty useExistsComponentsProp;
         private SerializedProperty descriptionsProp;
@@ -56,7 +55,6 @@ namespace Unity.Mcp.Gui
             // 获取序列化属性
             linkUrlProp = serializedObject.FindProperty("link_url");
             pictureUrlProp = serializedObject.FindProperty("img_save_to");
-            prototypePicProp = serializedObject.FindProperty("prototype_pic");
             imageScaleProp = serializedObject.FindProperty("image_scale");
             useExistsComponentsProp = serializedObject.FindProperty("use_exists_components");
             descriptionsProp = serializedObject.FindProperty("descriptions");
@@ -192,9 +190,8 @@ namespace Unity.Mcp.Gui
             // 绘制基本属性
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Basic Settings", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(linkUrlProp, new GUIContent("Figma Link URL"));
+            EditorGUILayout.PropertyField(linkUrlProp, new GUIContent("Link URL"));
             EditorGUILayout.PropertyField(pictureUrlProp, new GUIContent("Img SaveTo"));
-            EditorGUILayout.PropertyField(prototypePicProp, new GUIContent("Prototype Pic"));
             EditorGUILayout.PropertyField(imageScaleProp, new GUIContent("Image Scale"));
             EditorGUILayout.PropertyField(useExistsComponentsProp, new GUIContent("使用已存在组件", "启用后，将尝试查找并使用场景中已存在的同名组件，而不是创建新组件"));
 
@@ -468,12 +465,6 @@ namespace Unity.Mcp.Gui
             if (!string.IsNullOrEmpty(ruleObject.img_save_to))
             {
                 basicInfo.AppendLine($"- **图片保存路径**: `{ruleObject.img_save_to}`");
-                hasBasicInfo = true;
-            }
-
-            if (!string.IsNullOrEmpty(ruleObject.prototype_pic))
-            {
-                basicInfo.AppendLine($"- **原型图片**: 已设置");
                 hasBasicInfo = true;
             }
 

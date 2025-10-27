@@ -58,7 +58,7 @@ def register_game_view_tools(mcp: FastMCP):
             description="截图保存的文件路径，仅在action为screenshot时有效",
             default=None,
         )] = None
-    ) -> Dict[str, Any]:
+    ) :
         """Unity Game窗口管理工具，用于控制Game视图的显示和性能设置。
 
         支持多种Game窗口管理功能，适用于：

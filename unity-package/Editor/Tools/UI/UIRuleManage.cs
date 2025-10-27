@@ -24,7 +24,7 @@ namespace Unity.Mcp.Tools
         {
             return new[]
             {
-                new MethodKey("action", "Operation type: get_prototype_pic(get prototype picture as base64), record_modify(record modification), record_renames(batch record node rename info), get_renames(get node rename info), record_download_sprites(batch record downloaded sprite info), get_download_sprites(get downloaded sprite info)", false),
+                new MethodKey("action", "Operation type: record_modify(record modification), record_renames(batch record node rename info), get_renames(get node rename info), record_download_sprites(batch record downloaded sprite info), get_download_sprites(get downloaded sprite info)", false),
                 new MethodKey("name", "UI name, used for finding and recording", false),
                 new MethodKey("modify_desc", "Modification description", true),
                 new MethodKey("save_path", "Save path, used to create new FigmaUGUIRuleObject", true),
@@ -43,7 +43,6 @@ namespace Unity.Mcp.Tools
             return StateTreeBuilder
                 .Create()
                 .Key("action")
-                    .Leaf("get_prototype_pic", GetPrototypePic)
                     .Leaf("record_modify", RecordModify)
                     .Leaf("record_renames", RecordNodeRenames)
                     .Leaf("get_renames", GetNodeRenames)
@@ -53,78 +52,6 @@ namespace Unity.Mcp.Tools
         }
 
 
-        /// <summary>
-        /// 获取原型图片（Base64格式）
-        /// </summary>
-        private object GetPrototypePic(StateTreeContext ctx)
-        {
-            string uiName = ctx["name"]?.ToString();
-
-            if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_prototype_pic.");
-
-            try
-            {
-                // 搜索相关的 UIDefineRule
-                UIDefineRuleObject figmaObj = FindUIDefineRule(uiName);
-
-                if (figmaObj == null)
-                {
-                    return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
-                }
-
-                // 检查是否有prototype_pic路径
-                if (string.IsNullOrEmpty(figmaObj.prototype_pic))
-                {
-                    return Response.Success($"No prototype picture path found for UI '{uiName}'.", new
-                    {
-                        uiName = uiName,
-                        hasPrototypePic = false,
-                        prototypePicPath = "",
-                        prototypePicBase64 = (string)null
-                    });
-                }
-
-                // 使用ctx.AsyncReturn处理异步操作
-                McpLogger.Log($"[UIRuleManage] 启动异步获取原型图片: {uiName}");
-                // 为原型图片获取设置超时时间（60秒）
-                return ctx.AsyncReturn(GetPrototypePicCoroutine(figmaObj, uiName), 60f);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                return Response.Error($"Failed to get prototype picture for '{uiName}': {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 获取原型图片的协程
-        /// </summary>
-        private IEnumerator GetPrototypePicCoroutine(UIDefineRuleObject figmaObj, string uiName)
-        {
-            McpLogger.Log($"[UIRuleManage] 启动协程获取原型图片: {uiName}");
-
-            string prototypePicBase64 = null;
-
-            // 启动图片加载协程
-            yield return LoadImageAsBase64(figmaObj.prototype_pic, (base64Result) =>
-            {
-                prototypePicBase64 = base64Result;
-            });
-
-            bool hasPrototypePic = !string.IsNullOrEmpty(prototypePicBase64);
-
-            McpLogger.Log($"[UIRuleManage] 原型图片加载完成: {uiName}, 成功: {hasPrototypePic}");
-
-            yield return Response.Success($"Retrieved prototype picture for UI '{uiName}'.", new
-            {
-                uiName = uiName,
-                hasPrototypePic = hasPrototypePic,
-                prototypePicPath = figmaObj.prototype_pic,
-                prototypePicBase64 = prototypePicBase64,
-                assetPath = AssetDatabase.GetAssetPath(figmaObj)
-            });
-        }
 
         /// <summary>
         /// 记录UI修改记录

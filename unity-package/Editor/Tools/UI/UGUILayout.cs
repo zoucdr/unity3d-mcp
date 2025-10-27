@@ -21,13 +21,13 @@ namespace Unity.Mcp.Tools
     /// 
     /// 特殊参数：
     /// - tattoo_self: 当为true时，锚点预设将基于元素当前位置而不是父容器的预设位置
-    ///   * stretch_all + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
+    ///   * stretch + tattoo_self = tattoo功能（等同于UGUIUtil.AnchorsToCorners）
     ///   * top_center + tattoo_self = 将锚点设置到元素自己的顶部中心位置
     ///   * 其他预设 + tattoo_self = 将锚点设置到元素自身对应的位置
     /// 
     /// 例如：
     /// action="do_layout", anchored_pos=[100, -50], size_delta=[200, 100]  // 不使用锚点预设
-    /// action="tattoo", tattoo_preset="stretch_all", tattoo_self=true  // tattoo效果
+    /// action="tattoo", tattoo_preset="stretch", tattoo_self=true  // tattoo效果
     /// action="tattoo", tattoo_preset="top_center", tattoo_self=true   // 钉在元素顶部中心
     /// action="get_layout"
     /// 
@@ -60,7 +60,7 @@ namespace Unity.Mcp.Tools
                 new MethodKey("anchor_min", "Minimum anchor [x, y]", true),
                 new MethodKey("anchor_max", "Maximum anchor [x, y]", true),
                       // 预设锚点类型
-                new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch_all", true),
+                new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch", true),
                 new MethodKey("tattoo_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
                 new MethodKey("pivot", "Pivot point [x, y]", true),
                 
@@ -409,7 +409,7 @@ namespace Unity.Mcp.Tools
                         targetAnchorMax = new Vector2(0.5f, 1);
                         targetPivot = new Vector2(0.5f, 0.5f);
                         break;
-                    case "stretch_all":
+                    case "stretch":
                         targetAnchorMin = new Vector2(0, 0);
                         targetAnchorMax = new Vector2(1, 1);
                         targetPivot = new Vector2(0.5f, 0.5f);
@@ -614,8 +614,8 @@ namespace Unity.Mcp.Tools
                     newAnchorMax = new Vector2(elementCenterRel.x, elementTopRightRel.y);
                     newPivot = new Vector2(0.5f, 0.5f);
                     break;
-                case "stretch_all":
-                    // stretch_all + tattoo_self = tattoo功能（AnchorsToCorners）
+                case "stretch":
+                    // stretch + tattoo_self = tattoo功能（AnchorsToCorners）
                     newAnchorMin = new Vector2(
                         rectTransform.anchorMin.x + rectTransform.offsetMin.x / parentRect.rect.width,
                         rectTransform.anchorMin.y + rectTransform.offsetMin.y / parentRect.rect.height

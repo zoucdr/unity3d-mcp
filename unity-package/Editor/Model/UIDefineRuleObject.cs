@@ -8,7 +8,6 @@ namespace Unity.Mcp.Models
         public string link_url;
         public string optimize_rule_path;
         public string img_save_to;
-        public string prototype_pic;
         public int image_scale = 3;
         public bool use_exists_components;
         [Multiline(5)]
