@@ -712,15 +712,14 @@ namespace Unity.Mcp.Tools
         }
 
 
-    }
 
-    /// <summary>
-    /// 获取GameViewSizes单例实例的优化方法
-    /// 参考ScriptableSingleton实现，使用多种策略尝试获取实例
-    /// </summary>
-    /// <param name="gameViewSizesType">GameViewSizes类型</param>
-    /// <returns>GameViewSizes实例或null</returns>
-    private object GetGameViewSizesInstance(Type gameViewSizesType)
+        /// <summary>
+        /// 获取GameViewSizes单例实例的优化方法
+        /// 参考ScriptableSingleton实现，使用多种策略尝试获取实例
+        /// </summary>
+        /// <param name="gameViewSizesType">GameViewSizes类型</param>
+        /// <returns>GameViewSizes实例或null</returns>
+        private object GetGameViewSizesInstance(Type gameViewSizesType)
         {
             if (gameViewSizesType == null) return null;
 
@@ -729,7 +728,7 @@ namespace Unity.Mcp.Tools
             // 策略1: 通过ScriptableSingleton的s_Instance字段获取实例（避免触发instance属性创建新实例）
             try
             {
-                var scriptableSingletonType = typeof(ScriptableObject).Assembly.GetType("UnityEditor.ScriptableSingleton`1");
+                var scriptableSingletonType = typeof(ScriptableSingleton<>);
                 if (scriptableSingletonType != null)
                 {
                     var genericType = scriptableSingletonType.MakeGenericType(gameViewSizesType);
@@ -800,7 +799,7 @@ namespace Unity.Mcp.Tools
             try
             {
                 // 尝试查找命名为"instance"的静态属性
-                var instanceProperty = gameViewSizesType.GetProperty("instance", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                var instanceProperty = gameViewSizesType.GetProperty("instance", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
                 if (instanceProperty != null)
                 {
                     try
@@ -817,10 +816,10 @@ namespace Unity.Mcp.Tools
                         Debug.Log($"[GameView] instance property exception: {ex.Message}");
                     }
                 }
-                
+
                 // 尝试查找其他可能的获取实例方法
                 var possibleMethodNames = new[] { "get_Instance", "GetInstanceID", "GetSingleton", "get_Singleton" };
-                
+
                 foreach (var methodName in possibleMethodNames)
                 {
                     var method = gameViewSizesType.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -864,11 +863,11 @@ namespace Unity.Mcp.Tools
                     }
                 }
 
-                // 最后尝试使用Activator.CreateInstance
-                instance = Activator.CreateInstance(gameViewSizesType, true);
+                // 最后尝试使用ScriptableObject的创建方式
+                instance = ScriptableObject.CreateInstance(gameViewSizesType);
                 if (instance != null)
                 {
-                    Debug.Log("[GameView] ✓ Created instance using Activator.CreateInstance");
+                    Debug.Log("[GameView] ✓ Created instance using ScriptableObject.CreateInstance");
                     return instance;
                 }
             }
@@ -882,3 +881,4 @@ namespace Unity.Mcp.Tools
         }
     }
 
+}
