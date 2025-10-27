@@ -661,7 +661,7 @@ namespace Unity.Mcp.Tools
             rectTransform.offsetMin = newOffsetMin;
             rectTransform.offsetMax = newOffsetMax;
 
-            Debug.Log($"[UGUILayout] Applied tattoo_self preset '{preset}' to '{rectTransform.name}': anchors [{newAnchorMin.x:F3},{newAnchorMin.y:F3}] to [{newAnchorMax.x:F3},{newAnchorMax.y:F3}]");
+            McpLogger.Log($"[UGUILayout] Applied tattoo_self preset '{preset}' to '{rectTransform.name}': anchors [{newAnchorMin.x:F3},{newAnchorMin.y:F3}] to [{newAnchorMax.x:F3},{newAnchorMax.y:F3}]");
             return true;
         }
 

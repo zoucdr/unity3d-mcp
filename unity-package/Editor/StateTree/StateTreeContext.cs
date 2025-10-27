@@ -361,7 +361,7 @@ namespace Unity.Mcp
             CoroutineRunner.StartCoroutine(timeoutCoroutine, (result) =>
             {
                 // 调用完成回调
-                UnityEngine.Debug.Log($"AsyncReturn: {result}");
+                McpLogger.Log($"AsyncReturn: {result}");
                 CompleteAction?.Invoke(Json.FromObject(result));
             });
             return this;

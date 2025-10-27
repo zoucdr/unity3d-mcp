@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -39,11 +40,15 @@ namespace Unity.Mcp
             string,
             (string commandJson, TaskCompletionSource<string> tcs)
         > commandQueue = new();
-         public static readonly int unityPortStart = 8101; // Start of port range
-        public static readonly int unityPortEnd = 8105;   // End of port range
+        
+        // 添加取消令牌源，用于优雅地取消异步操作
+        private CancellationTokenSource cancellationTokenSource;
+         public static readonly int unityPortStart = 8110; // Start of port range
+        public static readonly int unityPortEnd = 8115;   // End of port range
         private List<int> activePorts = new(); // Successfully started ports
         public bool IsRunning => isRunning;
         
+
         // 缓存McpTool类型和实例
         private readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
         //通用函数执行
@@ -97,6 +102,14 @@ namespace Unity.Mcp
         {
             AssemblyReloadEvents.beforeAssemblyReload -= ForceStop;
             ForceStop();
+            
+            // 确保取消令牌被释放
+            try
+            {
+                cancellationTokenSource?.Cancel();
+                cancellationTokenSource?.Dispose();
+            }
+            catch { }
         }
 
         // 静态访问器，方便外部调用
@@ -178,6 +191,19 @@ namespace Unity.Mcp
         private void ForceStop()
         {
             Log("[Unity.Mcp] 正在强制停止服务...");
+            
+            // 首先取消所有异步操作
+            try
+            {
+                cancellationTokenSource?.Cancel();
+                cancellationTokenSource?.Dispose();
+                cancellationTokenSource = null;
+            }
+            catch (Exception ex)
+            {
+                LogError($"[Unity.Mcp] 取消异步操作时发生错误: {ex.Message}");
+            }
+            
             if (isRunning)
             {
                 Stop();
@@ -190,7 +216,20 @@ namespace Unity.Mcp
                 {
                     try
                     {
+                        // 先停止接受新请求
+                        if (l.IsListening)
+                        {
+                            l.Stop();
+                        }
+                        
+                        // 等待一小段时间让正在处理的请求完成
+                        Thread.Sleep(100);
+                        
+                        // 强制关闭监听器
                         l.Close();
+                        
+                        // 释放资源
+                        ((IDisposable)l).Dispose();
                     }
                     catch (Exception ex)
                     {
@@ -201,9 +240,33 @@ namespace Unity.Mcp
                 Debug.Log("[Unity.Mcp] 所有 HttpListeners 已强制关闭");
             }
 
+            // 强制清理命令队列
+            lock (lockObj)
+            {
+                foreach (var kvp in commandQueue)
+                {
+                    try
+                    {
+                        kvp.Value.tcs.TrySetCanceled();
+                    }
+                    catch { }
+                }
+                commandQueue.Clear();
+            }
+
+            // 清空客户端连接信息
+            lock (clientsLock)
+            {
+                connectedClients.Clear();
+            }
+
             // 确保标记为已停止
             isRunning = false;
             activePorts.Clear();
+            
+            // 强制垃圾回收，帮助释放网络资源
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         // 静态方法，方便外部调用
@@ -253,6 +316,11 @@ namespace Unity.Mcp
                 return;
             }
 
+            // 初始化取消令牌
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource?.Dispose();
+            cancellationTokenSource = new CancellationTokenSource();
+
             // 创建 HttpListener 并尝试监听所有端口
             listeners.Clear();
             activePorts.Clear();
@@ -278,7 +346,7 @@ namespace Unity.Mcp
                     listener.Start();
                     listeners.Add(listener);
                     activePorts.Add(port);
-                    Task.Run(() => ListenerLoop(listener));
+                    Task.Run(async () => await ListenerLoop(listener, cancellationTokenSource.Token));
                     Log($"[Unity.Mcp] 成功在端口 {port} 启动监听。");
                 }
                 catch (Exception ex)
@@ -332,6 +400,16 @@ namespace Unity.Mcp
 
             try
             {
+                // 首先取消所有异步操作
+                try
+                {
+                    cancellationTokenSource?.Cancel();
+                }
+                catch (Exception ex)
+                {
+                    LogError($"[Unity.Mcp] 取消异步操作时发生错误: {ex.Message}");
+                }
+
                 // 先移除命令处理器
                 EditorApplication.update -= ProcessCommands;
 
@@ -368,9 +446,19 @@ namespace Unity.Mcp
                         try
                         {
                             // 先停止接受新请求
-                            l.Stop();
+                            if (l.IsListening)
+                            {
+                                l.Stop();
+                            }
+                            
+                            // 等待一小段时间让正在处理的请求完成
+                            Thread.Sleep(50);
+                            
                             // 关闭监听器
                             l.Close();
+                            
+                            // 释放资源
+                            ((IDisposable)l).Dispose();
                         }
                         catch (Exception listenerEx)
                         {
@@ -379,6 +467,17 @@ namespace Unity.Mcp
                     }
                     listeners.Clear();
                     Debug.Log("[Unity.Mcp] 所有 HttpListeners 已关闭");
+                }
+
+                // 清理取消令牌
+                try
+                {
+                    cancellationTokenSource?.Dispose();
+                    cancellationTokenSource = null;
+                }
+                catch (Exception ex)
+                {
+                    LogError($"[Unity.Mcp] 清理取消令牌时发生错误: {ex.Message}");
                 }
 
                 // 标记状态
@@ -407,23 +506,29 @@ namespace Unity.Mcp
             Instance.Stop();
         }
 
-        private async Task ListenerLoop(HttpListener listener)
+        private async Task ListenerLoop(HttpListener listener, CancellationToken cancellationToken)
         {
             Log($"[Unity.Mcp] HTTP监听循环已启动 on port {(listener.Prefixes.FirstOrDefault() ?? "N/A").Split(':')[2].Trim('/')}");
 
-            while (isRunning && listener.IsListening)
+            while (isRunning && listener.IsListening && !cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     Log($"[Unity.Mcp] 等待HTTP请求...");
-                    HttpListenerContext context = await listener.GetContextAsync();
+                    
+                    // 使用带取消令牌的GetContextAsync
+                    HttpListenerContext context;
+                    using (cancellationToken.Register(() => listener.Stop()))
+                    {
+                        context = await listener.GetContextAsync();
+                    }
 
-                    // Fire and forget each HTTP request
-                    _ = HandleHttpRequestAsync(context);
+                    // Fire and forget each HTTP request with cancellation token
+                    _ = HandleHttpRequestAsync(context, cancellationToken);
                 }
                 catch (HttpListenerException ex)
                 {
-                    if (isRunning)
+                    if (isRunning && !cancellationToken.IsCancellationRequested)
                     {
                         LogError($"[Unity.Mcp] HTTP监听器错误: {ex.Message}");
                     }
@@ -438,9 +543,14 @@ namespace Unity.Mcp
                     Log($"[Unity.Mcp] HTTP监听器已被释放，循环终止。");
                     break; // Exit loop if listener is disposed
                 }
+                catch (OperationCanceledException)
+                {
+                    Log($"[Unity.Mcp] HTTP监听循环已被取消。");
+                    break; // Exit loop if operation is cancelled
+                }
                 catch (Exception ex)
                 {
-                    if (isRunning)
+                    if (isRunning && !cancellationToken.IsCancellationRequested)
                     {
                         LogError($"[Unity.Mcp] 监听器错误: {ex.Message}");
                     }
@@ -453,7 +563,7 @@ namespace Unity.Mcp
         /// <summary>
         /// 处理 HTTP 请求
         /// </summary>
-        private async Task HandleHttpRequestAsync(HttpListenerContext context)
+        private async Task HandleHttpRequestAsync(HttpListenerContext context, CancellationToken cancellationToken)
         {
             string clientEndpoint = context.Request.RemoteEndPoint?.ToString() ?? "Unknown";
             string clientId = Guid.NewGuid().ToString();
@@ -461,7 +571,7 @@ namespace Unity.Mcp
             HttpListenerResponse response = context.Response;
 
             // 增强请求日志，不受EnableLog影响
-            Debug.Log($"[Unity.Mcp] <color=cyan>收到HTTP请求:</color> {request.HttpMethod} {request.Url} from {clientEndpoint} (ID: {clientId})");
+            McpLogger.Log($"[Unity.Mcp] <color=cyan>收到HTTP请求:</color> {request.HttpMethod} {request.Url} from {clientEndpoint} (ID: {clientId})");
 
             try
             {
@@ -471,6 +581,9 @@ namespace Unity.Mcp
                 response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
                 response.ContentType = "application/json";
                 response.ContentEncoding = Encoding.UTF8;
+
+                // 检查是否已被取消
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // 处理 OPTIONS 预检请求
                 if (request.HttpMethod == "OPTIONS")
@@ -591,9 +704,10 @@ namespace Unity.Mcp
                     }
 
                     response.StatusCode = 500;
+                    string errorMessage = ex.Message.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
                     byte[] errorBytes = Encoding.UTF8.GetBytes(
                         /*lang=json,strict*/
-                        $"{{\"status\":\"error\",\"error\":\"{ex.Message.Replace("\"", "\\\"")}\"}}"
+                        $"{{\"status\":\"error\",\"error\":\"{errorMessage}\"}}"
                     );
                     await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
                     response.Close();

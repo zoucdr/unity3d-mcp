@@ -126,18 +126,18 @@ namespace Unity.Mcp
                     success = EditorApplication.ExecuteMenuItem(path);
                     if (success)
                     {
-                        Debug.Log($"[MenuUtils] Successfully executed menu item: '{path}'");
+                        McpLogger.Log($"[MenuUtils] Successfully executed menu item: '{path}'");
                         return Response.Success($"Successfully executed menu item: '{path}' (Unity {Application.unityVersion})");
                     }
                     else
                     {
-                        Debug.LogWarning($"[MenuUtils] Menu item not found or execution returned false: '{path}'");
+                        McpLogger.LogWarning($"[MenuUtils] Menu item not found or execution returned false: '{path}'");
                     }
                 }
                 catch (System.Exception ex)
                 {
                     // 详细记录异常信息
-                    Debug.LogError($"[MenuUtils] Exception when executing menu item '{path}': {ex.Message}\nStackTrace: {ex.StackTrace}");
+                    McpLogger.LogError($"[MenuUtils] Exception when executing menu item '{path}': {ex.Message}\nStackTrace: {ex.StackTrace}");
                 }
             }
 
