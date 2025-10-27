@@ -56,7 +56,7 @@ def register_console_tools(mcp: FastMCP):
         """
         
         # ⚠️ 重要提示：此函数仅用于提供参数说明和文档
-        # 实际调用请使用 single_call 函数
+        # 实际调用请使用 singasync_call
         # 示例：single_call(func="console_read", args={"action": "get", "types": ["error", "warning"]})
         
         return send_to_unity("console_read", {

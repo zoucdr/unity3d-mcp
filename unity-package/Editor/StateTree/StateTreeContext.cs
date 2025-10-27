@@ -26,7 +26,9 @@ namespace Unity.Mcp
 
         public Action<JsonNode> CompleteAction { get; private set; }
 
-        public JsonNode Result { get; private set; }
+        public JsonNode Result { get; set; }
+        public bool IsComplete { get; private set; }
+
         /// <summary>
         /// 构造函数，基于现有 JsonClass 创建上下文
         /// </summary>
@@ -58,6 +60,7 @@ namespace Unity.Mcp
             if (Result == null)
             {
                 Result = result;
+                IsComplete = true;
                 CompleteAction?.Invoke(Result);
             }
         }

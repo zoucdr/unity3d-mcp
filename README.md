@@ -66,7 +66,7 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 AI客户端 → FacadeTools → MethodTools → Unity API
 ```
 
-- **FacadeTools**：`single_call` 和 `batch_call` 两个门面工具
+- **FacadeTools**：`async_call` 和 `batch_call` 两个门面工具
 - **MethodTools**：32+专业功能方法，仅通过FacadeTools调用
 
 #### 2. 状态树执行引擎
@@ -981,7 +981,7 @@ def batch_translate_localization(source_file, target_langs=["en", "ja", "ko"]):
 
 ### 1. 双层调用架构
 **创新描述**：设计了FacadeTools + MethodTools的双层架构
-- **FacadeTools**：`single_call`和`batch_call`两个门面工具
+- **FacadeTools**：`async_call`和`batch_call`两个门面工具
 - **MethodTools**：32+专业功能方法，仅通过门面工具调用
 
 **技术优势**：
@@ -1077,11 +1077,11 @@ IEnumerator DownloadFileAsync(string url, string savePath, ...)
 
 ### 1. 门面工具API
 
-#### single_call
+#### async_call
 单次函数调用工具
 ```json
 {
-  "func": "single_call",
+  "func": "async_call",
   "args": {
     "func": "hierarchy_create",
     "args": {

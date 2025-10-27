@@ -553,7 +553,6 @@ namespace Unity.Mcp.Tools
             string previewPath = GetFigmaPreviewPath();
             string savedFilePath = null;
             string assetPath = null;
-            bool convertedToSprite = false;
 
             try
             {
@@ -584,7 +583,6 @@ namespace Unity.Mcp.Tools
                 if (GetAutoConvertToSprite() && !string.IsNullOrEmpty(assetPath))
                 {
                     ConvertToSprite(assetPath);
-                    convertedToSprite = true;
                     Debug.Log($"[FigmaManage] 预览图已转换为Sprite: {assetPath}");
                 }
 
@@ -613,14 +611,12 @@ namespace Unity.Mcp.Tools
                     ["height"] = newHeight
                 },
                 ["data_size"] = compressedData.Length,
-                ["saved_path"] = Path.GetFileName(savedFilePath),
-                ["converted_to_sprite"] = convertedToSprite,
-                ["preview_path"] = previewPath
+                ["path"] = Path.GetFullPath(savedFilePath),
             };
             var resources = new JsonClass
             {
                 ["type"] = "image",
-                ["path"] = Path.GetFileName(savedFilePath),
+                ["path"] = Path.GetFullPath(savedFilePath),
                 ["format"] = imageFormat
             };
             yield return Response.Success($"图片预览成功: 节点{nodeId}", result, resources);
@@ -1328,6 +1324,9 @@ namespace Unity.Mcp.Tools
         {
             try
             {
+                // 确保在转换前先清理任何可能的引用
+                Resources.UnloadUnusedAssets();
+
                 // 获取纹理导入器
                 TextureImporter textureImporter = AssetImporter.GetAtPath(assetPath) as TextureImporter;
                 if (textureImporter != null)
@@ -1347,8 +1346,8 @@ namespace Unity.Mcp.Tools
                     platformSettings.format = TextureImporterFormat.RGBA32; // 保持高质量
                     textureImporter.SetPlatformTextureSettings(platformSettings);
 
-                    // 应用导入设置
-                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                    // 使用 DeferredAssetDatabase 模式，减少重建UI
+                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
 
                     Debug.Log($"[FigmaManage] 成功将图片转换为Sprite: {assetPath}");
                 }
@@ -1376,6 +1375,12 @@ namespace Unity.Mcp.Tools
                 int totalCount = downloadedFiles.Count;
                 bool cancelled = false;
 
+                // 开始批量导入前先清理资源
+                Resources.UnloadUnusedAssets();
+
+                // 开始批量操作
+                AssetDatabase.StartAssetEditing();
+
                 foreach (var relativePath in downloadedFiles)
                 {
                     string fileName = Path.GetFileName(relativePath);
@@ -1396,7 +1401,19 @@ namespace Unity.Mcp.Tools
                     // 转换为Sprite
                     ConvertToSprite(relativePath);
                     convertedCount++;
+
+                    // 每处理10个文件，清理一次未使用的资源
+                    if (convertedCount % 10 == 0)
+                    {
+                        Resources.UnloadUnusedAssets();
+                    }
                 }
+
+                // 结束批量操作
+                AssetDatabase.StopAssetEditing();
+
+                // 最后再清理一次资源
+                Resources.UnloadUnusedAssets();
 
                 EditorUtility.ClearProgressBar();
 

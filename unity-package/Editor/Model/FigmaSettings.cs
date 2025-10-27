@@ -345,7 +345,7 @@ namespace Unity.Mcp
 * X坐标：`anchored_position_x = figma_x - (canvas_width/2) + (element_width/2)`
 * Y坐标：`anchored_position_y = (canvas_height/2) - figma_y - (element_height/2)`
 
-### 嵌套元素（在父元素内）
+### 嵌套元素（在父元素内，且锚点方式为父节点中心时）
 
 * X坐标：`anchored_position_x = (figma_x - parent_figma_x) - (parent_width/2) + (element_width/2)`
 * Y坐标：`anchored_position_y = (parent_figma_y - figma_y) + (parent_height/2) - (element_height/2)`
@@ -361,9 +361,8 @@ namespace Unity.Mcp
 
 ### RectTransform设置
 
-* 设置`anchorMin`和`anchorMax`为`[0.5, 0.5]`，保持锚点在中心
-* 不启用RectTransform的Clamp选项
-* 允许超出父容器边界的元素不使用ContentSizeFitter组件
+* 元素允许超出父容器边界
+* 严格计算位置和尺寸
 ";
         }
 

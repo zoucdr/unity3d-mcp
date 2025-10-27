@@ -25,3 +25,7 @@ SECRET_CLEANUP_GUIDE.md
 /unity3d/Assets/FigmaAssets
 /unity3d/Packages/com.unity.ide.traeCN/Editor/VSWhere/*.exe
 /unity3d/Assets/Screenshots
+/server/pyproject.toml
+/server/uv.lock
+/server/.python-version
+/server/Dockerfile

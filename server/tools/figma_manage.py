@@ -9,7 +9,6 @@ Unity Figma管理工具，包含Figma图片下载、节点数据拉取等功能�
 - 资源管理：自动转换为Sprite格式
 - 转换规则：获取Figma到Unity UI框架的坐标转换规则
 """
-import json
 from typing import Annotated, Dict, Any, Optional, List
 from pydantic import Field
 from mcp.server.fastmcp import FastMCP, Context
@@ -84,7 +83,7 @@ def register_figma_manage_tools(mcp: FastMCP):
             default="all",
             examples=["ugui", "uitoolkit", "all"]
         )] = "all"
-    ) -> Dict[str, Any]:
+    ):
         """Unity Figma管理工具，用于管理Figma资源和数据。
 
         支持多种Figma操作，适用于：

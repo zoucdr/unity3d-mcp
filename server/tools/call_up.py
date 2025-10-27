@@ -2,11 +2,10 @@
 Unity MCP 核心调用工具，包含单个和批量Unity函数调用功能。
 
 ⚠️ 重要说明：
-- 所有MCP函数调用（除single_call和batch_call外）都必须通过此文件中的函数调用
-- 不能直接调用hierarchy_create、edit_gameobject、base_editor等函数
-- 必须使用single_call进行单个函数调用，或使用batch_call进行批量调用
+- 所有MCP函数调用（除async_call和batch_call外）都必须通过此文件中的函数调用
 - 这是Unity MCP系统的核心调用入口，所有其他工具函数都通过这里转发到Unity
 """
+
 import json
 from typing import Annotated, List, Dict, Any, Literal
 from pydantic import Field
@@ -23,12 +22,12 @@ def create_resource_object(resource_dict):
     
     if resource_type == "image":
         return Image(
-            path=resource_dict.get("path", ""),
+            path=resource_dict.get("path", "").replace("\\", "/"),
             format=resource_dict.get("format", "png")
         )
     # elif resource_type == "audio":
     #     return Audio(
-    #         path=resource_dict.get("path", ""),
+    #         path=resource_dict.get("path", "").replace("\\", "/"),
     #         format=resource_dict.get("format", "wav")
     #     )
     else:
@@ -160,17 +159,27 @@ def send_to_unity(func,args):
             }
 
 def register_call_tools(mcp: FastMCP):
-    @mcp.tool("single_call")
-    def single_call(
+    @mcp.tool("async_call")
+    def async_call(
         ctx: Context,
+        id: Annotated[str, Field(
+            title="任务ID",
+            description="异步调用的唯一标识符"
+        )],
+        type: Annotated[Literal['in', 'out'], Field(
+            title="操作类型",
+            description="in: 执行调用, out: 获取调用结果"
+        )],
         func: Annotated[str, Field(
             title="Unity函数名称",
-            description="要调用的Unity函数名称。⚠️ 重要：所有MCP函数调用（除single_call和batch_call外）都必须通过此函数调用",
+            default=None,
+            description="要调用的Unity函数名称。当type为'in'时必需。",
             examples=["hierarchy_create", "edit_gameobject", "base_editor", "gameplay", "console_write"]
-        )],
+        )] = None,
         args: Annotated[Dict[str, Any], Field(
             title="函数参数",
-            description="传递给Unity函数的参数字典。参数格式必须严格按照目标函数的定义，所有参数都通过此args字典传递",
+            default=None,
+            description="传递给Unity函数的参数字典。当type为'in'时使用。",
             examples=[
                 {"source": "primitive", "name": "Cube", "primitive_type": "Cube"},
                 {"path": "Player", "action": "add_component", "component_type": "Rigidbody"},
@@ -178,9 +187,10 @@ def register_call_tools(mcp: FastMCP):
             ]
         )] = {}
     ):
-        """单个函数调用工具，用于调用所有Unity MCP函数。（基础工具）
+        """异步函数调用工具，用于调用Unity MCP函数并获取结果。（基础工具）
         
-        - func参数指定要调用的函数名，args参数传递该函数所需的所有参数
+        - type='in': 发起一个异步调用。需要提供 id, func, 和 args。
+        - type='out': 获取一个异步调用的结果。需要提供 id。
         
         支持的函数包括但不限于：
         - hierarchy_create: 创建GameObject
@@ -192,22 +202,29 @@ def register_call_tools(mcp: FastMCP):
         """
         
         try:
-            # 验证函数名称
-            if not func or not isinstance(func, str):
+            if type == 'in':
+                if not func or not isinstance(func, str):
+                    return {
+                        "success": False,
+                        "error": "当type为'in'时, 'func'是必需的",
+                        "result": None
+                    }
+                if not isinstance(args, dict):
+                    return {
+                        "success": False,
+                        "error": "参数'args'必须是对象类型",
+                        "result": None
+                    }
+            elif type == 'out':
+                # 'func' and 'args' can be None
+                pass
+            else:
                 return {
                     "success": False,
-                    "error": "函数名称无效或为空",
+                    "error": f"无效的'type'值: {type}",
                     "result": None
                 }
-            
-            # 验证参数类型
-            if not isinstance(args, dict):
-                return {
-                    "success": False,
-                    "error": "参数必须是对象类型",
-                    "result": None
-                }
-            
+
             # 获取Unity连接实例
             bridge = get_unity_connection()
             
@@ -220,12 +237,15 @@ def register_call_tools(mcp: FastMCP):
             
             # 准备发送给Unity的参数
             params = {
+                "id": id,
+                "type": type,
                 "func": func,
                 "args": args
             }
-            
+            # 只传递params中不为空的参数
+            params = {k: v for k, v in params.items() if v is not None}
             # 使用带重试机制的命令发送
-            result = bridge.send_command_with_retry("single_call", params, max_retries=2)
+            result = bridge.send_command_with_retry("async_call", params, max_retries=2)
             
             # 确保返回结果包含success标志
             if isinstance(result, dict):

@@ -106,45 +106,30 @@ class UnityConnection:
     
     def _is_unity_mcp_server_on_port(self, port: int) -> bool:
         """Check if there's an active Unity MCP HTTP server on the given port."""
-        # 尝试两种主机名：localhost 和 127.0.0.1
-        hosts = ["localhost", "127.0.0.1"]
-        
-        for host in hosts:
-            try:
-                url = f"http://{host}:{port}/"
-                logger.info(f"Checking Unity MCP HTTP server on {url}")
-                
-                response = requests.get(url, timeout=config.ping_timeout)
-                
-                # 检查是否是有效的响应
-                if response.status_code == 200:
-                    try:
-                        data = response.json()
-                        # 更宽松的检查：只要包含pong或success就认为是Unity MCP服务器
-                        response_str = json.dumps(data).lower()
-                        is_valid = 'pong' in response_str or 'success' in response_str
-                        if is_valid:
-                            logger.info(f"✅ Found Unity MCP HTTP server on {url}")
-                            # 更新主机名为成功的那个
-                            self.host = host
-                            return True
-                    except (JSONDecodeError, ValueError):
-                        # 尝试检查文本响应
-                        if 'pong' in response.text.lower() or 'success' in response.text.lower():
-                            logger.info(f"✅ Found Unity MCP HTTP server on {url} (text response)")
-                            self.host = host
-                            return True
-                        
-                        # 响应不是JSON，可能不是Unity MCP服务器
-                        logger.debug(f"Port {port} on {host} returned non-JSON response")
-                else:
-                    logger.debug(f"Port {port} on {host} returned status code {response.status_code}")
-            except requests.exceptions.Timeout:
-                logger.debug(f"Timeout checking {host}:{port}")
-            except requests.exceptions.ConnectionError:
-                logger.debug(f"Cannot connect to {host}:{port}")
-            except Exception as e:
-                logger.debug(f"Error checking {host}:{port}: {str(e)}")
+        try:
+            url = f"http://{self.host}:{port}"
+            logger.debug(f"Pinging {url} with timeout {config.ping_timeout}s")
+            
+            response = self.session.get(url, timeout=config.ping_timeout)
+            if response.status_code == 200:
+                try:
+                    response_json = response.json()
+                    logger.debug(f"Received response from {response_json}")
+                    # Check for new pong format
+                    if response_json.get("status") == "success" and response_json.get("result", {}).get("message") == "pong":
+                        logger.debug(f"Successfully connected to Unity MCP server on {url} (new format)")
+                        return True
+                except JSONDecodeError:
+                    logger.debug(f"Received non-JSON response from {url}, but status was 200. Assuming it's not an MCP server.")
+            else:
+                logger.debug(f"Ping to {url} returned status code {response.status_code}")
+
+        except requests.exceptions.Timeout:
+            logger.debug(f"Ping to http://{self.host}:{port}/ timed out.")
+        except requests.exceptions.ConnectionError:
+            logger.debug(f"Connection refused on http://{self.host}:{port}/.")
+        except Exception as e:
+            logger.warning(f"An unexpected error occurred while pinging http://{self.host}:{port}/: {e}")
         
         return False
     
@@ -418,4 +403,4 @@ def get_unity_connection() -> UnityConnection:
                 failed_info = f" (recent failed ports: {failed_summary})" if failed_summary else ""
                 raise ConnectionError(f"Could not establish Unity HTTP connection after {max_retries} attempts{failed_info}: {str(e)}")
     
-    return _unity_connection 
+    return _unity_connection

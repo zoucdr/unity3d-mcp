@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Unity.Mcp;
 using Unity.Mcp.Executer;
 
 namespace Unity.Mcp.Gui
@@ -173,7 +174,7 @@ namespace Unity.Mcp.Gui
                     isServiceRunning = true;
                     var ports = McpService.GetActivePorts();
                     string portsStr = ports.Count > 0 ? string.Join(", ", ports) : "无";
-                    Debug.Log($"Unity MCP Bridge 已启动，激活端口: {portsStr}");
+                    McpLogger.Log($"Unity MCP Bridge 已启动，激活端口: {portsStr}");
                 }
                 else
                 {
@@ -232,6 +233,13 @@ namespace Unity.Mcp.Gui
                         EditorGUILayout.LabelField($"最后活动: {client.LastActivity:HH:mm:ss}", EditorStyles.miniLabel);
                         EditorGUILayout.LabelField($"命令数: {client.CommandCount}", EditorStyles.miniLabel);
 
+                        // 显示命令文本
+                        if (!string.IsNullOrEmpty(client.CommandText))
+                        {
+                            EditorGUILayout.LabelField("命令内容:", EditorStyles.miniBoldLabel);
+                            EditorGUILayout.TextArea(client.CommandText, EditorStyles.textArea, GUILayout.Height(40));
+                        }
+
                         // 计算连接持续时间
                         TimeSpan duration = DateTime.Now - client.ConnectedAt;
                         string durationText = duration.TotalMinutes < 1
@@ -277,7 +285,7 @@ namespace Unity.Mcp.Gui
                 // 协程完成回调
                 if (result is Exception ex)
                 {
-                    Debug.LogError($"[McpServiceStatusWindow] 重启协程异常: {ex.Message}\n{ex.StackTrace}");
+                    McpLogger.LogError($"[McpServiceStatusWindow] 重启协程异常: {ex.Message}\n{ex.StackTrace}");
                 }
             });
         }
@@ -304,7 +312,7 @@ namespace Unity.Mcp.Gui
                     $"停止MCP服务器时发生错误：\n\n{ex.Message}",
                     "确定"
                 );
-                Debug.LogError($"[McpServiceStatusWindow] 停止MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                McpLogger.LogError($"[McpServiceStatusWindow] 停止MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
                 yield break; // 终止协程
             }
 
@@ -326,7 +334,7 @@ namespace Unity.Mcp.Gui
                     $"启动MCP服务器时发生错误：\n\n{ex.Message}",
                     "确定"
                 );
-                Debug.LogError($"[McpServiceStatusWindow] 启动MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                McpLogger.LogError($"[McpServiceStatusWindow] 启动MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
                 yield break; // 终止协程
             }
 
@@ -344,7 +352,7 @@ namespace Unity.Mcp.Gui
                     $"MCP服务器已成功重启！\n\n激活端口: {portsStr}",
                     "确定"
                 );
-                Debug.Log($"[McpServiceStatusWindow] MCP服务器已重启，激活端口: {portsStr}");
+                McpLogger.Log($"[McpServiceStatusWindow] MCP服务器已重启，激活端口: {portsStr}");
 
                 // 更新EditorPrefs状态
                 EditorPrefs.SetBool("mcp_open_state", true);
@@ -357,7 +365,7 @@ namespace Unity.Mcp.Gui
                     "MCP服务器重启失败，请查看控制台日志了解详情。",
                     "确定"
                 );
-                Debug.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
+                McpLogger.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
 
                 // 更新EditorPrefs状态
                 EditorPrefs.SetBool("mcp_open_state", false);

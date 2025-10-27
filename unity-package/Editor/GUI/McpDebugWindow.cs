@@ -6,6 +6,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using Unity.Mcp.Models;
 using Unity.Mcp.Executer;
+using System.Runtime.Remoting.Messaging;
 
 namespace Unity.Mcp.Gui
 {
@@ -52,7 +53,7 @@ namespace Unity.Mcp.Gui
         // UI状态变量
         private Vector2 inputScrollPosition;
         private Vector2 resultScrollPosition;
-        private string inputJson = "{\n  \"func\": \"hierarchy_create\",\n  \"args\": {\n    \"source\": \"primitive\",\n    \"primitive_type\": \"Cube\",\n    \"name\": \"RedCube\",\n    \"position\": [\n      0,\n      0,\n      0\n    ]\n  }\n}";
+        private string inputJson = "{\n  \"id\": \"test_task_1\",\n  \"type\": \"in\",\n  \"func\": \"hierarchy_create\",\n  \"args\": {\n    \"source\": \"primitive\",\n    \"primitive_type\": \"Cube\",\n    \"name\": \"RedCube\",\n    \"position\": [\n      0,\n      0,\n      0\n    ]\n  }\n}";
         private string resultText = "";
         private bool showResult = false;
         private bool isExecuting = false;
@@ -319,7 +320,7 @@ namespace Unity.Mcp.Gui
             // Generate the status text
             bool isRunning = McpService.Instance.IsRunning;
             Color statusColor = isRunning ? new Color(0.2f, 0.8f, 0.2f) : Color.red;
-            string statusText = isRunning ? "已连接" : "已断开";
+            string statusText = isRunning ? "Running" : "Stopped";
             int clientCount = McpService.Instance.ConnectedClientCount;
             var activePorts = McpService.Instance.ActivePorts;
             string portText = activePorts.Count > 0 ? $" on port(s) {string.Join(", ", activePorts)}" : "";
@@ -327,7 +328,7 @@ namespace Unity.Mcp.Gui
             string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} clients{portText})";
 
             // Draw a single button that covers the whole area and acts as the status display
-            if (GUI.Button(rect, fullStatusText, statusButtonStyle))
+            if (GUI.Button(rect, new GUIContent(fullStatusText, "Click to see connection details"), statusButtonStyle))
             {
                 McpServiceStatusWindow.ShowWindow();
             }
@@ -459,7 +460,8 @@ namespace Unity.Mcp.Gui
 
             // 说明文字
             EditorGUILayout.HelpBox(
-                "输入单个函数调用:\n{\"func\": \"function_name\", \"args\": {...}}\n\n" +
+                "输入异步函数调用:\n{\"id\": \"task_id\", \"type\": \"in\", \"func\": \"function_name\", \"args\": {...}}\n\n" +
+                "获取异步结果:\n{\"id\": \"task_id\", \"type\": \"out\"}\n\n" +
                 "或批量调用 (顺序执行):\n{\"funcs\": [{\"func\": \"...\", \"args\": {...}}, ...]}",
                 MessageType.Info);
 
@@ -1314,14 +1316,14 @@ namespace Unity.Mcp.Gui
                 // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
-            else if (inputObj is JsonClass inputObjClass && inputObjClass.ContainsKey("func"))
+            else if (inputObj is JsonClass inputObjClass && inputObjClass.ContainsKey("func") && (inputObjClass.ContainsKey("args")))
             {
-                // 单个函数调用
-                var functionCall = new SingleCall();
-                JsonNode callResult = null;
+                // 单个函数调用 (兼容旧格式和新的异步格式)
+                var functionCall = new ToolsCall();
+                functionCall.SetToolName(inputObjClass["func"].Value);
+                 JsonNode callResult = null;
                 bool callbackExecuted = false;
-
-                functionCall.HandleCommand(inputObj, (result) =>
+                functionCall.HandleCommand(inputObjClass["args"], (result) =>
                 {
                     callResult = result;
                     callbackExecuted = true;
@@ -1334,13 +1336,12 @@ namespace Unity.Mcp.Gui
                         onSingleComplete?.Invoke(result, duration);
                     }
                 });
-
-                // 如果回调立即执行，返回结果；否则返回null表示异步执行
+                  // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
             else
             {
-                throw new ArgumentException("输入的JSON必须包含 'func' 字段（单个调用）或 'funcs' 字段（批量调用）");
+                throw new ArgumentException("输入的JSON必须包含 'id' 字段（异步调用）、'func' 字段（单个调用）或 'funcs' 字段（批量调用）");
             }
         }
 
@@ -1956,9 +1957,9 @@ namespace Unity.Mcp.Gui
                     // 批量调用记录
                     RecordBatchResult(inputObj, currentResult);
                 }
-                else if (inputObj.ContainsKey("func"))
+                else if (inputObj.ContainsKey("func") || inputObj.ContainsKey("id"))
                 {
-                    // 单个函数调用记录
+                    // 单个函数调用记录（兼容旧格式和新的异步格式）
                     RecordSingleResult(inputObj, currentResult);
                 }
                 else
@@ -1985,7 +1986,9 @@ namespace Unity.Mcp.Gui
         /// </summary>
         private void RecordSingleResult(JsonClass inputObj, object result)
         {
-            var funcName = inputObj["func"]?.Value ?? "Unknown";
+            // 兼容新的异步格式和旧格式
+            var funcName = inputObj["func"]?.Value ?? 
+                          (inputObj["id"]?.Value != null ? $"async_{inputObj["id"]?.Value}" : "Unknown");
             var argsJson = inputObj["args"]?.Value ?? "{}";
             var recordObject = McpExecuteRecordObject.instance;
 

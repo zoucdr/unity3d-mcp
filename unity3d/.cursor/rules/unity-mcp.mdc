@@ -10,7 +10,7 @@ alwaysApply: false
 ## 📋 目录索引
 
 ### 🔧 核心工具 (FacadeTools)
-- [single_call](#single_call---单次函数调用工具) - 单次函数调用
+- [async_call](#async_call---异步函数调用工具) - 异步函数调用
 - [batch_call](#batch_call---批量函数调用工具) - 批量函数调用
 
 ### 🧩 功能模块 (MethodTools)
@@ -27,24 +27,26 @@ alwaysApply: false
 ```
 
 **FacadeTools** (2个)
-- `single_call` - 单次方法调用
+- `async_call` - 异步方法调用
 - `batch_call` - 批量方法调用
 
 **MethodTools** (1+个)  
 专门的功能方法，仅通过FacadeTools调用，参数通过`args`字典传递。
 - `gm_command` - GM指令执行工具
-> ⚠️ **重要提醒**: 需要`single_call`和`batch_call`来参数化调用MethodTools。
+> ⚠️ **重要提醒**: 需要`async_call`和`batch_call`来参数化调用MethodTools。
 
 ---
 
 ## 🔧 FacadeTools
 
-### single_call - 单次函数调用工具
-**功能**: 调用一次 Unity MCP 方法。
+### async_call - 异步函数调用工具
+**功能**: 调用一次 Unity MCP 方法，支持异步操作。
 
 参数
-- `func` (string, 必需): 方法名（见 Methods 列表）。
-- `args` (dict, 必需): 传入方法的参数字典。
+- `id` (string, 必需): 任务的唯一标识符。
+- `type` (string, 必需): 操作类型，'in' 为执行调用，'out' 为获取调用结果。
+- `func` (string, type='in'时必需): 方法名（见 Methods 列表）。
+- `args` (dict, type='in'时必需): 传入方法的参数字典。
 
 返回值格式
 ```json
@@ -56,11 +58,21 @@ alwaysApply: false
 }
 ```
 
-示例：创建一个 Cube
+示例：启动一个异步任务创建 Cube
 ```python
-single_call(
+async_call(
+  id="task_123",
+  type="in",
   func="gm_command",
   args={"action": "go_home_scene"}
+)
+```
+
+示例：获取异步任务结果
+```python
+async_call(
+  id="task_123",
+  type="out"
 )
 ```
 
@@ -95,8 +107,8 @@ single_call(
 
 ## 🧩 MethodTools
 > 通过 FacadeTools： 调用以下方法：
-> - 单次：使用 `single_call`，设置 `func` 为方法名，`args` 为方法参数字典。
-> - 批量：使用 `batch_call`，把多条 `{func, args}` 放入 `single_calls`。
+> - 异步：使用 `async_call`，设置 `id`、`type`、`func` 和 `args`。
+> - 批量：使用 `batch_call`，把多条 `{func, args}` 放入 `async_calls`。
 
 ### gm_command - GM指令执行工具
 **功能**: 执行游戏管理员(GM)相关指令，用于游戏开发和调试。
@@ -109,7 +121,9 @@ single_call(
 
 示例：执行默认GM指令
 ```python
-single_call(
+async_call(
+  id="gm_task_1",
+  type="in",
   func="gm_command",
   args={"action": "default"}
 )

@@ -43,8 +43,8 @@ namespace Unity.Mcp
         
         // 添加取消令牌源，用于优雅地取消异步操作
         private CancellationTokenSource cancellationTokenSource;
-         public static readonly int unityPortStart = 8110; // Start of port range
-        public static readonly int unityPortEnd = 8115;   // End of port range
+         public static readonly int unityPortStart = 8100; // Start of port range
+        public static readonly int unityPortEnd = 8102;   // End of port range
         private List<int> activePorts = new(); // Successfully started ports
         public bool IsRunning => isRunning;
         
@@ -348,6 +348,7 @@ namespace Unity.Mcp
                     activePorts.Add(port);
                     Task.Run(async () => await ListenerLoop(listener, cancellationTokenSource.Token));
                     Log($"[Unity.Mcp] 成功在端口 {port} 启动监听。");
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -466,7 +467,7 @@ namespace Unity.Mcp
                         }
                     }
                     listeners.Clear();
-                    Debug.Log("[Unity.Mcp] 所有 HttpListeners 已关闭");
+                    McpLogger.Log("[Unity.Mcp] 所有 HttpListeners 已关闭");
                 }
 
                 // 清理取消令牌
@@ -517,11 +518,7 @@ namespace Unity.Mcp
                     Log($"[Unity.Mcp] 等待HTTP请求...");
                     
                     // 使用带取消令牌的GetContextAsync
-                    HttpListenerContext context;
-                    using (cancellationToken.Register(() => listener.Stop()))
-                    {
-                        context = await listener.GetContextAsync();
-                    }
+                    var context = await listener.GetContextAsync();
 
                     // Fire and forget each HTTP request with cancellation token
                     _ = HandleHttpRequestAsync(context, cancellationToken);
@@ -633,7 +630,8 @@ namespace Unity.Mcp
                     EndPoint = clientEndpoint,
                     ConnectedAt = DateTime.Now,
                     LastActivity = DateTime.Now,
-                    CommandCount = 0
+                    CommandCount = 0,
+                    CommandText = commandText
                 };
 
                 lock (clientsLock)
@@ -981,10 +979,13 @@ namespace Unity.Mcp
                         // 根据命令类型决定记录方式
                         string cmdName;
                         string argsString;
-                        if (command.type == "single_call")
+                        if (command.type == "async_call")
                         {
                             // function_call: 记录具体的func和args
-                            cmdName = "single_call." + paramsObject["func"]?.Value ?? "Unknown";
+                            var func = paramsObject["func"].Value;
+                            if(string.IsNullOrEmpty(func))
+                                func = "checking...";
+                            cmdName = "async_call." + func;
                             argsString = paramsObject.ToPrettyString();
                         }
                         else if (command.type == "batch_call" && paramsObject is JsonArray funcsArray)
@@ -1085,9 +1086,9 @@ namespace Unity.Mcp
                     string cmdName;
                     string argsString;
 
-                    if (command?.type == "single_call" && command.cmd is JsonClass singleCallParams)
+                    if (command?.type == "async_call" && command.cmd is JsonClass singleCallParams)
                     {
-                        cmdName = "single_call." + (singleCallParams["func"]?.Value ?? "Unknown");
+                        cmdName = "async_call." + (singleCallParams["func"]?.Value ?? "Unknown");
                         argsString = singleCallParams.ToPrettyString();
                     }
                     else if (command?.type == "batch_call" && command.cmd is JsonArray funcsArray)
@@ -1220,6 +1221,7 @@ namespace Unity.Mcp
        public DateTime ConnectedAt { get; set; }
        public DateTime LastActivity { get; set; }
        public int CommandCount { get; set; }
+       public string CommandText { get; set; }
    }
 }
 

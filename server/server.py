@@ -1,4 +1,7 @@
 # https://mcp.fleeto.us/sdk/python/
+import os
+os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+
 from mcp.server.fastmcp import FastMCP, Context, Image
 import logging
 from dataclasses import dataclass
