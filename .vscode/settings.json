@@ -1,0 +1,19 @@
+{
+    "diffEditor.codeLens": true,
+    "mcp.servers": {
+        "unity3d-mcp": {
+            "command": "C:\\Users\\a1063\\.local\\bin\\uv.exe",
+            "args": [
+                "run",
+                "--directory",
+                "D:/unity3d-mcp/server",
+                "server.py"
+            ],
+            "env": {
+                "PYTHONPATH": "D:/unity3d-mcp/server"
+            }
+        }
+    },
+    "mcp.enableLogging": true,
+    "mcp.logLevel": "info"
+}

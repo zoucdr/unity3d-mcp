@@ -1,0 +1,31 @@
+{
+	"servers": {
+		"unityMCP": {
+			"command": "uv",
+			"args": [
+				"--directory",
+				"D:/unity3d-mcp/server",
+				"run",
+				"server.py"
+			],
+			"type": "stdio"
+		},
+		"blender": {
+			"command": "cmd",
+			"args": [
+				"/c",
+				"uvx",
+				"blender-mcp"
+			],
+			"type": "stdio"
+		},
+		"Figma": {
+			"url": "https://mcp.figma.com/mcp"
+		},
+		"Notion": {
+			"url": "https://mcp.notion.com/mcp",
+			"headers": {},
+			"type": "http"
+		}
+	}
+}
