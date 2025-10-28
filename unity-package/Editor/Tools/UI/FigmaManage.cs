@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Networking;
-using Unity.Mcp.Tools;
 using Unity.Mcp.Models;
 using Object = UnityEngine.Object;
 
@@ -327,15 +326,42 @@ namespace Unity.Mcp.Tools
         /// </summary>
         private IEnumerator PreviewImageCoroutine(string fileKey, string nodeId, string token, string imageFormat, float imageScale)
         {
-            EditorUtility.DisplayProgressBar("预览Figma图片", $"正在获取图片: 节点 {nodeId}...", 0.1f);
-
             // 第一步：直接通过Figma API获取图片URL
             string apiUrl = $"{FIGMA_API_BASE}/images/{fileKey}?ids={nodeId}&format={imageFormat}&scale={imageScale}";
             UnityWebRequest apiRequest = UnityWebRequest.Get(apiUrl);
             apiRequest.SetRequestHeader("X-Figma-Token", token);
-            apiRequest.timeout = 15;
+            apiRequest.timeout = 30;
+            Debug.Log($"[FigmaManage] 预览图片请求URL: {apiUrl}");
+            
+            var apiOperation = apiRequest.SendWebRequest();
 
-            yield return apiRequest.SendWebRequest();
+            // 监听获取图片URL的进度
+            float lastProgressUpdate = 0f;
+            bool apiCancelled = false;
+            while (!apiOperation.isDone && !apiCancelled)
+            {
+                float currentTime = Time.realtimeSinceStartup;
+                if (currentTime - lastProgressUpdate >= 0.5f) // 每0.5秒更新一次
+                {
+                    float progress = apiOperation.progress;
+                    apiCancelled = EditorUtility.DisplayCancelableProgressBar("预览Figma图片",
+                        $"正在获取图片URL: 节点 {nodeId}... {progress:P0}\n\n点击取消可中止操作",
+                        0.1f + progress * 0.2f); // 0.1-0.3的进度范围
+                    lastProgressUpdate = currentTime;
+                }
+                yield return new WaitForSeconds(0.1f); // 每0.1秒检查一次
+            }
+
+            // 处理API请求取消操作
+            if (apiCancelled)
+            {
+                apiRequest.Abort();
+                apiRequest.Dispose();
+                EditorUtility.ClearProgressBar();
+                Debug.LogWarning("[FigmaManage] 用户取消了预览图片获取URL操作");
+                yield return Response.Error("用户取消了预览图片操作");
+                yield break;
+            }
 
             if (apiRequest.result != UnityWebRequest.Result.Success)
             {
@@ -351,6 +377,7 @@ namespace Unity.Mcp.Tools
 
             try
             {
+                Debug.Log($"[FigmaManage] 预览图片请求响应: {apiRequest.downloadHandler.text}");
                 var response = Json.Parse(apiRequest.downloadHandler.text) as JsonClass;
                 var imagesNode = response["images"] as JsonClass;
                 if (imagesNode != null && imagesNode.ContainsKey(nodeId))
@@ -377,12 +404,38 @@ namespace Unity.Mcp.Tools
             }
 
             // 第二步：下载图片
-            EditorUtility.DisplayProgressBar("预览Figma图片", $"正在下载图片: 节点 {nodeId}...", 0.4f);
-
             UnityWebRequest imageRequest = UnityWebRequest.Get(imageUrl);
             imageRequest.timeout = 30;
 
-            yield return imageRequest.SendWebRequest();
+            var imageOperation = imageRequest.SendWebRequest();
+
+            // 监听下载图片的进度
+            lastProgressUpdate = 0f;
+            bool downloadCancelled = false;
+            while (!imageOperation.isDone && !downloadCancelled)
+            {
+                float currentTime = Time.realtimeSinceStartup;
+                if (currentTime - lastProgressUpdate >= 0.5f) // 每0.5秒更新一次
+                {
+                    float progress = imageOperation.progress;
+                    downloadCancelled = EditorUtility.DisplayCancelableProgressBar("预览Figma图片",
+                        $"正在下载图片: 节点 {nodeId}... {progress:P0}\n\n点击取消可中止操作",
+                        0.4f + progress * 0.4f); // 0.4-0.8的进度范围
+                    lastProgressUpdate = currentTime;
+                }
+                yield return new WaitForSeconds(0.1f); // 每0.1秒检查一次
+            }
+
+            // 处理下载取消操作
+            if (downloadCancelled)
+            {
+                imageRequest.Abort();
+                imageRequest.Dispose();
+                EditorUtility.ClearProgressBar();
+                Debug.LogWarning("[FigmaManage] 用户取消了预览图片下载操作");
+                yield return Response.Error("用户取消了预览图片操作");
+                yield break;
+            }
 
             if (imageRequest.result != UnityWebRequest.Result.Success)
             {

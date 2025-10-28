@@ -108,7 +108,6 @@ def register_figma_manage_tools(mcp: FastMCP):
            
         - 【严格禁止】使用node_id下载图片:
            ❌ 禁止使用node_id参数执行download_images操作
-           ❌ 必须使用node_imgs参数指定要下载的节点和文件名
            
         - 单图片预览（返回base64，这是node_id唯一允许的用途）:
           action="preview", file_key="X7pR70jAksb9r7AMNfg3OH", node_id="1:4"

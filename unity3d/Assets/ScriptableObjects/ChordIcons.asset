@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5e1012b4cffbb64cb70209e789e9b08, type: 3}
+  m_Name: ChordIcons
+  m_EditorClassIdentifier: 
+  link_url: https://www.figma.com/design/Rm7nmWzb9WpNefiF9IohmY/M?node-id=160-33&t=I419rk6TKzARYeJg-4
+  optimize_rule_path: 
+  img_save_to: Assets/Pics/ChordIcons
+  prototype_pic: 
+  image_scale: 3
+  use_exists_components: 0
+  descriptions: 
+  modify_records:
+  - "[2025-10-27 17:44:26] \u521B\u5EFAChordIcons\u56FE\u6807\u96C6\u5408\u754C\u9762\uFF0C\u5305\u542BScrollView\u548CGridLayoutGroup\u5E03\u5C40\uFF0C\u5DF2\u4E3A\u524D14\u4E2A\u56FE\u6807\u8BBE\u7F6E\u5BF9\u5E94\u7684Sprite\u56FE\u7247\uFF0C\u4F7F\u75285\u5217\u7F51\u683C\u5E03\u5C40\u663E\u793A\u56FE\u6807"
+  - "[2025-10-27 17:47:36] \u4FEE\u590DIconScrollView\u5927\u5C0F\u95EE\u9898\uFF1A\u8BBE\u7F6E\u4E3A\u5168\u5C4F\u5927\u5C0F(1920x1080)\uFF0C\u951A\u70B9\u62C9\u4F38\u5230(0,0)-(1,1)\uFF0C\u504F\u79FB\u91CF\u8BBE\u4E3A(0,0)\uFF0C\u540C\u65F6\u4FEE\u590DChordIconsRoot\u7684\u951A\u70B9\u8BBE\u7F6E"
+  node_names:
+  - id: 160:33
+    name: ChordIconsRoot
+    originName: "\u6241\u5E73\u56FE\u6807"
+  - id: 156:174
+    name: Icon_Add
+    originName: "Property 1=\u589E\u52A0"
+  - id: 204:779
+    name: Icon_Mail
+    originName: "Property 1=\u90AE\u4EF6"
+  - id: 206:193
+    name: Icon_Task
+    originName: "Property 1=\u4EFB\u52A1"
+  - id: 206:211
+    name: Icon_Bag
+    originName: "Property 1=\u80CC\u5305"
+  - id: 209:234
+    name: Icon_RedDot
+    originName: "Property 1=\u7EA2\u70B9"
+  node_sprites:
+  - id: 156:174
+    fileName: icon_add_0c406946.png
+    sprite: {fileID: 21300000, guid: 3daeea5af729b014c970d8ad560de4a4, type: 3}
+  - id: 204:779
+    fileName: icon_mail_74d3ea93.png
+    sprite: {fileID: 21300000, guid: ceb79bafecca9e74e9d4575e39fd3abc, type: 3}
+  - id: 206:193
+    fileName: icon_task_03299384.png
+    sprite: {fileID: 21300000, guid: c829f76c9f3063b44baeca6f979cc045, type: 3}
+  - id: 206:211
+    fileName: icon_bag_99c98ef3.png
+    sprite: {fileID: 21300000, guid: 53b8169c83fd9114fbd29dde70297ab3, type: 3}
+  - id: 209:234
+    fileName: icon_reddot_64ec353a.png
+    sprite: {fileID: 21300000, guid: 4dab2dadeb638bf438cd462edec5d20d, type: 3}
+  - id: 265:423
+    fileName: icon_mainline_9e12fe36.png
+    sprite: {fileID: 21300000, guid: d653df9847da4234689ddaf4358eff0c, type: 3}
+  - id: 311:1645
+    fileName: icon_dungeon_a838ce6a.png
+    sprite: {fileID: 21300000, guid: 5ba025fe057b998449fbbcb752ce3a09, type: 3}
+  - id: 333:2336
+    fileName: icon_strengthen_575d6672.png
+    sprite: {fileID: 21300000, guid: 57785088b8cf20249975b45aecdc6ce7, type: 3}
+  - id: 337:2406
+    fileName: icon_story_f2d8b4ad.png
+    sprite: {fileID: 21300000, guid: 617faa0b4e509e64c8c53aa0ebc43117, type: 3}
+  - id: 337:2409
+    fileName: icon_favor_0a85a94a.png
+    sprite: {fileID: 21300000, guid: 112e4e98f8f9055478d1ac5db0375dc9, type: 3}
+  - id: 405:2591
+    fileName: icon_time_eeab21e6.png
+    sprite: {fileID: 21300000, guid: 776e537117d3d5b4ab3a4b1be1eb1c7e, type: 3}
+  - id: 805:6672
+    fileName: icon_back_76769256.png
+    sprite: {fileID: 21300000, guid: 02f299b940f14f3488c7df0e19f3c6d1, type: 3}
+  - id: 589:21700
+    fileName: icon_star_off_2b7d34c8.png
+    sprite: {fileID: 21300000, guid: e74f354f0a917cd41aa07178ced4c65f, type: 3}
+  - id: 796:2936
+    fileName: icon_star_on_094f3a43.png
+    sprite: {fileID: 21300000, guid: 36a97a9e408776b4ba6e2aa173a3b14f, type: 3}
+  - id: 227:667
+    fileName: icon_shop_b3694774.png
+    sprite: {fileID: 21300000, guid: 8b0d11e728c005e40b91f684c4ff783f, type: 3}
+  - id: 233:1537
+    fileName: icon_character_578236a2.png
+    sprite: {fileID: 21300000, guid: 9136d76dfaf441543a792c666439f9d1, type: 3}
+  - id: 236:1541
+    fileName: icon_wish_258ef1ff.png
+    sprite: {fileID: 21300000, guid: 83b4896c2b7810446b1c2627e1bf01cf, type: 3}
+  - id: 237:1544
+    fileName: icon_base_204c87de.png
+    sprite: {fileID: 21300000, guid: 8cf799a3a145a8743ad26ae2beb9eecf, type: 3}
+  - id: 238:1546
+    fileName: icon_handbook_e531d6ec.png
+    sprite: {fileID: 21300000, guid: 3bf334e81a774aa4a9c8e04f51fc58c0, type: 3}
+  - id: 1100:3915
+    fileName: icon_variant21_cb44f414.png
+    sprite: {fileID: 21300000, guid: 652904e26166ae4479d322d06c1b60f6, type: 3}
+  - id: 1502:9305
+    fileName: icon_theater_278d1bd8.png
+    sprite: {fileID: 21300000, guid: 3a203eb7a75e9aa4caf9a6e9116206f7, type: 3}
+  - id: 1637:9286
+    fileName: icon_notice_63661280.png
+    sprite: {fileID: 21300000, guid: 5dcdae9ae9c92de4b88e3bc022260070, type: 3}
+  - id: 1637:9847
+    fileName: icon_repair_6e579a96.png
+    sprite: {fileID: 21300000, guid: dd34bf20b1f79244c8cd6c694c6e16ab, type: 3}
+  - id: 1659:10055
+    fileName: icon_service_88273689.png
+    sprite: {fileID: 21300000, guid: 123f3ffd03dd5344695a053c6bb8c485, type: 3}
+  - id: 1650:9934
+    fileName: icon_logout_e878e09b.png
+    sprite: {fileID: 21300000, guid: 80dbabd28eade534c8c730df29b68558, type: 3}
+  - id: 882:14919
+    fileName: icon_sort_4ac36937.png
+    sprite: {fileID: 21300000, guid: 77ca9e076ac28fe4594164956620adaf, type: 3}
+  - id: 1397:10942
+    fileName: icon_lock_cbe6fa1e.png
+    sprite: {fileID: 21300000, guid: 253456c5a156a4142a5f03cdfd12167f, type: 3}
+  - id: 1421:11520
+    fileName: icon_upgrade_6d565feb.png
+    sprite: {fileID: 21300000, guid: b2ed291ddd281c64e8d3ae729a564426, type: 3}
+  - id: 1675:12225
+    fileName: icon_close_63d6e2b2.png
+    sprite: {fileID: 21300000, guid: e4aff778cdf2d0843803ea24a9b86555, type: 3}
+  - id: 1675:12240
+    fileName: icon_mailbox_79b9d58b.png
+    sprite: {fileID: 21300000, guid: 45f9f528cda7b214fa0c02d2dbf390f1, type: 3}
+  - id: 1675:12242
+    fileName: icon_code_dcd01c29.png
+    sprite: {fileID: 21300000, guid: ecae5a09a2459c84a8e2f819f71fd61f, type: 3}
+  - id: 1685:8524
+    fileName: icon_correct_194db5d1.png
+    sprite: {fileID: 21300000, guid: df4bee5ea1376ff478c5ce27ed19ae01, type: 3}
+  - id: 2173:15320
+    fileName: icon_info_c7e986c6.png
+    sprite: {fileID: 21300000, guid: 2e536cd212cb9ee4596af4819f5bafd7, type: 3}
+  - id: 2188:16391
+    fileName: icon_skill_6a5f47c4.png
+    sprite: {fileID: 21300000, guid: 76e1e9c228899f948a5e25c4bda81bea, type: 3}
+  - id: 2275:18152
+    fileName: icon_arrow_1d9761df.png
+    sprite: {fileID: 21300000, guid: 300dbc31811c78a46bb8a4c2de8102fe, type: 3}
+  - id: 2297:19006
+    fileName: icon_level_limit_d7f32d9f.png
+    sprite: {fileID: 21300000, guid: 708368c461105e240a4ae08ef0ab8bf7, type: 3}
+  - id: 3086:41005
+    fileName: icon_question_d987bf44.png
+    sprite: {fileID: 21300000, guid: 1399e6c6483cad445bb16c61344c3aa5, type: 3}
