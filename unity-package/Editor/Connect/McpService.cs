@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Unity.Mcp.Models;
@@ -44,7 +45,7 @@ namespace Unity.Mcp
         // 保存监听任务的引用，防止被垃圾回收
         private Task listenerTask;
         // MCP服务器端口配置
-        private const int DEFAULT_MCP_PORT = 8010;
+        private const int DEFAULT_MCP_PORT = 8023; // 修改为与客户端配置文件中相同的端口
         private const string MCP_PORT_PREF_KEY = "mcp_server_port";
         
         public static int mcpPort 
@@ -500,9 +501,9 @@ namespace Unity.Mcp
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[Unity.Mcp] 强制关闭 HttpListener 时发生错误: {ex.Message}");
+                    McpLogger.LogError($"[Unity.Mcp] 强制关闭 HttpListener 时发生错误: {ex.Message}");
                 }
-                Debug.Log("[Unity.Mcp] HttpListener 已强制关闭");
+                McpLogger.Log("[Unity.Mcp] HttpListener 已强制关闭");
             }
 
             // 命令队列已在新架构中移除，无需清理
@@ -616,7 +617,7 @@ namespace Unity.Mcp
         // 实例方法
         public void Start()
         {
-            Debug.Log($"[Unity.Mcp] <color=green>正在启动Unity MCP HTTP服务器...</color>");
+            McpLogger.Log($"[Unity.Mcp] <color=green>正在启动Unity MCP HTTP服务器...</color>");
 
             // 确保先停止现有服务
             Stop();
@@ -626,7 +627,7 @@ namespace Unity.Mcp
 
             if (isRunning)
             {
-                Debug.Log($"[Unity.Mcp] 服务已在运行中");
+                McpLogger.Log($"[Unity.Mcp] 服务已在运行中");
                 return;
             }
 
@@ -656,10 +657,15 @@ namespace Unity.Mcp
                     {
                         listener = new HttpListener();
                         listener.Prefixes.Add(prefix);
+                        
+                        // 配置HttpListener以提高稳定性
+                        listener.IgnoreWriteExceptions = true; // 忽略写入异常，提高稳定性
+                        
                         listener.Start();
                         listenerStarted = true;
                         successPrefix = prefix;
                         Log($"[Unity.Mcp] 成功在 {prefix} 启动监听器");
+                        McpLogger.Log($"[Unity.Mcp] HttpListener配置 - IgnoreWriteExceptions: {listener.IgnoreWriteExceptions}");
                         break;
                     }
                     catch (Exception ex)
@@ -678,10 +684,15 @@ namespace Unity.Mcp
                         listener = new HttpListener();
                         string adminPrefix = $"http://+:{mcpPort}/";
                         listener.Prefixes.Add(adminPrefix);
+                        
+                        // 配置HttpListener以提高稳定性
+                        listener.IgnoreWriteExceptions = true; // 忽略写入异常，提高稳定性
+                        
                         listener.Start();
                         listenerStarted = true;
                         successPrefix = adminPrefix;
                         Log($"[Unity.Mcp] 成功在 {adminPrefix} 启动监听器（管理员模式）");
+                        McpLogger.Log($"[Unity.Mcp] HttpListener配置（管理员模式） - IgnoreWriteExceptions: {listener.IgnoreWriteExceptions}");
                     }
                     catch (Exception ex)
                     {
@@ -709,7 +720,7 @@ namespace Unity.Mcp
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[Unity.Mcp] 监听循环异常: {ex.Message}\n{ex.StackTrace}");
+                        McpLogger.LogError($"[Unity.Mcp] 监听循环异常: {ex.Message}\n{ex.StackTrace}");
                         isRunning = false;
                     }
                 });
@@ -717,21 +728,21 @@ namespace Unity.Mcp
                 // 在启动服务时重新发现工具，确保工具列表是最新的
                 DiscoverTools();
                 
-                Debug.Log($"[Unity.Mcp] <color=green>MCP服务器成功启动!</color> 监听地址: {successPrefix}");
-                Debug.Log($"[Unity.Mcp] 可用工具数量: {availableTools.Count}");
+                McpLogger.Log($"[Unity.Mcp] <color=green>MCP服务器成功启动!</color> 监听地址: {successPrefix}");
+                McpLogger.Log($"[Unity.Mcp] 可用工具数量: {availableTools.Count}");
                 
                 // 打印所有可用工具的名称
                 if (availableTools.Count > 0)
                 {
-                    Debug.Log($"[Unity.Mcp] 可用工具列表:");
+                    McpLogger.Log($"[Unity.Mcp] 可用工具列表:");
                     foreach (var toolName in availableTools.Keys)
                     {
-                        Debug.Log($"[Unity.Mcp] - {toolName}");
+                        McpLogger.Log($"[Unity.Mcp] - {toolName}");
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"[Unity.Mcp] 没有发现可用工具，请检查IToolMethod接口的实现");
+                    McpLogger.LogWarning($"[Unity.Mcp] 没有发现可用工具，请检查IToolMethod接口的实现");
                 }
 
                 // 保存状态到 EditorPrefs
@@ -763,7 +774,7 @@ namespace Unity.Mcp
                 return;
             }
 
-            Debug.Log($"[Unity.Mcp] <color=orange>正在停止Unity MCP HTTP服务器...</color>");
+            McpLogger.Log($"[Unity.Mcp] <color=orange>正在停止Unity MCP HTTP服务器...</color>");
 
             try
             {
@@ -803,7 +814,7 @@ namespace Unity.Mcp
                         }
                         catch (Exception listenerEx)
                         {
-                            Debug.LogError($"[Unity.Mcp] 关闭 HttpListener 时发生错误: {listenerEx.Message}");
+                            McpLogger.LogError($"[Unity.Mcp] 关闭 HttpListener 时发生错误: {listenerEx.Message}");
                         }
                     
                     McpLogger.Log("[Unity.Mcp] MCP HttpListener 已关闭");
@@ -844,14 +855,14 @@ namespace Unity.Mcp
                 // 标记状态
                 isRunning = false;
 
-                Debug.Log($"[Unity.Mcp] <color=orange>MCP服务已停止</color>");
+                McpLogger.Log($"[Unity.Mcp] <color=orange>MCP服务已停止</color>");
 
                 // 等待一小段时间确保资源释放
                 System.Threading.Thread.Sleep(100);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[Unity.Mcp] 停止服务时发生错误: {ex.Message}");
+                McpLogger.LogError($"[Unity.Mcp] 停止服务时发生错误: {ex.Message}");
 
                 // 确保状态正确
                 isRunning = false;
@@ -943,8 +954,14 @@ namespace Unity.Mcp
             string clientId = Guid.NewGuid().ToString();
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
-            // 增强请求日志
+            
+            // 增强请求日志 - 记录更多详细信息
             McpLogger.Log($"[Unity.Mcp] <color=cyan>收到MCP请求:</color> {request.HttpMethod} {request.Url} from {clientEndpoint} (ID: {clientId})");
+            McpLogger.Log($"[Unity.Mcp] 请求头信息:");
+            McpLogger.Log($"[Unity.Mcp] - Content-Type: {request.ContentType}");
+            McpLogger.Log($"[Unity.Mcp] - Accept: {request.Headers["Accept"]}");
+            McpLogger.Log($"[Unity.Mcp] - User-Agent: {request.Headers["User-Agent"]}");
+            McpLogger.Log($"[Unity.Mcp] - Content-Length: {request.ContentLength64}");
 
             try
             {
@@ -952,7 +969,78 @@ namespace Unity.Mcp
                 response.Headers.Add("Access-Control-Allow-Origin", "*");
                 response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                 response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
-                response.ContentType = "application/json";
+                
+                // 检查是否是SSE请求 - 只有GET请求才可能是SSE
+                bool isSSERequest = false;
+                
+                // 检查Accept头
+                string acceptHeader = request.Headers["Accept"];
+                McpLogger.Log($"[Unity.Mcp] 请求方法: {request.HttpMethod}, Accept头: {acceptHeader}");
+                
+                // 只有GET请求才检查SSE
+                if (request.HttpMethod == "GET")
+                {
+                    if (acceptHeader != null && acceptHeader.Contains("text/event-stream"))
+                    {
+                        isSSERequest = true;
+                        McpLogger.Log($"[Unity.Mcp] 通过Accept头检测到SSE请求");
+                    }
+                    
+                    // 检查URL路径，有些客户端通过路径请求SSE
+                    string path = request.Url.AbsolutePath.ToLowerInvariant();
+                    McpLogger.Log($"[Unity.Mcp] 请求路径: {path}");
+                    
+                    if (path.EndsWith("/sse") || path.Contains("/events") || request.QueryString["stream"] == "true")
+                    {
+                        isSSERequest = true;
+                        McpLogger.Log($"[Unity.Mcp] 通过路径检测到SSE请求");
+                    }
+                }
+                
+                McpLogger.Log($"[Unity.Mcp] SSE请求检测结果: {isSSERequest}");
+                
+                try
+                {
+                    if (isSSERequest)
+                    {
+                        McpLogger.Log($"[Unity.Mcp] 检测到SSE请求，返回不支持SSE的响应");
+                        
+                        // 对于SSE请求，返回一个明确的错误响应，告知客户端使用HTTP POST
+                        response.StatusCode = 501; // Not Implemented
+                        response.ContentType = "application/json";
+                        
+                        string errorResponse = CreateMcpErrorResponse(null, -32601, "SSE not supported, please use HTTP POST for MCP requests");
+                        byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
+                        
+                        try
+                        {
+                            await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                            await response.OutputStream.FlushAsync();
+                            response.Close();
+                            
+                            McpLogger.Log($"[Unity.Mcp] SSE不支持响应已发送");
+                        }
+                        catch (Exception sseEx)
+                        {
+                            McpLogger.LogError($"[Unity.Mcp] 发送SSE不支持响应失败: {sseEx.Message}");
+                            try { response.Close(); } catch { }
+                        }
+                        
+                        return;
+                    }
+                    else
+                    {
+                        // 默认JSON内容类型
+                        response.ContentType = "application/json";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogError($"[Unity.Mcp] 设置响应头时出错: {ex.Message}");
+                    // 如果设置头部失败，确保使用默认的JSON内容类型
+                    response.ContentType = "application/json";
+                }
+                
                 response.ContentEncoding = Encoding.UTF8;
 
                 // 检查是否已被取消
@@ -970,22 +1058,57 @@ namespace Unity.Mcp
                 // 处理GET请求 - 返回服务器状态信息
                 if (request.HttpMethod == "GET")
                 {
-                    var serverInfo = new JsonClass();
-                    serverInfo.Add("name", new JsonData(serverName));
-                    serverInfo.Add("version", new JsonData(serverVersion));
-                    serverInfo.Add("status", new JsonData("running"));
-                    serverInfo.Add("port", new JsonData(port)); // 使用传入的端口值，而不是mcpPort属性
-                    serverInfo.Add("toolCount", new JsonData(availableTools.Count));
-                    serverInfo.Add("protocol", new JsonData("MCP"));
-                    serverInfo.Add("protocolVersion", new JsonData("2024-11-05"));
-                    
-                    string getResponseJson = serverInfo.ToString();
-                    byte[] getResponseBytes = Encoding.UTF8.GetBytes(getResponseJson);
-                    
-                    response.StatusCode = 200;
-                    await response.OutputStream.WriteAsync(getResponseBytes, 0, getResponseBytes.Length);
-                    response.Close();
-                    Log($"[Unity.Mcp] GET请求处理完成 from {clientEndpoint}");
+                    try
+                    {
+                        var serverInfo = new JsonClass();
+                        serverInfo.Add("name", new JsonData(serverName));
+                        serverInfo.Add("version", new JsonData(serverVersion));
+                        serverInfo.Add("status", new JsonData("running"));
+                        serverInfo.Add("port", new JsonData(port)); // 使用传入的端口值，而不是mcpPort属性
+                        serverInfo.Add("toolCount", new JsonData(availableTools.Count));
+                        serverInfo.Add("protocol", new JsonData("MCP"));
+                        serverInfo.Add("protocolVersion", new JsonData("2024-11-05"));
+                        
+                        string getResponseJson = serverInfo.ToString();
+                        byte[] getResponseBytes = Encoding.UTF8.GetBytes(getResponseJson);
+                        
+                        // 设置状态码 - HttpListenerResponse没有HeadersSent属性，
+                        // 我们需要在try-catch块中设置状态码
+                        try
+                        {
+                            response.StatusCode = 200;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // 如果头部已经发送，会抛出InvalidOperationException
+                            McpLogger.Log("[Unity.Mcp] 响应头已发送，无法设置状态码");
+                        }
+                        
+                        await response.OutputStream.WriteAsync(getResponseBytes, 0, getResponseBytes.Length);
+                        response.Close();
+                        Log($"[Unity.Mcp] GET请求处理完成 from {clientEndpoint}");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"[Unity.Mcp] 处理GET请求时出错: {ex.Message}");
+                        
+                        // 尝试设置错误状态码
+                        try
+                        {
+                            response.StatusCode = 500;
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // 如果头部已经发送，会抛出InvalidOperationException
+                            McpLogger.Log("[Unity.Mcp] 响应头已发送，无法设置错误状态码");
+                        }
+                        
+                        try
+                        {
+                            response.Close();
+                        }
+                        catch { }
+                    }
                     
                     // GET请求不需要记录到请求记录中，直接返回
                     return;
@@ -1007,12 +1130,53 @@ namespace Unity.Mcp
 
                 // 读取请求体
                 string requestBody = "";
+                try
+                {
                     using (StreamReader reader = new StreamReader(request.InputStream, request.ContentEncoding))
                     {
-                    requestBody = await reader.ReadToEndAsync();
+                        requestBody = await reader.ReadToEndAsync();
+                    }
+                    
+                    Log($"[Unity.Mcp] 接收到MCP请求 from {clientEndpoint}: {requestBody}");
+                    
+                    // 验证请求体不为空
+                    if (string.IsNullOrWhiteSpace(requestBody))
+                    {
+                        McpLogger.LogWarning($"[Unity.Mcp] 收到空的请求体 from {clientEndpoint}");
+                        
+                        // 发送错误响应
+                        string errorResponse = CreateMcpErrorResponse(null, -32600, "Empty request body");
+                        byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
+                        
+                        try
+                        {
+                            response.StatusCode = 400;
+                        }
+                        catch (InvalidOperationException) { }
+                        
+                        await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                        response.Close();
+                        return;
+                    }
                 }
-                
-                Log($"[Unity.Mcp] 接收到MCP请求 from {clientEndpoint}: {requestBody}");
+                catch (Exception ex)
+                {
+                    LogError($"[Unity.Mcp] 读取请求体时出错 from {clientEndpoint}: {ex.Message}");
+                    
+                    // 发送错误响应
+                    string errorResponse = CreateMcpErrorResponse(null, -32700, "Failed to read request body");
+                    byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
+                    
+                    try
+                    {
+                        response.StatusCode = 400;
+                    }
+                    catch (InvalidOperationException) { }
+                    
+                    await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                    response.Close();
+                    return;
+                }
 
                 // 记录请求信息到McpExecuteRecordObject
                 McpExecuteRecordObject.instance.AddHttpRequestRecord(
@@ -1024,12 +1188,40 @@ namespace Unity.Mcp
                 );
 
                 // 处理MCP请求
+                McpLogger.Log($"[Unity.Mcp] 开始处理MCP请求 from {clientEndpoint}");
                 string responseJson = await ProcessMcpRequest(requestBody);
+                McpLogger.Log($"[Unity.Mcp] MCP请求处理完成，准备发送响应 to {clientEndpoint}");
+                
                 byte[] responseBytes = Encoding.UTF8.GetBytes(responseJson);
 
-                response.StatusCode = 200;
-                await response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
-                response.Close();
+                // 尝试设置状态码
+                try
+                {
+                    response.StatusCode = 200;
+                    McpLogger.Log($"[Unity.Mcp] 设置响应状态码为200");
+                }
+                catch (InvalidOperationException)
+                {
+                    // 如果头部已经发送，会抛出InvalidOperationException
+                    McpLogger.Log("[Unity.Mcp] 响应头已发送，无法设置状态码");
+                }
+                
+                try
+                {
+                    McpLogger.Log($"[Unity.Mcp] 开始写入响应数据，长度: {responseBytes.Length} bytes");
+                    await response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                    await response.OutputStream.FlushAsync();
+                    McpLogger.Log($"[Unity.Mcp] 响应数据写入完成");
+                    
+                    response.Close();
+                    McpLogger.Log($"[Unity.Mcp] 响应连接已关闭");
+                }
+                catch (Exception ex)
+                {
+                    LogError($"[Unity.Mcp] 发送响应时出错 to {clientEndpoint}: {ex.Message}");
+                    throw; // 重新抛出异常以便外层catch处理
+                }
+                
                 Log($"[Unity.Mcp] MCP响应已发送 to {clientEndpoint}");
 
                 // 更新请求记录的完成时间
@@ -1044,26 +1236,66 @@ namespace Unity.Mcp
             catch (Exception ex)
             {
                 LogError($"[Unity.Mcp] MCP请求处理异常 {clientEndpoint}: {ex.Message}");
+                LogError($"[Unity.Mcp] 异常堆栈: {ex.StackTrace}");
 
                 try
                 {
+                    McpLogger.Log($"[Unity.Mcp] 检查响应流状态，CanWrite: {response.OutputStream.CanWrite}");
+                    
                     if (!response.OutputStream.CanWrite)
                     {
+                        McpLogger.LogWarning($"[Unity.Mcp] 响应流不可写，跳过错误响应发送");
                         return;
                     }
 
-                    response.StatusCode = 500;
+                    // 尝试设置错误状态码
+                    try
+                    {
+                        response.StatusCode = 500;
+                        McpLogger.Log($"[Unity.Mcp] 设置错误状态码为500");
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // 如果头部已经发送，会抛出InvalidOperationException
+                        McpLogger.Log("[Unity.Mcp] 响应头已发送，无法设置错误状态码");
+                    }
+                    
                     string errorMessage = ex.Message.Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
-                    byte[] errorBytes = Encoding.UTF8.GetBytes(
-                        /*lang=json,strict*/
-                        $"{{\"jsonrpc\":\"2.0\",\"error\":{{\"code\":-32603,\"message\":\"{errorMessage}\"}},\"id\":null}}"
-                    );
+                    string errorResponse = $"{{\"jsonrpc\":\"2.0\",\"error\":{{\"code\":-32603,\"message\":\"{errorMessage}\"}},\"id\":null}}";
+                    byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
+                    
+                    McpLogger.Log($"[Unity.Mcp] 准备发送错误响应: {errorResponse}");
+                    McpLogger.Log($"[Unity.Mcp] 错误响应字节长度: {errorBytes.Length}");
+                    
                     await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                    await response.OutputStream.FlushAsync();
+                    McpLogger.Log($"[Unity.Mcp] 错误响应数据写入并刷新完成");
+                    
                     response.Close();
+                    McpLogger.Log($"[Unity.Mcp] 错误响应连接已关闭");
                 }
-                catch
+                catch (Exception innerEx)
                 {
-                    // 无法发送错误响应，忽略
+                    // 无法发送错误响应
+                    LogError($"[Unity.Mcp] 无法发送错误响应: {innerEx.Message}");
+                    LogError($"[Unity.Mcp] 内部异常堆栈: {innerEx.StackTrace}");
+                    
+                    try
+                    {
+                        response.StatusCode = 500;
+                        response.Close();
+                        McpLogger.Log($"[Unity.Mcp] 强制关闭响应连接");
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // 如果头部已经发送，会抛出InvalidOperationException
+                        McpLogger.Log("[Unity.Mcp] 响应头已发送，无法设置错误状态码");
+                    }
+                    catch (Exception finalEx)
+                    {
+                        // 忽略其他异常
+                        LogError($"[Unity.Mcp] 最终异常处理失败: {finalEx.Message}");
+                    }
                 }
 
                 // 更新请求记录的完成时间（即使出错也要记录）
@@ -1084,15 +1316,35 @@ namespace Unity.Mcp
         {
             try
             {
+                // 添加处理时间日志
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                
+                McpLogger.Log($"[Unity.Mcp] 开始处理MCP请求，请求体长度: {requestBody?.Length ?? 0}");
+                
                 // 解析JSON-RPC请求
                 if (string.IsNullOrWhiteSpace(requestBody))
                 {
+                    McpLogger.LogError($"[Unity.Mcp] 请求体为空或null");
                     return CreateMcpErrorResponse(null, -32600, "Invalid Request");
                 }
 
-                var requestJson = Json.Parse(requestBody);
+                McpLogger.Log($"[Unity.Mcp] 请求体内容: {requestBody}");
+
+                JsonNode requestJson;
+                try
+                {
+                    requestJson = Json.Parse(requestBody);
+                }
+                catch (Exception parseEx)
+                {
+                    McpLogger.LogError($"[Unity.Mcp] JSON解析失败: {parseEx.Message}");
+                    return CreateMcpErrorResponse(null, -32700, $"Parse error: {parseEx.Message}");
+                }
+                
                 if (requestJson == null)
                 {
+                    McpLogger.LogError($"[Unity.Mcp] JSON解析结果为null");
                     return CreateMcpErrorResponse(null, -32700, "Parse error");
                 }
 
@@ -1101,22 +1353,72 @@ namespace Unity.Mcp
                 string id = request["id"]?.Value;
                 JsonNode paramsNode = request["params"];
 
-                Log($"[Unity.Mcp] 处理MCP方法: {method}");
+                McpLogger.Log($"[Unity.Mcp] 解析成功 - 方法: {method}, ID: {id}");
 
-                // 根据方法类型处理请求
-                switch (method)
+                // 设置超时保护
+                CancellationTokenSource timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                
+                try
                 {
-                    case "initialize":
-                        return HandleInitialize(id, paramsNode);
+                    // 根据方法类型处理请求
+                    string result;
+                    switch (method)
+                    {
+                        case "initialize":
+                            result = HandleInitialize(id, paramsNode);
+                            break;
+                        
+                        case "tools/list":
+                            result = HandleToolsList(id);
+                            break;
+                        
+                case "tools/call":
+                    McpLogger.Log($"[Unity.Mcp] 收到工具调用请求，ID: {id}");
                     
-                    case "tools/list":
-                        return HandleToolsList(id);
+                    // 检查工具是否已发现
+                    if (toolInfos.Count == 0)
+                    {
+                        McpLogger.LogWarning($"[Unity.Mcp] 工具列表为空，重新发现工具...");
+                        DiscoverTools();
+                    }
                     
-                    case "tools/call":
-                        return await HandleToolsCall(id, paramsNode);
+                    // 使用超时保护
+                    Task<string> callTask = HandleToolsCall(id, paramsNode);
+
+                    // 等待任务完成或超时
+                    if (await Task.WhenAny(callTask, Task.Delay(10000)) == callTask)
+                    {
+                        // 任务完成
+                        result = await callTask;
+                        McpLogger.Log($"[Unity.Mcp] 工具调用完成，ID: {id}");
+                    }
+                    else
+                    {
+                        // 任务超时
+                        McpLogger.LogError($"[Unity.Mcp] 工具调用超时，ID: {id}");
+                        return CreateMcpErrorResponse(id, -32000, "Tool call timed out after 10 seconds");
+                    }
+                    break;
+                        
+                        default:
+                            result = CreateMcpErrorResponse(id, -32601, $"Method not found: {method}");
+                            break;
+                    }
                     
-                    default:
-                        return CreateMcpErrorResponse(id, -32601, $"Method not found: {method}");
+                    // 记录处理时间
+                    sw.Stop();
+                    Log($"[Unity.Mcp] 方法 {method} 处理完成，耗时: {sw.ElapsedMilliseconds}ms");
+                    
+                    return result;
+                }
+                catch (OperationCanceledException)
+                {
+                    // 处理超时
+                    return CreateMcpErrorResponse(id, -32000, "Request processing timed out");
+                }
+                finally
+                {
+                    timeoutCts.Dispose();
                 }
             }
             catch (Exception ex)
@@ -1142,9 +1444,9 @@ namespace Unity.Mcp
             // 如果工具列表为空，尝试重新发现工具
             if (toolInfos.Count == 0)
             {
-                Debug.LogWarning("[Unity.Mcp] 初始化时工具列表为空，尝试重新发现工具...");
+                McpLogger.LogWarning("[Unity.Mcp] 初始化时工具列表为空，尝试重新发现工具...");
                 DiscoverTools();
-                Debug.Log($"[Unity.Mcp] 重新发现后的工具数量: {toolInfos.Count}");
+                McpLogger.Log($"[Unity.Mcp] 重新发现后的工具数量: {toolInfos.Count}");
             }
             
             var result = new JsonClass();
@@ -1152,7 +1454,7 @@ namespace Unity.Mcp
             
             var capabilities = new JsonClass();
             var toolsCapability = new JsonClass();
-            toolsCapability.Add("listChanged", new JsonData(false));
+            toolsCapability.Add("listChanged", new JsonData(true));
             capabilities.Add("tools", toolsCapability);
             result.Add("capabilities", capabilities);
             
@@ -1176,7 +1478,7 @@ namespace Unity.Mcp
                 toolsArray.Add(tool);
             }
             string responseJson = CreateMcpSuccessResponse(id, result);
-            Debug.Log($"[Unity.Mcp] 初始化响应包含 {toolsArray.Count} 个工具");
+            McpLogger.Log($"[Unity.Mcp] 初始化响应包含 {toolsArray.Count} 个工具");
             return responseJson;
         }
 
@@ -1190,9 +1492,9 @@ namespace Unity.Mcp
             // 如果工具列表为空，尝试重新发现工具
             if (toolInfos.Count == 0)
             {
-                Debug.LogWarning("[Unity.Mcp] 工具列表为空，尝试重新发现工具...");
+                McpLogger.LogWarning("[Unity.Mcp] 工具列表为空，尝试重新发现工具...");
                 DiscoverTools();
-                Debug.Log($"[Unity.Mcp] 重新发现后的工具数量: {toolInfos.Count}");
+                McpLogger.Log($"[Unity.Mcp] 重新发现后的工具数量: {toolInfos.Count}");
             }
             
             var tools = new JsonArray();
@@ -1212,7 +1514,7 @@ namespace Unity.Mcp
             // 如果工具列表仍然为空，添加一个默认的测试工具
             if (tools.Count == 0)
             {
-                Debug.LogWarning("[Unity.Mcp] 工具列表仍为空，添加默认测试工具");
+                McpLogger.LogWarning("[Unity.Mcp] 工具列表仍为空，添加默认测试工具");
                 var testTool = new JsonClass();
                 testTool.Add("name", new JsonData("unity_test_tool"));
                 testTool.Add("description", new JsonData("Unity测试工具，用于验证MCP连接"));
@@ -1238,7 +1540,7 @@ namespace Unity.Mcp
 
             string responseJson = CreateMcpSuccessResponse(id, result);
             Log($"[Unity.Mcp] tools/list响应: {responseJson}");
-            Debug.Log($"[Unity.Mcp] 返回工具数量: {tools.Count}");
+            McpLogger.Log($"[Unity.Mcp] 返回工具数量: {tools.Count}");
             return responseJson;
         }
 
@@ -1249,8 +1551,11 @@ namespace Unity.Mcp
         {
             try
             {
+                McpLogger.Log($"[Unity.Mcp] HandleToolsCall开始，ID: {id}");
+                
                 if (paramsNode == null)
                 {
+                    McpLogger.LogError($"[Unity.Mcp] HandleToolsCall参数为null，ID: {id}");
                     return CreateMcpErrorResponse(id, -32602, "Invalid params");
                 }
 
@@ -1258,10 +1563,12 @@ namespace Unity.Mcp
                 string toolName = paramsObj["name"]?.Value;
                 JsonNode argumentsNode = paramsObj["arguments"];
 
-                Log($"[Unity.Mcp] 调用工具: {toolName}");
+                McpLogger.Log($"[Unity.Mcp] 工具调用 - 工具名: {toolName}, ID: {id}");
+                McpLogger.Log($"[Unity.Mcp] 可用工具数量: {availableTools.Count}");
 
                 if (string.IsNullOrEmpty(toolName))
                 {
+                    McpLogger.LogError($"[Unity.Mcp] 工具名为空，ID: {id}");
                     return CreateMcpErrorResponse(id, -32602, "Tool name is required");
                 }
 
@@ -1270,7 +1577,7 @@ namespace Unity.Mcp
                     // 如果是我们的测试工具，提供一个特殊处理
                     if (toolName == "unity_test_tool")
                     {
-                        Debug.Log($"[Unity.Mcp] 处理测试工具调用");
+                        McpLogger.Log($"[Unity.Mcp] 处理测试工具调用，ID: {id}");
                         
                         // 创建一个简单的响应
                         var testToolContent = new JsonArray();
@@ -1284,6 +1591,7 @@ namespace Unity.Mcp
                             if (args != null && args.ContainsKey("message") && args["message"] != null)
                             {
                                 message = $"收到消息: {args["message"].Value}";
+                                McpLogger.Log($"[Unity.Mcp] 测试工具收到参数: {args["message"].Value}");
                             }
                         }
                         
@@ -1293,6 +1601,7 @@ namespace Unity.Mcp
                         var testToolResult = new JsonClass();
                         testToolResult.Add("content", testToolContent);
                         
+                        McpLogger.Log($"[Unity.Mcp] 测试工具调用成功，返回响应，ID: {id}");
                         return CreateMcpSuccessResponse(id, testToolResult);
                     }
                     
@@ -1368,11 +1677,56 @@ namespace Unity.Mcp
         /// </summary>
         private string CreateMcpSuccessResponse(string id, JsonNode result)
         {
+            // 创建标准JSON-RPC 2.0响应
             var response = new JsonClass();
-            response.Add("jsonrpc", new JsonData("2.0"));
+            response.Add("jsonrpc", new JsonData("2.0")); // 必须是字符串"2.0"而不是数字2
             response.Add("result", result);
-            response.Add("id", new JsonData(id));
-            return response.ToString();
+            
+            // 确保id字段正确处理
+            if (id != null)
+            {
+                // 尝试解析为数字ID
+                if (int.TryParse(id, out int numId))
+                {
+                    response.Add("id", new JsonData(numId));
+                }
+                else
+                {
+                    response.Add("id", new JsonData(id));
+                }
+            }
+            else
+            {
+                response.Add("id", new JsonData(null));
+            }
+            
+            // 使用System.Text.Json序列化以确保格式正确
+            try
+            {
+                // 将SimpleJson转换为标准JSON字符串
+                string jsonString = response.ToString();
+                
+                // 验证JSON格式
+                if (!jsonString.Contains("\"jsonrpc\":\"2.0\""))
+                {
+                    // 如果格式不正确，手动构建正确的JSON
+                    jsonString = jsonString.Replace("\"jsonrpc\":2.0", "\"jsonrpc\":\"2.0\"");
+                }
+                
+                McpLogger.Log($"[Unity.Mcp] 发送JSON-RPC响应: {jsonString}");
+                return jsonString;
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError($"[Unity.Mcp] JSON序列化错误: {ex.Message}");
+                // 回退到手动构建JSON
+                string manualJson = "{{\"jsonrpc\":\"2.0\",\"result\":{0},\"id\":{1}}}";
+                string resultJson = result?.ToString() ?? "{}";
+                string idJson = id != null ? (int.TryParse(id, out int _) ? id : $"\"{id}\"") : "null";
+                string finalJson = string.Format(manualJson, resultJson, idJson);
+                McpLogger.Log($"[Unity.Mcp] 手动构建的JSON-RPC响应: {finalJson}");
+                return finalJson;
+            }
         }
 
         /// <summary>
@@ -1385,10 +1739,53 @@ namespace Unity.Mcp
             error.Add("message", new JsonData(message));
             
             var response = new JsonClass();
-            response.Add("jsonrpc", new JsonData("2.0"));
+            response.Add("jsonrpc", new JsonData("2.0")); // 必须是字符串"2.0"而不是数字2
             response.Add("error", error);
-            response.Add("id", new JsonData(id));
-            return response.ToString();
+            
+            // 确保id字段正确处理
+            if (id != null)
+            {
+                // 尝试解析为数字ID
+                if (int.TryParse(id, out int numId))
+                {
+                    response.Add("id", new JsonData(numId));
+                }
+                else
+                {
+                    response.Add("id", new JsonData(id));
+                }
+            }
+            else
+            {
+                response.Add("id", new JsonData(null));
+            }
+            
+            // 使用System.Text.Json序列化以确保格式正确
+            try
+            {
+                // 将SimpleJson转换为标准JSON字符串
+                string jsonString = response.ToString();
+                
+                // 验证JSON格式
+                if (!jsonString.Contains("\"jsonrpc\":\"2.0\""))
+                {
+                    // 如果格式不正确，手动构建正确的JSON
+                    jsonString = jsonString.Replace("\"jsonrpc\":2.0", "\"jsonrpc\":\"2.0\"");
+                }
+                
+                McpLogger.Log($"[Unity.Mcp] 发送JSON-RPC错误响应: {jsonString}");
+                return jsonString;
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError($"[Unity.Mcp] JSON序列化错误: {ex.Message}");
+                // 回退到手动构建JSON
+                string manualJson = "{{\"jsonrpc\":\"2.0\",\"error\":{{\"code\":{0},\"message\":\"{1}\"}},\"id\":{2}}}";
+                string idJson = id != null ? (int.TryParse(id, out int _) ? id : $"\"{id}\"") : "null";
+                string finalJson = string.Format(manualJson, code, message.Replace("\"", "\\\""), idJson);
+                McpLogger.Log($"[Unity.Mcp] 手动构建的JSON-RPC错误响应: {finalJson}");
+                return finalJson;
+            }
         }
 
     }
