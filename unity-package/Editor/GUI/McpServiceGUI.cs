@@ -20,6 +20,10 @@ namespace Unity.Mcp.Gui
         private static Vector2 methodsScrollPosition;
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
         private const double doubleClickTime = 0.3; // 双击判定时间（秒）
+        
+        // 端口配置相关变量
+        private static string portInputString = "";
+        private static bool portInputInitialized = false;
 
         /// <summary>
         /// 绘制完整的MCP设置GUI
@@ -32,6 +36,9 @@ namespace Unity.Mcp.Gui
             // 标题行
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Unity3D MCP Service", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+
+            // 端口配置
+            DrawPortConfiguration();
 
             // 重启服务器按钮
             GUIStyle restartButtonStyle = new GUIStyle(GUI.skin.button);
@@ -98,6 +105,19 @@ namespace Unity.Mcp.Gui
             // 标题栏：左侧显示标题，右侧显示调试按钮
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("可用工具方法", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+
+            // 工具信息按钮
+            GUIStyle toolInfoButtonStyle = new GUIStyle(EditorStyles.miniButton);
+            Color toolInfoOriginalColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(1f, 0.9f, 0.7f); // 淡橙色背景
+
+            int toolCount = McpService.GetToolCount();
+            if (GUILayout.Button($"工具({toolCount})", toolInfoButtonStyle, GUILayout.Width(60)))
+            {
+                ShowToolDebugInfo();
+            }
+
+            GUI.backgroundColor = toolInfoOriginalColor;
 
             // 调试窗口按钮
             GUIStyle titleDebugButtonStyle = new GUIStyle(EditorStyles.miniButton);
@@ -782,14 +802,12 @@ namespace Unity.Mcp.Gui
                 // 显示成功提示
                 if (McpService.Instance.IsRunning)
                 {
-                    var activePorts = McpService.GetActivePorts();
-                    string portsStr = activePorts.Count > 0 ? string.Join(", ", activePorts) : "无";
                     EditorUtility.DisplayDialog(
                         "重启成功",
-                        $"MCP服务器已成功重启！\n\n激活端口: {portsStr}",
+                        $"MCP服务器已成功重启！\n\n端口: {McpService.mcpPort}",
                         "确定"
                     );
-                    Debug.Log($"[McpServiceGUI] MCP服务器已重启，激活端口: {portsStr}");
+                    Debug.Log($"[McpServiceGUI] MCP服务器已重启，端口: {McpService.mcpPort}");
                 }
                 else
                 {
@@ -810,6 +828,238 @@ namespace Unity.Mcp.Gui
                     "确定"
                 );
                 Debug.LogError($"[McpServiceGUI] 重启MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 绘制端口配置
+        /// </summary>
+        private static void DrawPortConfiguration()
+        {
+            // 初始化端口输入字符串
+            if (!portInputInitialized)
+            {
+                portInputString = McpService.mcpPort.ToString();
+                portInputInitialized = true;
+            }
+
+            // 端口标签
+            EditorGUILayout.LabelField("端口:", GUILayout.Width(30));
+
+            // 端口输入框
+            GUI.SetNextControlName("PortInput");
+            string newPortString = EditorGUILayout.TextField(portInputString, GUILayout.Width(60));
+            
+            // 检测输入变化
+            if (newPortString != portInputString)
+            {
+                // 只允许数字输入
+                if (System.Text.RegularExpressions.Regex.IsMatch(newPortString, @"^\d*$"))
+                {
+                    portInputString = newPortString;
+                }
+            }
+
+            // 应用按钮
+            bool isValidPort = false;
+            int portValue = 0;
+            
+            if (int.TryParse(portInputString, out portValue))
+            {
+                isValidPort = McpService.IsValidPort(portValue);
+            }
+
+            // 根据端口有效性设置按钮颜色
+            Color originalColor = GUI.backgroundColor;
+            if (!isValidPort && !string.IsNullOrEmpty(portInputString))
+            {
+                GUI.backgroundColor = Color.red;
+            }
+            else if (isValidPort && portValue != McpService.mcpPort)
+            {
+                GUI.backgroundColor = Color.green;
+            }
+
+            bool buttonEnabled = isValidPort && portValue != McpService.mcpPort;
+            GUI.enabled = buttonEnabled;
+
+            if (GUILayout.Button("应用", GUILayout.Width(40)))
+            {
+                if (McpService.SetMcpPort(portValue))
+                {
+                    Debug.Log($"[McpServiceGUI] 端口已更改为: {portValue}");
+                    if (McpService.Instance.IsRunning)
+                    {
+                        EditorUtility.DisplayDialog("端口更改", $"端口已更改为 {portValue}，服务器已自动重启。", "确定");
+                    }
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("端口错误", $"无效的端口号: {portValue}\n端口范围应为 1024-65535", "确定");
+                }
+            }
+
+            GUI.enabled = true;
+            GUI.backgroundColor = originalColor;
+
+            // 端口诊断按钮
+            if (GUILayout.Button("诊断", GUILayout.Width(40)))
+            {
+                ShowPortDiagnostics();
+            }
+
+            // 显示端口状态提示
+            if (!string.IsNullOrEmpty(portInputString) && !isValidPort)
+            {
+                Color originalTextColor = GUI.color;
+                GUI.color = Color.red;
+                EditorGUILayout.LabelField("无效", EditorStyles.miniLabel, GUILayout.Width(30));
+                GUI.color = originalTextColor;
+            }
+            else if (isValidPort && portValue == McpService.mcpPort)
+            {
+                Color originalTextColor = GUI.color;
+                GUI.color = Color.gray;
+                EditorGUILayout.LabelField("当前", EditorStyles.miniLabel, GUILayout.Width(30));
+                GUI.color = originalTextColor;
+            }
+            else
+            {
+                EditorGUILayout.LabelField("", GUILayout.Width(30)); // 占位符保持布局一致
+            }
+        }
+
+        /// <summary>
+        /// 显示工具调试信息
+        /// </summary>
+        private static void ShowToolDebugInfo()
+        {
+            var toolNames = McpService.GetAllToolNames();
+            int toolCount = McpService.GetToolCount();
+            
+            string message = $"MCP工具调试信息:\n\n";
+            message += $"已注册工具数量: {toolCount}\n\n";
+            
+            if (toolCount > 0)
+            {
+                message += "已注册的工具:\n";
+                foreach (var toolName in toolNames)
+                {
+                    message += $"• {toolName}\n";
+                }
+            }
+            else
+            {
+                message += "⚠️ 没有发现任何工具！\n\n";
+                message += "可能的原因:\n";
+                message += "1. 工具类没有实现IToolMethod接口\n";
+                message += "2. 程序集加载问题\n";
+                message += "3. 工具类是抽象类或接口\n";
+            }
+            
+            message += "\n点击'重新发现'按钮重新扫描工具。";
+            
+            if (EditorUtility.DisplayDialog("MCP工具调试", message, "重新发现", "关闭"))
+            {
+                Debug.Log("[McpServiceGUI] 开始重新发现工具...");
+                McpService.RediscoverTools();
+                
+                // 重新获取工具信息
+                var newToolNames = McpService.GetAllToolNames();
+                int newToolCount = McpService.GetToolCount();
+                
+                string resultMessage = $"重新发现完成!\n\n";
+                resultMessage += $"发现工具数量: {newToolCount}\n\n";
+                
+                if (newToolCount > 0)
+                {
+                    resultMessage += "发现的工具:\n";
+                    foreach (var toolName in newToolNames)
+                    {
+                        resultMessage += $"• {toolName}\n";
+                    }
+                }
+                
+                EditorUtility.DisplayDialog("工具重新发现结果", resultMessage, "确定");
+            }
+        }
+
+        /// <summary>
+        /// 显示端口诊断信息
+        /// </summary>
+        private static void ShowPortDiagnostics()
+        {
+            int currentPort = McpService.mcpPort;
+            bool isRunning = McpService.Instance.IsRunning;
+            
+            string message = $"MCP服务器端口诊断:\n\n";
+            message += $"当前端口: {currentPort}\n";
+            message += $"服务状态: {(isRunning ? "运行中" : "已停止")}\n\n";
+            
+            // 获取详细的端口状态信息
+            string portInfo = McpService.GetPortStatusInfo(currentPort);
+            message += portInfo;
+            
+            message += "\n建议:\n";
+            message += "1. 如果端口被占用，尝试更换端口\n";
+            message += "2. 检查防火墙是否阻止了连接\n";
+            message += "3. 确保Cursor MCP客户端连接到正确的端口\n";
+            message += "4. 查看Unity控制台的详细日志\n";
+            
+            if (EditorUtility.DisplayDialog("端口诊断", message, "测试连接", "关闭"))
+            {
+                TestMcpConnection();
+            }
+        }
+
+        /// <summary>
+        /// 测试MCP连接
+        /// </summary>
+        private static async void TestMcpConnection()
+        {
+            if (!McpService.Instance.IsRunning)
+            {
+                EditorUtility.DisplayDialog("连接测试", "MCP服务器未运行，无法测试连接。", "确定");
+                return;
+            }
+
+            try
+            {
+                using (var client = new System.Net.Http.HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                    
+                    string url = $"http://127.0.0.1:{McpService.mcpPort}/";
+                    Debug.Log($"[McpServiceGUI] 测试连接到: {url}");
+                    
+                    var response = await client.GetAsync(url);
+                    var content = await response.Content.ReadAsStringAsync();
+                    
+                    string result = $"连接测试成功!\n\n";
+                    result += $"URL: {url}\n";
+                    result += $"状态码: {response.StatusCode}\n";
+                    result += $"响应长度: {content.Length} 字符\n\n";
+                    result += $"响应内容预览:\n{content.Substring(0, Math.Min(200, content.Length))}";
+                    
+                    if (content.Length > 200)
+                    {
+                        result += "...";
+                    }
+                    
+                    EditorUtility.DisplayDialog("连接测试结果", result, "确定");
+                }
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = $"连接测试失败!\n\n";
+                errorMsg += $"错误: {ex.Message}\n\n";
+                errorMsg += "可能的原因:\n";
+                errorMsg += "1. 服务器未正确启动\n";
+                errorMsg += "2. 端口被防火墙阻止\n";
+                errorMsg += "3. 网络配置问题\n";
+                
+                EditorUtility.DisplayDialog("连接测试失败", errorMsg, "确定");
+                Debug.LogError($"[McpServiceGUI] 连接测试失败: {ex}");
             }
         }
     }
