@@ -160,6 +160,7 @@ namespace Unity.Mcp
         ~McpService()
         {
             AssemblyReloadEvents.beforeAssemblyReload -= ForceStop;
+            AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
             ForceStop();
 
             // 确保取消令牌被释放
@@ -423,8 +424,36 @@ namespace Unity.Mcp
             {
                 CoroutineRunner.StartCoroutine(StartServiceDelay());
             }
-            //监听程序集刷新前事件
+            //监听程序集刷新事件
             AssemblyReloadEvents.beforeAssemblyReload += ForceStop;
+            AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
+        }
+
+        /// <summary>
+        /// 程序集刷新完成后的处理
+        /// </summary>
+        private static void OnAfterAssemblyReload()
+        {
+            // 程序集刷新后，重新初始化并检查是否需要自动启动服务
+            if (McpLocalSettings.Instance.McpOpenState)
+            {
+                McpLogger.Log("[Unity.Mcp] 程序集刷新完成，检测到MCP服务状态为开启，将在1秒后自动启动服务");
+
+                // 延迟1秒启动服务
+                EditorApplication.delayCall += () =>
+                {
+                    // 再次检查状态，确保在延迟期间状态没有改变
+                    if (McpLocalSettings.Instance.McpOpenState && !Instance.IsRunning)
+                    {
+                        McpLogger.Log("[Unity.Mcp] 自动启动MCP服务");
+                        StartService();
+                    }
+                };
+            }
+            else
+            {
+                McpLogger.Log("[Unity.Mcp] 程序集刷新完成，MCP服务状态为关闭，不自动启动");
+            }
         }
 
         /// <summary>
@@ -840,6 +869,14 @@ namespace Unity.Mcp
                     // 设置描述
                     property.Add("description", new JsonData(key.Desc));
 
+                    // 为所有数组类型添加items定义（通用处理）
+                    if (paramType == "array" && !(key is MethodVector) && !(key is MethodArr))
+                    {
+                        var items = new JsonClass();
+                        items.Add("type", new JsonData("string")); // 默认数组元素类型为string
+                        property.Add("items", items);
+                    }
+
                     // 处理数组类型的特殊属性
                     if (key is MethodArr methodArr)
                     {
@@ -856,6 +893,29 @@ namespace Unity.Mcp
                         {
                             var propDef = new JsonClass();
                             propDef.Add("type", new JsonData(prop.Value));
+
+                            // 为数组类型添加items定义
+                            if (prop.Value == "array")
+                            {
+                                var items = new JsonClass();
+                                string itemType = "string"; // 默认类型
+
+                                // 优先使用存储的itemType信息
+                                if (methodObj.ArrayItemTypes.ContainsKey(prop.Key))
+                                {
+                                    itemType = methodObj.ArrayItemTypes[prop.Key];
+                                }
+                                // 如果没有存储的itemType，根据属性名推断数组元素类型
+                                else if (prop.Key == "position" || prop.Key == "rotation" || prop.Key == "scale" ||
+                                         prop.Key == "color" || prop.Key.Contains("vector") || prop.Key.Contains("Vector"))
+                                {
+                                    itemType = "number";
+                                }
+
+                                items.Add("type", new JsonData(itemType));
+                                propDef.Add("items", items);
+                            }
+
                             objProperties.Add(prop.Key, propDef);
                         }
                         property.Add("properties", objProperties);
@@ -864,8 +924,23 @@ namespace Unity.Mcp
                     // 处理向量类型的特殊属性
                     if (key is MethodVector methodVector)
                     {
+                        // 强制设置类型为array，覆盖任何其他可能的类型
+                        property["type"] = new JsonData("array");
+
+                        // 为数组类型添加items定义
+                        var items = new JsonClass();
+                        items.Add("type", new JsonData("number"));
+                        property.Add("items", items);
+
+                        // 添加最小和最大长度限制
+                        property.Add("minItems", new JsonData(methodVector.Dimension));
+                        property.Add("maxItems", new JsonData(methodVector.Dimension));
+
+                        // 添加严格的数组格式约束
                         property.Add("format", new JsonData($"vector{methodVector.Dimension}"));
-                        property.Add("pattern", new JsonData($"^\\[([+-]?\\d*\\.?\\d+,\\s*){{0,{methodVector.Dimension - 1}}}[+-]?\\d*\\.?\\d+\\]$"));
+
+                        // 明确说明只接受数组
+                        property["description"] = new JsonData($"{key.Desc} [x, y, z]");
                     }
 
                     // 添加示例值
@@ -874,7 +949,25 @@ namespace Unity.Mcp
                         var examplesArray = new JsonArray();
                         foreach (var example in key.Examples)
                         {
-                            examplesArray.Add(new JsonData(example));
+                            // 对于MethodVector，示例是字符串格式的数组，需要解析为JSON数组
+                            if (key is MethodVector && example is string vectorStr && vectorStr.StartsWith("[") && vectorStr.EndsWith("]"))
+                            {
+                                try
+                                {
+                                    // 解析字符串格式的数组为JsonArray
+                                    var vectorJson = Json.Parse(vectorStr);
+                                    examplesArray.Add(vectorJson);
+                                }
+                                catch
+                                {
+                                    // 如果解析失败，作为字符串添加
+                                    examplesArray.Add(new JsonData(example));
+                                }
+                            }
+                            else
+                            {
+                                examplesArray.Add(new JsonData(example));
+                            }
                         }
                         property.Add("examples", examplesArray);
                     }
@@ -2130,7 +2223,6 @@ namespace Unity.Mcp
             string responseJson = CreateMcpSuccessResponse(id, result);
             Log($"[Unity.Mcp] tools/list响应: {responseJson}");
             McpLogger.Log($"[Unity.Mcp] 返回启用的工具数量: {tools.Count}");
-            System.IO.File.WriteAllText("tools_list.json", responseJson);
             return responseJson;
         }
 
@@ -2543,9 +2635,88 @@ namespace Unity.Mcp
 
                 // 构建MCP响应
                 var responseContent = new JsonArray();
+
+                // 检查工具结果中是否包含resources字段
+                JsonNode resourcesNode = null;
+                JsonNode cleanedResult = toolResult;
+
+                if (toolResult is JsonClass resultObj && resultObj.ContainsKey("resources"))
+                {
+                    resourcesNode = resultObj["resources"];
+
+                    // 创建不包含resources的清理版本
+                    cleanedResult = new JsonClass();
+                    foreach (System.Collections.Generic.KeyValuePair<string, JsonNode> kvp in resultObj)
+                    {
+                        if (kvp.Key != "resources")
+                        {
+                            cleanedResult.AsObject.Add(kvp.Key, kvp.Value);
+                        }
+                    }
+
+                    Log($"[Unity.Mcp] 检测到resources字段: {resourcesNode}");
+                }
+
+                // 如果存在resources，处理图片资源
+                if (resourcesNode != null && resourcesNode is JsonClass resourceObj)
+                {
+                    string resourceType = resourceObj["type"]?.Value;
+                    string resourcePath = resourceObj["path"]?.Value;
+                    string resourceFormat = resourceObj["format"]?.Value;
+
+                    if (resourceType == "image" && !string.IsNullOrEmpty(resourcePath) && System.IO.File.Exists(resourcePath))
+                    {
+                        try
+                        {
+                            // 读取图片文件并转换为Base64
+                            byte[] imageBytes = System.IO.File.ReadAllBytes(resourcePath);
+                            string base64Data = System.Convert.ToBase64String(imageBytes);
+
+                            // 根据格式确定MIME类型
+                            string mimeType = "image/jpeg"; // 默认
+                            if (!string.IsNullOrEmpty(resourceFormat))
+                            {
+                                switch (resourceFormat.ToUpperInvariant())
+                                {
+                                    case "PNG":
+                                        mimeType = "image/png";
+                                        break;
+                                    case "JPG":
+                                    case "JPEG":
+                                        mimeType = "image/jpeg";
+                                        break;
+                                    case "GIF":
+                                        mimeType = "image/gif";
+                                        break;
+                                    case "BMP":
+                                        mimeType = "image/bmp";
+                                        break;
+                                    case "WEBP":
+                                        mimeType = "image/webp";
+                                        break;
+                                }
+                            }
+
+                            // 创建图片内容
+                            var imageContent = new JsonClass();
+                            imageContent.Add("type", new JsonData("image"));
+                            imageContent.Add("data", new JsonData(base64Data));
+                            imageContent.Add("mimeType", new JsonData(mimeType));
+                            responseContent.Add(imageContent);
+
+                            Log($"[Unity.Mcp] 添加图片资源到响应: {resourcePath}, MIME: {mimeType}, 大小: {imageBytes.Length} bytes");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError($"[Unity.Mcp] 处理图片资源失败: {ex.Message}");
+                        }
+                    }
+                }
+
+                // 添加文本内容（去除resources的结果）
                 var responseTextContent = new JsonClass();
                 responseTextContent.Add("type", new JsonData("text"));
-                responseTextContent.Add("text", new JsonData(toolResult?.ToString() ?? "Tool executed successfully"));
+                responseTextContent.Add("text", new JsonData(cleanedResult?.ToString() ?? "Tool executed successfully"));
                 responseContent.Add(responseTextContent);
 
                 var responseResult = new JsonClass();

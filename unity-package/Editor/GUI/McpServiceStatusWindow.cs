@@ -371,7 +371,7 @@ namespace Unity.Mcp.Gui
                         "请检查是否有其他进程占用了所有端口。", "确定");
                 }
             }
-            EditorPrefs.SetBool("mcp_open_state", isServiceRunning);
+            McpLocalSettings.Instance.McpOpenState = isServiceRunning;
         }
 
         /// <summary>
@@ -559,8 +559,8 @@ namespace Unity.Mcp.Gui
                 );
                 McpLogger.Log($"[McpServiceStatusWindow] MCP服务器已重启，端口: {mcpPort}");
 
-                // 更新EditorPrefs状态
-                EditorPrefs.SetBool("mcp_open_state", true);
+                // 更新McpLocalSettings状态
+                McpLocalSettings.Instance.McpOpenState = true;
             }
             else
             {
@@ -572,8 +572,8 @@ namespace Unity.Mcp.Gui
                 );
                 McpLogger.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
 
-                // 更新EditorPrefs状态
-                EditorPrefs.SetBool("mcp_open_state", false);
+                // 更新McpLocalSettings状态
+                McpLocalSettings.Instance.McpOpenState = false;
             }
 
             // 刷新窗口显示

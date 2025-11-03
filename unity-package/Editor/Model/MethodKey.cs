@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Unity.Mcp
@@ -280,11 +281,13 @@ namespace Unity.Mcp
     public class MethodObj : MethodKey
     {
         public Dictionary<string, string> Properties { get; set; }
+        public Dictionary<string, string> ArrayItemTypes { get; set; }
 
         public MethodObj(string key, string desc, bool optional = false)
             : base(key, desc, optional, "object")
         {
             Properties = new Dictionary<string, string>();
+            ArrayItemTypes = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -295,32 +298,76 @@ namespace Unity.Mcp
             Properties[propName] = propType;
             return this;
         }
+
+        /// <summary>
+        /// 添加字符串类型属性
+        /// </summary>
+        public MethodObj AddStringProperty(string propName)
+        {
+            Properties[propName] = "string";
+            return this;
+        }
+
+        /// <summary>
+        /// 添加数字类型属性
+        /// </summary>
+        public MethodObj AddNumberProperty(string propName)
+        {
+            Properties[propName] = "number";
+            return this;
+        }
+
+        /// <summary>
+        /// 添加数组类型属性
+        /// </summary>
+        public MethodObj AddArrayProperty(string propName, string itemType = "string")
+        {
+            Properties[propName] = "array";
+            // 存储数组元素类型信息，用于MCP schema生成
+            ArrayItemTypes[propName] = itemType;
+            return this;
+        }
+
+        /// <summary>
+        /// 添加布尔类型属性
+        /// </summary>
+        public MethodObj AddBooleanProperty(string propName)
+        {
+            Properties[propName] = "boolean";
+            return this;
+        }
+
+        /// <summary>
+        /// 添加对象类型属性
+        /// </summary>
+        public MethodObj AddObjectProperty(string propName)
+        {
+            Properties[propName] = "object";
+            return this;
+        }
     }
 
     /// <summary>
-    /// 向量类型参数（Unity专用）
+    /// 向量类型参数（Unity专用）- 数组形式
     /// </summary>
     public class MethodVector : MethodKey
     {
         public int Dimension { get; set; }
 
         public MethodVector(string key, string desc, bool optional = false, int dimension = 3)
-            : base(key, desc, optional, "string")
+            : base(key, desc, optional, "array")
         {
             Dimension = dimension;
             switch (dimension)
             {
                 case 2:
                     Examples.Add("[1.0, 2.0]");
-                    Examples.Add("[x, y]");
                     break;
                 case 3:
                     Examples.Add("[1.0, 2.0, 3.0]");
-                    Examples.Add("[x, y, z]");
                     break;
                 case 4:
                     Examples.Add("[1.0, 2.0, 3.0, 4.0]");
-                    Examples.Add("[x, y, z, w]");
                     break;
             }
         }
@@ -330,7 +377,17 @@ namespace Unity.Mcp
         /// </summary>
         public MethodVector SetDefault(params float[] values)
         {
-            DefaultValue = $"[{string.Join(", ", values)}]";
+            DefaultValue = values;
+            return this;
+        }
+
+        /// <summary>
+        /// 添加向量示例
+        /// </summary>
+        public MethodVector AddExample(params float[] values)
+        {
+            string vectorString = "[" + string.Join(", ", values.Select(v => v.ToString("F1"))) + "]";
+            Examples.Add(vectorString);
             return this;
         }
     }
@@ -341,7 +398,7 @@ namespace Unity.Mcp
     public class MethodColor : MethodKey
     {
         public MethodColor(string key, string desc, bool optional = false)
-            : base(key, desc, optional, "string")
+            : base(key, desc, optional, "array")
         {
             Examples.Add("[1.0, 0.0, 0.0, 1.0]");
             Examples.Add("[r, g, b, a]");
