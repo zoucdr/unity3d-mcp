@@ -22,28 +22,90 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, add_sprites, remove_sprites, set_settings, get_settings, pack", false),
-                new MethodKey("atlas_path", "图集资源路径", false),
-                new MethodKey("sprite_paths", "要添加或移除的精灵路径数组", true),
-                new MethodKey("folder_paths", "要添加或移除的文件夹路径数组", true),
-                new MethodKey("include_subfolders", "是否包含子文件夹", true),
-                new MethodKey("filter_pattern", "筛选模式，例如 *.png", true),
-                new MethodKey("type", "图集类型：Master, Variant", true),
-                new MethodKey("master_atlas_path", "主图集路径（仅当type为Variant时有效）", true),
-                new MethodKey("allow_rotation", "是否允许旋转", true),
-                new MethodKey("tight_packing", "是否使用紧凑排列", true),
-                new MethodKey("padding", "图像间距", true),
-                new MethodKey("readable", "是否可读", true),
-                new MethodKey("generate_mip_maps", "是否生成Mip贴图", true),
-                new MethodKey("filter_mode", "过滤模式：Point, Bilinear, Trilinear", true),
-                new MethodKey("compression", "压缩格式：None, LowQuality, NormalQuality, HighQuality", true),
-                new MethodKey("platform", "平台名称：Android, iOS, Standalone, WebGL等", true),
-                new MethodKey("max_texture_size", "平台最大纹理尺寸：32, 64, 128, 256, 512, 1024, 2048, 4096, 8192", true),
-                new MethodKey("format", "平台纹理格式：Automatic, RGBA32, RGB24, ASTC_4x4, ASTC_6x6, ASTC_8x8, ETC2_RGBA8, etc", true),
-                new MethodKey("compression_quality", "压缩质量：0-100，仅对某些格式有效", true),
-                new MethodKey("override_for_platform", "是否覆盖平台默认设置", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "add_sprites", "remove_sprites", "set_settings", "get_settings", "pack"),
+                
+                // 图集路径
+                new MethodStr("atlas_path", "图集资源路径"),
+                
+                // 精灵路径
+                new MethodArr("sprite_paths", "精灵路径数组", true),
+                
+                // 文件夹路径
+                new MethodArr("folder_paths", "文件夹路径数组", true),
+                
+                // 包含子文件夹
+                new MethodBool("include_subfolders", "包含子文件夹", true)
+                    .SetDefault(false),
+                
+                // 筛选模式
+                new MethodStr("filter_pattern", "筛选模式", true)
+                    .SetDefault("*.png"),
+                
+                // 图集类型
+                new MethodStr("type", "图集类型", true)
+                    .SetEnumValues("Master", "Variant")
+                    .SetDefault("Master"),
+                
+                // 主图集路径
+                new MethodStr("master_atlas_path", "主图集路径", true),
+                
+                // 允许旋转
+                new MethodBool("allow_rotation", "允许旋转", true)
+                    .SetDefault(false),
+                
+                // 紧凑排列
+                new MethodBool("tight_packing", "紧凑排列", true)
+                    .SetDefault(false),
+                
+                // 图像间距
+                new MethodInt("padding", "图像间距", true)
+                    .SetRange(0, 32)
+                    .SetDefault(4),
+                
+                // 可读
+                new MethodBool("readable", "可读", true)
+                    .SetDefault(false),
+                
+                // 生成Mip贴图
+                new MethodBool("generate_mip_maps", "生成Mip贴图", true)
+                    .SetDefault(false),
+                
+                // 过滤模式
+                new MethodStr("filter_mode", "过滤模式", true)
+                    .SetEnumValues("Point", "Bilinear", "Trilinear")
+                    .SetDefault("Bilinear"),
+                
+                // 压缩格式
+                new MethodStr("compression", "压缩格式", true)
+                    .SetEnumValues("None", "LowQuality", "NormalQuality", "HighQuality")
+                    .SetDefault("NormalQuality"),
+                
+                // 平台名称
+                new MethodStr("platform", "平台名称", true)
+                    .SetEnumValues("Android", "iOS", "Standalone", "WebGL"),
+                
+                // 最大纹理尺寸
+                new MethodInt("max_texture_size", "最大纹理尺寸", true)
+                    .SetEnumValues("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192")
+                    .SetDefault(2048),
+                
+                // 纹理格式
+                new MethodStr("format", "纹理格式", true)
+                    .SetEnumValues("Automatic", "RGBA32", "RGB24", "ASTC_4x4", "ASTC_6x6", "ASTC_8x8", "ETC2_RGBA8")
+                    .SetDefault("Automatic"),
+                
+                // 压缩质量
+                new MethodInt("compression_quality", "压缩质量", true)
+                    .SetRange(0, 100)
+                    .SetDefault(50),
+                
+                // 覆盖平台设置
+                new MethodBool("override_for_platform", "覆盖平台设置", true)
+                    .SetDefault(false)
             };
         }
 

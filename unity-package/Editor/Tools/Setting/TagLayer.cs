@@ -22,11 +22,20 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: add_tag, remove_tag, get_tags, add_layer, remove_layer, get_layers", false),
-                new MethodKey("tag_name", "Tag name (used for tag operations)", true),
-                new MethodKey("layer_name", "Layer name (used for layer operations)", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("add_tag", "remove_tag", "get_tags", "add_layer", "remove_layer", "get_layers")
+                    .AddExamples("add_tag", "get_layers"),
+                
+                // 标签名称
+                new MethodStr("tag_name", "标签名称", true)
+                    .AddExamples("Player", "Enemy"),
+                
+                // 层名称
+                new MethodStr("layer_name", "层名称", true)
+                    .AddExamples("UI", "Ground")
             };
         }
 

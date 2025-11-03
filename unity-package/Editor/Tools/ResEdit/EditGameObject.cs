@@ -36,26 +36,66 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                   // 目标查找参数
-                new MethodKey("path", "Object Hierarchy path", false),
-                new MethodKey("instance_id", "Object InstanceID", true),
-                // 操作参数
-                new MethodKey("action", "Operation type: create, modify, get_components, add_component, remove_component, set_parent", false),
-                // 基本修改参数
-                new MethodKey("name", "GameObject name", true),
-                new MethodKey("tag", "GameObject tag", true),
-                new MethodKey("layer", "GameObject layer", true),
-                new MethodKey("parent_id", "Parent object InstanceID", true),
-                new MethodKey("parent_path", "Parent object scene path", true),
-                new MethodKey("position", "Position coordinates [x, y, z]", true),
-                new MethodKey("rotation", "Rotation angles [x, y, z]", true),
-                new MethodKey("scale", "Scale ratios [x, y, z]", true),
-                new MethodKey("active", "Set active state", true),
-                // 组件操作参数
-                new MethodKey("component_type", "Component name", true),
-                new MethodKey("component_properties", "Component properties dictionary", true),
+                // 层级路径
+                new MethodStr("path", "对象层级路径")
+                    .AddExamples("Canvas/Panel/Button", "Player/Body/Head"),
+                
+                // 实例ID
+                new MethodInt("instance_id", "对象实例ID", true)
+                    .AddExample("12345"),
+                
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "get_components", "add_component", "remove_component", "set_parent")
+                    .AddExamples("create", "modify"),
+                
+                // 对象名称
+                new MethodStr("name", "GameObject名称", true)
+                    .AddExamples("Player", "Enemy"),
+                
+                // 标签
+                new MethodStr("tag", "GameObject标签", true)
+                    .AddExamples("Player", "Enemy")
+                    .SetDefault("Untagged"),
+                
+                // 层
+                new MethodInt("layer", "GameObject层", true)
+                    .SetRange(0, 31)
+                    .AddExample("0")
+                    .SetDefault(0),
+                
+                // 父对象ID
+                new MethodInt("parent_id", "父对象实例ID", true)
+                    .AddExample("54321"),
+                
+                // 父对象路径
+                new MethodStr("parent_path", "父对象场景路径", true)
+                    .AddExamples("Canvas", "Player"),
+                
+                // 位置坐标
+                new MethodVector("position", "位置坐标 [x, y, z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 旋转角度
+                new MethodVector("rotation", "旋转角度 [x, y, z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 缩放比例
+                new MethodVector("scale", "缩放比例 [x, y, z]", true)
+                    .SetDefault(new float[] {1, 1, 1}),
+                
+                // 激活状态
+                new MethodBool("active", "激活状态", true)
+                    .SetDefault(true),
+                
+                // 组件类型
+                new MethodStr("component_type", "组件类型", true)
+                    .AddExamples("Rigidbody", "Collider"),
+                
+                // 组件属性
+                new MethodObj("component_properties", "组件属性", true)
             };
         }
 

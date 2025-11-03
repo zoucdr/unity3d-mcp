@@ -5,10 +5,12 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Unity.Mcp;
 using Unity.Mcp.Executer;
+using UnityEditorInternal;
 
 namespace Unity.Mcp.Gui
 {
@@ -19,13 +21,14 @@ namespace Unity.Mcp.Gui
     {
         // 客户端连接状态相关变量
         private static Vector2 clientsScrollPosition;
-        private static bool showClientDetails = false;
+
+        // HTTP请求记录列表
+        private ReorderableList httpRequestRecordsList;
+        private Dictionary<string, bool> recordFoldoutStates = new Dictionary<string, bool>();
 
         // 服务运行状态
         private static bool isServiceRunning = false;
-        private static int unityPortStart => McpService.unityPortStart;
-        private static int unityPortEnd => McpService.unityPortEnd;
-        private static List<int> activePorts => McpService.GetActivePorts();
+        private static int mcpPort => McpService.mcpPort;
 
         // 窗口实例
         private static McpServiceStatusWindow instance;
@@ -42,9 +45,171 @@ namespace Unity.Mcp.Gui
 
         private void OnEnable()
         {
-             isServiceRunning = McpService.Instance.IsRunning;
+            isServiceRunning = McpService.Instance.IsRunning;
             // 注册编辑器更新事件，用于定期刷新状态
             EditorApplication.update += OnEditorUpdate;
+
+            // 初始化ReorderableList
+            InitializeHttpRequestRecordsList();
+        }
+
+        /// <summary>
+        /// 初始化HTTP请求记录的ReorderableList
+        /// </summary>
+        private void InitializeHttpRequestRecordsList()
+        {
+            // 使用一个固定的列表引用，避免每次都创建新的列表
+            var records = Unity.Mcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+            httpRequestRecordsList = new ReorderableList(
+                records,
+                typeof(Unity.Mcp.Models.McpExecuteRecordObject.HttpRequestRecord),
+                false, // 不可拖拽
+                true,  // 显示标题
+                false, // 不可添加
+                false  // 不可删除
+            );
+
+            // 设置标题
+            httpRequestRecordsList.drawHeaderCallback = (Rect rect) =>
+            {
+                EditorGUI.LabelField(rect, "HTTP请求记录");
+            };
+
+            // 设置元素高度
+            httpRequestRecordsList.elementHeightCallback = (int index) =>
+            {
+                // 获取最新的记录列表
+                var currentRecords = Unity.Mcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                if (index >= currentRecords.Count) return EditorGUIUtility.singleLineHeight;
+
+                var record = currentRecords[index];
+                bool isExpanded = false;
+
+                // 检查该记录是否已展开
+                if (recordFoldoutStates.TryGetValue(record.id, out bool state))
+                {
+                    isExpanded = state;
+                }
+
+                // 基本高度为单行高度
+                float height = EditorGUIUtility.singleLineHeight + 4;
+
+                // 如果展开，增加高度以显示详细信息
+                if (isExpanded)
+                {
+                    // 基本信息行 + 请求内容 + 响应内容 + 处理时长
+                    height += EditorGUIUtility.singleLineHeight * 8; // 基本信息行
+
+                    // 请求内容和响应内容区域
+                    if (!string.IsNullOrEmpty(record.requestContent))
+                    {
+                        height += 40; // 请求内容文本区域
+                    }
+
+                    if (!string.IsNullOrEmpty(record.responseContent))
+                    {
+                        height += 40; // 响应内容文本区域
+                    }
+
+                    height += 8; // 额外间距
+                }
+
+                return height;
+            };
+
+            // 设置绘制元素
+            httpRequestRecordsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                // 获取最新的记录列表
+                var currentRecords = Unity.Mcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                if (index >= currentRecords.Count) return;
+
+                var record = currentRecords[index];
+
+                // 确保记录ID在字典中存在
+                if (!recordFoldoutStates.ContainsKey(record.id))
+                {
+                    recordFoldoutStates[record.id] = false;
+                }
+
+                // 绘制折叠控件和基本信息
+                Rect foldoutRect = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
+
+                // 创建标题文本
+                string title = $"{record.endPoint} - {record.httpMethod} - {record.requestTime:HH:mm:ss} - {(record.success ? "成功" : "失败")}";
+
+                // 绘制折叠控件
+                recordFoldoutStates[record.id] = EditorGUI.Foldout(foldoutRect, recordFoldoutStates[record.id], title, true);
+
+                // 如果展开，绘制详细信息
+                if (recordFoldoutStates[record.id])
+                {
+                    float yOffset = rect.y + EditorGUIUtility.singleLineHeight + 4;
+                    float detailWidth = rect.width - 10;
+
+                    // 绘制详细信息区域背景
+                    Rect detailsRect = new Rect(rect.x + 5, yOffset, detailWidth, rect.height - EditorGUIUtility.singleLineHeight - 4);
+                    GUI.Box(detailsRect, "", EditorStyles.helpBox);
+
+                    // 内容区域
+                    float contentX = detailsRect.x + 5;
+                    float contentWidth = detailsRect.width - 10;
+                    float contentY = yOffset + 5;
+
+                    // 基本信息
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"客户端: {record.endPoint}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"请求时间: {record.requestTime:HH:mm:ss}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"处理时间: {record.responseTime:HH:mm:ss}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"HTTP方法: {record.httpMethod}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"状态码: {record.statusCode}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"成功: {(record.success ? "是" : "否")}", EditorStyles.miniLabel);
+                    contentY += EditorGUIUtility.singleLineHeight;
+
+                    // 请求内容
+                    if (!string.IsNullOrEmpty(record.requestContent))
+                    {
+                        EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                            "请求内容:", EditorStyles.miniBoldLabel);
+                        contentY += EditorGUIUtility.singleLineHeight;
+
+                        EditorGUI.TextArea(new Rect(contentX, contentY, contentWidth, 40),
+                            record.requestContent, EditorStyles.textArea);
+                        contentY += 40;
+                    }
+
+                    // 响应内容
+                    if (!string.IsNullOrEmpty(record.responseContent))
+                    {
+                        EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                            "响应内容:", EditorStyles.miniBoldLabel);
+                        contentY += EditorGUIUtility.singleLineHeight;
+
+                        EditorGUI.TextArea(new Rect(contentX, contentY, contentWidth, 40),
+                            record.responseContent, EditorStyles.textArea);
+                        contentY += 40;
+                    }
+
+                    // 处理时长
+                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
+                        $"处理时长: {record.duration:F2}毫秒", EditorStyles.miniLabel);
+                }
+            };
         }
 
         private void OnDisable()
@@ -65,6 +230,30 @@ namespace Unity.Mcp.Gui
             {
                 lastUpdateTime = currentTime;
                 isServiceRunning = McpService.Instance.IsRunning;
+
+                // 定期清理旧的请求记录（每次更新时清理超过30分钟的记录）
+                if (isServiceRunning)
+                {
+                    Unity.Mcp.Models.McpExecuteRecordObject.instance.CleanupOldHttpRequestRecords(30);
+                }
+
+                // 更新ReorderableList - 重新初始化以确保数据同步
+                if (httpRequestRecordsList != null)
+                {
+                    var records = Unity.Mcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                    // 检查数据是否发生变化
+                    if (httpRequestRecordsList.list.Count != records.Count)
+                    {
+                        // 数据发生变化，重新初始化ReorderableList
+                        InitializeHttpRequestRecordsList();
+                    }
+                    else
+                    {
+                        // 数据没有变化，只更新引用
+                        httpRequestRecordsList.list = records;
+                    }
+                }
+
                 Repaint(); // 刷新窗口
             }
         }
@@ -82,8 +271,9 @@ namespace Unity.Mcp.Gui
             EditorGUILayout.LabelField("Unity MCP Services", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
             // 日志级别下拉菜单
+            EditorGUILayout.LabelField("日志级别:", GUILayout.Width(60));
             var currentLogLevel = McpLogger.GetLogLevel();
-            var newLogLevel = (McpLogger.LogLevel)EditorGUILayout.EnumPopup("日志级别", currentLogLevel, GUILayout.Width(150));
+            var newLogLevel = (McpLogger.LogLevel)EditorGUILayout.EnumPopup(currentLogLevel, GUILayout.Width(100));
             if (newLogLevel != currentLogLevel)
             {
                 McpLogger.SetLogLevel(newLogLevel);
@@ -94,14 +284,13 @@ namespace Unity.Mcp.Gui
             EditorGUILayout.LabelField($"       Status: {(isServiceRunning ? "Running" : "Stopped")}");
 
             // 显示端口信息
-            if (isServiceRunning && activePorts != null && activePorts.Count > 0)
+            if (isServiceRunning)
             {
-                string portsStr = string.Join(", ", activePorts);
-                EditorGUILayout.LabelField($"Active Ports: {portsStr} (Range: {unityPortStart}-{unityPortEnd})");
+                EditorGUILayout.LabelField($"Active Port: {mcpPort}", GUILayout.Width(150), GUILayout.ExpandWidth(false));
             }
             else
             {
-                EditorGUILayout.LabelField($"Port Range: {unityPortStart}-{unityPortEnd}");
+                EditorGUILayout.LabelField($"MCP Port: {mcpPort}", GUILayout.Width(150), GUILayout.ExpandWidth(false));
             }
             EditorGUILayout.EndHorizontal();
 
@@ -156,7 +345,7 @@ namespace Unity.Mcp.Gui
             Handles.DrawWireDisc(center, Vector3.forward, radius);
         }
 
-        private static  void ToggleService()
+        private static void ToggleService()
         {
             if (isServiceRunning)
             {
@@ -172,87 +361,104 @@ namespace Unity.Mcp.Gui
                 if (McpService.Instance.IsRunning)
                 {
                     isServiceRunning = true;
-                    var ports = McpService.GetActivePorts();
-                    string portsStr = ports.Count > 0 ? string.Join(", ", ports) : "无";
-                    McpLogger.Log($"Unity MCP Bridge 已启动，激活端口: {portsStr}");
+                    McpLogger.Log($"Unity MCP Bridge 已启动，端口: {mcpPort}");
                 }
                 else
                 {
                     isServiceRunning = false;
                     EditorUtility.DisplayDialog("启动失败",
-                        $"无法在端口范围 {unityPortStart}-{unityPortEnd} 内启动Unity MCP Bridge。\n" +
+                        $"无法在端口 {mcpPort} 启动Unity MCP Bridge。\n" +
                         "请检查是否有其他进程占用了所有端口。", "确定");
                 }
             }
-            EditorPrefs.SetBool("mcp_open_state", isServiceRunning);
+            McpLocalSettings.Instance.McpOpenState = isServiceRunning;
         }
 
         /// <summary>
-        /// 绘制客户端连接状态
+        /// 强制刷新HTTP请求记录列表
         /// </summary>
-        private static void DrawClientConnectionStatus()
+        private void RefreshHttpRequestRecordsList()
+        {
+            InitializeHttpRequestRecordsList();
+            Repaint();
+        }
+
+        /// <summary>
+        /// 绘制客户端请求记录
+        /// </summary>
+        private void DrawClientConnectionStatus()
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            // 客户端连接状态标题
+            // 客户端请求记录标题和工具栏
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("客户端连接状态", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("HTTP请求记录", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
 
-            // 显示连接数量
-            int clientCount = McpService.GetConnectedClientCount();
+            // 显示记录数量
+            int clientCount = Unity.Mcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords().Count;
             Color countColor = clientCount > 0 ? Color.green : Color.gray;
             GUIStyle countStyle = new GUIStyle(EditorStyles.label);
             countStyle.normal.textColor = countColor;
             countStyle.fontStyle = FontStyle.Bold;
 
-            EditorGUILayout.LabelField($"连接数: {clientCount}", countStyle, GUILayout.Width(80));
+            EditorGUILayout.LabelField($"记录数: {clientCount}", countStyle, GUILayout.Width(80));
+
+            // 刷新按钮
+            if (GUILayout.Button("刷新", GUILayout.Width(50)))
+            {
+                RefreshHttpRequestRecordsList();
+            }
+
+            // 清空记录按钮
+            if (clientCount > 0 && GUILayout.Button("清空", GUILayout.Width(50)))
+            {
+                if (EditorUtility.DisplayDialog("清空请求记录", "确定要清空所有HTTP请求记录吗？", "确定", "取消"))
+                {
+                    Unity.Mcp.Models.McpExecuteRecordObject.instance.ClearHttpRequestRecords();
+                    // 清空折叠状态字典
+                    recordFoldoutStates.Clear();
+                    // 刷新列表
+                    RefreshHttpRequestRecordsList();
+                }
+            }
+
             EditorGUILayout.EndHorizontal();
 
             if (clientCount > 0)
             {
-                // 详细信息折叠控制
-                showClientDetails = EditorGUILayout.Foldout(showClientDetails, "显示详细信息", true);
+                EditorGUILayout.Space(5);
 
-                if (showClientDetails)
+                // 使用ReorderableList显示HTTP请求记录
+                clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
+                    GUILayout.MinHeight(100), GUILayout.MaxHeight(300));
+
+                // 确保ReorderableList已初始化
+                if (httpRequestRecordsList == null)
                 {
-                    EditorGUILayout.Space(5);
-
-                    // 客户端列表滚动视图
-                    clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
-                        GUILayout.MinHeight(80), GUILayout.MaxHeight(220));
-
-                    var clients = McpService.GetAllConnectedClients();
-                    foreach (var client in clients)
-                    {
-                        EditorGUILayout.BeginVertical("box");
-
-                        // 客户端基本信息
-                        EditorGUILayout.LabelField($"端点: {client.EndPoint}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"连接时间: {client.ConnectedAt:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"最后活动: {client.LastActivity:HH:mm:ss}", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField($"命令数: {client.CommandCount}", EditorStyles.miniLabel);
-
-                        // 显示命令文本
-                        if (!string.IsNullOrEmpty(client.CommandText))
-                        {
-                            EditorGUILayout.LabelField("命令内容:", EditorStyles.miniBoldLabel);
-                            EditorGUILayout.TextArea(client.CommandText, EditorStyles.textArea, GUILayout.Height(40));
-                        }
-
-                        // 计算连接持续时间
-                        TimeSpan duration = DateTime.Now - client.ConnectedAt;
-                        string durationText = duration.TotalMinutes < 1
-                            ? $"{duration.Seconds}秒"
-                            : $"{(int)duration.TotalMinutes}分{duration.Seconds}秒";
-                        EditorGUILayout.LabelField($"连接时长: {durationText}", EditorStyles.miniLabel);
-
-                        EditorGUILayout.EndVertical();
-                        EditorGUILayout.Space(2);
-                    }
-
-                    EditorGUILayout.EndScrollView();
+                    InitializeHttpRequestRecordsList();
                 }
+
+                // 绘制ReorderableList
+                if (httpRequestRecordsList != null)
+                {
+                    try
+                    {
+                        httpRequestRecordsList.DoLayoutList();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        // 如果绘制失败，重新初始化列表
+                        Debug.LogWarning($"ReorderableList绘制失败，重新初始化: {ex.Message}");
+                        InitializeHttpRequestRecordsList();
+                        if (httpRequestRecordsList != null)
+                        {
+                            httpRequestRecordsList.DoLayoutList();
+                        }
+                    }
+                }
+
+                EditorGUILayout.EndScrollView();
             }
             else
             {
@@ -345,17 +551,16 @@ namespace Unity.Mcp.Gui
             if (McpService.Instance.IsRunning)
             {
                 isServiceRunning = true;
-                var ports = McpService.GetActivePorts();
-                string portsStr = ports.Count > 0 ? string.Join(", ", ports) : "无";
+                // 检查服务状态
                 EditorUtility.DisplayDialog(
                     "重启成功",
-                    $"MCP服务器已成功重启！\n\n激活端口: {portsStr}",
+                    $"MCP服务器已成功重启！\n\n端口: {mcpPort}",
                     "确定"
                 );
-                McpLogger.Log($"[McpServiceStatusWindow] MCP服务器已重启，激活端口: {portsStr}");
+                McpLogger.Log($"[McpServiceStatusWindow] MCP服务器已重启，端口: {mcpPort}");
 
-                // 更新EditorPrefs状态
-                EditorPrefs.SetBool("mcp_open_state", true);
+                // 更新McpLocalSettings状态
+                McpLocalSettings.Instance.McpOpenState = true;
             }
             else
             {
@@ -367,8 +572,8 @@ namespace Unity.Mcp.Gui
                 );
                 McpLogger.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
 
-                // 更新EditorPrefs状态
-                EditorPrefs.SetBool("mcp_open_state", false);
+                // 更新McpLocalSettings状态
+                McpLocalSettings.Instance.McpOpenState = false;
             }
 
             // 刷新窗口显示

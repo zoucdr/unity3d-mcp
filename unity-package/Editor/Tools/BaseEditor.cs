@@ -22,14 +22,33 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: get_state, get_windows, get_selection, execute_menu, get_menu_items", false),
-                new MethodKey("wait_for_completion", "Whether to wait for operation completion", true),
-                new MethodKey("menu_path", "Menu path (used when executing menu)", true),
-                new MethodKey("root_path", "Root menu path (used when getting menu items)", true),
-                new MethodKey("include_submenus", "Include submenus (used when getting menu items)", true),
-                new MethodKey("verify_exists", "Verify menu items exist (used when getting menu items)", true)
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("get_state", "get_windows", "get_selection", "execute_menu", "get_menu_items")
+                    .AddExamples("get_state", "execute_menu"),
+                
+                // 等待完成
+                new MethodBool("wait_for_completion", "是否等待操作完成", true)
+                    .SetDefault(true),
+                
+                // 菜单路径
+                new MethodStr("menu_path", "菜单路径（执行菜单时使用）", true)
+                    .AddExamples("File/New Scene", "GameObject/Create Empty"),
+                
+                // 根菜单路径
+                new MethodStr("root_path", "根菜单路径（获取菜单项时使用）", true)
+                    .AddExamples("File", "GameObject")
+                    .SetDefault(""),
+                
+                // 包含子菜单
+                new MethodBool("include_submenus", "包含子菜单（获取菜单项时使用）", true)
+                    .SetDefault(true),
+                
+                // 验证存在
+                new MethodBool("verify_exists", "验证菜单项是否存在（获取菜单项时使用）", true)
+                    .SetDefault(false)
             };
         }
 

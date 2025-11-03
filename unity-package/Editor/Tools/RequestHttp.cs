@@ -25,28 +25,120 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: get, post, put, delete, download, upload, ping, batch_download", false),
-                new MethodKey("url", "Request URL address", false),
-                new MethodKey("data", "Request data (used for POST/PUT, Json format)", true),
-                new MethodKey("headers", "Request headers dictionary", true),
-                new MethodKey("save_path", "Save path (used for download, relative to Assets or absolute path)", true),
-                new MethodKey("file_path", "File path (used for upload)", true),
-                new MethodKey("timeout", "Timeout (seconds), default 30 seconds", true),
-                new MethodKey("method", "HTTP method (GET, POST, PUT, DELETE, etc.)", true),
-                new MethodKey("content_type", "Content type, default application/json", true),
-                new MethodKey("user_agent", "User agent string", true),
-                new MethodKey("accept_certificates", "Whether to accept all certificates (for testing)", true),
-                new MethodKey("follow_redirects", "Whether to follow redirects", true),
-                new MethodKey("encoding", "Text encoding, default UTF-8", true),
-                new MethodKey("form_data", "Form data (key-value pairs)", true),
-                new MethodKey("query_params", "Query parameters (key-value pairs)", true),
-                new MethodKey("auth_token", "Authentication token (Bearer Token)", true),
-                new MethodKey("basic_auth", "Basic authentication (username:password)", true),
-                new MethodKey("retry_count", "Retry count, default 0", true),
-                new MethodKey("retry_delay", "Retry delay (seconds), default 1 second", true),
-                new MethodKey("urls", "URL array (used for batch download)", true)
+                // HTTP操作类型 - 枚举
+                new MethodStr("action", "HTTP操作类型")
+                    .SetEnumValues("get", "post", "put", "delete", "download", "upload", "ping", "batch_download")
+                    .AddExamples("get", "post"),
+                
+                // 请求URL - 必需
+                new MethodStr("url", "请求URL地址")
+                    .AddExamples("https://api.example.com/data", "http://localhost:3000/api/users"),
+                
+                // 请求数据 - JSON格式
+                new MethodObj("data", "请求数据（POST/PUT使用，JSON格式）", true)
+                    .AddProperty("name", "string")
+                    .AddProperty("value", "string")
+                    .AddProperty("id", "number")
+                    .AddExample("{\"name\": \"test\", \"value\": \"data\"}")
+                    .AddExample("{\"id\": 1, \"status\": \"active\"}"),
+                
+                // 请求头 - 对象
+                new MethodObj("headers", "请求头字典", true)
+                    .AddProperty("Content-Type", "string")
+                    .AddProperty("Authorization", "string")
+                    .AddProperty("Accept", "string")
+                    .AddExample("{\"Content-Type\": \"application/json\"}")
+                    .AddExample("{\"Authorization\": \"Bearer token123\"}"),
+                
+                // 保存路径
+                new MethodStr("save_path", "保存路径（下载时使用，相对于Assets或绝对路径）", true)
+                    .AddExamples("Assets/Downloads/file.zip", "D:/Downloads/data.json"),
+                
+                // 文件路径
+                new MethodStr("file_path", "文件路径（上传时使用）", true)
+                    .AddExamples("Assets/Data/upload.json", "D:/Files/image.png"),
+                
+                // 超时时间
+                new MethodInt("timeout", "超时时间（秒），默认30秒", true)
+                    .SetRange(1, 300)
+                    .AddExample("30")
+                    .SetDefault(30),
+                
+                // HTTP方法
+                new MethodStr("method", "HTTP方法", true)
+                    .SetEnumValues("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
+                    .AddExamples("GET", "POST")
+                    .SetDefault("GET"),
+                
+                // 内容类型
+                new MethodStr("content_type", "内容类型，默认application/json", true)
+                    .SetEnumValues("application/json", "application/xml", "text/plain", "multipart/form-data", "application/x-www-form-urlencoded")
+                    .AddExamples("application/json", "text/plain")
+                    .SetDefault("application/json"),
+                
+                // 用户代理
+                new MethodStr("user_agent", "用户代理字符串", true)
+                    .AddExamples("Unity-MCP/1.0", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .SetDefault("Unity-MCP/1.0"),
+                
+                // 接受证书
+                new MethodBool("accept_certificates", "是否接受所有证书（测试用）", true)
+                    .SetDefault(false),
+                
+                // 跟随重定向
+                new MethodBool("follow_redirects", "是否跟随重定向", true)
+                    .SetDefault(true),
+                
+                // 文本编码
+                new MethodStr("encoding", "文本编码，默认UTF-8", true)
+                    .SetEnumValues("UTF-8", "ASCII", "Unicode", "UTF-32")
+                    .AddExamples("UTF-8", "ASCII")
+                    .SetDefault("UTF-8"),
+                
+                // 表单数据
+                new MethodObj("form_data", "表单数据（键值对）", true)
+                    .AddProperty("key1", "string")
+                    .AddProperty("key2", "string")
+                    .AddExample("{\"username\": \"admin\", \"password\": \"123456\"}")
+                    .AddExample("{\"field1\": \"value1\", \"field2\": \"value2\"}"),
+                
+                // 查询参数
+                new MethodObj("query_params", "查询参数（键值对）", true)
+                    .AddProperty("page", "number")
+                    .AddProperty("limit", "number")
+                    .AddProperty("search", "string")
+                    .AddExample("{\"page\": 1, \"limit\": 10}")
+                    .AddExample("{\"search\": \"keyword\", \"sort\": \"name\"}"),
+                
+                // 认证令牌
+                new MethodStr("auth_token", "认证令牌（Bearer Token）", true)
+                    .AddExamples("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "abc123def456")
+                    .SetDefault(""),
+                
+                // 基础认证
+                new MethodStr("basic_auth", "基础认证（用户名:密码）", true)
+                    .AddExamples("admin:password", "user:123456")
+                    .SetDefault(""),
+                
+                // 重试次数
+                new MethodInt("retry_count", "重试次数，默认0", true)
+                    .SetRange(0, 10)
+                    .AddExample("0")
+                    .SetDefault(0),
+                
+                // 重试延迟
+                new MethodFloat("retry_delay", "重试延迟（秒），默认1秒", true)
+                    .SetRange(0.1f, 60.0f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+                
+                // URL数组
+                new MethodArr("urls", "URL数组（批量下载使用）", true)
+                    .SetItemType("string")
+                    .AddExample("[\"http://example.com/file1.zip\", \"http://example.com/file2.zip\"]")
+                    .AddExample("[\"https://api.example.com/data1\", \"https://api.example.com/data2\"]")
             };
         }
 

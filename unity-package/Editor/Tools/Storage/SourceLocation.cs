@@ -20,14 +20,32 @@ namespace Unity.Mcp.Tools.Storage
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: reveal_in_finder, open_folder, ping_asset, select_asset, get_asset_path", false),
-                new MethodKey("asset_path", "Asset path in Unity project (e.g., Assets/Scripts/MyScript.cs)", true),
-                new MethodKey("folder_path", "Folder path to open (Unity path or system path)", true),
-                new MethodKey("instance_id", "GameObject or asset instance ID", true),
-                new MethodKey("guid", "Asset GUID", true),
-                new MethodKey("object_name", "GameObject or asset name to locate", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("reveal_in_finder", "open_folder", "ping_asset", "select_asset", "get_asset_path")
+                    .AddExamples("reveal_in_finder", "ping_asset"),
+                
+                // 资源路径
+                new MethodStr("asset_path", "资源路径", true)
+                    .AddExamples("Assets/Scripts/Player.cs", "Assets/Textures/icon.png"),
+                
+                // 文件夹路径
+                new MethodStr("folder_path", "文件夹路径", true)
+                    .AddExamples("Assets/Scripts/", "D:/Projects/MyGame/"),
+                
+                // 实例ID
+                new MethodInt("instance_id", "实例ID", true)
+                    .AddExample("12345"),
+                
+                // 资源GUID
+                new MethodStr("guid", "资源GUID", true)
+                    .AddExample("abc123def456ghi789"),
+                
+                // 对象名称
+                new MethodStr("object_name", "对象名称", true)
+                    .AddExamples("Player", "MainCamera")
             };
         }
 

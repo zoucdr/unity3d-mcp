@@ -23,17 +23,52 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：import, modify, move, duplicate, rename, get_info, create_folder, reload, select, ping, select_depends, select_usage, tree等", false),
-                new MethodKey("path", "资产路径，Unity标准格式：Assets/Folder/File.extension，tree时为根目录路径", false),
-                new MethodKey("properties", "资产属性字典，用于设置资产的各种属性", true),
-                new MethodKey("destination", "目标路径（移动/复制时使用）", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("refresh_type", "刷新类型：all(全部), assets(仅资产), scripts(仅脚本)，默认all", true),
-                new MethodKey("save_before_refresh", "刷新前是否保存所有资产，默认true", true),
-                new MethodKey("include_indirect", "是否包含间接依赖/引用，默认false", true),
-                new MethodKey("max_results", "最大结果数量，默认100", true)
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("import", "modify", "move", "duplicate", "rename", "get_info", "create_folder", "reload", "select", "ping", "select_depends", "select_usage", "tree")
+                    .AddExamples("get_info", "move"),
+                
+                // 资产路径 - 必需
+                new MethodStr("path", "资产路径，Unity标准格式")
+                    .AddExamples("Assets/Scripts/MyScript.cs", "Assets/Materials/MyMaterial.mat"),
+                
+                // 资产属性
+                new MethodObj("properties", "资产属性字典，用于设置资产的各种属性", true)
+                    .AddProperty("importSettings", "object")
+                    .AddProperty("labels", "array")
+                    .AddProperty("assetBundleName", "string")
+                    .AddExample("{\"labels\": [\"Important\", \"Version1\"]}")
+                    .AddExample("{\"assetBundleName\": \"ui_bundle\"}"),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径（移动/复制时使用）", true)
+                    .AddExamples("Assets/NewFolder/", "Assets/Backup/MyScript.cs"),
+                
+                // 强制执行
+                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）", true)
+                    .SetDefault(false),
+                
+                // 刷新类型
+                new MethodStr("refresh_type", "刷新类型，默认all", true)
+                    .SetEnumValues("all", "assets", "scripts")
+                    .AddExamples("all", "assets")
+                    .SetDefault("all"),
+                
+                // 刷新前保存
+                new MethodBool("save_before_refresh", "刷新前是否保存所有资产，默认true", true)
+                    .SetDefault(true),
+                
+                // 包含间接依赖
+                new MethodBool("include_indirect", "是否包含间接依赖/引用，默认false", true)
+                    .SetDefault(false),
+                
+                // 最大结果数量
+                new MethodInt("max_results", "最大结果数量，默认100", true)
+                    .SetRange(1, 1000)
+                    .AddExample("100")
+                    .SetDefault(100)
             };
         }
 

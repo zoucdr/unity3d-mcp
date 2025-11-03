@@ -62,8 +62,8 @@
                     AI驱动的Unity开发工作流
                 </h1>
                 <p class="hero-description">
-                    通过MCP协议将AI助手与Unity编辑器无缝连接，<br>
-                    使用自然语言控制Unity，提供32+专业工具，覆盖完整开发流程
+                    通过内置MCP服务器将AI助手与Unity编辑器无缝连接，<br>
+                    使用自然语言控制Unity，提供40+专业工具，覆盖完整开发流程
                 </p>
                 <div class="hero-cta">
                     <a href="#quickstart" class="btn btn-primary">
@@ -81,7 +81,7 @@
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <div class="stat-number">32+</div>
+                        <div class="stat-number">40+</div>
                         <div class="stat-label">专业工具</div>
                     </div>
                     <div class="stat-item">
@@ -128,22 +128,22 @@
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
                     <h3>高性能通信</h3>
-                    <p>基于TCP Socket的高效通信机制，支持批量操作，低延迟高吞吐</p>
+                    <p>基于HTTP的高效通信机制，内置消息队列，支持批量操作</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🧩</div>
                     <h3>模块化架构</h3>
-                    <p>30+专业工具，覆盖层级管理、资源编辑、性能分析等全流程</p>
+                    <p>40+专业工具，覆盖层级管理、资源编辑、性能分析等全流程</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔌</div>
-                    <h3>无缝集成</h3>
-                    <p>支持Cursor、Claude等主流AI客户端，无需修改现有工作流</p>
+                    <h3>零配置集成</h3>
+                    <p>Unity内置MCP服务器，支持Cursor、Claude等主流AI客户端，无需外部依赖</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🎯</div>
-                    <h3>状态树引擎</h3>
-                    <p>基于状态模式的路由系统，灵活的参数验证和类型转换</p>
+                    <h3>消息队列引擎</h3>
+                    <p>基于EditorApplication.update的主线程安全执行机制，确保Unity API正确调用</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🛠️</div>
@@ -175,16 +175,15 @@
                     <div class="arch-layer">
                         <div class="layer-title">MCP协议层</div>
                         <div class="layer-items">
-                            <span class="layer-item">FastMCP Server</span>
-                            <span class="layer-item">Unity Package</span>
+                            <span class="layer-item">Unity内置MCP服务器</span>
                         </div>
                     </div>
                     <div class="arch-arrow">↓</div>
                     <div class="arch-layer">
                         <div class="layer-title">通信层</div>
                         <div class="layer-items">
-                            <span class="layer-item">TCP Socket (6400-6405)</span>
-                            <span class="layer-item">JSON-RPC</span>
+                            <span class="layer-item">HTTP (可自定义端口，默认8000)</span>
+                            <span class="layer-item">JSON-RPC 2.0</span>
                         </div>
                     </div>
                     <div class="arch-arrow">↓</div>
@@ -199,19 +198,19 @@
                     <div class="arch-layer highlight">
                         <div class="layer-title">工具层</div>
                         <div class="layer-items">
-                            <span class="layer-item">30+专业工具</span>
-                            <span class="layer-item">状态树引擎</span>
+                            <span class="layer-item">40+专业工具</span>
+                            <span class="layer-item">消息队列执行引擎</span>
                         </div>
                     </div>
                 </div>
                 <div class="arch-features">
                     <div class="arch-feature">
                         <h4>双层调用架构</h4>
-                        <p>FacadeTools（single_call、batch_call）+ MethodTools（32+专业方法）</p>
+                        <p>FacadeTools（async_call、batch_call）+ MethodTools（40+专业方法）</p>
                     </div>
                     <div class="arch-feature">
-                        <h4>智能连接管理</h4>
-                        <p>多端口自动发现、连接健康检查、失败端口记录和智能切换</p>
+                        <h4>消息队列系统</h4>
+                        <p>可自定义端口配置、主线程安全执行、智能资源管理和清理</p>
                     </div>
                     <div class="arch-feature">
                         <h4>协程支持</h4>
@@ -382,35 +381,28 @@
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">快速开始</h2>
-                <p class="section-subtitle">四步完成配置，开始AI驱动开发</p>
+                <p class="section-subtitle">四步完成配置，零依赖开始AI驱动开发</p>
             </div>
             <div class="quickstart-steps">
                 <div class="step">
                     <div class="step-number">1</div>
                     <div class="step-content">
-                        <h3>安装Python依赖</h3>
+                        <h3>导入Unity Package</h3>
                         <div class="code-block">
-                            <pre><code><span class="comment"># 安装Python依赖</span>
-cd server
-pip install -r requirements.txt</code></pre>
+                            <pre><code><span class="comment">// 将unity-package目录导入Unity项目</span>
+<span class="comment">// 或通过Package Manager添加Git URL</span>
+"io.uframe.unity3d-mcp": "https://github.com/zoucdr/unity3d-mcp.git?path=/unity-package"</code></pre>
                         </div>
                     </div>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
                     <div class="step-content">
-                        <h3>配置Unity Package</h3>
+                        <h3>启动Unity编辑器</h3>
                         <div class="code-block">
-                            <pre><code><span class="comment">// 编辑Unity项目 Packages/manifest.json</span>
-<span class="comment">// 在dependencies中添加：</span>
-{
-  <span class="key">"dependencies"</span>: {
-    <span class="key">"io.uframe.unity3d-mcp"</span>: <span class="string">"https://gitee.com/zoucdr/unity3d-mcp.git?path=/unity-package#1.0.4"</span>,
-    <span class="comment">// 其他依赖...</span>
-  }
-}
-
-<span class="comment">// 或者手动导入unity-package目录到Unity项目</span></code></pre>
+                            <pre><code><span class="comment">// 打开Unity项目</span>
+<span class="comment">// Unity Package会自动启动内置MCP服务器</span>
+<span class="comment">// 默认监听端口：8000（可在Project Settings → MCP中自定义）</span></code></pre>
                         </div>
                     </div>
                 </div>
@@ -419,37 +411,32 @@ pip install -r requirements.txt</code></pre>
                     <div class="step-content">
                         <h3>配置MCP客户端</h3>
                         <div class="code-block">
-                            <pre><code><span class="comment">// Cursor配置 (~/.cursor/mcp.json)</span>
+                            <pre><code><span class="comment">// MCP客户端配置</span>
 {
   <span class="key">"mcpServers"</span>: {
-    <span class="key">"unityMCP"</span>: {
-      <span class="key">"command"</span>: <span class="string">"uv"</span>,
-      <span class="key">"args"</span>: [
-        <span class="string">"--directory"</span>,
-        <span class="string">"path/to/server"</span>,
-        <span class="string">"run"</span>,
-        <span class="string">"server.py"</span>
-      ]
+    <span class="key">"unity3d-mcp"</span>: {
+      <span class="key">"url"</span>: <span class="string">"http://localhost:8000"</span>
     }
   }
-}</code></pre>
+}
+
+<span class="comment">// 支持Cursor、Claude、VS、Trae等AI客户端</span></code></pre>
                         </div>
                     </div>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
                     <div class="step-content">
-                        <h3>启动并测试</h3>
+                        <h3>开始使用</h3>
                         <div class="code-block">
-                            <pre><code><span class="comment"># 启动Unity编辑器</span>
-<span class="comment"># Unity Package会自动启动TCP服务器</span>
+                            <pre><code><span class="comment">// 在AI客户端中测试连接</span>
+<span class="string">"请帮我创建一个Cube对象"</span>
 
-<span class="comment"># 启动MCP服务器</span>
-cd server
-python server.py
+<span class="comment">// 批量操作示例</span>
+<span class="string">"创建10个随机位置的Sphere，并设置不同颜色的材质"</span>
 
-<span class="comment"># 在AI客户端中测试</span>
-<span class="string">"请帮我创建一个Cube对象"</span></code></pre>
+<span class="comment">// 复杂任务示例</span>
+<span class="string">"分析当前场景的性能问题并提供优化建议"</span></code></pre>
                         </div>
                     </div>
                 </div>
@@ -470,7 +457,7 @@ python server.py
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">工具生态</h2>
-                <p class="section-subtitle">32+专业工具，覆盖Unity开发全流程</p>
+                <p class="section-subtitle">40+专业工具，覆盖Unity开发全流程</p>
             </div>
             <div class="tools-categories">
                 <div class="tool-category">
@@ -568,10 +555,10 @@ python server.py
                 <div class="footer-section">
                     <h4>技术栈</h4>
                     <ul>
-                        <li>Python + FastMCP</li>
-                        <li>Unity C#</li>
-                        <li>TCP Socket</li>
-                        <li>JSON-RPC</li>
+                        <li>Unity C# (内置MCP服务器)</li>
+                        <li>HTTP + JSON-RPC 2.0</li>
+                        <li>消息队列系统</li>
+                        <li>主线程安全执行</li>
                     </ul>
                 </div>
             </div>

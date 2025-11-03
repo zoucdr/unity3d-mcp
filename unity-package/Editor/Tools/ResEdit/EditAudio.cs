@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using Unity.Mcp.Models;
@@ -21,34 +20,121 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：import, modify, duplicate, delete, get_info, search, set_import_settings, convert_format, extract_metadata", false),
-                new MethodKey("path", "音频资源路径，Unity标准格式：Assets/Audio/AudioName.wav", false),
-                new MethodKey("source_file", "源文件路径（导入时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.wav, *.mp3, *.ogg", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("import_settings", "导入设置", true),
-                new MethodKey("target_format", "目标格式（转换时使用）", true),
-                // 音频导入设置参数
-                new MethodKey("force_to_mono", "是否强制转换为单声道", true),
-                new MethodKey("load_type", "加载类型：DecompressOnLoad, CompressedInMemory, Streaming", true),
-                new MethodKey("compression_format", "压缩格式：PCM, Vorbis, MP3, ADPCM", true),
-                new MethodKey("quality", "质量（0-1）", true),
-                new MethodKey("sample_rate_setting", "采样率设置：PreserveSampleRate, OptimizeSampleRate, OverrideSampleRate", true),
-                new MethodKey("sample_rate", "采样率", true),
-                new MethodKey("preload_audio_data", "是否预加载音频数据", true),
-                new MethodKey("load_in_background", "是否在后台加载", true),
-                new MethodKey("ambisonic_rendering", "是否启用环绕声渲染", true),
-                new MethodKey("dsp_buffer_size", "DSP缓冲区大小：BestPerformance, GoodLatency, BestLatency", true),
-                new MethodKey("virtualize_when_silent", "静音时是否虚拟化", true),
-                new MethodKey("spatialize", "是否空间化", true),
-                new MethodKey("spatialize_post_effects", "是否在后期效果后空间化", true),
-                new MethodKey("user_data", "用户数据", true),
-                new MethodKey("asset_bundle_name", "资源包名称", true),
-                new MethodKey("asset_bundle_variant", "资源包变体", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "convert_format", "extract_metadata")
+                    .AddExamples("import", "get_info"),
+                
+                // 音频路径
+                new MethodStr("path", "音频资源路径")
+                    .AddExamples("Assets/Audio/music.wav", "Assets/Sounds/effect.mp3"),
+                
+                // 源文件路径
+                new MethodStr("source_file", "源文件路径", true)
+                    .AddExamples("D:/Audio/music.wav", "C:/Sounds/effect.mp3"),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true)
+                    .AddExamples("Assets/Audio/Copy/", "Assets/NewSounds/"),
+                
+                // 搜索模式
+                new MethodStr("query", "搜索模式", true)
+                    .AddExamples("*.wav", "*.mp3")
+                    .SetDefault("*"),
+                
+                // 递归搜索
+                new MethodBool("recursive", "递归搜索", true)
+                    .SetDefault(false),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false),
+                
+                // 导入设置
+                new MethodObj("import_settings", "导入设置", true),
+                
+                // 目标格式
+                new MethodStr("target_format", "目标格式", true)
+                    .SetEnumValues("wav", "mp3", "ogg")
+                    .AddExample("wav"),
+                
+                // 强制单声道
+                new MethodBool("force_to_mono", "强制单声道", true)
+                    .SetDefault(false),
+                
+                // 加载类型
+                new MethodStr("load_type", "加载类型", true)
+                    .SetEnumValues("DecompressOnLoad", "CompressedInMemory", "Streaming")
+                    .AddExample("CompressedInMemory")
+                    .SetDefault("CompressedInMemory"),
+                
+                // 压缩格式
+                new MethodStr("compression_format", "压缩格式", true)
+                    .SetEnumValues("PCM", "Vorbis", "MP3", "ADPCM")
+                    .AddExample("Vorbis")
+                    .SetDefault("Vorbis"),
+                
+                // 质量
+                new MethodFloat("quality", "质量", true)
+                    .SetRange(0f, 1f)
+                    .AddExample("0.7")
+                    .SetDefault(0.7f),
+                
+                // 采样率设置
+                new MethodStr("sample_rate_setting", "采样率设置", true)
+                    .SetEnumValues("PreserveSampleRate", "OptimizeSampleRate", "OverrideSampleRate")
+                    .AddExample("OptimizeSampleRate")
+                    .SetDefault("OptimizeSampleRate"),
+                
+                // 采样率
+                new MethodInt("sample_rate", "采样率", true)
+                    .SetEnumValues("22050", "44100", "48000", "96000")
+                    .AddExample("44100")
+                    .SetDefault(44100),
+                
+                // 预加载音频数据
+                new MethodBool("preload_audio_data", "预加载音频数据", true)
+                    .SetDefault(true),
+                
+                // 后台加载
+                new MethodBool("load_in_background", "后台加载", true)
+                    .SetDefault(false),
+                
+                // 环绕声渲染
+                new MethodBool("ambisonic_rendering", "环绕声渲染", true)
+                    .SetDefault(false),
+                
+                // DSP缓冲区大小
+                new MethodStr("dsp_buffer_size", "DSP缓冲区大小", true)
+                    .SetEnumValues("BestPerformance", "GoodLatency", "BestLatency")
+                    .AddExample("GoodLatency")
+                    .SetDefault("GoodLatency"),
+                
+                // 静音时虚拟化
+                new MethodBool("virtualize_when_silent", "静音时虚拟化", true)
+                    .SetDefault(true),
+                
+                // 空间化
+                new MethodBool("spatialize", "空间化", true)
+                    .SetDefault(false),
+                
+                // 后期效果后空间化
+                new MethodBool("spatialize_post_effects", "后期效果后空间化", true)
+                    .SetDefault(false),
+                
+                // 用户数据
+                new MethodStr("user_data", "用户数据", true)
+                    .AddExample("CustomData"),
+                
+                // 资源包名称
+                new MethodStr("asset_bundle_name", "资源包名称", true)
+                    .AddExample("audio_bundle"),
+                
+                // 资源包变体
+                new MethodStr("asset_bundle_variant", "资源包变体", true)
+                    .AddExample("hd")
             };
         }
 

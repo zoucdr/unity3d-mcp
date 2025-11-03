@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using System;
+using System.Threading;
 namespace Unity.Mcp.Models
 {
     [FilePath("Library/McpExecuteRecordObject.asset", FilePathAttribute.Location.ProjectFolder)]
@@ -13,8 +15,19 @@ namespace Unity.Mcp.Models
         public string currentGroupId = "default"; // 当前选中的分组ID
         public bool useGrouping = true; // 是否启用分组功能（默认启用）
 
+        // HTTP请求记录
+        public List<HttpRequestRecord> httpRequestRecords = new List<HttpRequestRecord>();
+
         // 初始化标记，确保只初始化一次
         private bool isInitialized = false;
+        
+        // 主线程调度器
+        private static readonly Queue<System.Action> mainThreadActions = new Queue<System.Action>();
+        private static readonly object mainThreadLock = new object();
+        private static int mainThreadId;
+        
+        // HTTP请求记录线程安全锁
+        private readonly object httpRecordsLock = new object();
         [System.Serializable]
         public class McpExecuteRecord
         {
@@ -36,6 +49,22 @@ namespace Unity.Mcp.Models
             public List<McpExecuteRecord> records = new List<McpExecuteRecord>();
             public System.DateTime createdTime; // 创建时间
             public bool isDefault; // 是否为默认分组
+        }
+
+        [System.Serializable]
+        public class HttpRequestRecord
+        {
+            public string id; // 请求唯一ID
+            public string endPoint; // 客户端端点
+            public DateTime requestTime; // 请求开始时间
+            public DateTime responseTime; // 请求完成时间
+            public int requestCount; // 该客户端的请求次数
+            public string requestContent; // 请求内容
+            public string responseContent; // 响应内容
+            public bool success; // 是否成功
+            public double duration; // 处理时长（毫秒）
+            public string httpMethod; // HTTP方法
+            public int statusCode; // HTTP状态码
         }
         public void addRecord(string name, string cmd, string result, string error)
         {
@@ -357,6 +386,189 @@ namespace Unity.Mcp.Models
             int errorCount = group.records.Count - successCount;
 
             return $"{group.records.Count}个记录 (成功:{successCount} 失败:{errorCount})";
+        }
+
+        #endregion
+
+        #region 主线程调度器
+
+        /// <summary>
+        /// 初始化主线程调度器
+        /// </summary>
+        [InitializeOnLoadMethod]
+        private static void InitializeMainThreadScheduler()
+        {
+            mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            EditorApplication.update += ProcessMainThreadActions;
+        }
+
+        /// <summary>
+        /// 处理主线程操作队列
+        /// </summary>
+        private static void ProcessMainThreadActions()
+        {
+            lock (mainThreadLock)
+            {
+                while (mainThreadActions.Count > 0)
+                {
+                    var action = mainThreadActions.Dequeue();
+                    try
+                    {
+                        action?.Invoke();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[McpExecuteRecordObject] 主线程操作执行失败: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 将操作调度到主线程执行
+        /// </summary>
+        private static void ScheduleOnMainThread(System.Action action)
+        {
+            if (action == null) return;
+
+            lock (mainThreadLock)
+            {
+                mainThreadActions.Enqueue(action);
+            }
+        }
+
+        /// <summary>
+        /// 线程安全的保存方法
+        /// </summary>
+        private void saveRecordsThreadSafe()
+        {
+            if (Thread.CurrentThread.ManagedThreadId == mainThreadId) // 主线程
+            {
+                saveRecords();
+            }
+            else
+            {
+                ScheduleOnMainThread(() => saveRecords());
+            }
+        }
+
+        #endregion
+
+        #region HTTP请求记录管理
+
+        /// <summary>
+        /// 添加HTTP请求记录
+        /// </summary>
+        public void AddHttpRequestRecord(string id, string endPoint, DateTime requestTime, 
+            string requestContent, string httpMethod = "POST")
+        {
+            var record = new HttpRequestRecord
+            {
+                id = id,
+                endPoint = endPoint,
+                requestTime = requestTime,
+                responseTime = requestTime, // 初始设为请求时间，完成时会更新
+                requestCount = 1,
+                requestContent = requestContent,
+                responseContent = "",
+                success = false, // 初始为false，完成时会更新
+                duration = 0,
+                httpMethod = httpMethod,
+                statusCode = 0
+            };
+
+            lock (httpRecordsLock)
+            {
+                httpRequestRecords.Add(record);
+            }
+            saveRecordsThreadSafe();
+        }
+
+        /// <summary>
+        /// 更新HTTP请求记录的响应信息
+        /// </summary>
+        public void UpdateHttpRequestRecord(string id, string responseContent, bool success, 
+            int statusCode, DateTime responseTime)
+        {
+            lock (httpRecordsLock)
+            {
+                var record = httpRequestRecords.FirstOrDefault(r => r.id == id);
+                if (record != null)
+                {
+                    record.responseContent = responseContent;
+                    record.success = success;
+                    record.statusCode = statusCode;
+                    record.responseTime = responseTime;
+                    record.duration = (responseTime - record.requestTime).TotalMilliseconds;
+                }
+            }
+            saveRecordsThreadSafe();
+        }
+
+        /// <summary>
+        /// 获取所有HTTP请求记录
+        /// </summary>
+        public List<HttpRequestRecord> GetHttpRequestRecords()
+        {
+            lock (httpRecordsLock)
+            {
+                return httpRequestRecords.ToList();
+            }
+        }
+
+        /// <summary>
+        /// 清空HTTP请求记录
+        /// </summary>
+        public void ClearHttpRequestRecords()
+        {
+            lock (httpRecordsLock)
+            {
+                httpRequestRecords.Clear();
+            }
+            saveRecordsThreadSafe();
+        }
+
+        /// <summary>
+        /// 清理超过指定时间的HTTP请求记录
+        /// </summary>
+        public void CleanupOldHttpRequestRecords(int maxAgeMinutes = 30)
+        {
+            var cutoffTime = DateTime.Now.AddMinutes(-maxAgeMinutes);
+            List<HttpRequestRecord> recordsToRemove;
+            
+            lock (httpRecordsLock)
+            {
+                recordsToRemove = httpRequestRecords
+                    .Where(r => r.responseTime < cutoffTime)
+                    .ToList();
+
+                foreach (var record in recordsToRemove)
+                {
+                    httpRequestRecords.Remove(record);
+                }
+            }
+
+            if (recordsToRemove.Count > 0)
+            {
+                saveRecordsThreadSafe();
+            }
+        }
+
+        /// <summary>
+        /// 获取HTTP请求记录统计信息
+        /// </summary>
+        public string GetHttpRequestStatistics()
+        {
+            lock (httpRecordsLock)
+            {
+                int totalCount = httpRequestRecords.Count;
+                int successCount = httpRequestRecords.Count(r => r.success);
+                int errorCount = totalCount - successCount;
+                double avgDuration = httpRequestRecords.Count > 0 ? 
+                    httpRequestRecords.Average(r => r.duration) : 0;
+
+                return $"总计:{totalCount} 成功:{successCount} 失败:{errorCount} 平均耗时:{avgDuration:F2}ms";
+            }
         }
 
         #endregion

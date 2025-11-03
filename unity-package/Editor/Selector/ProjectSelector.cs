@@ -20,8 +20,13 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                new MethodKey("instance_id", "Object InstanceID", true),
-                new MethodKey("path", "Object Project path", true)
+                // 实例ID
+                new MethodInt("instance_id", "对象实例ID", true)
+                    .AddExample("12345"),
+                
+                // 项目路径
+                new MethodStr("path", "项目资源路径", true)
+                    .AddExamples("Assets/Scripts/Player.cs", "Assets/Textures/icon.png")
             };
         }
 

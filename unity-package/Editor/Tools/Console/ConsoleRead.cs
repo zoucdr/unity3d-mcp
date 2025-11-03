@@ -26,13 +26,34 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：get(无堆栈跟踪), get_full(包含堆栈跟踪), clear(清空控制台)", false),
-                new MethodKey("types", "消息类型列表：error, warning, log，默认全部类型", true),
-                new MethodKey("count", "最大返回消息数，不设置则获取全部", true),
-                new MethodKey("filterText", "文本过滤器，过滤包含指定文本的日志", true),
-                new MethodKey("format", "输出格式：plain, detailed, json，默认detailed", true)
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("get", "get_full", "clear")
+                    .AddExamples("get", "clear")
+                    .SetDefault("get"),
+                
+                // 消息类型列表
+                new MethodStr("types", "消息类型列表，默认全部类型", true)
+                    .AddExamples("error,warning", "log")
+                    .SetDefault("error,warning,log"),
+                
+                // 最大返回消息数
+                new MethodInt("count", "最大返回消息数，不设置则获取全部", true)
+                    .SetRange(1, 1000)
+                    .AddExample("50"),
+                
+                // 文本过滤器
+                new MethodStr("filterText", "文本过滤器，过滤包含指定文本的日志", true)
+                    .AddExamples("Error", "NullReference")
+                    .SetDefault(""),
+                
+                // 输出格式
+                new MethodStr("format", "输出格式，默认detailed", true)
+                    .SetEnumValues("plain", "detailed", "json")
+                    .AddExamples("detailed", "json")
+                    .SetDefault("detailed")
             };
         }
 

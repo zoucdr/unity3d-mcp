@@ -25,14 +25,32 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("search_type", "Search method: by_name, by_id, by_tag, by_layer, by_component, by_query, etc.", false),
-                new MethodKey("query", "Search criteria can be ID, name or path (supports wildcard *)", false),
-                new MethodKey("select_many", "Whether to find all matching items", true),
-                new MethodKey("include_hierarchy", "Whether to include complete hierarchy data for all children", true),
-                new MethodKey("include_inactive", "Whether to search inactive objects", true),
-                new MethodKey("use_regex", "Whether to use regular expressions", true)
+                // 搜索方法 - 枚举
+                new MethodStr("search_type", "搜索方法")
+                    .SetEnumValues("by_name", "by_id", "by_tag", "by_layer", "by_component", "by_query")
+                    .AddExamples("by_name", "by_tag"),
+                
+                // 搜索条件
+                new MethodStr("query", "搜索条件（可以是ID、名称或路径，支持通配符*）")
+                    .AddExamples("Player*", "UI/Canvas"),
+                
+                // 查找多个
+                new MethodBool("select_many", "是否查找所有匹配项", true)
+                    .SetDefault(false),
+                
+                // 包含层次结构
+                new MethodBool("include_hierarchy", "是否包含所有子对象的完整层次结构数据", true)
+                    .SetDefault(false),
+                
+                // 包含非激活对象
+                new MethodBool("include_inactive", "是否搜索非激活对象", true)
+                    .SetDefault(false),
+                
+                // 使用正则表达式
+                new MethodBool("use_regex", "是否使用正则表达式", true)
+                    .SetDefault(false)
             };
         }
 

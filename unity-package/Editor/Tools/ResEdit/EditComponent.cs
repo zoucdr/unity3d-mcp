@@ -27,14 +27,45 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                // 目标查找参数
-                new MethodKey("instance_id", "Object InstanceID", false),
-                new MethodKey("path", "Object Hierarchy path", false),
-                new MethodKey("action", "Operation type: get_component_propertys, set_component_propertys", true),
-                new MethodKey("component_type", "Component type name (type name inheriting from Component)", true),
-                new MethodKey("properties", "Properties dictionary (set_component_propertys)", false),
+                // 目标查找参数 - GameObject实例ID
+                new MethodStr("instance_id", "GameObject的实例ID，用于唯一标识对象")
+                    .AddExamples("-2524", "12345", "-1728")
+                    .SetDefault(""),
+                
+                // 目标查找参数 - 层次结构路径
+                new MethodStr("path", "GameObject在层次结构中的路径")
+                    .AddExamples("Main Camera", "UI/Canvas/Button", "Player/Body/Head")
+                    .SetDefault(""),
+                
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型", true)
+                    .SetEnumValues("get_component_propertys", "set_component_propertys")
+                    .AddExamples("get_component_propertys", "set_component_propertys")
+                    .SetDefault("get_component_propertys"),
+                
+                // 组件类型名称
+                new MethodStr("component_type", "组件类型名称（继承自Component的类型名）")
+                    .AddExamples("Transform", "MeshRenderer", "Rigidbody", "BoxCollider", "Camera", "Light", "AudioSource")
+                    .SetDefault("Transform"),
+                
+                // 属性字典 - 用于设置组件属性
+                new MethodObj("properties", "属性字典，用于设置组件属性值", true)
+                    .AddBooleanProperty("enabled")
+                    .AddArrayProperty("position", "number")
+                    .AddArrayProperty("rotation", "number")
+                    .AddArrayProperty("scale", "number")
+                    .AddArrayProperty("color", "number")
+                    .AddStringProperty("material")
+                    .AddStringProperty("sharedMaterial")
+                    .AddNumberProperty("intensity")
+                    .AddNumberProperty("range")
+                    .AddStringProperty("tag")
+                    .AddArrayProperty("layers", "string")
+                    .AddExample("{\"enabled\": true, \"position\": [0, 1, 0]}")
+                    .AddExample("{\"color\": [1.0, 0.0, 0.0, 1.0], \"enabled\": true}")
+                    .AddExample("{\"sharedMaterial\": \"Assets/Materials/RedMaterial.mat\"}")
             };
         }
 

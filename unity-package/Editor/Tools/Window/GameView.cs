@@ -24,16 +24,44 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: set_resolution, get_resolution, get_stats, set_vsync, set_target_framerate, maximize, set_aspect_ratio, screenshot", false),
-                new MethodKey("width", "Window width (used for set_resolution)", true),
-                new MethodKey("height", "Window height (used for set_resolution)", true),
-                new MethodKey("vsync_count", "VSync count: 0=off, 1=every frame, 2=every 2nd frame (used for set_vsync)", true),
-                new MethodKey("target_framerate", "Target frame rate, -1=unlimited (used for set_target_framerate)", true),
-                new MethodKey("aspect_ratio", "Aspect ratio string like '16:9' or 'Free' (used for set_aspect_ratio)", true),
-                // 截图相关参数
-                new MethodKey("save_path", "Path to save screenshot", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio", "screenshot")
+                    .AddExamples("get_resolution", "screenshot"),
+                
+                // 窗口宽度
+                new MethodInt("width", "窗口宽度", true)
+                    .SetRange(320, 3840)
+                    .AddExample("1920"),
+                
+                // 窗口高度
+                new MethodInt("height", "窗口高度", true)
+                    .SetRange(240, 2160)
+                    .AddExample("1080"),
+                
+                // 垂直同步
+                new MethodInt("vsync_count", "垂直同步", true)
+                    .SetEnumValues("0", "1", "2")
+                    .AddExample("1")
+                    .SetDefault(1),
+                
+                // 目标帧率
+                new MethodInt("target_framerate", "目标帧率（-1=无限制）", true)
+                    .SetRange(-1, 300)
+                    .AddExample("60")
+                    .SetDefault(60),
+                
+                // 宽高比
+                new MethodStr("aspect_ratio", "宽高比", true)
+                    .SetEnumValues("16:9", "16:10", "4:3", "Free")
+                    .AddExamples("16:9", "Free")
+                    .SetDefault("Free"),
+                
+                // 截图保存路径
+                new MethodStr("save_path", "截图保存路径", true)
+                    .AddExamples("Assets/Screenshots/game.png", "D:/Screenshots/capture.jpg")
             };
         }
 

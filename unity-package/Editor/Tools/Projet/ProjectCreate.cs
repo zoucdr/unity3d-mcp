@@ -24,19 +24,56 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("name", "资源文件名称", false),
-                new MethodKey("source", "操作类型：menu, empty, template, copy", false),
-                new MethodKey("folder_path", "目标文件夹路径（相对于Assets）", true),
-                new MethodKey("menu_path", "菜单路径", true),
-                new MethodKey("template_path", "模板文件路径", true),
-                new MethodKey("copy_source", "要复制的资源路径", true),
-                new MethodKey("extension", "文件扩展名（不含.）", true),
-                new MethodKey("content", "文件内容（用于empty类型）", true),
-                new MethodKey("force", "是否强制覆盖已存在的文件", true),
-                new MethodKey("open_after_create", "创建后是否打开文件", true),
-                new MethodKey("select_after_create", "创建后是否选中文件", true),
+                // 资源文件名称 - 必需
+                new MethodStr("name", "资源文件名称")
+                    .AddExamples("MyScript", "NewMaterial"),
+                
+                // 创建来源类型 - 枚举
+                new MethodStr("source", "操作类型")
+                    .SetEnumValues("menu", "empty", "template", "copy")
+                    .AddExamples("empty", "template"),
+                
+                // 目标文件夹路径
+                new MethodStr("folder_path", "目标文件夹路径（相对于Assets）", true)
+                    .AddExamples("Scripts", "Materials")
+                    .SetDefault(""),
+                
+                // 菜单路径
+                new MethodStr("menu_path", "菜单路径", true)
+                    .AddExamples("Assets/Create/C# Script", "Assets/Create/Material"),
+                
+                // 模板文件路径
+                new MethodStr("template_path", "模板文件路径", true)
+                    .AddExamples("Assets/Templates/ScriptTemplate.cs", "Assets/Templates/MaterialTemplate.mat"),
+                
+                // 复制源路径
+                new MethodStr("copy_source", "要复制的资源路径", true)
+                    .AddExamples("Assets/Scripts/BaseScript.cs", "Assets/Materials/BaseMaterial.mat"),
+                
+                // 文件扩展名
+                new MethodStr("extension", "文件扩展名（不含.）", true)
+                    .SetEnumValues("cs", "mat", "prefab", "asset", "txt", "json")
+                    .AddExamples("cs", "mat")
+                    .SetDefault("cs"),
+                
+                // 文件内容
+                new MethodStr("content", "文件内容（用于empty类型）", true)
+                    .AddExamples("// New C# Script", "{\n  \"version\": \"1.0\"\n}")
+                    .SetDefault(""),
+                
+                // 强制覆盖
+                new MethodBool("force", "是否强制覆盖已存在的文件", true)
+                    .SetDefault(false),
+                
+                // 创建后打开
+                new MethodBool("open_after_create", "创建后是否打开文件", true)
+                    .SetDefault(false),
+                
+                // 创建后选中
+                new MethodBool("select_after_create", "创建后是否选中文件", true)
+                    .SetDefault(true)
             };
         }
 

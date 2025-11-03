@@ -322,13 +322,12 @@ namespace Unity.Mcp.Gui
             Color statusColor = isRunning ? new Color(0.2f, 0.8f, 0.2f) : Color.red;
             string statusText = isRunning ? "Running" : "Stopped";
             int clientCount = McpService.Instance.ConnectedClientCount;
-            var activePorts = McpService.Instance.ActivePorts;
-            string portText = activePorts.Count > 0 ? $" on port(s) {string.Join(", ", activePorts)}" : "";
+            string portText = McpService.Instance.IsRunning ? $" on port {McpService.mcpPort}" : "";
 
-            string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} clients{portText})";
+            string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} 请求记录{portText})";
 
             // Draw a single button that covers the whole area and acts as the status display
-            if (GUI.Button(rect, new GUIContent(fullStatusText, "Click to see connection details"), statusButtonStyle))
+            if (GUI.Button(rect, new GUIContent(fullStatusText, "点击查看请求记录详情"), statusButtonStyle))
             {
                 McpServiceStatusWindow.ShowWindow();
             }

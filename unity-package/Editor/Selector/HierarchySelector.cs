@@ -22,8 +22,13 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                new MethodKey("instance_id", "Object InstanceID", true),
-                new MethodKey("path", "Object Hierarchy path", true)
+                // 实例ID
+                new MethodInt("instance_id", "对象实例ID", true)
+                    .AddExample("12345"),
+                
+                // 层级路径
+                new MethodStr("path", "对象层级路径", true)
+                    .AddExamples("Canvas/Panel/Button", "Player/Body/Head")
             };
         }
 

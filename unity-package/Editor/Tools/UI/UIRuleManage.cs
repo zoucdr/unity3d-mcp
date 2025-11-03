@@ -22,16 +22,37 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: record_modify(record modification), record_renames(batch record node rename info), get_renames(get node rename info), record_download_sprites(batch record downloaded sprite info), get_download_sprites(get downloaded sprite info)", false),
-                new MethodKey("name", "UI name, used for finding and recording", false),
-                new MethodKey("modify_desc", "Modification description", true),
-                new MethodKey("save_path", "Save path, used to create new FigmaUGUIRuleObject", true),
-                new MethodKey("properties", "Property data, Json formatted string", true),
-                new MethodKey("names_data", "Json object with node_id:{name,originName} pairs {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple node_id:node_name pairs {\"node_id1\":\"node_name1\"} - Required for record_renames", true),
-                new MethodKey("sprites_data", "Json object with node_id:fileName pairs {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"} - Required for record_download_sprites", true),
-                new MethodKey("auto_load_sprites", "Automatically load sprites from Assets folder based on fileName (default: true)", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites")
+                    .AddExamples("record_modify", "get_renames"),
+                
+                // UI名称
+                new MethodStr("name", "UI名称")
+                    .AddExamples("MainMenu", "InventoryPanel"),
+                
+                // 修改描述
+                new MethodStr("modify_desc", "修改描述", true)
+                    .AddExamples("更新按钮样式", "调整布局"),
+                
+                // 保存路径
+                new MethodStr("save_path", "保存路径", true)
+                    .AddExamples("Assets/UI/Rules/", "Assets/Figma/Rules/"),
+                
+                // 属性数据
+                new MethodObj("properties", "属性数据", true),
+                
+                // 节点名称数据
+                new MethodObj("names_data", "节点名称数据", true),
+                
+                // 精灵数据
+                new MethodObj("sprites_data", "精灵数据", true),
+                
+                // 自动加载精灵
+                new MethodBool("auto_load_sprites", "自动加载精灵", true)
+                    .SetDefault(true)
             };
         }
 

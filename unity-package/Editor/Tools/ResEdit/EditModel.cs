@@ -21,79 +21,223 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：import, modify, duplicate, delete, get_info, search, set_import_settings, remap_materials", false),
-                new MethodKey("path", "模型资源路径，Unity标准格式：Assets/Models/ModelName.fbx", false),
-                new MethodKey("source_file", "源文件路径（导入时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.fbx, *.obj", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("import_settings", "导入设置", true),
-                new MethodKey("scale_factor", "缩放因子", true),
-                new MethodKey("use_file_scale", "是否使用文件缩放", true),
-                new MethodKey("use_file_units", "是否使用文件单位", true),
-                new MethodKey("import_blend_shapes", "是否导入混合形状", true),
-                new MethodKey("import_visibility", "是否导入可见性", true),
-                new MethodKey("import_cameras", "是否导入相机", true),
-                new MethodKey("import_lights", "是否导入灯光", true),
-                new MethodKey("preserve_hierarchy", "是否保持层级", true),
-                new MethodKey("animation_type", "动画类型：None, Legacy, Generic, Humanoid", true),
-                new MethodKey("optimize_mesh", "是否优化网格", true),
-                new MethodKey("generate_secondary_uv", "是否生成次要UV", true),
-                new MethodKey("secondary_uv_hard_angle", "次要UV硬角度", true),
-                new MethodKey("secondary_uv_pack_margin", "次要UV打包边距", true),
-                new MethodKey("secondary_uv_angle_distortion", "次要UV角度扭曲", true),
-                new MethodKey("secondary_uv_area_distortion", "次要UV面积扭曲", true),
-                new MethodKey("secondary_uv_edge_distortion", "次要UV边缘扭曲", true),
-                new MethodKey("read_write_enabled", "是否启用读写", true),
-                new MethodKey("optimize_game_objects", "是否优化游戏对象", true),
-                new MethodKey("import_materials", "是否导入材质", true),
-                new MethodKey("material_naming", "材质命名模式：ByBaseTextureName, ByModelName, ByTextureName", true),
-                new MethodKey("material_search", "材质搜索模式：Local, RecursiveUp, Everywhere", true),
-                new MethodKey("extract_materials", "是否提取材质", true),
-                new MethodKey("extract_materials_path", "提取材质路径", true),
-                new MethodKey("mesh_compression", "网格压缩：Off, Low, Medium, High", true),
-                new MethodKey("add_collider", "是否添加碰撞器", true),
-                new MethodKey("keep_quads", "是否保持四边形", true),
-                new MethodKey("weld_vertices", "是否焊接顶点", true),
-                new MethodKey("index_format", "索引格式：Auto, UInt16, UInt32", true),
-                new MethodKey("legacy_blend_shape_normals", "是否使用传统混合形状法线", true),
-                new MethodKey("blend_shape_normals", "混合形状法线模式：Default, None, Calculate, Import", true),
-                new MethodKey("tangents", "切线模式：Default, None, Calculate, Import", true),
-                new MethodKey("smoothness_source", "平滑度来源：None, DiffuseAlpha, SpecularAlpha", true),
-                new MethodKey("smoothness", "平滑度", true),
-                new MethodKey("normal_import_mode", "法线导入模式：Default, None, Calculate, Import", true),
-                new MethodKey("normal_map_mode", "法线贴图模式：Default, OpenGL, DirectX", true),
-                new MethodKey("height_map_mode", "高度贴图模式：Default, OpenGL, DirectX", true),
-                new MethodKey("generate_secondary_uv", "是否生成次要UV", true),
-                new MethodKey("secondary_uv_hard_angle", "次要UV硬角度", true),
-                new MethodKey("secondary_uv_pack_margin", "次要UV打包边距", true),
-                new MethodKey("secondary_uv_angle_distortion", "次要UV角度扭曲", true),
-                new MethodKey("secondary_uv_area_distortion", "次要UV面积扭曲", true),
-                new MethodKey("secondary_uv_edge_distortion", "次要UV边缘扭曲", true),
-                new MethodKey("read_write_enabled", "是否启用读写", true),
-                new MethodKey("optimize_game_objects", "是否优化游戏对象", true),
-                new MethodKey("import_materials", "是否导入材质", true),
-                new MethodKey("material_naming", "材质命名模式：ByBaseTextureName, ByModelName, ByTextureName", true),
-                new MethodKey("material_search", "材质搜索模式：Local, RecursiveUp, Everywhere", true),
-                new MethodKey("extract_materials", "是否提取材质", true),
-                new MethodKey("extract_materials_path", "提取材质路径", true),
-                new MethodKey("mesh_compression", "网格压缩：Off, Low, Medium, High", true),
-                new MethodKey("add_collider", "是否添加碰撞器", true),
-                new MethodKey("keep_quads", "是否保持四边形", true),
-                new MethodKey("weld_vertices", "是否焊接顶点", true),
-                new MethodKey("index_format", "索引格式：Auto, UInt16, UInt32", true),
-                new MethodKey("legacy_blend_shape_normals", "是否使用传统混合形状法线", true),
-                new MethodKey("blend_shape_normals", "混合形状法线模式：Default, None, Calculate, Import", true),
-                new MethodKey("tangents", "切线模式：Default, None, Calculate, Import", true),
-                new MethodKey("smoothness_source", "平滑度来源：None, DiffuseAlpha, SpecularAlpha", true),
-                new MethodKey("smoothness", "平滑度", true),
-                new MethodKey("normal_import_mode", "法线导入模式：Default, None, Calculate, Import", true),
-                new MethodKey("normal_map_mode", "法线贴图模式：Default, OpenGL, DirectX", true),
-                new MethodKey("height_map_mode", "高度贴图模式：Default, OpenGL, DirectX", true),
-                new MethodKey("material_remaps", "材质重定向映射，格式为{\"source_name\":\"target_path\"}的字典", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "remap_materials")
+                    .AddExamples("import", "get_info"),
+                
+                // 模型路径
+                new MethodStr("path", "模型资源路径")
+                    .AddExamples("Assets/Models/Character.fbx", "Assets/Models/Building.obj"),
+                
+                // 源文件路径
+                new MethodStr("source_file", "源文件路径", true)
+                    .AddExamples("D:/Models/character.fbx", "C:/Assets/model.obj"),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true)
+                    .AddExamples("Assets/Models/Copy/", "Assets/NewModels/"),
+                
+                // 搜索模式
+                new MethodStr("query", "搜索模式", true)
+                    .AddExamples("*.fbx", "*.obj")
+                    .SetDefault("*"),
+                
+                // 递归搜索
+                new MethodBool("recursive", "递归搜索", true)
+                    .SetDefault(false),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false),
+                
+                // 导入设置
+                new MethodObj("import_settings", "导入设置", true),
+                
+                // 缩放因子
+                new MethodFloat("scale_factor", "缩放因子", true)
+                    .SetRange(0.01f, 100f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+                
+                // 使用文件缩放
+                new MethodBool("use_file_scale", "使用文件缩放", true)
+                    .SetDefault(true),
+                
+                // 使用文件单位
+                new MethodBool("use_file_units", "使用文件单位", true)
+                    .SetDefault(true),
+                
+                // 导入混合形状
+                new MethodBool("import_blend_shapes", "导入混合形状", true)
+                    .SetDefault(true),
+                
+                // 导入可见性
+                new MethodBool("import_visibility", "导入可见性", true)
+                    .SetDefault(true),
+                
+                // 导入相机
+                new MethodBool("import_cameras", "导入相机", true)
+                    .SetDefault(true),
+                
+                // 导入灯光
+                new MethodBool("import_lights", "导入灯光", true)
+                    .SetDefault(true),
+                
+                // 保持层级
+                new MethodBool("preserve_hierarchy", "保持层级", true)
+                    .SetDefault(true),
+                
+                // 动画类型
+                new MethodStr("animation_type", "动画类型", true)
+                    .SetEnumValues("None", "Legacy", "Generic", "Humanoid")
+                    .AddExamples("Generic", "Humanoid")
+                    .SetDefault("None"),
+                
+                // 优化网格
+                new MethodBool("optimize_mesh", "优化网格", true)
+                    .SetDefault(false),
+                
+                // 生成次要UV
+                new MethodBool("generate_secondary_uv", "生成次要UV", true)
+                    .SetDefault(false),
+                
+                // 次要UV硬角度
+                new MethodFloat("secondary_uv_hard_angle", "次要UV硬角度", true)
+                    .SetRange(0f, 180f)
+                    .AddExample("88.0")
+                    .SetDefault(88f),
+                
+                // 次要UV打包边距
+                new MethodFloat("secondary_uv_pack_margin", "次要UV打包边距", true)
+                    .SetRange(1f, 64f)
+                    .AddExample("4.0")
+                    .SetDefault(4f),
+                
+                // 次要UV角度扭曲
+                new MethodFloat("secondary_uv_angle_distortion", "次要UV角度扭曲", true)
+                    .SetRange(1f, 75f)
+                    .AddExample("8.0")
+                    .SetDefault(8f),
+                
+                // 次要UV面积扭曲
+                new MethodFloat("secondary_uv_area_distortion", "次要UV面积扭曲", true)
+                    .SetRange(1f, 75f)
+                    .AddExample("15.0")
+                    .SetDefault(15f),
+                
+                // 次要UV边缘扭曲
+                new MethodFloat("secondary_uv_edge_distortion", "次要UV边缘扭曲", true)
+                    .SetRange(1f, 75f)
+                    .AddExample("10.0")
+                    .SetDefault(10f),
+                
+                // 启用读写
+                new MethodBool("read_write_enabled", "启用读写", true)
+                    .SetDefault(false),
+                
+                // 优化游戏对象
+                new MethodBool("optimize_game_objects", "优化游戏对象", true)
+                    .SetDefault(false),
+                
+                // 导入材质
+                new MethodBool("import_materials", "导入材质", true)
+                    .SetDefault(true),
+                
+                // 材质命名模式
+                new MethodStr("material_naming", "材质命名模式", true)
+                    .SetEnumValues("ByBaseTextureName", "ByModelName", "ByTextureName")
+                    .AddExample("ByBaseTextureName")
+                    .SetDefault("ByBaseTextureName"),
+                
+                // 材质搜索模式
+                new MethodStr("material_search", "材质搜索模式", true)
+                    .SetEnumValues("Local", "RecursiveUp", "Everywhere")
+                    .AddExample("Local")
+                    .SetDefault("Local"),
+                
+                // 提取材质
+                new MethodBool("extract_materials", "提取材质", true)
+                    .SetDefault(false),
+                
+                // 提取材质路径
+                new MethodStr("extract_materials_path", "提取材质路径", true)
+                    .AddExample("Assets/Materials/"),
+                
+                // 网格压缩
+                new MethodStr("mesh_compression", "网格压缩", true)
+                    .SetEnumValues("Off", "Low", "Medium", "High")
+                    .AddExample("Off")
+                    .SetDefault("Off"),
+                
+                // 添加碰撞器
+                new MethodBool("add_collider", "添加碰撞器", true)
+                    .SetDefault(false),
+                
+                // 保持四边形
+                new MethodBool("keep_quads", "保持四边形", true)
+                    .SetDefault(false),
+                
+                // 焊接顶点
+                new MethodBool("weld_vertices", "焊接顶点", true)
+                    .SetDefault(true),
+                
+                // 索引格式
+                new MethodStr("index_format", "索引格式", true)
+                    .SetEnumValues("Auto", "UInt16", "UInt32")
+                    .AddExample("Auto")
+                    .SetDefault("Auto"),
+                
+                // 传统混合形状法线
+                new MethodBool("legacy_blend_shape_normals", "传统混合形状法线", true)
+                    .SetDefault(false),
+                
+                // 混合形状法线模式
+                new MethodStr("blend_shape_normals", "混合形状法线模式", true)
+                    .SetEnumValues("Default", "None", "Calculate", "Import")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 切线模式
+                new MethodStr("tangents", "切线模式", true)
+                    .SetEnumValues("Default", "None", "Calculate", "Import")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 平滑度来源
+                new MethodStr("smoothness_source", "平滑度来源", true)
+                    .SetEnumValues("None", "DiffuseAlpha", "SpecularAlpha")
+                    .AddExample("None")
+                    .SetDefault("None"),
+                
+                // 平滑度
+                new MethodFloat("smoothness", "平滑度", true)
+                    .SetRange(0f, 1f)
+                    .AddExample("0.5")
+                    .SetDefault(0.5f),
+                
+                // 法线导入模式
+                new MethodStr("normal_import_mode", "法线导入模式", true)
+                    .SetEnumValues("Default", "None", "Calculate", "Import")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 法线贴图模式
+                new MethodStr("normal_map_mode", "法线贴图模式", true)
+                    .SetEnumValues("Default", "OpenGL", "DirectX")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 高度贴图模式
+                new MethodStr("height_map_mode", "高度贴图模式", true)
+                    .SetEnumValues("Default", "OpenGL", "DirectX")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 材质重定向映射
+                new MethodObj("material_remaps", "材质重定向映射", true)
             };
         }
 

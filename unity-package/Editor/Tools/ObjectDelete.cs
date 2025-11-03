@@ -34,12 +34,19 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                // 目标查找参数（交给IObjectSelector处理）
-                new MethodKey("path", "Object Hierarchy path", false),
-                new MethodKey("instance_id", "Object InstanceID", true),
-                new MethodKey("confirm", "Force confirmation dialog: true=always confirm, false/unset=smart confirmation (auto ≤3, dialog >3)", true),
+                // 目标查找参数 - 层次结构路径
+                new MethodStr("path", "对象层次结构路径")
+                    .AddExamples("Main Camera", "UI/Canvas/Button"),
+                
+                // 目标查找参数 - 实例ID
+                new MethodStr("instance_id", "对象实例ID", true)
+                    .AddExample("-2524"),
+                
+                // 确认对话框控制
+                new MethodBool("confirm", "强制确认对话框：true=总是确认，false/未设置=智能确认（≤3个自动，>3个对话框）", true)
+                    .SetDefault(false)
             };
         }
 

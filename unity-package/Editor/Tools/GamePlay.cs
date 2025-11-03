@@ -64,42 +64,146 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: play, pause, stop, screenshot, simulate_click, simulate_drag, set_size, get_info, compress_image", false),
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("play", "pause", "stop", "screenshot", "simulate_click", "simulate_drag", "set_size", "get_info", "compress_image")
+                    .AddExamples("play", "screenshot"),
                 
-                // 输入模拟相关
-                new MethodKey("x", "X coordinate for input simulation", true),
-                new MethodKey("y", "Y coordinate for input simulation", true),
-                new MethodKey("duration", "Duration for drag operations (seconds)", true),
-                new MethodKey("target_x", "Target X coordinate for drag operations", true),
-                new MethodKey("target_y", "Target Y coordinate for drag operations", true),
-                new MethodKey("button", "Mouse button (0=left, 1=right, 2=middle)", true),
-                new MethodKey("key_code", "Key code for keyboard simulation", true),
+                // 输入模拟坐标 - 整数类型
+                new MethodInt("x", "输入模拟的X坐标", true)
+                    .SetRange(0, 1920)
+                    .AddExample("100"),
+
+                new MethodInt("y", "输入模拟的Y坐标", true)
+                    .SetRange(0, 1080)
+                    .AddExample("100"),
                 
-                // 窗口管理相关
-                new MethodKey("width", "Game window width", true),
-                new MethodKey("height", "Game window height", true),
-                new MethodKey("size_name", "Predefined size name", true),
+                // 拖拽操作相关
+                new MethodFloat("duration", "拖拽操作持续时间（秒）", true)
+                    .SetRange(0.1f, 10.0f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+
+                new MethodInt("target_x", "拖拽操作目标X坐标", true)
+                    .SetRange(0, 1920)
+                    .AddExample("200"),
+
+                new MethodInt("target_y", "拖拽操作目标Y坐标", true)
+                    .SetRange(0, 1080)
+                    .AddExample("200"),
                 
-                // 截图和图像处理相关
-                new MethodKey("save_path", "Path to save screenshot/image", true),
-                new MethodKey("format", "Image format (PNG, JPG)", true),
-                new MethodKey("quality", "Image quality (1-100 for JPG)", true),
-                new MethodKey("scale", "Image scale factor", true),
-                new MethodKey("compress_ratio", "Compression ratio (0.1-1.0)", true),
-                new MethodKey("source_path", "Source image path for compression", true),
+                // 鼠标按钮
+                new MethodInt("button", "鼠标按钮", true)
+                    .SetEnumValues("0", "1", "2")
+                    .AddExample("0") // 左键
+                    .AddExample("1") // 右键
+                    .SetDefault(0),
                 
-                // 高级功能
-                new MethodKey("region_x", "Screenshot region X coordinate", true),
-                new MethodKey("region_y", "Screenshot region Y coordinate", true),
-                new MethodKey("region_width", "Screenshot region width", true),
-                new MethodKey("region_height", "Screenshot region height", true),
-                new MethodKey("delay", "Delay before action execution (seconds)", true),
-                new MethodKey("delta", "Scroll wheel delta", true),
-                new MethodKey("count", "Count for batch operations", true),
-                new MethodKey("interval", "Interval for batch operations", true),
-                new MethodKey("base_path", "Base path for batch operations", true)
+                // 键盘按键代码
+                new MethodStr("key_code", "键盘按键代码", true)
+                    .AddExamples("Space", "Return", "Escape", "A", "W", "S", "D", "LeftShift", "LeftControl")
+                    .SetDefault("Space"),
+                
+                // 窗口尺寸
+                new MethodInt("width", "游戏窗口宽度", true)
+                    .SetRange(320, 3840)
+                    .AddExample("1920")
+                    .SetDefault(1920),
+
+                new MethodInt("height", "游戏窗口高度", true)
+                    .SetRange(240, 2160)
+                    .AddExample("1080")
+                    .SetDefault(1080),
+                
+                // 预定义尺寸名称
+                new MethodStr("size_name", "预定义尺寸名称", true)
+                    .AddExamples("Free", "16:9", "16:10", "4:3", "iPhone", "Android")
+                    .SetDefault("Free"),
+                
+                // 截图和图像处理路径
+                new MethodStr("save_path", "截图/图像保存路径", true)
+                    .AddExamples("Assets/Screenshots/screenshot.png", "D:/Screenshots/game.jpg", "screenshot.png")
+                    .SetDefault("screenshot.png"),
+                
+                // 图像格式
+                new MethodStr("format", "图像格式", true)
+                    .SetEnumValues("PNG", "JPG")
+                    .AddExamples("PNG", "JPG")
+                    .SetDefault("PNG"),
+                
+                // 图像质量
+                new MethodInt("quality", "图像质量（JPG格式时1-100）", true)
+                    .SetRange(1, 100)
+                    .AddExample("90")
+                    .SetDefault(90),
+                
+                // 图像缩放
+                new MethodFloat("scale", "图像缩放因子", true)
+                    .SetRange(0.1f, 5.0f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+                
+                // 压缩比例
+                new MethodFloat("compress_ratio", "压缩比例（0.1-1.0）", true)
+                    .SetRange(0.1f, 1.0f)
+                    .AddExample("0.8")
+                    .SetDefault(0.8f),
+                
+                // 源图像路径
+                new MethodStr("source_path", "源图像路径（用于压缩）", true)
+                    .AddExamples("Assets/Textures/image.png", "D:/Images/photo.jpg")
+                    .SetDefault(""),
+                
+                // 截图区域坐标
+                new MethodInt("region_x", "截图区域X坐标", true)
+                    .SetRange(0, 1920)
+                    .AddExample("0")
+                    .SetDefault(0),
+
+                new MethodInt("region_y", "截图区域Y坐标", true)
+                    .SetRange(0, 1080)
+                    .AddExample("0")
+                    .SetDefault(0),
+
+                new MethodInt("region_width", "截图区域宽度", true)
+                    .SetRange(1, 1920)
+                    .AddExample("800")
+                    .SetDefault(800),
+
+                new MethodInt("region_height", "截图区域高度", true)
+                    .SetRange(1, 1080)
+                    .AddExample("600")
+                    .SetDefault(600),
+                
+                // 延迟和时间控制
+                new MethodFloat("delay", "动作执行前延迟（秒）", true)
+                    .SetRange(0.0f, 10.0f)
+                    .AddExample("0.0")
+                    .SetDefault(0.0f),
+                
+                // 滚轮增量
+                new MethodFloat("delta", "滚轮滚动增量", true)
+                    .SetRange(-10.0f, 10.0f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+                
+                // 批量操作参数
+                new MethodInt("count", "批量操作次数", true)
+                    .SetRange(1, 100)
+                    .AddExample("1")
+                    .SetDefault(1),
+
+                new MethodFloat("interval", "批量操作间隔时间", true)
+                    .SetRange(0.1f, 5.0f)
+                    .AddExample("1.0")
+                    .SetDefault(1.0f),
+                
+                // 批量操作基础路径
+                new MethodStr("base_path", "批量操作基础路径", true)
+                    .AddExamples("Assets/Screenshots/", "D:/Batch/", "./output/")
+                    .SetDefault("Assets/Screenshots/")
             };
         }
 

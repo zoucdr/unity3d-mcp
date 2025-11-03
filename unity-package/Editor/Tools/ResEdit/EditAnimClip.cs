@@ -21,32 +21,101 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, modify, duplicate, delete, get_info, search, set_curve, set_events", false),
-                new MethodKey("path", "动画片段资源路径，Unity标准格式：Assets/Animations/ClipName.anim", false),
-                new MethodKey("source_path", "源动画片段路径（复制时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.anim", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("length", "动画长度（秒）", true),
-                new MethodKey("frame_rate", "帧率", true),
-                new MethodKey("loop_time", "是否循环播放", true),
-                new MethodKey("loop_pose", "是否循环姿势", true),
-                new MethodKey("cycle_offset", "循环偏移", true),
-                new MethodKey("root_rotation_offset_y", "根旋转Y轴偏移", true),
-                new MethodKey("root_height_offset_y", "根高度Y轴偏移", true),
-                new MethodKey("root_height_offset_y_active", "是否启用根高度Y轴偏移", true),
-                new MethodKey("lock_root_height_y", "是否锁定根高度Y轴", true),
-                new MethodKey("lock_root_rotation_y", "是否锁定根旋转Y轴", true),
-                new MethodKey("lock_root_rotation_offset_y", "是否锁定根旋转偏移Y轴", true),
-                new MethodKey("keep_original_orientation_y", "是否保持原始方向Y轴", true),
-                new MethodKey("height_from_ground", "是否从地面计算高度", true),
-                new MethodKey("mirror", "是否镜像", true),
-                new MethodKey("body_orientation", "身体方向", true),
-                new MethodKey("curves", "动画曲线数据", true),
-                new MethodKey("events", "动画事件数据", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "duplicate", "delete", "get_info", "search", "set_curve", "set_events"),
+                
+                // 动画路径
+                new MethodStr("path", "动画片段资源路径"),
+                
+                // 源路径
+                new MethodStr("source_path", "源动画片段路径", true),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true),
+                
+                // 搜索模式
+                new MethodStr("query", "搜索模式", true)
+                    .SetDefault("*.anim"),
+                
+                // 递归搜索
+                new MethodBool("recursive", "递归搜索", true)
+                    .SetDefault(false),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false),
+                
+                // 动画长度
+                new MethodFloat("length", "动画长度（秒）", true)
+                    .SetRange(0.1f, 3600f)
+                    .SetDefault(1f),
+                
+                // 帧率
+                new MethodFloat("frame_rate", "帧率", true)
+                    .SetRange(1f, 120f)
+                    .SetDefault(30f),
+                
+                // 循环播放
+                new MethodBool("loop_time", "循环播放", true)
+                    .SetDefault(true),
+                
+                // 循环姿势
+                new MethodBool("loop_pose", "循环姿势", true)
+                    .SetDefault(false),
+                
+                // 循环偏移
+                new MethodFloat("cycle_offset", "循环偏移", true)
+                    .SetRange(0f, 1f)
+                    .SetDefault(0f),
+                
+                // 根旋转Y轴偏移
+                new MethodFloat("root_rotation_offset_y", "根旋转Y轴偏移", true)
+                    .SetDefault(0f),
+                
+                // 根高度Y轴偏移
+                new MethodFloat("root_height_offset_y", "根高度Y轴偏移", true)
+                    .SetDefault(0f),
+                
+                // 启用根高度Y轴偏移
+                new MethodBool("root_height_offset_y_active", "启用根高度Y轴偏移", true)
+                    .SetDefault(false),
+                
+                // 锁定根高度Y轴
+                new MethodBool("lock_root_height_y", "锁定根高度Y轴", true)
+                    .SetDefault(false),
+                
+                // 锁定根旋转Y轴
+                new MethodBool("lock_root_rotation_y", "锁定根旋转Y轴", true)
+                    .SetDefault(false),
+                
+                // 锁定根旋转偏移Y轴
+                new MethodBool("lock_root_rotation_offset_y", "锁定根旋转偏移Y轴", true)
+                    .SetDefault(false),
+                
+                // 保持原始方向Y轴
+                new MethodBool("keep_original_orientation_y", "保持原始方向Y轴", true)
+                    .SetDefault(false),
+                
+                // 从地面计算高度
+                new MethodBool("height_from_ground", "从地面计算高度", true)
+                    .SetDefault(false),
+                
+                // 镜像
+                new MethodBool("mirror", "镜像", true)
+                    .SetDefault(false),
+                
+                // 身体方向
+                new MethodFloat("body_orientation", "身体方向", true)
+                    .SetDefault(0f),
+                
+                // 动画曲线数据
+                new MethodObj("curves", "动画曲线数据", true),
+                
+                // 动画事件数据
+                new MethodArr("events", "动画事件数据", true)
             };
         }
 

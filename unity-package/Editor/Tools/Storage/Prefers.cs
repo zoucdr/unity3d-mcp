@@ -19,14 +19,36 @@ namespace Unity.Mcp.Tools.Storage
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: set, get, delete, has, delete_all, get_all", false),
-                new MethodKey("pref_type", "Preference type: editor or player (default: editor)", true),
-                new MethodKey("key", "Preference key name", true),
-                new MethodKey("value", "Value to set (for set action)", true),
-                new MethodKey("value_type", "Value type: string, int, float, bool (default: string)", true),
-                new MethodKey("default_value", "Default value if key doesn't exist (for get action)", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("set", "get", "delete", "has", "delete_all", "get_all")
+                    .AddExamples("set", "get"),
+                
+                // 偏好设置类型
+                new MethodStr("pref_type", "偏好设置类型", true)
+                    .SetEnumValues("editor", "player")
+                    .AddExample("editor")
+                    .SetDefault("editor"),
+                
+                // 键名
+                new MethodStr("key", "键名", true)
+                    .AddExamples("MyKey", "Settings.Volume"),
+                
+                // 值
+                new MethodStr("value", "值", true)
+                    .AddExamples("Hello", "100"),
+                
+                // 值类型
+                new MethodStr("value_type", "值类型", true)
+                    .SetEnumValues("string", "int", "float", "bool")
+                    .AddExample("string")
+                    .SetDefault("string"),
+                
+                // 默认值
+                new MethodStr("default_value", "默认值", true)
+                    .AddExample("DefaultValue")
             };
         }
 
