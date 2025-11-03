@@ -20,22 +20,59 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, modify, set_height, paint_texture, add_layer, remove_layer, set_size, export_heightmap, import_heightmap, get_info等", false),
-                new MethodKey("path", "场景中Terrain对象的层级路径，如'Terrain'或'Environment/Terrain'", true),
-                new MethodKey("instance_id", "Terrain GameObject的实例ID", true),
-                new MethodKey("terrain_data_path", "TerrainData资源路径，用于创建Terrain时", true),
-                new MethodKey("position", "Terrain位置 [x, y, z]", true),
-                new MethodKey("terrain_size", "Terrain尺寸 [width, height, length]", true),
-                new MethodKey("heightmap_resolution", "高度图分辨率，如513, 1025, 2049等", true),
-                new MethodKey("heightmap_data", "高度图数据数组", true),
-                new MethodKey("heightmap_file", "高度图文件路径（导入/导出用）", true),
-                new MethodKey("texture_layer", "纹理层配置", true),
-                new MethodKey("layer_index", "纹理层索引", true),
-                new MethodKey("properties", "Terrain属性字典", true),
-                new MethodKey("export_format", "导出格式：raw, png等", true),
-                new MethodKey("force", "是否强制执行操作", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "export_heightmap", "import_heightmap", "get_info"),
+                
+                // 层级路径
+                new MethodStr("path", "Terrain对象层级路径", true),
+                
+                // 实例ID
+                new MethodInt("instance_id", "Terrain实例ID", true),
+                
+                // 地形数据路径
+                new MethodStr("terrain_data_path", "TerrainData资源路径", true),
+                
+                // 位置
+                new MethodVector("position", "Terrain位置 [x, y, z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 尺寸
+                new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]", true)
+                    .SetDefault(new float[] {1000, 600, 1000}),
+                
+                // 高度图分辨率
+                new MethodInt("heightmap_resolution", "高度图分辨率", true)
+                    .SetEnumValues("513", "1025", "2049", "4097")
+                    .SetDefault(513),
+                
+                // 高度图数据
+                new MethodArr("heightmap_data", "高度图数据数组", true),
+                
+                // 高度图文件
+                new MethodStr("heightmap_file", "高度图文件路径", true),
+                
+                // 纹理层配置
+                new MethodObj("texture_layer", "纹理层配置", true),
+                
+                // 层索引
+                new MethodInt("layer_index", "纹理层索引", true)
+                    .SetRange(0, 16)
+                    .SetDefault(0),
+                
+                // 属性
+                new MethodObj("properties", "Terrain属性", true),
+                
+                // 导出格式
+                new MethodStr("export_format", "导出格式", true)
+                    .SetEnumValues("raw", "png")
+                    .SetDefault("raw"),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false)
             };
         }
 

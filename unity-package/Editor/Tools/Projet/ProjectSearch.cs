@@ -20,16 +20,45 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("search_target", "搜索类型：asset, folder, script, texture, material, prefab, scene等", false),
-                new MethodKey("query", "搜索关键词", false),
-                new MethodKey("directory", "搜索路径（相对于Assets）", true),
-                new MethodKey("file_extension", "文件扩展名过滤", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("case_sensitive", "是否区分大小写", true),
-                new MethodKey("max_results", "最大返回结果数", true),
-                new MethodKey("include_meta", "是否包含.meta文件", true)
+                // 搜索类型 - 枚举
+                new MethodStr("search_target", "搜索类型")
+                    .SetEnumValues("asset", "folder", "script", "texture", "material", "prefab", "scene", "audio", "model")
+                    .AddExamples("script", "material"),
+                
+                // 搜索关键词 - 必需
+                new MethodStr("query", "搜索关键词")
+                    .AddExamples("Player", "UI_*"),
+                
+                // 搜索路径
+                new MethodStr("directory", "搜索路径（相对于Assets）", true)
+                    .AddExamples("Scripts", "Materials")
+                    .SetDefault(""),
+                
+                // 文件扩展名过滤
+                new MethodStr("file_extension", "文件扩展名过滤", true)
+                    .SetEnumValues("cs", "mat", "prefab", "unity", "png", "jpg", "fbx", "wav", "mp3")
+                    .AddExamples("cs", "mat")
+                    .SetDefault(""),
+                
+                // 递归搜索
+                new MethodBool("recursive", "是否递归搜索子文件夹", true)
+                    .SetDefault(true),
+                
+                // 区分大小写
+                new MethodBool("case_sensitive", "是否区分大小写", true)
+                    .SetDefault(false),
+                
+                // 最大结果数
+                new MethodInt("max_results", "最大返回结果数", true)
+                    .SetRange(1, 1000)
+                    .AddExample("50")
+                    .SetDefault(50),
+                
+                // 包含meta文件
+                new MethodBool("include_meta", "是否包含.meta文件", true)
+                    .SetDefault(false)
             };
         }
 

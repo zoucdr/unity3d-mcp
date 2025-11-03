@@ -19,8 +19,13 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                new MethodKey("instance_id", "对象的InstanceID", true),
-                new MethodKey("path", "对象的路径（Assets路径或Hierarchy路径）", true)
+                // 实例ID
+                new MethodInt("instance_id", "对象实例ID", true)
+                    .AddExample("12345"),
+                
+                // 对象路径
+                new MethodStr("path", "对象路径", true)
+                    .AddExamples("Assets/Prefabs/Player.prefab", "Canvas/Panel/Button")
             };
         }
 

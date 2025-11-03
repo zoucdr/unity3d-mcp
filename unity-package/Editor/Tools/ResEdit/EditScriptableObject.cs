@@ -22,16 +22,35 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, modify, duplicate, get_info, search等", false),
-                new MethodKey("path", "ScriptableObject资产路径，Unity标准格式：Assets/Folder/AssetName.asset", false),
-                new MethodKey("script_class", "ScriptableObject脚本类名（创建时需要）", true),
-                new MethodKey("properties", "资产属性字典，用于设置ScriptableObject的各种属性", true),
-                new MethodKey("destination", "目标路径（复制时使用）", true),
-                new MethodKey("query", "搜索模式，如*.asset等（搜索时使用）", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search"),
+                
+                // 资产路径
+                new MethodStr("path", "ScriptableObject资产路径"),
+                
+                // 脚本类名
+                new MethodStr("script_class", "ScriptableObject脚本类名", true),
+                
+                // 属性
+                new MethodObj("properties", "资产属性", true),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true),
+                
+                // 搜索模式
+                new MethodStr("query", "搜索模式", true)
+                    .SetDefault("*.asset"),
+                
+                // 递归搜索
+                new MethodBool("recursive", "递归搜索", true)
+                    .SetDefault(false),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false)
             };
         }
 

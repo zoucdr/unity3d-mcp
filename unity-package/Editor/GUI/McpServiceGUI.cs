@@ -20,7 +20,7 @@ namespace Unity.Mcp.Gui
         private static Vector2 methodsScrollPosition;
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
         private const double doubleClickTime = 0.3; // 双击判定时间（秒）
-        
+
         // 端口配置相关变量
         private static string portInputString = "";
         private static bool portInputInitialized = false;
@@ -111,8 +111,13 @@ namespace Unity.Mcp.Gui
             Color toolInfoOriginalColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(1f, 0.9f, 0.7f); // 淡橙色背景
 
-            int toolCount = McpService.GetToolCount();
-            if (GUILayout.Button($"工具({toolCount})", toolInfoButtonStyle, GUILayout.Width(60)))
+            int totalToolCount = McpService.GetToolCount();
+            int enabledToolCount = McpService.GetEnabledToolCount();
+            string toolButtonText = enabledToolCount == totalToolCount ?
+                $"工具({enabledToolCount})" :
+                $"工具({enabledToolCount}/{totalToolCount})";
+
+            if (GUILayout.Button(toolButtonText, toolInfoButtonStyle, GUILayout.Width(80)))
             {
                 ShowToolDebugInfo();
             }
@@ -175,6 +180,13 @@ namespace Unity.Mcp.Gui
                     groupFoldouts[groupName] = false;
                 }
 
+                // 检查组内工具的启用状态
+                bool hasEnabledTools = methods.Any(m => McpService.GetLocalSettings().IsToolEnabled(m.methodName));
+                bool allToolsEnabled = methods.All(m => McpService.GetLocalSettings().IsToolEnabled(m.methodName));
+
+                // 确定组开关的状态：全部启用时为true，部分启用时为mixed，全部禁用时为false
+                bool groupToggleState = allToolsEnabled;
+
                 // 绘制分组折叠标题
                 EditorGUILayout.BeginVertical("box");
 
@@ -184,7 +196,41 @@ namespace Unity.Mcp.Gui
                     fontSize = 12
                 };
 
+                // 如果组内所有工具都被禁用，标题显示红色
+                if (!hasEnabledTools)
+                {
+                    groupFoldoutStyle.normal.textColor = Color.red;
+                    groupFoldoutStyle.onNormal.textColor = Color.red;
+                    groupFoldoutStyle.focused.textColor = Color.red;
+                    groupFoldoutStyle.onFocused.textColor = Color.red;
+                }
+
                 EditorGUILayout.BeginHorizontal();
+
+                // 绘制组开关（最左侧）
+                // 如果部分启用，用黄色背景提示混合状态
+                Color originalBackgroundColor = GUI.backgroundColor;
+                if (hasEnabledTools && !allToolsEnabled)
+                {
+                    GUI.backgroundColor = new Color(1f, 1f, 0.5f); // 淡黄色表示部分启用
+                }
+
+                bool newGroupToggleState = EditorGUILayout.Toggle(groupToggleState, GUILayout.Width(20));
+
+                GUI.backgroundColor = originalBackgroundColor;
+
+                // 处理组开关状态变化
+                if (newGroupToggleState != groupToggleState)
+                {
+                    // 根据新状态启用或禁用组内所有工具
+                    foreach (var (methodName, method, assemblyName) in methods)
+                    {
+                        McpService.GetLocalSettings().SetToolEnabled(methodName, newGroupToggleState);
+                    }
+
+                    Debug.Log($"[McpServiceGUI] 工具组 '{groupName}' 所有工具已{(newGroupToggleState ? "启用" : "禁用")}");
+                }
+
                 groupFoldouts[groupName] = EditorGUILayout.Foldout(
                     groupFoldouts[groupName],
                     $"🔧 {groupName} ({methods.Count})",
@@ -210,14 +256,29 @@ namespace Unity.Mcp.Gui
                         // 绘制方法折叠标题
                         EditorGUILayout.BeginVertical("box");
 
+                        // 获取工具启用状态
+                        bool toolEnabled = McpService.GetLocalSettings().IsToolEnabled(methodName);
+
                         // 折叠标题栏样式
                         GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout)
                         {
                             fontStyle = FontStyle.Bold
                         };
 
-                        // 在一行中显示折叠标题、问号按钮和调试按钮
+                        // 如果工具被禁用，标题显示红色
+                        if (!toolEnabled)
+                        {
+                            foldoutStyle.normal.textColor = Color.red;
+                            foldoutStyle.onNormal.textColor = Color.red;
+                            foldoutStyle.focused.textColor = Color.red;
+                            foldoutStyle.onFocused.textColor = Color.red;
+                        }
+
+                        // 在一行中显示开关、折叠标题、程序集标签、问号按钮和调试按钮
                         EditorGUILayout.BeginHorizontal();
+
+                        // 绘制工具开关（最左侧）
+                        bool newToolEnabled = EditorGUILayout.Toggle(toolEnabled, GUILayout.Width(20));
 
                         // 绘制折叠标题
                         Rect foldoutRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
@@ -225,17 +286,17 @@ namespace Unity.Mcp.Gui
                         // 计算按钮和程序集标签的位置
                         float buttonWidth = 20f;
                         float buttonHeight = 18f;
-                        float padding = 4f; // 增加间距
-                        float totalButtonsWidth = (buttonWidth + padding) * 2; // 两个按钮的总宽度
+                        float toggleWidth = 20f; // 增加开关宽度，避免重叠
+                        float padding = 6f; // 增加间距，避免重叠
 
                         // 计算程序集标签宽度
                         string assemblyLabel = $"({assemblyName})";
                         GUIStyle assemblyLabelStyle = new GUIStyle(EditorStyles.miniLabel);
                         // 确保标签有足够的宽度，避免文本被截断
                         float calculatedWidth = assemblyLabelStyle.CalcSize(new GUIContent(assemblyLabel)).x;
-                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 80f); // 最小宽度80px
+                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 90f); // 增加最小宽度
 
-                        // 从右到左计算各区域位置
+                        // 从右到左计算各区域位置，确保有足够间距
                         float rightEdge = foldoutRect.xMax;
 
                         // 1. 调试按钮区域（最右侧）
@@ -254,7 +315,7 @@ namespace Unity.Mcp.Gui
                             buttonWidth,
                             buttonHeight
                         );
-                        rightEdge -= (buttonWidth + padding * 2); // 按钮后增加更多间距
+                        rightEdge -= (buttonWidth + padding);
 
                         // 3. 程序集标签区域
                         Rect assemblyLabelRect = new Rect(
@@ -265,11 +326,23 @@ namespace Unity.Mcp.Gui
                         );
                         rightEdge -= (assemblyLabelWidth + padding * 2); // 标签后增加更多间距
 
-                        // 4. 折叠标题区域（剩余空间）
+                        // 4. 折叠标题区域（剩余空间），确保最小宽度
+                        float minFoldoutWidth = 100f; // 确保折叠标题有最小宽度
+                        float availableWidth = rightEdge - foldoutRect.x;
+                        if (availableWidth < minFoldoutWidth)
+                        {
+                            // 如果空间不够，缩小程序集标签宽度
+                            float reduction = minFoldoutWidth - availableWidth;
+                            assemblyLabelWidth = Mathf.Max(assemblyLabelWidth - reduction, 60f);
+                            assemblyLabelRect.width = assemblyLabelWidth;
+                            assemblyLabelRect.x = rightEdge - assemblyLabelWidth;
+                            availableWidth = minFoldoutWidth;
+                        }
+
                         Rect actualFoldoutRect = new Rect(
                             foldoutRect.x,
                             foldoutRect.y,
-                            rightEdge - foldoutRect.x,
+                            availableWidth,
                             foldoutRect.height
                         );
 
@@ -292,6 +365,16 @@ namespace Unity.Mcp.Gui
                         EditorGUI.LabelField(assemblyLabelRect, assemblyLabel, rightAlignedLabelStyle);
                         GUI.color = originalColor;
 
+                        // 处理工具开关状态变化
+                        if (newToolEnabled != toolEnabled)
+                        {
+                            McpService.GetLocalSettings().SetToolEnabled(methodName, newToolEnabled);
+
+                            // 如果工具状态发生变化，可以选择性地重新发现工具或更新工具列表
+                            // 这里我们只是记录变化，实际的过滤会在McpService中进行
+                            Debug.Log($"[McpServiceGUI] 工具 '{methodName}' 状态已更改为: {(newToolEnabled ? "启用" : "禁用")}");
+                        }
+
                         // 绘制问号按钮
                         GUIStyle helpButtonStyle = new GUIStyle(EditorStyles.miniButton);
 
@@ -303,7 +386,7 @@ namespace Unity.Mcp.Gui
 
                         // 绘制调试按钮
                         GUIStyle debugButtonStyle = new GUIStyle(EditorStyles.miniButton);
-                        Color originalBackgroundColor = GUI.backgroundColor;
+                        originalBackgroundColor = GUI.backgroundColor;
                         GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // 淡蓝色背景
 
                         if (GUI.Button(debugButtonRect, "T", debugButtonStyle))
@@ -849,7 +932,7 @@ namespace Unity.Mcp.Gui
             // 端口输入框
             GUI.SetNextControlName("PortInput");
             string newPortString = EditorGUILayout.TextField(portInputString, GUILayout.Width(60));
-            
+
             // 检测输入变化
             if (newPortString != portInputString)
             {
@@ -863,7 +946,7 @@ namespace Unity.Mcp.Gui
             // 应用按钮
             bool isValidPort = false;
             int portValue = 0;
-            
+
             if (int.TryParse(portInputString, out portValue))
             {
                 isValidPort = McpService.IsValidPort(portValue);
@@ -934,52 +1017,68 @@ namespace Unity.Mcp.Gui
         /// </summary>
         private static void ShowToolDebugInfo()
         {
-            var toolNames = McpService.GetAllToolNames();
-            int toolCount = McpService.GetToolCount();
-            
+            var allToolNames = McpService.GetAllToolNames();
+            int totalToolCount = McpService.GetToolCount();
+
+            // 筛选出启用的工具
+            var enabledToolNames = allToolNames.Where(toolName =>
+                McpService.GetLocalSettings().IsToolEnabled(toolName)).ToList();
+            int enabledToolCount = enabledToolNames.Count;
+
             string message = $"MCP工具调试信息:\n\n";
-            message += $"已注册工具数量: {toolCount}\n\n";
-            
-            if (toolCount > 0)
+            message += $"已注册工具总数: {totalToolCount}\n";
+            message += $"已启用工具数量: {enabledToolCount}\n\n";
+
+            if (enabledToolCount > 0)
             {
-                message += "已注册的工具:\n";
-                foreach (var toolName in toolNames)
+                message += "已启用的工具:\n";
+                foreach (var toolName in enabledToolNames)
                 {
                     message += $"• {toolName}\n";
                 }
             }
             else
             {
-                message += "⚠️ 没有发现任何工具！\n\n";
+                message += "⚠️ 没有启用任何工具！\n\n";
                 message += "可能的原因:\n";
-                message += "1. 工具类没有实现IToolMethod接口\n";
-                message += "2. 程序集加载问题\n";
-                message += "3. 工具类是抽象类或接口\n";
+                message += "1. 所有工具都被手动禁用了\n";
+                message += "2. 工具配置设置有问题\n";
+                message += "3. 需要重新发现工具\n";
             }
-            
-            message += "\n点击'重新发现'按钮重新扫描工具。";
-            
+
+            if (totalToolCount > enabledToolCount)
+            {
+                message += $"\n💡 提示: 还有 {totalToolCount - enabledToolCount} 个工具被禁用";
+            }
+
+            message += "\n\n点击'重新发现'按钮重新扫描工具。";
+
             if (EditorUtility.DisplayDialog("MCP工具调试", message, "重新发现", "关闭"))
             {
                 Debug.Log("[McpServiceGUI] 开始重新发现工具...");
                 McpService.RediscoverTools();
-                
+
                 // 重新获取工具信息
-                var newToolNames = McpService.GetAllToolNames();
-                int newToolCount = McpService.GetToolCount();
-                
+                var newAllToolNames = McpService.GetAllToolNames();
+                int newTotalToolCount = McpService.GetToolCount();
+
+                var newEnabledToolNames = newAllToolNames.Where(toolName =>
+                    McpService.GetLocalSettings().IsToolEnabled(toolName)).ToList();
+                int newEnabledToolCount = newEnabledToolNames.Count;
+
                 string resultMessage = $"重新发现完成!\n\n";
-                resultMessage += $"发现工具数量: {newToolCount}\n\n";
-                
-                if (newToolCount > 0)
+                resultMessage += $"发现工具总数: {newTotalToolCount}\n";
+                resultMessage += $"启用工具数量: {newEnabledToolCount}\n\n";
+
+                if (newEnabledToolCount > 0)
                 {
-                    resultMessage += "发现的工具:\n";
-                    foreach (var toolName in newToolNames)
+                    resultMessage += "启用的工具:\n";
+                    foreach (var toolName in newEnabledToolNames)
                     {
                         resultMessage += $"• {toolName}\n";
                     }
                 }
-                
+
                 EditorUtility.DisplayDialog("工具重新发现结果", resultMessage, "确定");
             }
         }
@@ -991,21 +1090,21 @@ namespace Unity.Mcp.Gui
         {
             int currentPort = McpService.mcpPort;
             bool isRunning = McpService.Instance.IsRunning;
-            
+
             string message = $"MCP服务器端口诊断:\n\n";
             message += $"当前端口: {currentPort}\n";
             message += $"服务状态: {(isRunning ? "运行中" : "已停止")}\n\n";
-            
+
             // 获取详细的端口状态信息
             string portInfo = McpService.GetPortStatusInfo(currentPort);
             message += portInfo;
-            
+
             message += "\n建议:\n";
             message += "1. 如果端口被占用，尝试更换端口\n";
             message += "2. 检查防火墙是否阻止了连接\n";
             message += "3. 确保Cursor MCP客户端连接到正确的端口\n";
             message += "4. 查看Unity控制台的详细日志\n";
-            
+
             if (EditorUtility.DisplayDialog("端口诊断", message, "测试连接", "关闭"))
             {
                 TestMcpConnection();
@@ -1028,24 +1127,24 @@ namespace Unity.Mcp.Gui
                 using (var client = new System.Net.Http.HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
-                    
+
                     string url = $"http://127.0.0.1:{McpService.mcpPort}/";
                     Debug.Log($"[McpServiceGUI] 测试连接到: {url}");
-                    
+
                     var response = await client.GetAsync(url);
                     var content = await response.Content.ReadAsStringAsync();
-                    
+
                     string result = $"连接测试成功!\n\n";
                     result += $"URL: {url}\n";
                     result += $"状态码: {response.StatusCode}\n";
                     result += $"响应长度: {content.Length} 字符\n\n";
                     result += $"响应内容预览:\n{content.Substring(0, Math.Min(200, content.Length))}";
-                    
+
                     if (content.Length > 200)
                     {
                         result += "...";
                     }
-                    
+
                     EditorUtility.DisplayDialog("连接测试结果", result, "确定");
                 }
             }
@@ -1057,7 +1156,7 @@ namespace Unity.Mcp.Gui
                 errorMsg += "1. 服务器未正确启动\n";
                 errorMsg += "2. 端口被防火墙阻止\n";
                 errorMsg += "3. 网络配置问题\n";
-                
+
                 EditorUtility.DisplayDialog("连接测试失败", errorMsg, "确定");
                 Debug.LogError($"[McpServiceGUI] 连接测试失败: {ex}");
             }

@@ -23,7 +23,7 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
                 // 目标查找参数
                 new MethodKey("instance_id", "GameObject的实例ID", true),

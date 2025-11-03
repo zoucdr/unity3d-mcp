@@ -45,21 +45,68 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: execute, validate, install_package, create", false),
-                new MethodKey("code", "Python script code content (mutually exclusive with script_path)", true),
-                new MethodKey("description", "Description of the script's functionality", true),
-                new MethodKey("script_path", "Path to existing Python script file to execute or path for creating new script", true),
-                new MethodKey("script_name", "Python script name, default is script.py", true),
-                new MethodKey("python_path", "Path to Python interpreter, default is 'python'", true),
-                new MethodKey("working_directory", "Working directory for script execution", true),
-                new MethodKey("timeout", "Execution timeout (seconds), default 300 seconds", true),
-                new MethodKey("cleanup", "Whether to clean up temporary files after execution, default true", true),
-                new MethodKey("packages", "Python packages to install (comma-separated or Json array)", true),
-                new MethodKey("requirements_file", "Path to requirements.txt file", true),
-                new MethodKey("virtual_env", "Path to virtual environment to use", true),
-                new MethodKey("refresh_project", "Whether to refresh Unity project after execution, default false", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("execute", "validate", "install_package", "create")
+                    .AddExamples("execute", "install_package"),
+                
+                // Python代码
+                new MethodStr("code", "Python脚本代码内容", true)
+                    .AddExamples("print('Hello World')", "import os; print(os.getcwd())")
+                    .SetDefault(""),
+                
+                // 功能描述
+                new MethodStr("description", "脚本功能描述", true)
+                    .AddExamples("测试脚本", "数据处理")
+                    .SetDefault(""),
+                
+                // 脚本路径
+                new MethodStr("script_path", "Python脚本文件路径", true)
+                    .AddExamples("Assets/Scripts/test.py", "D:/Scripts/process.py"),
+                
+                // 脚本名称
+                new MethodStr("script_name", "脚本名称", true)
+                    .AddExamples("script.py", "test.py")
+                    .SetDefault("script.py"),
+                
+                // Python解释器路径
+                new MethodStr("python_path", "Python解释器路径", true)
+                    .AddExamples("python", "python3")
+                    .SetDefault("python"),
+                
+                // 工作目录
+                new MethodStr("working_directory", "工作目录", true)
+                    .AddExamples("Assets/Scripts", "D:/Projects")
+                    .SetDefault(""),
+                
+                // 执行超时
+                new MethodInt("timeout", "执行超时（秒）", true)
+                    .SetRange(1, 3600)
+                    .AddExample("300")
+                    .SetDefault(300),
+                
+                // 清理文件
+                new MethodBool("cleanup", "执行后清理临时文件", true)
+                    .SetDefault(true),
+                
+                // 安装包列表
+                new MethodStr("packages", "要安装的Python包", true)
+                    .AddExamples("numpy,pandas", "requests")
+                    .SetDefault(""),
+                
+                // 需求文件
+                new MethodStr("requirements_file", "requirements.txt文件路径", true)
+                    .AddExample("Assets/Scripts/requirements.txt"),
+                
+                // 虚拟环境
+                new MethodStr("virtual_env", "虚拟环境路径", true)
+                    .AddExample("D:/venv/myproject"),
+                
+                // 刷新项目
+                new MethodBool("refresh_project", "执行后刷新Unity项目", true)
+                    .SetDefault(false)
             };
         }
 

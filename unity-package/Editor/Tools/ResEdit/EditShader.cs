@@ -22,12 +22,24 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, read, update, delete", false),
-                new MethodKey("name", "Shader名称（不含.shader扩展名）", false),
-                new MethodKey("path", "资产路径（相对于Assets），默认为Shaders", true),
-                new MethodKey("lines", "Shader代码内容（已换行的字符串数组）", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "read", "update", "delete")
+                    .AddExamples("create", "read"),
+                
+                // Shader名称
+                new MethodStr("name", "Shader名称")
+                    .AddExamples("MyCustomShader", "WaterShader"),
+                
+                // 资产路径
+                new MethodStr("path", "资产路径", true)
+                    .AddExamples("Assets/Shaders/", "Assets/Materials/Shaders/")
+                    .SetDefault("Assets/Shaders/"),
+                
+                // Shader代码
+                new MethodArr("lines", "Shader代码内容", true)
             };
         }
 

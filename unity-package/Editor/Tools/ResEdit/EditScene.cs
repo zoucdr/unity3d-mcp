@@ -24,12 +24,26 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：load, save, create, get_hierarchy", false),
-                new MethodKey("name", "场景名称", true),
-                new MethodKey("path", "场景资产路径", true),
-                new MethodKey("build_index", "构建索引", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("load", "save", "create", "get_hierarchy")
+                    .AddExamples("load", "save"),
+                
+                // 场景名称
+                new MethodStr("name", "场景名称", true)
+                    .AddExamples("MainScene", "Level1"),
+                
+                // 场景路径
+                new MethodStr("path", "场景资产路径", true)
+                    .AddExamples("Assets/Scenes/MainScene.unity", "Assets/Levels/Level1.unity"),
+                
+                // 构建索引
+                new MethodInt("build_index", "构建索引", true)
+                    .SetRange(0, 100)
+                    .AddExample("0")
+                    .SetDefault(0)
             };
         }
 

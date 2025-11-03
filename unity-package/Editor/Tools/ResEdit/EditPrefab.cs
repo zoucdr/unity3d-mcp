@@ -21,29 +21,99 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, modify, duplicate, get_info, search, instantiate, unpack, pack", false),
-                new MethodKey("path", "预制体资源路径，Unity标准格式：Assets/Prefabs/PrefabName.prefab", false),
-                new MethodKey("source_object", "源GameObject名称或路径（创建时使用）", true),
-                new MethodKey("destination", "目标路径（复制/移动时使用）", true),
-                new MethodKey("query", "搜索模式，如*.prefab", true),
-                new MethodKey("recursive", "是否递归搜索子文件夹", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true),
-                new MethodKey("prefab_variant", "是否创建预制体变体", true),
-                new MethodKey("unpack_mode", "解包模式：Completely, OutermostRoot", true),
-                new MethodKey("pack_mode", "打包模式：Default, ReuseExisting", true),
-                new MethodKey("connect_to_prefab", "是否连接到预制体", true),
-                new MethodKey("apply_prefab_changes", "是否应用预制体更改", true),
-                new MethodKey("revert_prefab_changes", "是否还原预制体更改", true),
-                new MethodKey("break_prefab_connection", "是否断开预制体连接", true),
-                new MethodKey("prefab_type", "预制体类型：Regular, Variant", true),
-                new MethodKey("parent_prefab", "父预制体路径（变体时使用）", true),
-                new MethodKey("scene_path", "场景路径（实例化时使用）", true),
-                new MethodKey("position", "位置坐标 [x, y, z]", true),
-                new MethodKey("rotation", "旋转角度 [x, y, z]", true),
-                new MethodKey("scale", "缩放比例 [x, y, z]", true),
-                new MethodKey("parent", "父对象名称或路径", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack")
+                    .AddExamples("create", "instantiate"),
+                
+                // 预制体路径
+                new MethodStr("path", "预制体资源路径")
+                    .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab"),
+                
+                // 源对象
+                new MethodStr("source_object", "源GameObject", true)
+                    .AddExamples("Player", "Canvas/Button"),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true)
+                    .AddExamples("Assets/Prefabs/Copy/", "Assets/NewPrefabs/"),
+                
+                // 搜索模式
+                new MethodStr("query", "搜索模式", true)
+                    .AddExample("*.prefab")
+                    .SetDefault("*.prefab"),
+                
+                // 递归搜索
+                new MethodBool("recursive", "递归搜索", true)
+                    .SetDefault(false),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false),
+                
+                // 预制体变体
+                new MethodBool("prefab_variant", "创建预制体变体", true)
+                    .SetDefault(false),
+                
+                // 解包模式
+                new MethodStr("unpack_mode", "解包模式", true)
+                    .SetEnumValues("Completely", "OutermostRoot")
+                    .AddExample("Completely")
+                    .SetDefault("Completely"),
+                
+                // 打包模式
+                new MethodStr("pack_mode", "打包模式", true)
+                    .SetEnumValues("Default", "ReuseExisting")
+                    .AddExample("Default")
+                    .SetDefault("Default"),
+                
+                // 连接到预制体
+                new MethodBool("connect_to_prefab", "连接到预制体", true)
+                    .SetDefault(true),
+                
+                // 应用预制体更改
+                new MethodBool("apply_prefab_changes", "应用预制体更改", true)
+                    .SetDefault(false),
+                
+                // 还原预制体更改
+                new MethodBool("revert_prefab_changes", "还原预制体更改", true)
+                    .SetDefault(false),
+                
+                // 断开预制体连接
+                new MethodBool("break_prefab_connection", "断开预制体连接", true)
+                    .SetDefault(false),
+                
+                // 预制体类型
+                new MethodStr("prefab_type", "预制体类型", true)
+                    .SetEnumValues("Regular", "Variant")
+                    .AddExample("Regular")
+                    .SetDefault("Regular"),
+                
+                // 父预制体
+                new MethodStr("parent_prefab", "父预制体路径", true)
+                    .AddExample("Assets/Prefabs/BasePlayer.prefab"),
+                
+                // 场景路径
+                new MethodStr("scene_path", "场景路径", true)
+                    .AddExample("Assets/Scenes/MainScene.unity"),
+                
+                // 位置坐标
+                new MethodVector("position", "位置坐标 [x, y, z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 旋转角度
+                new MethodVector("rotation", "旋转角度 [x, y, z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 缩放比例
+                new MethodVector("scale", "缩放比例 [x, y, z]", true)
+                    .SetDefault(new float[] {1, 1, 1}),
+                
+                // 父对象
+                new MethodStr("parent", "父对象名称或路径", true)
+                    .AddExamples("Player", "Canvas/Panel")
             };
         }
 

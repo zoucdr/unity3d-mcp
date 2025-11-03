@@ -144,21 +144,68 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: add, remove, list, search, refresh, resolve, status, restore_auto_refresh", false),
-                new MethodKey("source", "Package source type: registry, github, disk (used only for add operation)", true),
-                new MethodKey("package_name", "Package name (used for add, remove operations)", true),
-                new MethodKey("package_identifier", "Package full identifier (used for remove operation)", true),
-                new MethodKey("version", "Package version (used for add operation)", true),
-                new MethodKey("repository_url", "GitHub repository URL (used for github source)", true),
-                new MethodKey("branch", "GitHub branch name (used for github source)", true),
-                new MethodKey("path", "Package path (github source subdirectory or disk source path)", true),
-                new MethodKey("search_keywords", "Search keywords (used for search operation, searches all packages when empty)", true),
-                new MethodKey("include_dependencies", "Whether to include dependency information (used for list operation)", true),
-                new MethodKey("scope", "Package scope filter (used for list operation)", true),
-                new MethodKey("timeout", "Operation timeout (seconds), default 60 seconds", true),
-                new MethodKey("disable_auto_refresh", "Disable automatic assembly refresh during package operations, default false", true),
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("add", "remove", "list", "search", "refresh", "resolve", "status", "restore_auto_refresh")
+                    .AddExamples("add", "list"),
+                
+                // 包来源类型
+                new MethodStr("source", "包来源类型", true)
+                    .SetEnumValues("registry", "github", "disk")
+                    .AddExamples("registry", "github")
+                    .SetDefault("registry"),
+                
+                // 包名称
+                new MethodStr("package_name", "包名称", true)
+                    .AddExamples("com.unity.textmeshpro", "com.unity.cinemachine"),
+                
+                // 包完整标识符
+                new MethodStr("package_identifier", "包完整标识符", true)
+                    .AddExamples("com.unity.textmeshpro@3.0.6", "com.unity.cinemachine@2.8.9"),
+                
+                // 包版本
+                new MethodStr("version", "包版本", true)
+                    .AddExamples("3.0.6", "2.8.9")
+                    .SetDefault(""),
+                
+                // GitHub仓库URL
+                new MethodStr("repository_url", "GitHub仓库URL", true)
+                    .AddExamples("https://github.com/Unity-Technologies/UnityCsReference.git", "https://github.com/user/repo.git"),
+                
+                // GitHub分支
+                new MethodStr("branch", "GitHub分支名", true)
+                    .AddExamples("main", "develop")
+                    .SetDefault("main"),
+                
+                // 包路径
+                new MethodStr("path", "包路径", true)
+                    .AddExamples("Packages/MyPackage", "D:/LocalPackages/MyPackage"),
+                
+                // 搜索关键词
+                new MethodStr("search_keywords", "搜索关键词", true)
+                    .AddExamples("unity", "cinemachine")
+                    .SetDefault(""),
+                
+                // 包含依赖信息
+                new MethodBool("include_dependencies", "包含依赖信息", true)
+                    .SetDefault(false),
+                
+                // 包范围过滤
+                new MethodStr("scope", "包范围过滤", true)
+                    .AddExamples("com.unity", "com.mycompany")
+                    .SetDefault(""),
+                
+                // 操作超时
+                new MethodInt("timeout", "操作超时（秒）", true)
+                    .SetRange(10, 300)
+                    .AddExample("60")
+                    .SetDefault(60),
+                
+                // 禁用自动刷新
+                new MethodBool("disable_auto_refresh", "禁用自动程序集刷新", true)
+                    .SetDefault(false)
             };
         }
 

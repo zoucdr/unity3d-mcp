@@ -18,20 +18,21 @@
 
 *Unity3d MCP - 连接AI与Unity的桥梁，实现智能化游戏开发*
 
-Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，它通过MCP协议将AI助手（如Cursor、Claude、Trae）与Unity编辑器无缝连接，实现AI驱动的Unity开发工作流。
+Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，它通过内置的MCP服务器将AI助手（如Cursor、Claude、Trae）与Unity编辑器无缝连接，实现AI驱动的Unity开发工作流。
 
 ### 核心价值
 - **AI驱动开发**：通过自然语言指令控制Unity编辑器
 - **无缝集成**：支持主流AI客户端，无需修改现有工作流
 - **功能丰富**：提供32+专业工具，覆盖Unity开发全流程
-- **高性能**：基于TCP Socket的高效通信机制
+- **高性能**：基于HTTP的高效通信机制
 - **可扩展**：模块化设计，易于添加新功能
+- **零配置**：Unity内置MCP服务器，无需外部依赖
 
 ### 系统组成
-- **MCP Server** (Python)：基于FastMCP的服务器端
-- **Unity Package** (C#)：Unity编辑器插件
+- **内置MCP Server** (C#)：Unity编辑器内置的MCP协议服务器
+- **Unity Package** (C#)：完整的Unity编辑器插件
 - **工具生态**：32+专业Unity开发工具
-- **通信协议**：基于TCP Socket的JSON-RPC通信
+- **通信协议**：基于HTTP的JSON-RPC 2.0通信
 
 ---
 
@@ -42,10 +43,10 @@ Unity3d MCP (Model Context Protocol) 是一个创新的AI-Unity集成系统，�
 系统采用分层架构设计，从上到下分为：
 
 1. **AI客户端层**：Cursor、Claude、Trae等AI助手
-2. **MCP协议层**：Python MCP Server + Unity Package
-3. **通信层**：TCP Socket (8100-8110端口) + JSON-RPC
+2. **MCP协议层**：Unity内置MCP服务器
+3. **通信层**：HTTP (可自定义端口，默认8000) + JSON-RPC 2.0
 4. **Unity编辑器层**：Unity Editor + Unity API
-5. **工具层**：32+专业工具 + 状态树执行引擎
+5. **工具层**：40+专业工具 + 消息队列执行引擎
 
 #### 系统架构图
 
@@ -67,7 +68,7 @@ AI客户端 → FacadeTools → MethodTools → Unity API
 ```
 
 - **FacadeTools**：`async_call` 和 `batch_call` 两个门面工具
-- **MethodTools**：32+专业功能方法，仅通过FacadeTools调用
+- **MethodTools**：40+专业功能方法，仅通过FacadeTools调用
 
 #### 2. 状态树执行引擎
 - 基于状态模式的路由系统
@@ -75,77 +76,74 @@ AI客户端 → FacadeTools → MethodTools → Unity API
 - 提供统一的错误处理机制
 
 #### 3. 智能连接管理
-- 多端口自动发现 (8100-8100)
-- 连接健康检查和自动重连
-- 失败端口记录和智能切换
+- 可自定义端口配置 (默认8000)
+- 消息队列处理机制
+- 主线程安全执行保障
 
 ---
 
 ## 源码解析
 
-### 1. Server端架构 (Python)
+### 1. Unity内置MCP服务器架构 (C#)
 
 #### 核心文件结构
 ```
-server/
-├── server.py              # FastMCP服务器入口
-├── config.py              # 配置管理
-├── connection.py    # Unity连接管理
-├── tools/                 # 工具模块
-│   ├── __init__.py       # 工具注册
-│   ├── call_up.py        # 门面工具
-│   ├── console.py        # 控制台工具
-│   ├── hierarchy_*.py    # 层级管理工具
-│   ├── edit_*.py         # 资源编辑工具
-│   ├── storage_prefers.py     # 偏好设置管理
-│   ├── storage_source_location.py # 资源定位
-│   └── ...
-└── requirements.txt       # 依赖管理
+unity-package/Editor/Connect/
+├── McpService.cs           # 内置MCP服务器核心
+├── McpServiceStatusWindow.cs # 服务状态监控窗口
+└── McpServiceGUI.cs        # 服务管理界面
 ```
 
 #### 关键组件解析
 
-**1. FastMCP服务器 (server.py)**
-```python
-# 服务器生命周期管理
-@asynccontextmanager
-async def server_lifespan(server: FastMCP):
-    # 启动时连接Unity
-    _unity_connection = get_unity_connection()
-    yield {"bridge": _unity_connection}
-    # 关闭时清理连接
+**1. 内置MCP服务器 (McpService.cs)**
+```csharp
+// HTTP监听器管理
+public static void StartService()
+{
+    // 创建HttpListener
+    // 配置可自定义端口
+    // 启动消息队列处理
+}
 
-# 工具注册
-register_all_tools(mcp)
+// MCP协议处理
+private async Task<string> ProcessMcpRequest(string requestBody)
+{
+    // JSON-RPC 2.0协议解析
+    // 工具调用路由
+    // 响应格式化
+}
 ```
 
-**2. Unity连接管理 (connection.py)**
-```python
-class UnityConnection:
-    def connect(self, force_reconnect: bool = False) -> bool:
-        # 多端口自动发现
-        # 连接健康检查
-        # 失败端口记录
-        
-    def send_command(self, command: dict) -> dict:
-        # JSON序列化
-        # TCP发送
-        # 响应解析
+**2. 消息队列系统**
+```csharp
+// 主线程安全执行
+private void EnqueueTask(Action task)
+{
+    // 添加任务到队列
+    // 注册EditorApplication.update回调
+    // 确保Unity API在主线程执行
+}
+
+private void ProcessMessageQueue()
+{
+    // 处理队列中的任务
+    // 自动注册/注销update回调
+    // 线程安全的任务执行
+}
 ```
 
-**3. 工具注册系统 (tools/__init__.py)**
-```python
-def register_all_tools(mcp):
-    """注册所有重构后的工具"""
-    register_call_tools(mcp)      # 门面工具
-    register_console_tools(mcp)   # 控制台工具
-    register_hierarchy_*.py       # 层级工具
-    register_storage_prefers_tools(mcp)  # 偏好设置
-    register_storage_source_location_tools(mcp)  # 资源定位
-    # ... 32+工具注册
+**3. 工具发现系统**
+```csharp
+private void DiscoverTools()
+{
+    // 反射发现IToolMethod实现
+    // 自动注册async_call和batch_call
+    // 构建工具信息和输入模式
+}
 ```
 
-### 2. Unity端架构 (C#)
+### 2. Unity工具生态架构 (C#)
 
 #### 核心文件结构
 ```
@@ -255,40 +253,41 @@ public class StateTree
 - **位置变化**：从 Runtime 移动到 Editor/StateTree
 - **配套工具**：新增 StateTreeBuilder 构建器，简化状态树构建流程
 
-**2. TCP连接管理 (Editor/Connection/McpService.cs)**
+**2. HTTP服务器管理 (Editor/Connect/McpService.cs)**
 ```csharp
-public static partial class McpService
+public partial class McpService
 {
-    private static TcpListener listener;
-    private static Dictionary<string, ClientInfo> connectedClients;
+    private HttpListener listener;
+    private readonly Queue<Action> messageQueue = new();
     
-    public static void StartServer()
+    public void Start()
     {
-        // 多端口监听 (8100-8105)
-        // 客户端连接管理
-        // 命令队列处理
+        // 可自定义端口监听 (默认8000)
+        // HTTP请求处理
+        // 消息队列管理
     }
     
-    public static string SendCommand(JObject command)
+    private async Task<string> ProcessMcpRequest(string requestBody)
     {
-        // JSON序列化
-        // TCP发送
-        // 响应等待
+        // JSON-RPC 2.0解析
+        // 工具调用路由
+        // 响应生成
     }
 }
 ```
 
-**3. 门面工具 (Editor/Executer/SingleCall.cs / BatchCall.cs)**
+**3. 门面工具 (Editor/Executer/AsyncCall.cs / BatchCall.cs)**
 ```csharp
-public class SingleCall : McpTool
+public class AsyncCall : McpTool
 {
-    public override void HandleCommand(JObject cmd, Action<object> callback)
+    public override void HandleCommand(JsonNode cmd, Action<JsonNode> callback)
     {
-        string functionName = cmd["func"]?.ToString();
-        string argsJson = cmd["args"]?.ToString();
+        string id = cmd["id"]?.Value;
+        string type = cmd["type"]?.Value;
         
-        // 反射调用目标方法
-        ExecuteFunction(functionName, argsJson, callback);
+        // 异步调用管理
+        // 结果缓存和获取
+        HandleAsyncOperation(id, type, cmd, callback);
     }
 }
 ```
@@ -412,56 +411,34 @@ public class ToolClass : StateMethodBase
 
 #### 系统要求
 - Unity 2020.3+ (推荐 2022.3.61f1c1)
-- Python 3.8+
 - 支持MCP协议的AI客户端 (Cursor/Claude/Trae)
+- Windows/macOS/Linux (跨平台支持)
 
 #### 依赖安装
 ```bash
-# Python依赖
-cd server
-pip install -r requirements.txt
-
 # Unity Package
 # 将unity-package导入Unity项目
+# 无需额外的Python依赖
 ```
 
 ### 2. 配置设置
 
 #### MCP客户端配置
 在AI客户端的MCP配置文件中添加：
-
-**Cursor配置** (`~/.cursor/mcp.json`)：
+**Mcp客户端口配置** 
 ```json
 {
   "mcpServers": {
-    "unityMCP": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "path/to/server",
-        "run",
-        "server.py"
-      ]
+    "unity3d-mcp": {
+      "url":  "http://localhost:8000"
     }
   }
 }
 ```
-
+**Cursor配置** (`~/.cursor/mcp.json`)：
 **Claude配置** (`~/AppData/Roaming/Claude/claude_desktop_config.json`)：
-```json
-{
-  "mcpServers": {
-    "unityMCP": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "path/to/server",
-        "run",
-        "server.py"
-      ]
-    }
-  }
-}
+**VS配置** (`~/.vs/mcp.json`)：  
+**Trae配置** (`~/.trae/mcp.json`)：  
 ```
 
 #### Unity编辑器配置
@@ -477,7 +454,7 @@ pip install -r requirements.txt
 MCP设置窗口提供以下功能：
 - **连接开关**：启用/禁用MCP服务器连接
 - **工具列表**：查看所有已注册的MCP工具及其分类
-- **端口配置**：配置TCP监听端口范围（默认8100-8105）
+- **端口配置**：配置HTTP监听端口（默认8000，可自定义）
 - **日志级别**：设置调试日志的详细程度
 - **UI设置**：配置UI类型（UGUI、UIToolkit等）和构建流程
 - **Figma设置**：配置Figma访问令牌和下载选项
@@ -507,16 +484,10 @@ MCP调试窗口提供以下功能：
 #### 1. 启动Unity编辑器
 ```bash
 # 打开Unity项目
-# Unity Package会自动启动TCP服务器
+# Unity Package会自动启动内置MCP服务器
 ```
 
-#### 2. 启动MCP服务器
-```bash
-cd server
-python server.py
-```
-
-#### 3. 验证连接
+#### 2. 验证连接
 在AI客户端中测试连接：
 ```
 请帮我创建一个Cube对象
@@ -545,23 +516,21 @@ python server.py
 ### 5. 高级用法
 
 #### 自定义工具开发
-1. 在`server/tools/`目录创建新工具文件
-2. 实现工具逻辑和参数定义
-3. 在`tools/__init__.py`中注册工具
-4. 重启MCP服务器
+1. 在`unity-package/Editor/Tools/`目录创建新工具文件
+2. 继承`StateMethodBase`或`IToolMethod`接口
+3. 使用`ToolNameAttribute`标记工具名称
+4. Unity会自动发现和注册新工具
 
 #### 批量操作优化
-```python
-# 使用batch_call提高性能
+```json
+// 使用batch_call提高性能
 {
   "func": "batch_call",
-  "args": {
-    "funcs": [
-      {"func": "hierarchy_create", "args": {...}},
-      {"func": "edit_gameobject", "args": {...}},
-      {"func": "edit_component", "args": {...}}
-    ]
-  }
+  "args": [
+    {"func": "hierarchy_create", "args": {...}},
+    {"func": "edit_gameobject", "args": {...}},
+    {"func": "edit_component", "args": {...}}
+  ]
 }
 ```
 
@@ -1006,16 +975,16 @@ StateTreeBuilder
 - 支持可选参数和默认值
 - 统一的错误处理机制
 
-### 3. 智能连接管理
-**创新描述**：多端口自动发现和智能切换
-- 端口范围：8100-8105
-- 失败端口记录和冷却机制
-- 连接健康检查和自动重连
+### 3. 消息队列执行系统
+**创新描述**：基于EditorApplication.update的消息队列机制
+- 可自定义端口配置（默认8000）
+- 主线程安全执行保障
+- 自动注册/注销update回调
 
 **技术优势**：
-- 提高连接成功率
-- 减少端口冲突
-- 自动故障恢复
+- 确保Unity API在主线程执行
+- 即使Unity失去焦点也能处理请求
+- 智能的资源管理和清理
 
 ### 4. 协程支持
 **创新描述**：支持Unity协程的异步操作
@@ -1048,14 +1017,14 @@ IEnumerator DownloadFileAsync(string url, string savePath, ...)
 ## 技术特性
 
 ### 1. 高性能通信
-- **TCP Socket**：低延迟、高吞吐量
-- **JSON-RPC**：标准化协议，易于调试
-- **连接池**：复用连接，减少开销
+- **HTTP协议**：标准化、易于调试
+- **JSON-RPC 2.0**：标准化协议，完整的错误处理
+- **消息队列**：异步处理，不阻塞主线程
 - **批量操作**：支持批量调用，提高效率
 
 ### 2. 可靠性保障
-- **多端口支持**：8100-8110端口范围
-- **自动重连**：连接断开自动恢复
+- **可配置端口**：支持自定义端口（默认8000）
+- **主线程安全**：确保Unity API正确执行
 - **错误处理**：完善的异常处理机制
 - **超时控制**：防止长时间阻塞
 
@@ -1098,18 +1067,16 @@ IEnumerator DownloadFileAsync(string url, string savePath, ...)
 ```json
 {
   "func": "batch_call",
-  "args": {
-    "funcs": [
-      {
-        "func": "hierarchy_create",
-        "args": {"name": "Player", "primitive_type": "Cube"}
-      },
-      {
-        "func": "edit_gameobject",
-        "args": {"path": "Player", "position": [0, 1, 0]}
-      }
-    ]
-  }
+  "args": [
+    {
+      "func": "hierarchy_create",
+      "args": {"name": "Player", "primitive_type": "Cube"}
+    },
+    {
+      "func": "edit_gameobject", 
+      "args": {"path": "Player", "position": [0, 1, 0]}
+    }
+  ]
 }
 ```
 
@@ -1254,14 +1221,15 @@ McpLogger.EnableLog = true;
 
 ## 总结
 
-Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议实现了AI助手与Unity编辑器的无缝连接。系统采用双层调用架构、状态树执行引擎、智能连接管理等创新技术，提供了32+专业工具，覆盖Unity开发全流程。
+Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过内置MCP服务器实现了AI助手与Unity编辑器的无缝连接。系统采用双层调用架构、消息队列执行引擎、主线程安全机制等创新技术，提供了32+专业工具，覆盖Unity开发全流程。
 
 ### 核心优势
 1. **AI驱动**：通过自然语言控制Unity编辑器
 2. **功能丰富**：32+专业工具，覆盖开发全流程
-3. **高性能**：基于TCP Socket的高效通信
+3. **高性能**：基于HTTP的高效通信，内置消息队列
 4. **可扩展**：模块化设计，易于扩展
 5. **易用性**：支持主流AI客户端，无需修改工作流
+6. **零配置**：Unity内置MCP服务器，无需外部依赖
 
 ### 应用场景
 - AI辅助游戏开发
@@ -1282,6 +1250,8 @@ Unity3d MCP系统是一个创新的AI-Unity集成解决方案，通过MCP协议�
 - **模块化重组**：新增Selector、GUI、Provider等专业模块，提升代码组织性
 - **工具分类优化**：按功能领域划分工具目录，提高可维护性
 - **基类体系完善**：引入DualStateMethodBase、IToolMethod等，增强扩展性
+- **内置MCP服务器**：移除Python依赖，Unity内置完整MCP协议支持
+- **消息队列系统**：基于EditorApplication.update的主线程安全执行机制
 
 通过Unity3d MCP系统，开发者可以享受AI驱动的Unity开发体验，提高开发效率，降低学习成本，实现更智能的游戏开发工作流。
 

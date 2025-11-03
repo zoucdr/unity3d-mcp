@@ -45,27 +45,57 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                // 目标查找参数
-                new MethodKey("instance_id", "Object InstanceID", true),
-                new MethodKey("path", "Object Hierarchy path", false),
+                // 实例ID
+                new MethodInt("instance_id", "对象实例ID", true)
+                    .AddExample("12345"),
                 
-                // 操作参数
-                new MethodKey("action", "Operation type: do_layout(综合布局,不包含锚点预设), get_layout(获取属性), tattoo(设置锚点预设)", true),
+                // 层级路径
+                new MethodStr("path", "对象层级路径")
+                    .AddExamples("Canvas/Panel/Button", "UI/MainMenu/StartButton"),
                 
-                // RectTransform基本属性
-                new MethodKey("anchored_pos", "Anchor position [x, y]", true),
-                new MethodKey("size_delta", "Size delta [width, height]", true),
-                new MethodKey("anchor_min", "Minimum anchor [x, y]", true),
-                new MethodKey("anchor_max", "Maximum anchor [x, y]", true),
-                      // 预设锚点类型
-                new MethodKey("tattoo_preset", "Anchor preset: top_left, top_center, top_right, middle_left, middle_center, middle_right, bottom_left, bottom_center, bottom_right, stretch_horizontal, stretch_vertical, stretch", true),
-                new MethodKey("tattoo_self", "When true, anchor preset will be based on element's current position rather than parent's preset position (default: false)", true),
-                new MethodKey("pivot", "Pivot point [x, y]", true),
+                // 操作类型
+                new MethodStr("action", "操作类型", true)
+                    .SetEnumValues("do_layout", "get_layout", "tattoo")
+                    .AddExamples("do_layout", "get_layout")
+                    .SetDefault("get_layout"),
                 
-                // 层级控制
-                new MethodKey("sibling_index", "Sibling index in parent hierarchy", true)
+                // 锚点位置
+                new MethodVector("anchored_pos", "锚点位置 [x, y]", true)
+                    .SetDefault(new float[] {0, 0}),
+                
+                // 尺寸增量
+                new MethodVector("size_delta", "尺寸增量 [width, height]", true)
+                    .SetDefault(new float[] {100, 100}),
+                
+                // 最小锚点
+                new MethodVector("anchor_min", "最小锚点 [x, y]", true)
+                    .SetDefault(new float[] {0, 0}),
+                
+                // 最大锚点
+                new MethodVector("anchor_max", "最大锚点 [x, y]", true)
+                    .SetDefault(new float[] {1, 1}),
+                
+                // 锚点预设
+                new MethodStr("tattoo_preset", "锚点预设", true)
+                    .SetEnumValues("top_left", "top_center", "top_right", "middle_left", "middle_center", "middle_right", "bottom_left", "bottom_center", "bottom_right", "stretch_horizontal", "stretch_vertical", "stretch")
+                    .AddExamples("middle_center", "top_left")
+                    .SetDefault("middle_center"),
+                
+                // 基于自身位置
+                new MethodBool("tattoo_self", "基于自身位置", true)
+                    .SetDefault(false),
+                
+                // 轴心点
+                new MethodVector("pivot", "轴心点 [x, y]", true)
+                    .SetDefault(new float[] {0.5f, 0.5f}),
+                
+                // 同级索引
+                new MethodInt("sibling_index", "同级索引", true)
+                    .SetRange(0, 100)
+                    .AddExample("0")
+                    .SetDefault(0)
             };
         }
 

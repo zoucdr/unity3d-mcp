@@ -21,13 +21,31 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：error, warning, log, assert, exception", false),
-                new MethodKey("message", "要写入的日志消息内容", false),
-                new MethodKey("tag", "日志标签，用于分类和过滤，可选", true),
-                new MethodKey("context", "上下文对象名称，用于在控制台中定位相关GameObject，可选", true),
-                new MethodKey("condition", "断言条件表达式（仅用于assert类型），可选", true)
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("error", "warning", "log", "assert", "exception")
+                    .AddExamples("log", "error"),
+                
+                // 日志消息内容 - 必需
+                new MethodStr("message", "要写入的日志消息内容")
+                    .AddExamples("This is a test message", "Operation completed successfully"),
+                
+                // 日志标签
+                new MethodStr("tag", "日志标签，用于分类和过滤", true)
+                    .AddExamples("System", "Network")
+                    .SetDefault(""),
+                
+                // 上下文对象
+                new MethodStr("context", "上下文对象名称，用于在控制台中定位相关GameObject", true)
+                    .AddExamples("Player", "Main Camera")
+                    .SetDefault(""),
+                
+                // 断言条件
+                new MethodStr("condition", "断言条件表达式（仅用于assert类型）", true)
+                    .AddExamples("value != null", "count > 0")
+                    .SetDefault("")
             };
         }
 

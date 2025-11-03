@@ -23,16 +23,42 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, read, modify, delete, search, import", false),
-                new MethodKey("name", "脚本名称（不含.cs扩展名）", false),
-                new MethodKey("folder", "脚本所在文件夹", false),
-                new MethodKey("lines", "C#代码内容（已换行的字符串数组）", true),
-                new MethodKey("script_type", "脚本类型：MonoBehaviour, ScriptableObject等", true),
-                new MethodKey("namespace", "命名空间", true),
-                new MethodKey("query", "查询字符串，用于搜索类型", true),
-                new MethodKey("source_path", "源文件路径，用于import操作", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "read", "modify", "delete", "search", "import")
+                    .AddExamples("create", "read"),
+                
+                // 脚本名称
+                new MethodStr("name", "脚本名称")
+                    .AddExamples("PlayerController", "GameManager"),
+                
+                // 文件夹路径
+                new MethodStr("folder", "脚本所在文件夹")
+                    .AddExamples("Assets/Scripts/", "Assets/Scripts/Player/"),
+                
+                // 代码内容
+                new MethodArr("lines", "C#代码内容", true),
+                
+                // 脚本类型
+                new MethodStr("script_type", "脚本类型", true)
+                    .SetEnumValues("MonoBehaviour", "ScriptableObject", "Class", "Interface", "Enum")
+                    .AddExample("MonoBehaviour")
+                    .SetDefault("MonoBehaviour"),
+                
+                // 命名空间
+                new MethodStr("namespace", "命名空间", true)
+                    .AddExamples("MyGame", "MyGame.Player")
+                    .SetDefault(""),
+                
+                // 查询字符串
+                new MethodStr("query", "查询字符串", true)
+                    .AddExamples("Player", "Controller"),
+                
+                // 源文件路径
+                new MethodStr("source_path", "源文件路径", true)
+                    .AddExamples("D:/Scripts/Player.cs", "C:/Code/GameManager.cs")
             };
         }
 

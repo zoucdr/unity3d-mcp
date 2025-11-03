@@ -56,19 +56,64 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: execute, validate", false),
-                new MethodKey("code", "C# code content to execute", true),
-                new MethodKey("description", "Description of the code's functionality", true),
-                new MethodKey("class_name", "Class name, default is CodeClass", true),
-                new MethodKey("entry_method", "Entry method name to execute, default is Execute", true),
-                new MethodKey("namespace", "Namespace, default is CodeNamespace", true),
-                new MethodKey("includes", "Referenced using statements list, Json array format", true),
-                new MethodKey("parameters", "Method parameters, Json array format", true),
-                new MethodKey("timeout", "Execution timeout (seconds), default 30 seconds", true),
-                new MethodKey("cleanup", "Whether to clean up temporary files after execution, default true", true),
-                new MethodKey("return_output", "Whether to capture and return console output, default true", true)
+                // 操作类型 - 枚举
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("execute", "validate")
+                    .AddExamples("execute", "validate")
+                    .SetDefault("execute"),
+                
+                // C#代码内容
+                new MethodStr("code", "要执行的C#代码内容", true)
+                    .AddExamples("Debug.Log(\"Hello World!\");", "var result = 1 + 2; Debug.Log(result);")
+                    .SetDefault(""),
+                
+                // 代码功能描述
+                new MethodStr("description", "代码功能描述", true)
+                    .AddExamples("测试代码执行", "计算数学表达式")
+                    .SetDefault(""),
+                
+                // 类名
+                new MethodStr("class_name", "类名，默认是CodeClass", true)
+                    .AddExamples("CodeClass", "TestRunner")
+                    .SetDefault("CodeClass"),
+                
+                // 入口方法名
+                new MethodStr("entry_method", "入口方法名，默认是Execute", true)
+                    .AddExamples("Execute", "Run")
+                    .SetDefault("Execute"),
+                
+                // 命名空间
+                new MethodStr("namespace", "命名空间，默认是CodeNamespace", true)
+                    .AddExamples("CodeNamespace", "TestNamespace")
+                    .SetDefault("CodeNamespace"),
+                
+                // 引用语句列表
+                new MethodArr("includes", "引用using语句列表，JSON数组格式", true)
+                    .SetItemType("string")
+                    .AddExample("[\"System\", \"UnityEngine\"]")
+                    .AddExample("[\"System.Collections.Generic\", \"UnityEditor\"]"),
+                
+                // 方法参数
+                new MethodArr("parameters", "方法参数，JSON数组格式", true)
+                    .SetItemType("object")
+                    .AddExample("[{\"name\": \"value\", \"type\": \"int\", \"value\": 42}]")
+                    .AddExample("[{\"name\": \"message\", \"type\": \"string\", \"value\": \"test\"}]"),
+                
+                // 执行超时
+                new MethodInt("timeout", "执行超时（秒），默认30秒", true)
+                    .SetRange(1, 300)
+                    .AddExample("30")
+                    .SetDefault(30),
+                
+                // 清理临时文件
+                new MethodBool("cleanup", "执行后是否清理临时文件，默认true", true)
+                    .SetDefault(true),
+                
+                // 返回输出
+                new MethodBool("return_output", "是否捕获并返回控制台输出，默认true", true)
+                    .SetDefault(true)
             };
         }
 

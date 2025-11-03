@@ -21,14 +21,33 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "Operation type: get_info, focus, maximize, screenshot, set_pivot, set_rotation, set_2d_mode, align_with_view, frame_selected", false),
-                new MethodKey("save_path", "Path to save screenshot", true),
-                new MethodKey("pivot_position", "Pivot position [x,y,z]", true),
-                new MethodKey("rotation", "Camera rotation [x,y,z]", true),
-                new MethodKey("orthographic", "Set orthographic mode", true),
-                new MethodKey("align_view", "Align view direction: top, bottom, left, right, front, back", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("get_info", "focus", "maximize", "screenshot", "set_pivot", "set_rotation", "set_2d_mode", "align_with_view", "frame_selected")
+                    .AddExamples("get_info", "screenshot"),
+                
+                // 截图保存路径
+                new MethodStr("save_path", "截图保存路径", true)
+                    .AddExamples("Assets/Screenshots/scene.png", "D:/Screenshots/view.jpg"),
+                
+                // 轴心位置
+                new MethodVector("pivot_position", "轴心位置 [x,y,z]", true)
+                    .SetDefault(new float[] {0, 0, 0}),
+                
+                // 相机旋转
+                new MethodVector("rotation", "相机旋转 [x,y,z]", true)
+                     .SetDefault(new float[] {0, 0, 0}),
+                
+                // 正交模式
+                new MethodBool("orthographic", "设置正交模式", true)
+                    .SetDefault(false),
+                
+                // 对齐视图方向
+                new MethodStr("align_view", "对齐视图方向", true)
+                    .SetEnumValues("top", "bottom", "left", "right", "front", "back")
+                    .AddExamples("top", "front")
             };
         }
 

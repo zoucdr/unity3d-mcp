@@ -22,19 +22,61 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型：create, modify, optimize, generate_primitive, subdivide, smooth, export, import等", false),
-                new MethodKey("path", "网格资产路径，Unity标准格式：Assets/Meshes/MeshName.asset", false),
-                new MethodKey("mesh_type", "网格类型：cube, sphere, cylinder, plane, custom等", true),
-                new MethodKey("properties", "网格属性字典，包含顶点、面、UV等数据", true),
-                new MethodKey("source_path", "源网格路径（修改时使用）", true),
-                new MethodKey("destination", "目标路径（导出时使用）", true),
-                new MethodKey("subdivision_level", "细分级别（细分时使用）", true),
-                new MethodKey("smooth_factor", "平滑因子（平滑时使用）", true),
-                new MethodKey("optimization_level", "优化级别：low, medium, high", true),
-                new MethodKey("export_format", "导出格式：obj, fbx, stl等", true),
-                new MethodKey("force", "是否强制执行操作（覆盖现有文件等）", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("create", "modify", "optimize", "generate_primitive", "subdivide", "smooth", "export", "import")
+                    .AddExamples("create", "optimize"),
+                
+                // 网格路径
+                new MethodStr("path", "网格资产路径")
+                    .AddExamples("Assets/Meshes/CustomMesh.asset", "Assets/Models/Terrain.asset"),
+                
+                // 网格类型
+                new MethodStr("mesh_type", "网格类型", true)
+                    .SetEnumValues("cube", "sphere", "cylinder", "plane", "custom")
+                    .AddExample("cube")
+                    .SetDefault("cube"),
+                
+                // 网格属性
+                new MethodObj("properties", "网格属性", true),
+                
+                // 源路径
+                new MethodStr("source_path", "源网格路径", true)
+                    .AddExamples("Assets/Meshes/Original.asset", "D:/Models/mesh.obj"),
+                
+                // 目标路径
+                new MethodStr("destination", "目标路径", true)
+                    .AddExamples("Assets/Exports/", "D:/Exports/"),
+                
+                // 细分级别
+                new MethodInt("subdivision_level", "细分级别", true)
+                    .SetRange(0, 5)
+                    .AddExample("1")
+                    .SetDefault(1),
+                
+                // 平滑因子
+                new MethodFloat("smooth_factor", "平滑因子", true)
+                    .SetRange(0f, 1f)
+                    .AddExample("0.5")
+                    .SetDefault(0.5f),
+                
+                // 优化级别
+                new MethodStr("optimization_level", "优化级别", true)
+                    .SetEnumValues("low", "medium", "high")
+                    .AddExample("medium")
+                    .SetDefault("medium"),
+                
+                // 导出格式
+                new MethodStr("export_format", "导出格式", true)
+                    .SetEnumValues("obj", "fbx", "stl", "ply")
+                    .AddExample("obj")
+                    .SetDefault("obj"),
+                
+                // 强制执行
+                new MethodBool("force", "强制执行", true)
+                    .SetDefault(false)
             };
         }
 

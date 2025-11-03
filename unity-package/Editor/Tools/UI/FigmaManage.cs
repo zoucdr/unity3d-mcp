@@ -21,19 +21,57 @@ namespace Unity.Mcp.Tools
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
-            return new[]
+            return new MethodKey[]
             {
-                new MethodKey("action", "操作类型: fetch_document(拉取节点数据), download_images(批量下载指定节点图片，必须使用node_imgs参数), preview(预览图片并返回base64编码，使用node_id), get_conversion_rules(获取UI框架转换规则)", false),
-                new MethodKey("file_key", "Figma文件Key", true),
-                new MethodKey("node_imgs", "节点图片映射【必须】：JSON格式的节点名称映射，如\"{\\\"1:4\\\":\\\"image1.png\\\",\\\"1:5\\\":\\\"image2.jpg\\\"}\"。download_images操作必须使用此参数，不允许使用node_id下载图片", true),
-                new MethodKey("node_id", "节点ID：仅用于preview操作的单个节点ID，禁止用于download_images操作", true),
-                new MethodKey("save_path", "保存路径，默认为由ProjectSettings → MCP → Figma中的img_save_to配置", true),
-                new MethodKey("image_format", "图片格式: png, jpg, svg, pdf，默认为png", true),
-                new MethodKey("image_scale", "图片缩放比例，默认为1", true),
-                new MethodKey("include_children", "是否包含子节点，默认为true", true),
-                new MethodKey("local_json_path", "本地JSON文件路径（可选，用于从FetchNodes保存的JSON文件中读取节点数据）", true),
-                new MethodKey("ui_framework", "UI框架类型: ugui, uitoolkit, all（默认为all，返回所有框架的规则）", true),
-                new MethodKey("use_component_pfb", "是否使用现成的预制件，获取的数据将简化", true)
+                // 操作类型
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("fetch_document", "download_images", "preview", "get_conversion_rules")
+                    .AddExamples("fetch_document", "download_images"),
+                
+                // Figma文件Key
+                new MethodStr("file_key", "Figma文件Key", true)
+                    .AddExample("abc123def456"),
+                
+                // 节点图片映射
+                new MethodObj("node_imgs", "节点图片映射", true),
+                
+                // 节点ID
+                new MethodStr("node_id", "节点ID", true)
+                    .AddExample("1:4"),
+                
+                // 保存路径
+                new MethodStr("save_path", "保存路径", true)
+                    .AddExamples("Assets/UI/Images/", "Assets/Figma/"),
+                
+                // 图片格式
+                new MethodStr("image_format", "图片格式", true)
+                    .SetEnumValues("png", "jpg", "svg", "pdf")
+                    .AddExample("png")
+                    .SetDefault("png"),
+                
+                // 图片缩放比例
+                new MethodFloat("image_scale", "图片缩放比例", true)
+                    .SetRange(0.1f, 4f)
+                    .AddExample("1.0")
+                    .SetDefault(1f),
+                
+                // 包含子节点
+                new MethodBool("include_children", "包含子节点", true)
+                    .SetDefault(true),
+                
+                // 本地JSON路径
+                new MethodStr("local_json_path", "本地JSON文件路径", true)
+                    .AddExample("Assets/Figma/data.json"),
+                
+                // UI框架类型
+                new MethodStr("ui_framework", "UI框架类型", true)
+                    .SetEnumValues("ugui", "uitoolkit", "all")
+                    .AddExample("ugui")
+                    .SetDefault("all"),
+                
+                // 使用预制件
+                new MethodBool("use_component_pfb", "使用现成预制件", true)
+                    .SetDefault(false)
             };
         }
 
