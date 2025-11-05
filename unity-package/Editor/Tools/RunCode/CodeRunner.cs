@@ -623,10 +623,7 @@ namespace Unity.Mcp.Tools
             {
                 { "Object", ("System", "UnityEngine") },
                 { "Random", ("System", "UnityEngine") },
-                { "Math", ("System", "UnityEngine") },
                 { "Debug", ("System.Diagnostics", "UnityEngine") },
-                { "Exception", ("System", "UnityEngine") },
-                { "Mathf", ("System", "UnityEngine") }
             };
 
             foreach (var kvp in ambiguousTypes)
