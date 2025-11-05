@@ -1,6 +1,6 @@
 ﻿// Migrated from Newtonsoft.Json to SimpleJson
 
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     /// <summary>
     /// Represents a command received from the MCP client

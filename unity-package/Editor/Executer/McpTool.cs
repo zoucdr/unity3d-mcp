@@ -1,7 +1,7 @@
 ﻿// Migrated from Newtonsoft.Json to SimpleJson
 using System.Threading.Tasks;
 
-namespace Unity.Mcp.Executer
+namespace UniMcp.Executer
 {
     public abstract class McpTool
     {

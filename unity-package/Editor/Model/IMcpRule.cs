@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     /// <summary>
     /// MCP规则接口标记

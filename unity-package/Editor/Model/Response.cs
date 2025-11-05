@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Unity.Mcp;
+using UniMcp;
 
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     /// <summary>
     /// Provides static methods for creating standardized success and error response objects.

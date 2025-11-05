@@ -6,10 +6,10 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using Unity.Mcp.Models; // For Response class
-using Unity.Mcp;
+using UniMcp.Models; // For Response class
+using UniMcp;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles reading and clearing Unity Editor console log entries.

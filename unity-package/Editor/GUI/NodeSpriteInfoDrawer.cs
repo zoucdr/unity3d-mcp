@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     /// <summary>
     /// NodeSpriteInfo的自定义PropertyDrawer，让id、fileName和sprite显示在同一行，并支持载入图片按钮

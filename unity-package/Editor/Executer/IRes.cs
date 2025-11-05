@@ -1,9 +1,9 @@
 // Migrated from Newtonsoft.Json to SimpleJson
 using System.Collections;
 using System.Threading.Tasks;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// Resources接口，所有具体Resources类都应实现此接口 

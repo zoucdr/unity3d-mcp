@@ -5,9 +5,9 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models; // For Response class
+using UniMcp.Models; // For Response class
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles UnityEngine.Object deletion operations using dual state tree architecture with interactive confirmation.

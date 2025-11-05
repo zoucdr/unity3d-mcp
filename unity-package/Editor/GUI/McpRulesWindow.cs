@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     /// <summary>
     /// MCP规则管理窗口 - 用于创建实现 IMcpRule 接口的 ScriptableObject

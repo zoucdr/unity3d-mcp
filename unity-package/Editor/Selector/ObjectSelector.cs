@@ -1,9 +1,9 @@
 ﻿using System;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEngine;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// 简化的对象选择器，按ID或path查找并返回唯一的T类型对象

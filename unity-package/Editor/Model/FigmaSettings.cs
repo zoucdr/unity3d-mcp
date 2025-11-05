@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// Figma设置类，用于管理与Figma集成相关的配置
@@ -122,11 +122,11 @@ namespace Unity.Mcp
         {
             get
             {
-                return EditorPrefs.GetString("Unity.Mcp.Figma.AccessToken", "");
+                return EditorPrefs.GetString("UniMcp.Figma.AccessToken", "");
             }
             set
             {
-                EditorPrefs.SetString("Unity.Mcp.Figma.AccessToken", value);
+                EditorPrefs.SetString("UniMcp.Figma.AccessToken", value);
             }
         }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// MCP响应数据结构

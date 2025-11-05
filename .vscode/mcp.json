@@ -1,14 +1,7 @@
 {
 	"servers": {
-		"unityMCP": {
-			"command": "uv",
-			"args": [
-				"--directory",
-				"D:/unity3d-mcp/server",
-				"run",
-				"server.py"
-			],
-			"type": "stdio"
+		"unity3d-mcp": {
+			"url": "http://127.0.0.1:8001",
 		},
 		"blender": {
 			"command": "cmd",

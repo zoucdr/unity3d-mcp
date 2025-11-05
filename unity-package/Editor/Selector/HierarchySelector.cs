@@ -6,9 +6,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.SceneManagement;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// 场景层级对象选择器

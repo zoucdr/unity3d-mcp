@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// UI类型枚举

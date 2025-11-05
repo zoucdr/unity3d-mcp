@@ -6,7 +6,7 @@ Unity MCP 现在支持全局日志控制功能，可以通过 `EnableLog` 开关
 
 ## 功能特性
 
-- **全局日志控制**：通过单个开关控制所有 Unity.Mcp 相关的日志输出
+- **全局日志控制**：通过单个开关控制所有 UniMcp 相关的日志输出
 - **持久化设置**：日志设置会自动保存到 EditorPrefs，重启 Unity 后设置会保持
 - **实时切换**：可以在运行时动态开启/关闭日志输出
 - **统一管理**：所有相关文件的日志输出都受到统一控制
@@ -124,7 +124,7 @@ EditorPrefs.SetBool("mcp_enable_log", true);
 
 ```csharp
 // 在文件顶部添加引用
-using Unity.Mcp;
+using UniMcp;
 
 // 在日志输出前添加条件检查
 if (McpLogger.EnableLog) Debug.Log("你的日志消息");

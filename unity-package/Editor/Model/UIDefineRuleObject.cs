@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     public class UIDefineRuleObject : ScriptableObject, IMcpRule
     {

@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// 负责Unity编辑器控制台的实际操作，包括读取和清空日志条目。

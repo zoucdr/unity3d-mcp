@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Executer
+namespace UniMcp.Executer
 {
     /// <summary>
     /// Handles asynchronous function calls from the MCP server.

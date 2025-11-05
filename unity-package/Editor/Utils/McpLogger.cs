@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
-public class McpLogger
-{
+    public class McpLogger
+    {
         public enum LogLevel
         {
             None,
@@ -48,5 +48,5 @@ public class McpLogger
         {
             if (logLevel >= LogLevel.Error) Debug.LogError(message);
         }
-}
+    }
 }

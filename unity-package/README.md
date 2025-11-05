@@ -1,13 +1,7 @@
 {
   "mcpServers": {
     "unityMCP": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "D:/unity-mcp/server",
-        "run",
-        "server.py"
-      ]
+      "url": "127.0.0.1:8000",
     }
   }
 }

@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp;
+using UniMcp;
 using UnityEngine.Networking;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// 主线程执行器，用于确保代码在Unity主线程上执行

@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// MCP本地设置管理器，用于管理MCP相关的本地配置和偏好设置
@@ -23,6 +23,9 @@ namespace Unity.Mcp
 
         [SerializeField]
         private List<string> _disabledTools = new List<string>();
+
+        [SerializeField]
+        private bool _resourcesCapability = false;
 
         /// <summary>
         /// MCP服务器端口
@@ -69,6 +72,22 @@ namespace Unity.Mcp
                 if (_mcpOpenState != value)
                 {
                     _mcpOpenState = value;
+                    SaveSettings();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Resources功能状态
+        /// </summary>
+        public bool ResourcesCapability
+        {
+            get => _resourcesCapability;
+            set
+            {
+                if (_resourcesCapability != value)
+                {
+                    _resourcesCapability = value;
                     SaveSettings();
                 }
             }
@@ -224,7 +243,7 @@ namespace Unity.Mcp
             {
                 _mcpServerPort = EditorPrefs.GetInt("mcp_server_port", 8000);
                 EditorPrefs.DeleteKey("mcp_server_port");
-                Debug.Log("[Unity.Mcp] 已从EditorPrefs迁移端口设置");
+                Debug.Log("[UniMcp] 已从EditorPrefs迁移端口设置");
             }
 
             // 迁移工具数量设置
@@ -232,7 +251,7 @@ namespace Unity.Mcp
             {
                 _lastToolCount = EditorPrefs.GetInt("mcp_tool_count", -1);
                 EditorPrefs.DeleteKey("mcp_tool_count");
-                Debug.Log("[Unity.Mcp] 已从EditorPrefs迁移工具数量设置");
+                Debug.Log("[UniMcp] 已从EditorPrefs迁移工具数量设置");
             }
 
             // 迁移开启状态设置
@@ -240,7 +259,7 @@ namespace Unity.Mcp
             {
                 _mcpOpenState = EditorPrefs.GetBool("mcp_open_state", false);
                 EditorPrefs.DeleteKey("mcp_open_state");
-                Debug.Log("[Unity.Mcp] 已从EditorPrefs迁移开启状态设置");
+                Debug.Log("[UniMcp] 已从EditorPrefs迁移开启状态设置");
             }
         }
 
@@ -269,6 +288,7 @@ namespace Unity.Mcp
                    $"- 服务器端口: {McpServerPort}\n" +
                    $"- 上次工具数量: {LastToolCount}\n" +
                    $"- 服务开启状态: {McpOpenState}\n" +
+                   $"- Resources功能状态: {ResourcesCapability}\n" +
                    $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}";
         }
     }

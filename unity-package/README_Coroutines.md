@@ -26,7 +26,7 @@
 ### 1. 启动基本协程
 
 ```csharp
-using Unity.Mcp.Tools;
+using UniMcp.Tools;
 
 // 创建上下文
 var context = new StateTreeContext();

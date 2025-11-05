@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// 处理Unity场景中Terrain地形的编辑操作
@@ -22,57 +22,70 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "export_heightmap", "import_heightmap", "get_info"),
+                // // 操作类型
+                 new MethodStr("action", "操作类型", false)
+                     .SetEnumValues("create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "export_heightmap", "import_heightmap", "get_info"),
                 
-                // 层级路径
-                new MethodStr("path", "Terrain对象层级路径").AddExamples("Terrain"),
+                 // // 层级路径
+                  new MethodStr("path", "Terrain对象层级路径")
+                      .AddExamples("Terrain"),
+                  // 实例ID
+                  new MethodInt("instance_id", "Terrain实例ID")
+                       .AddExample("-12345"),
+                  // 地形数据路径
+                  new MethodStr("terrain_data_path", "TerrainData资源路径")
+                       .AddExamples("Assets/TerrainData.asset"),
+                  // 位置
+                  new MethodVector("position", "Terrain位置 [x, y, z]"),
+                  // 尺寸
+                  new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]")
+                      .AddExample("[1000, 600, 1000]"),
                 
-                // 实例ID
-                new MethodInt("instance_id", "Terrain实例ID").AddExample("12345"),
-                
-                // 地形数据路径
-                new MethodStr("terrain_data_path", "TerrainData资源路径").AddExamples("Assets/TerrainData.asset"),
-                
-                // 位置
-                new MethodVector("position", "Terrain位置 [x, y, z]")
-                    .SetDefault(new float[] {0, 0, 0}),
-                
-                // 尺寸
-                new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]")
-                    .SetDefault(new float[] {1000, 600, 1000}),
-                
-                // 高度图分辨率
-                new MethodInt("heightmap_resolution", "高度图分辨率")
-                    .SetEnumValues("513", "1025", "2049", "4097")
-                    .SetDefault(513),
-                
+                 // 高度图分辨率
+                 new MethodInt("heightmap_resolution", "高度图分辨率"),
+
                 // 高度图数据
-                new MethodArr("heightmap_data", "高度图数据数组").SetItemType("float"),
+                 new MethodArr("heightmap_data", "高度图数据数组")
+                      .SetItemType("number"),
                 
-                // 高度图文件
-                new MethodStr("heightmap_file", "高度图文件路径").AddExamples("Assets/Heightmap.png"),
+                 // 高度图文件
+                 new MethodStr("heightmap_file", "高度图文件路径")
+                      .AddExamples("Assets/Heightmap.png"),
                 
-                // 纹理层配置
-                new MethodObj("texture_layer", "纹理层配置"),
+                // // 纹理层配置
+                new MethodObj("texture_layer", "纹理层配置")
+                    .AddStringProperty("texture")
+                    .AddArrayProperty("tile_size", "number")
+                    .AddArrayProperty("tile_offset", "number")
+                    .AddStringProperty("normal_map")
+                    .AddNumberProperty("metallic")
+                    .AddNumberProperty("smoothness"),
                 
                 // 层索引
                 new MethodInt("layer_index", "纹理层索引")
-                    .SetRange(0, 16)
-                    .SetDefault(0),
+                    .SetRange(0, 16),
                 
                 // 属性
-                new MethodObj("properties", "Terrain属性"),
+                new MethodObj("properties", "Terrain属性")
+                    .AddStringProperty("material_template")
+                    .AddBooleanProperty("cast_shadows")
+                    .AddBooleanProperty("draw_heightmap")
+                    .AddBooleanProperty("draw_trees")
+                    .AddNumberProperty("detail_object_distance")
+                    .AddNumberProperty("tree_distance")
+                    .AddNumberProperty("tree_billboard_distance")
+                    .AddNumberProperty("tree_cross_fade_length")
+                    .AddNumberProperty("tree_maximum_full_lod_count")
+                    .AddBooleanProperty("collect_detail_patches")
+                    .AddNumberProperty("detail_object_density")
+                    .AddNumberProperty("detail_scatter_per_res"),
                 
                 // 导出格式
                 new MethodStr("export_format", "导出格式")
-                    .SetEnumValues("raw", "png")
-                    .SetDefault("raw"),
+                    .SetEnumValues("raw", "png"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行")
-                    .SetDefault(false)
+                new MethodBool("force", "强制执行"),
             };
         }
 

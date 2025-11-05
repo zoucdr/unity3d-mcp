@@ -4,11 +4,11 @@ using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
-using Unity.Mcp.Models;
-using Unity.Mcp.Executer;
+using UniMcp.Models;
+using UniMcp.Executer;
 using System.Runtime.Remoting.Messaging;
 
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     /// <summary>
     /// MCP调试客户端窗口 - 用于测试和调试MCP函数调用
@@ -448,7 +448,7 @@ namespace Unity.Mcp.Gui
             GUI.EndGroup();
 
             // 在右上角绘制连接状态
-            Rect statusRect = new Rect(rect.x , titleRect.yMax -2 * EditorGUIUtility.singleLineHeight, rightWidth, 40);
+            Rect statusRect = new Rect(rect.x, titleRect.yMax - 2 * EditorGUIUtility.singleLineHeight, rightWidth, 40);
             // GUI.Label(statusRect, "连接状态",EditorStyles.textField);
             DrawConnectionStatus(statusRect);
 
@@ -1320,7 +1320,7 @@ namespace Unity.Mcp.Gui
                 // 单个函数调用 (兼容旧格式和新的异步格式)
                 var functionCall = new ToolsCall();
                 functionCall.SetToolName(inputObjClass["func"].Value);
-                 JsonNode callResult = null;
+                JsonNode callResult = null;
                 bool callbackExecuted = false;
                 functionCall.HandleCommand(inputObjClass["args"], (result) =>
                 {
@@ -1335,7 +1335,7 @@ namespace Unity.Mcp.Gui
                         onSingleComplete?.Invoke(result, duration);
                     }
                 });
-                  // 如果回调立即执行，返回结果；否则返回null表示异步执行
+                // 如果回调立即执行，返回结果；否则返回null表示异步执行
                 return callbackExecuted ? callResult : null;
             }
             else
@@ -1986,7 +1986,7 @@ namespace Unity.Mcp.Gui
         private void RecordSingleResult(JsonClass inputObj, object result)
         {
             // 兼容新的异步格式和旧格式
-            var funcName = inputObj["func"]?.Value ?? 
+            var funcName = inputObj["func"]?.Value ??
                           (inputObj["id"]?.Value != null ? $"async_{inputObj["id"]?.Value}" : "Unknown");
             var argsJson = inputObj["args"]?.Value ?? "{}";
             var recordObject = McpExecuteRecordObject.instance;

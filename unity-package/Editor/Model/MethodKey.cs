@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     public class MethodKey
     {
+        // 支持的基础类型常量
+        public static readonly HashSet<string> ValidTypes = new HashSet<string>
+        {
+            "string", "number", "boolean", "array", "object", "integer"
+        };
+
         public string Key;
         public string Desc;
         public bool Optional;
@@ -20,10 +26,24 @@ namespace Unity.Mcp
             Key = key;
             Desc = desc;
             Optional = optional;
-            Type = type;
+            Type = ValidateType(type);
             Examples = new List<string>();
             EnumValues = new List<string>();
             DefaultValue = null;
+        }
+
+        /// <summary>
+        /// 验证类型是否有效
+        /// </summary>
+        public static string ValidateType(string type)
+        {
+            if (string.IsNullOrEmpty(type))
+                throw new System.ArgumentException("类型不能为空");
+
+            if (!ValidTypes.Contains(type))
+                throw new System.ArgumentException($"不支持的类型: {type}。支持的类型: {string.Join(", ", ValidTypes)}");
+
+            return type;
         }
 
         public MethodKey(string key, string desc, bool optional, string type, params string[] examples)
@@ -31,7 +51,7 @@ namespace Unity.Mcp
             Key = key;
             Desc = desc;
             Optional = optional;
-            Type = type;
+            Type = ValidateType(type);
             Examples = new List<string>(examples);
             EnumValues = new List<string>();
             DefaultValue = null;
@@ -79,7 +99,7 @@ namespace Unity.Mcp
         /// </summary>
         public MethodKey SetType(string type)
         {
-            Type = type;
+            Type = ValidateType(type);
             return this;
         }
     }
@@ -244,7 +264,7 @@ namespace Unity.Mcp
         public MethodArr(string key, string desc, bool optional = true, string itemType = "string")
             : base(key, desc, optional, "array")
         {
-            ItemType = itemType;
+            ItemType = ValidateType(itemType);
         }
 
         /// <summary>
@@ -252,7 +272,7 @@ namespace Unity.Mcp
         /// </summary>
         public MethodArr SetItemType(string itemType)
         {
-            ItemType = itemType;
+            ItemType = ValidateType(itemType);
             return this;
         }
 
@@ -295,7 +315,7 @@ namespace Unity.Mcp
         /// </summary>
         public MethodObj AddProperty(string propName, string propType)
         {
-            Properties[propName] = propType;
+            Properties[propName] = ValidateType(propType);
             return this;
         }
 
@@ -324,7 +344,7 @@ namespace Unity.Mcp
         {
             Properties[propName] = "array";
             // 存储数组元素类型信息，用于MCP schema生成
-            ArrayItemTypes[propName] = itemType;
+            ArrayItemTypes[propName] = ValidateType(itemType);
             return this;
         }
 

@@ -5,9 +5,9 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models; // For Response class
+using UniMcp.Models; // For Response class
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles RectTransform modification operations using dual state tree architecture.

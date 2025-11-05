@@ -5,10 +5,10 @@ using System.Text.RegularExpressions;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
-using Unity.Mcp;
+using UniMcp.Models;
+using UniMcp;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles CRUD operations for shader files within the Unity project.

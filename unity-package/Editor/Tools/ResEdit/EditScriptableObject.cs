@@ -5,10 +5,10 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models; // For Response class
-using Unity.Mcp.Tools; // 添加这个引用
+using UniMcp.Models; // For Response class
+using UniMcp.Tools; // 添加这个引用
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles Unity ScriptableObject asset management operations including create, modify, duplicate, etc.

@@ -228,7 +228,7 @@ unity-package/
 │   │   ├── UGUIUtil.cs       # UGUI工具
 │   │   ├── MenuUtils.cs      # 菜单工具
 │   │   └── CursorChatIntegration.cs # Cursor集成
-│   └── Unity.Mcp.Editors.asmdef # 程序集定义
+│   └── UniMcp.Editors.asmdef # 程序集定义
 └── package.json              # 包配置
 ```
 

@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using Unity.Mcp.Models;
-using Unity.Mcp.Tools;
+using UniMcp.Models;
+using UniMcp.Tools;
 using System.Collections.Generic;
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     /// <summary>
     /// UIDefineRuleObject的自定义Inspector，使用ReorderableList绘制node_names和node_sprites

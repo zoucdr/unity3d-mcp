@@ -8,10 +8,10 @@ using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 using System.Linq;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles network operations including HTTP requests, file downloads, and API calls.

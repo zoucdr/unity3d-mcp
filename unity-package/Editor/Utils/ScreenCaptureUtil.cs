@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Mcp.Utils
+namespace UniMcp.Utils
 {
     /// <summary>
     /// 屏幕截图工具类，提供对GameView、SceneView等窗口的截图功能

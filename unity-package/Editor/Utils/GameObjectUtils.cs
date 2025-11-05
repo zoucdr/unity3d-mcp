@@ -7,9 +7,9 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 
-namespace Unity.Mcp
+namespace UniMcp
 {
     /// <summary>
     /// GameObject操作的通用工具类

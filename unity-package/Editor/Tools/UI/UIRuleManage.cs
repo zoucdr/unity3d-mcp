@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// UI规则管理工具，负责管理UI制作方案和修改记录

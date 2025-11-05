@@ -5,7 +5,7 @@ using UnityEditor;
 using System.Linq;
 using System;
 using System.Threading;
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     [FilePath("Library/McpExecuteRecordObject.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpExecuteRecordObject : ScriptableSingleton<McpExecuteRecordObject>
@@ -20,12 +20,12 @@ namespace Unity.Mcp.Models
 
         // 初始化标记，确保只初始化一次
         private bool isInitialized = false;
-        
+
         // 主线程调度器
         private static readonly Queue<System.Action> mainThreadActions = new Queue<System.Action>();
         private static readonly object mainThreadLock = new object();
         private static int mainThreadId;
-        
+
         // HTTP请求记录线程安全锁
         private readonly object httpRecordsLock = new object();
         [System.Serializable]
@@ -459,7 +459,7 @@ namespace Unity.Mcp.Models
         /// <summary>
         /// 添加HTTP请求记录
         /// </summary>
-        public void AddHttpRequestRecord(string id, string endPoint, DateTime requestTime, 
+        public void AddHttpRequestRecord(string id, string endPoint, DateTime requestTime,
             string requestContent, string httpMethod = "POST")
         {
             var record = new HttpRequestRecord
@@ -487,7 +487,7 @@ namespace Unity.Mcp.Models
         /// <summary>
         /// 更新HTTP请求记录的响应信息
         /// </summary>
-        public void UpdateHttpRequestRecord(string id, string responseContent, bool success, 
+        public void UpdateHttpRequestRecord(string id, string responseContent, bool success,
             int statusCode, DateTime responseTime)
         {
             lock (httpRecordsLock)
@@ -535,7 +535,7 @@ namespace Unity.Mcp.Models
         {
             var cutoffTime = DateTime.Now.AddMinutes(-maxAgeMinutes);
             List<HttpRequestRecord> recordsToRemove;
-            
+
             lock (httpRecordsLock)
             {
                 recordsToRemove = httpRequestRecords
@@ -564,7 +564,7 @@ namespace Unity.Mcp.Models
                 int totalCount = httpRequestRecords.Count;
                 int successCount = httpRequestRecords.Count(r => r.success);
                 int errorCount = totalCount - successCount;
-                double avgDuration = httpRequestRecords.Count > 0 ? 
+                double avgDuration = httpRequestRecords.Count > 0 ?
                     httpRequestRecords.Average(r => r.duration) : 0;
 
                 return $"总计:{totalCount} 成功:{successCount} 失败:{errorCount} 平均耗时:{avgDuration:F2}ms";

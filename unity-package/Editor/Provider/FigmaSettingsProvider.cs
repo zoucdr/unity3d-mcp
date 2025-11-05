@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using Unity.Mcp;
+using UniMcp;
 
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     /// <summary>
     /// Figma设置提供器，用于在Unity的ProjectSettings窗口中显示Figma相关设置

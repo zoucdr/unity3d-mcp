@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
-using Unity.Mcp;
+using UniMcp.Models;
+using UniMcp;
 
-namespace Unity.Mcp.Tools.Storage
+namespace UniMcp.Tools.Storage
 {
     /// <summary>
     /// Handles EditorPrefs and PlayerPrefs operations for storing and retrieving preferences.

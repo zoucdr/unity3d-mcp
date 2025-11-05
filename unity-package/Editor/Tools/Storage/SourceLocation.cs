@@ -3,10 +3,10 @@ using System.IO;
 using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
-using Unity.Mcp;
+using UniMcp.Models;
+using UniMcp;
 
-namespace Unity.Mcp.Tools.Storage
+namespace UniMcp.Tools.Storage
 {
     /// <summary>
     /// Handles asset and folder location operations, including opening folders and revealing files.

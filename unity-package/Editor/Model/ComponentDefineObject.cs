@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.Mcp.Models
+namespace UniMcp.Models
 {
     /// <summary>
     /// 组件定义对象，用于配置Figma组件ID对应Unity预制件引用的信息

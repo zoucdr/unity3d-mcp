@@ -6,11 +6,11 @@ using System.Reflection;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
-using Unity.Mcp.Models;
-using Unity.Mcp;
-using Unity.Mcp.Utils;
+using UniMcp.Models;
+using UniMcp;
+using UniMcp.Utils;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// GamePlay游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理

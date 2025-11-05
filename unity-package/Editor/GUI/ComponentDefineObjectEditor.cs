@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 using System.Collections.Generic;
 
-namespace Unity.Mcp.Gui
+namespace UniMcp.Gui
 {
     [CustomEditor(typeof(ComponentDefineObject))]
     public class ComponentDefineObjectEditor : Editor

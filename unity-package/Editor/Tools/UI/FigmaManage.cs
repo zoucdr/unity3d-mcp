@@ -6,10 +6,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Networking;
-using Unity.Mcp.Models;
+using UniMcp.Models;
 using Object = UnityEngine.Object;
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     [ToolName("figma_manage", "UI管理")]
     public class FigmaManage : StateMethodBase
@@ -719,7 +719,7 @@ namespace Unity.Mcp.Tools
             remappedPath = filePath;
 
             // 加载McpUISettings
-            var settings = Unity.Mcp.McpSettings.Instance?.uiSettings;
+            var settings = UniMcp.McpSettings.Instance?.uiSettings;
             if (settings == null)
                 return false;
 

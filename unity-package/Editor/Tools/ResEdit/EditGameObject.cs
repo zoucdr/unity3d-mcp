@@ -9,9 +9,9 @@ using UnityEditor.SearchService;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Unity.Mcp.Models; // For Response class
+using UniMcp.Models; // For Response class
 
-namespace Unity.Mcp.Tools
+namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles GameObject modification operations using dual state tree architecture.
