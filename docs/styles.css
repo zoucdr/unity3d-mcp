@@ -778,6 +778,142 @@ code, pre {
     text-align: center;
 }
 
+/* Resources & Prompts Section */
+.resources-prompts {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+.rp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.rp-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.rp-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+}
+
+.rp-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.rp-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.rp-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.rp-features {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.rp-features span {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.config-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 3rem;
+}
+
+.config-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+.config-section h4 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.config-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.config-step h5 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.uri-schemes {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.uri-item {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+}
+
+.uri-item code {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.param-config {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.param-item {
+    background: rgba(139, 92, 246, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    font-size: 0.875rem;
+}
+
+.param-item strong {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.resources-prompts-layer {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border: 2px solid rgba(99, 102, 241, 0.3);
+}
+
 /* Tools Section */
 .tools {
     padding: 6rem 0;
@@ -933,7 +1069,9 @@ code, pre {
 
     .features-grid,
     .scenarios-grid,
-    .examples-grid {
+    .examples-grid,
+    .rp-grid,
+    .config-sections {
         grid-template-columns: 1fr;
     }
 

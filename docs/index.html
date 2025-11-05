@@ -31,6 +31,7 @@
                     <li><a href="#architecture">架构</a></li>
                     <li><a href="#examples">示例用法</a></li>
                     <li><a href="#scenarios">应用场景</a></li>
+                    <li><a href="#resources-prompts">Resources & Prompts</a></li>
                     <li><a href="#quickstart">快速开始</a></li>
                     <li><a href="https://github.com/zoucdr/unity3d-mcp" target="_blank" class="github-link">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -202,6 +203,14 @@
                             <span class="layer-item">消息队列执行引擎</span>
                         </div>
                     </div>
+                    <div class="arch-arrow">↓</div>
+                    <div class="arch-layer resources-prompts-layer">
+                        <div class="layer-title">Resources & Prompts 层</div>
+                        <div class="layer-items">
+                            <span class="layer-item">📦 Resources 资源系统</span>
+                            <span class="layer-item">💬 Prompts 提示词系统</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="arch-features">
                     <div class="arch-feature">
@@ -215,6 +224,10 @@
                     <div class="arch-feature">
                         <h4>协程支持</h4>
                         <p>支持Unity协程的异步操作，不阻塞主线程，适用于长时间运行任务</p>
+                    </div>
+                    <div class="arch-feature">
+                        <h4>Resources & Prompts</h4>
+                        <p>扩展MCP协议，支持资源访问和提示词管理，提供结构化的数据和指令模板</p>
                     </div>
                 </div>
             </div>
@@ -448,6 +461,144 @@
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources & Prompts Section -->
+    <section id="resources-prompts" class="resources-prompts">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Resources & Prompts 支持</h2>
+                <p class="section-subtitle">扩展MCP协议，提供资源访问和提示词管理</p>
+            </div>
+            <div class="rp-grid">
+                <div class="rp-card">
+                    <div class="rp-icon">📦</div>
+                    <h3>Resources 资源系统</h3>
+                    <p>通过MCP协议访问Unity项目资源，支持文件、配置、数据等多种资源类型</p>
+                    <div class="rp-features">
+                        <span>文件访问</span>
+                        <span>配置管理</span>
+                        <span>数据读取</span>
+                    </div>
+                </div>
+                <div class="rp-card">
+                    <div class="rp-icon">💬</div>
+                    <h3>Prompts 提示词系统</h3>
+                    <p>自定义AI提示词模板，为特定任务提供结构化的指令和上下文</p>
+                    <div class="rp-features">
+                        <span>模板化</span>
+                        <span>参数化</span>
+                        <span>可扩展</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="config-sections">
+                <div class="config-section">
+                    <h4>🔧 Resources 配置方法</h4>
+                    <div class="config-content">
+                        <div class="config-step">
+                            <h5>1. 实现 IRes 接口</h5>
+                            <div class="code-block">
+                                <pre><code><span class="keyword">public class</span> <span class="class">ProjectTreeRes</span> : <span class="interface">IRes</span>
+{
+    <span class="keyword">public string</span> Url => <span class="string">"file://path/to/resource.yaml"</span>;
+    <span class="keyword">public string</span> Name => <span class="string">"project_tree"</span>;
+    <span class="keyword">public string</span> Description => <span class="string">"工程文件夹树型结构"</span>;
+    <span class="keyword">public string</span> MimeType => <span class="string">"application/yaml"</span>;
+}</code></pre>
+                            </div>
+                        </div>
+                        <div class="config-step">
+                            <h5>2. 支持的URI方案</h5>
+                            <div class="uri-schemes">
+                                <div class="uri-item">
+                                    <code>file://</code> - 本地文件访问
+                                </div>
+                                <div class="uri-item">
+                                    <code>http://</code> - HTTP资源访问
+                                </div>
+                                <div class="uri-item">
+                                    <code>mcp://</code> - MCP自定义协议
+                                </div>
+                                <div class="uri-item">
+                                    <code>data:</code> - 内联数据
+                                </div>
+                            </div>
+                        </div>
+                        <div class="config-step">
+                            <h5>3. 使用方法</h5>
+                            <div class="code-block">
+                                <pre><code><span class="comment">// AI客户端中访问资源</span>
+<span class="string">"请读取project_tree资源的内容"</span>
+
+<span class="comment">// 或通过MCP函数调用</span>
+{
+  <span class="key">"method"</span>: <span class="string">"resources/read"</span>,
+  <span class="key">"params"</span>: {
+    <span class="key">"uri"</span>: <span class="string">"file://path/to/resource.yaml"</span>
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h4>💡 Prompts 配置方法</h4>
+                    <div class="config-content">
+                        <div class="config-step">
+                            <h5>1. 实现 IPrompts 接口</h5>
+                            <div class="code-block">
+                                <pre><code><span class="keyword">public class</span> <span class="class">TestTalkStepPrompts</span> : <span class="interface">IPrompts</span>
+{
+    <span class="keyword">public string</span> Name => <span class="string">"test_talk_step"</span>;
+    <span class="keyword">public string</span> Description => <span class="string">"测试对话步骤"</span>;
+    <span class="keyword">public string</span> PromptText => <span class="string">"请描述一个对话步骤的内容，包括角色的台词和情感。"</span>;
+    <span class="keyword">public</span> MethodKey[] Keys => <span class="keyword">new</span> MethodKey[]
+    {
+        <span class="keyword">new</span> MethodKey(<span class="string">"step"</span>, <span class="string">"对话步骤"</span>, <span class="keyword">false</span>)
+        .AddExample(<span class="string">"角色A：你好，我是A。角色B：你好，我是B。"</span>)
+    };
+}</code></pre>
+                            </div>
+                        </div>
+                        <div class="config-step">
+                            <h5>2. 参数配置</h5>
+                            <div class="param-config">
+                                <div class="param-item">
+                                    <strong>Name</strong> - 提示词唯一标识符
+                                </div>
+                                <div class="param-item">
+                                    <strong>Description</strong> - 功能描述
+                                </div>
+                                <div class="param-item">
+                                    <strong>PromptText</strong> - 实际提示词内容
+                                </div>
+                                <div class="param-item">
+                                    <strong>Keys</strong> - 参数定义和示例
+                                </div>
+                            </div>
+                        </div>
+                        <div class="config-step">
+                            <h5>3. 使用方法</h5>
+                            <div class="code-block">
+                                <pre><code><span class="comment">// AI客户端中调用提示词</span>
+<span class="string">"使用test_talk_step提示词生成对话内容"</span>
+
+<span class="comment">// 或通过MCP函数调用</span>
+{
+  <span class="key">"method"</span>: <span class="string">"prompts/get"</span>,
+  <span class="key">"params"</span>: {
+    <span class="key">"name"</span>: <span class="string">"test_talk_step"</span>
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
