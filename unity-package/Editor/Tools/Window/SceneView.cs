@@ -13,7 +13,7 @@ namespace Unity.Mcp.Tools
     /// 处理Unity Scene窗口管理和控制
     /// 对应方法名: scene_view
     /// </summary>
-    [ToolName("scene_view", "场景窗口")]
+    [ToolName("scene_view", "窗口管理")]
     public class SceneView : StateMethodBase
     {
         /// <summary>
@@ -24,28 +24,28 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("get_info", "focus", "maximize", "screenshot", "set_pivot", "set_rotation", "set_2d_mode", "align_with_view", "frame_selected")
                     .AddExamples("get_info", "screenshot"),
                 
                 // 截图保存路径
-                new MethodStr("save_path", "截图保存路径", true)
+                new MethodStr("save_path", "截图保存路径")
                     .AddExamples("Assets/Screenshots/scene.png", "D:/Screenshots/view.jpg"),
                 
                 // 轴心位置
-                new MethodVector("pivot_position", "轴心位置 [x,y,z]", true)
+                new MethodVector("pivot_position", "轴心位置 [x,y,z]")
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 相机旋转
-                new MethodVector("rotation", "相机旋转 [x,y,z]", true)
+                new MethodVector("rotation", "相机旋转 [x,y,z]")
                      .SetDefault(new float[] {0, 0, 0}),
                 
                 // 正交模式
-                new MethodBool("orthographic", "设置正交模式", true)
+                new MethodBool("orthographic", "设置正交模式")
                     .SetDefault(false),
                 
                 // 对齐视图方向
-                new MethodStr("align_view", "对齐视图方向", true)
+                new MethodStr("align_view", "对齐视图方向")
                     .SetEnumValues("top", "bottom", "left", "right", "front", "back")
                     .AddExamples("top", "front")
             };

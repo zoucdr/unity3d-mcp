@@ -25,16 +25,17 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("add_tag", "remove_tag", "get_tags", "add_layer", "remove_layer", "get_layers")
+                    .SetDefault("get_tags")
                     .AddExamples("add_tag", "get_layers"),
                 
                 // 标签名称
-                new MethodStr("tag_name", "标签名称", true)
+                new MethodStr("tag_name", "标签名称")
                     .AddExamples("Player", "Enemy"),
                 
                 // 层名称
-                new MethodStr("layer_name", "层名称", true)
+                new MethodStr("layer_name", "层名称")
                     .AddExamples("UI", "Ground")
             };
         }

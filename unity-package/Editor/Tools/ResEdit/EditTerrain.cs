@@ -12,7 +12,7 @@ namespace Unity.Mcp.Tools
     /// 处理Unity场景中Terrain地形的编辑操作
     /// 支持创建、修改、导入导出高度图等功能
     /// </summary>
-    [ToolName("edit_terrain", "场景编辑")]
+    [ToolName("edit_terrain", "资源管理")]
     public class EditTerrain : StateMethodBase
     {
         /// <summary>
@@ -23,55 +23,55 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "export_heightmap", "import_heightmap", "get_info"),
                 
                 // 层级路径
-                new MethodStr("path", "Terrain对象层级路径", true),
+                new MethodStr("path", "Terrain对象层级路径").AddExamples("Terrain"),
                 
                 // 实例ID
-                new MethodInt("instance_id", "Terrain实例ID", true),
+                new MethodInt("instance_id", "Terrain实例ID").AddExample("12345"),
                 
                 // 地形数据路径
-                new MethodStr("terrain_data_path", "TerrainData资源路径", true),
+                new MethodStr("terrain_data_path", "TerrainData资源路径").AddExamples("Assets/TerrainData.asset"),
                 
                 // 位置
-                new MethodVector("position", "Terrain位置 [x, y, z]", true)
+                new MethodVector("position", "Terrain位置 [x, y, z]")
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 尺寸
-                new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]", true)
+                new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]")
                     .SetDefault(new float[] {1000, 600, 1000}),
                 
                 // 高度图分辨率
-                new MethodInt("heightmap_resolution", "高度图分辨率", true)
+                new MethodInt("heightmap_resolution", "高度图分辨率")
                     .SetEnumValues("513", "1025", "2049", "4097")
                     .SetDefault(513),
                 
                 // 高度图数据
-                new MethodArr("heightmap_data", "高度图数据数组", true),
+                new MethodArr("heightmap_data", "高度图数据数组").SetItemType("float"),
                 
                 // 高度图文件
-                new MethodStr("heightmap_file", "高度图文件路径", true),
+                new MethodStr("heightmap_file", "高度图文件路径").AddExamples("Assets/Heightmap.png"),
                 
                 // 纹理层配置
-                new MethodObj("texture_layer", "纹理层配置", true),
+                new MethodObj("texture_layer", "纹理层配置"),
                 
                 // 层索引
-                new MethodInt("layer_index", "纹理层索引", true)
+                new MethodInt("layer_index", "纹理层索引")
                     .SetRange(0, 16)
                     .SetDefault(0),
                 
                 // 属性
-                new MethodObj("properties", "Terrain属性", true),
+                new MethodObj("properties", "Terrain属性"),
                 
                 // 导出格式
-                new MethodStr("export_format", "导出格式", true)
+                new MethodStr("export_format", "导出格式")
                     .SetEnumValues("raw", "png")
                     .SetDefault("raw"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行", true)
+                new MethodBool("force", "强制执行")
                     .SetDefault(false)
             };
         }

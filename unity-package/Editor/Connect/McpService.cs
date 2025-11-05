@@ -539,7 +539,8 @@ namespace Unity.Mcp
                 Log($"[Unity.Mcp] 已更新工具数量到McpLocalSettings: {availableTools.Count}");
 
                 // 列出所有注册的工具
-                foreach (var toolName in availableTools.Keys)
+                var toolNamesCopy = availableTools.Keys.ToList();
+                foreach (var toolName in toolNamesCopy)
                 {
                     Log($"[Unity.Mcp] 已注册工具: {toolName}");
                 }
@@ -614,7 +615,8 @@ namespace Unity.Mcp
                 Log($"[Unity.Mcp] Prompts发现完成，共发现 {availablePrompts.Count} 个Prompts");
 
                 // 列出所有注册的prompts
-                foreach (var promptName in availablePrompts.Keys)
+                var promptNamesCopy = availablePrompts.Keys.ToList();
+                foreach (var promptName in promptNamesCopy)
                 {
                     Log($"[Unity.Mcp] 已注册Prompt: {promptName}");
                 }
@@ -689,7 +691,8 @@ namespace Unity.Mcp
                 Log($"[Unity.Mcp] Resources发现完成，共发现 {availableResources.Count} 个Resources");
 
                 // 列出所有注册的resources
-                foreach (var resourceUrl in availableResources.Keys)
+                var resourceUrlsCopy = availableResources.Keys.ToList();
+                foreach (var resourceUrl in resourceUrlsCopy)
                 {
                     Log($"[Unity.Mcp] 已注册Resource: {resourceUrl}");
                 }
@@ -1345,7 +1348,8 @@ namespace Unity.Mcp
                 if (availableTools.Count > 0)
                 {
                     McpLogger.Log($"[Unity.Mcp] 可用工具列表:");
-                    foreach (var toolName in availableTools.Keys)
+                    var toolNamesCopy = availableTools.Keys.ToList();
+                    foreach (var toolName in toolNamesCopy)
                     {
                         McpLogger.Log($"[Unity.Mcp] - {toolName}");
                     }
@@ -1476,12 +1480,7 @@ namespace Unity.Mcp
 
                 // 标记状态
                 isRunning = false;
-
-                // 保存状态到 McpLocalSettings
-                McpLocalSettings.Instance.McpOpenState = false;
-
                 McpLogger.Log($"[Unity.Mcp] <color=orange>MCP服务已停止</color>");
-
                 // 等待一小段时间确保资源释放
                 System.Threading.Thread.Sleep(100);
             }
@@ -2151,7 +2150,8 @@ namespace Unity.Mcp
             // 直接在初始化响应中包含启用的工具列表
             var enabledToolNames = GetEnabledToolNames();
             var toolsArray = new JsonArray();
-            foreach (var toolInfo in toolInfos.Values)
+            var toolInfosCopy = toolInfos.Values.ToList();
+            foreach (var toolInfo in toolInfosCopy)
             {
                 // 只添加启用的工具
                 if (enabledToolNames.Contains(toolInfo.name))
@@ -2196,7 +2196,8 @@ namespace Unity.Mcp
             Log($"[Unity.Mcp] 启用的工具数量: {enabledToolNames.Count}");
 
             var tools = new JsonArray();
-            foreach (var toolInfo in toolInfos.Values)
+            var toolInfosCopy = toolInfos.Values.ToList();
+            foreach (var toolInfo in toolInfosCopy)
             {
                 // 只添加启用的工具
                 if (enabledToolNames.Contains(toolInfo.name))
@@ -2242,7 +2243,8 @@ namespace Unity.Mcp
             }
 
             var prompts = new JsonArray();
-            foreach (var prompt in availablePrompts.Values)
+            var promptsCopy = availablePrompts.Values.ToList();
+            foreach (var prompt in promptsCopy)
             {
                 Log($"[Unity.Mcp] 添加Prompt到列表: {prompt.Name}");
                 var promptObj = new JsonClass();
@@ -2347,7 +2349,8 @@ namespace Unity.Mcp
             }
 
             var resources = new JsonArray();
-            foreach (var resource in availableResources.Values)
+            var resourcesCopy = availableResources.Values.ToList();
+            foreach (var resource in resourcesCopy)
             {
                 Log($"[Unity.Mcp] 添加Resource到列表: {resource.Url}");
                 var resourceObj = new JsonClass();
@@ -2771,7 +2774,8 @@ namespace Unity.Mcp
                 return methodsCall;
             }
 
-            LogError($"[Unity.Mcp] 未找到工具: {toolName}，可用工具: [{string.Join(", ", mcpToolInstanceCache.Keys)}]");
+            var availableToolNames = mcpToolInstanceCache.Keys.ToList();
+            LogError($"[Unity.Mcp] 未找到工具: {toolName}，可用工具: [{string.Join(", ", availableToolNames)}]");
             return null;
         }
         /// <summary>

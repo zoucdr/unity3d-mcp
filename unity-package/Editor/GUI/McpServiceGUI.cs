@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Unity.Mcp.Executer;
+using Unity.Mcp.Tools;
 
 namespace Unity.Mcp.Gui
 {
@@ -20,6 +21,7 @@ namespace Unity.Mcp.Gui
         private static Vector2 methodsScrollPosition;
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
         private const double doubleClickTime = 0.3; // 双击判定时间（秒）
+        private static int groupIndex = 0; // 分组序号
 
         // 端口配置相关变量
         private static string portInputString = "";
@@ -168,6 +170,8 @@ namespace Unity.Mcp.Gui
             methodsScrollPosition = EditorGUILayout.BeginScrollView(methodsScrollPosition,
                 GUILayout.Height(availableHeight));
 
+            // 重置分组序号
+            groupIndex = 0;
             // 按分组名称排序并绘制
             foreach (var groupKvp in methodsByGroup.OrderBy(kvp => kvp.Key))
             {
@@ -231,9 +235,10 @@ namespace Unity.Mcp.Gui
                     Debug.Log($"[McpServiceGUI] 工具组 '{groupName}' 所有工具已{(newGroupToggleState ? "启用" : "禁用")}");
                 }
 
+                groupIndex++;
                 groupFoldouts[groupName] = EditorGUILayout.Foldout(
                     groupFoldouts[groupName],
-                    $"🔧 {groupName} ({methods.Count})",
+                    $"🔧 {groupIndex}. {groupName} ({methods.Count})",
                     true,
                     groupFoldoutStyle
                 );
@@ -286,7 +291,6 @@ namespace Unity.Mcp.Gui
                         // 计算按钮和程序集标签的位置
                         float buttonWidth = 20f;
                         float buttonHeight = 18f;
-                        float toggleWidth = 20f; // 增加开关宽度，避免重叠
                         float padding = 6f; // 增加间距，避免重叠
 
                         // 计算程序集标签宽度
@@ -425,8 +429,42 @@ namespace Unity.Mcp.Gui
                                     GUI.color = originalKeyColor;
 
                                     // 参数描述
-                                    EditorGUILayout.SelectableLabel(key.Desc, keyStyle, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    EditorGUILayout.SelectableLabel(key.Desc, keyStyle, GUILayout.Width(120), GUILayout.Height(EditorGUIUtility.singleLineHeight));
+
+                                    var paramJson = new JsonClass();
+
+                                    var enumValues = key.EnumValues;
+                                    if (enumValues != null && enumValues.Count > 0)
+                                    {
+                                        var enumArray = new JsonArray();
+                                        foreach (var v in enumValues)
+                                        {
+                                            enumArray.Add(v);
+                                        }
+                                        paramJson["enum"] = enumArray;
+                                    }
+
+                                    var examples = key.Examples;
+                                    if (examples != null && examples.Count > 0)
+                                    {
+                                        var examplesArray = new JsonArray();
+                                        foreach (var ex in examples)
+                                        {
+                                            examplesArray.Add(ex);
+                                        }
+                                        paramJson["examples"] = examplesArray;
+                                    }
+
+                                    var type = key.Type ?? key.GetType().Name;
+                                    paramJson["type"] = type;
+
+                                    // Json字符串美化
+                                    string paramJsonStr = paramJson.ToString();
+
+                                    // 使用word wrap多行显示JSON
+                                    EditorGUILayout.SelectableLabel(paramJsonStr, GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     EditorGUILayout.EndHorizontal();
+
                                 }
                             }
                             else

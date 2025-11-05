@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -25,21 +25,18 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("create", "read", "update", "delete")
-                    .AddExamples("create", "read"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("create", "read", "update", "delete"),
                 
                 // Shader名称
-                new MethodStr("name", "Shader名称")
-                    .AddExamples("MyCustomShader", "WaterShader"),
+                new MethodStr("name", "Shader名称", false),
                 
                 // 资产路径
-                new MethodStr("path", "资产路径", true)
-                    .AddExamples("Assets/Shaders/", "Assets/Materials/Shaders/")
-                    .SetDefault("Assets/Shaders/"),
+                new MethodStr("path", "资产路径")
+                    .AddExamples("Assets/Shaders/", "Assets/Materials/Shaders/"),
                 
                 // Shader代码
-                new MethodArr("lines", "Shader代码内容", true)
+                new MethodArr("lines", "Shader代码内容")
             };
         }
 

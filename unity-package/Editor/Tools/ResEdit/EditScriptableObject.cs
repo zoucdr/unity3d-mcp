@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,32 +25,31 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search")
+                    .SetDefault("get_info"),
                 
                 // 资产路径
-                new MethodStr("path", "ScriptableObject资产路径"),
+                new MethodStr("path", "ScriptableObject资产路径", false)
+                    .SetDefault("Assets/Default.asset"),
                 
                 // 脚本类名
-                new MethodStr("script_class", "ScriptableObject脚本类名", true),
+                new MethodStr("script_class", "ScriptableObject脚本类名"),
                 
                 // 属性
-                new MethodObj("properties", "资产属性", true),
+                new MethodObj("properties", "资产属性"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径", true),
+                new MethodStr("destination", "目标路径"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式", true)
-                    .SetDefault("*.asset"),
+                new MethodStr("query", "搜索模式"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索", true)
-                    .SetDefault(false),
+                new MethodBool("recursive", "递归搜索"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行", true)
-                    .SetDefault(false)
+                new MethodBool("force", "强制执行")
             };
         }
 

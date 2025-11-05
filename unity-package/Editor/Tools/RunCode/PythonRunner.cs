@@ -48,65 +48,55 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("execute", "validate", "install_package", "create")
-                    .AddExamples("execute", "install_package"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("execute", "validate", "install_package", "create"),
                 
                 // Python代码
-                new MethodStr("code", "Python脚本代码内容", true)
-                    .AddExamples("print('Hello World')", "import os; print(os.getcwd())")
-                    .SetDefault(""),
+                new MethodStr("code", "Python脚本代码内容")
+                    .AddExamples("print('Hello World')", "import os; print(os.getcwd())"),
                 
                 // 功能描述
-                new MethodStr("description", "脚本功能描述", true)
-                    .AddExamples("测试脚本", "数据处理")
-                    .SetDefault(""),
+                new MethodStr("description", "脚本功能描述")
+                    .AddExamples("测试脚本", "数据处理"),
                 
                 // 脚本路径
-                new MethodStr("script_path", "Python脚本文件路径", true)
+                new MethodStr("script_path", "Python脚本文件路径")
                     .AddExamples("Assets/Scripts/test.py", "D:/Scripts/process.py"),
                 
                 // 脚本名称
-                new MethodStr("script_name", "脚本名称", true)
-                    .AddExamples("script.py", "test.py")
-                    .SetDefault("script.py"),
+                new MethodStr("script_name", "脚本名称")
+                    .AddExamples("script.py", "test.py"),
                 
                 // Python解释器路径
-                new MethodStr("python_path", "Python解释器路径", true)
-                    .AddExamples("python", "python3")
-                    .SetDefault("python"),
+                new MethodStr("python_path", "Python解释器路径")
+                    .AddExamples("python", "python3"),
                 
                 // 工作目录
-                new MethodStr("working_directory", "工作目录", true)
-                    .AddExamples("Assets/Scripts", "D:/Projects")
-                    .SetDefault(""),
+                new MethodStr("working_directory", "工作目录")
+                    .AddExamples("Assets/Scripts", "D:/Projects"),
                 
                 // 执行超时
-                new MethodInt("timeout", "执行超时（秒）", true)
+                new MethodInt("timeout", "执行超时（秒）")
                     .SetRange(1, 3600)
-                    .AddExample("300")
-                    .SetDefault(300),
+                    .AddExample("300"),
                 
                 // 清理文件
-                new MethodBool("cleanup", "执行后清理临时文件", true)
-                    .SetDefault(true),
+                new MethodBool("cleanup", "执行后清理临时文件"),
                 
                 // 安装包列表
-                new MethodStr("packages", "要安装的Python包", true)
-                    .AddExamples("numpy,pandas", "requests")
-                    .SetDefault(""),
+                new MethodStr("packages", "要安装的Python包")
+                    .AddExamples("numpy,pandas", "requests"),
                 
                 // 需求文件
-                new MethodStr("requirements_file", "requirements.txt文件路径", true)
+                new MethodStr("requirements_file", "requirements.txt文件路径")
                     .AddExample("Assets/Scripts/requirements.txt"),
                 
                 // 虚拟环境
-                new MethodStr("virtual_env", "虚拟环境路径", true)
+                new MethodStr("virtual_env", "虚拟环境路径")
                     .AddExample("D:/venv/myproject"),
                 
                 // 刷新项目
-                new MethodBool("refresh_project", "执行后刷新Unity项目", true)
-                    .SetDefault(false)
+                new MethodBool("refresh_project", "执行后刷新Unity项目")
             };
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -58,61 +58,61 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型")
+                // 操作类型
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("execute", "validate")
                     .AddExamples("execute", "validate")
                     .SetDefault("execute"),
                 
                 // C#代码内容
-                new MethodStr("code", "要执行的C#代码内容", true)
+                new MethodStr("code", "要执行的C#代码内容")
                     .AddExamples("Debug.Log(\"Hello World!\");", "var result = 1 + 2; Debug.Log(result);")
                     .SetDefault(""),
                 
                 // 代码功能描述
-                new MethodStr("description", "代码功能描述", true)
+                new MethodStr("description", "代码功能描述")
                     .AddExamples("测试代码执行", "计算数学表达式")
                     .SetDefault(""),
                 
                 // 类名
-                new MethodStr("class_name", "类名，默认是CodeClass", true)
+                new MethodStr("class_name", "类名，默认是CodeClass")
                     .AddExamples("CodeClass", "TestRunner")
                     .SetDefault("CodeClass"),
                 
                 // 入口方法名
-                new MethodStr("entry_method", "入口方法名，默认是Execute", true)
+                new MethodStr("entry_method", "入口方法名，默认是Execute")
                     .AddExamples("Execute", "Run")
                     .SetDefault("Execute"),
                 
                 // 命名空间
-                new MethodStr("namespace", "命名空间，默认是CodeNamespace", true)
+                new MethodStr("namespace", "命名空间，默认是CodeNamespace")
                     .AddExamples("CodeNamespace", "TestNamespace")
                     .SetDefault("CodeNamespace"),
                 
                 // 引用语句列表
-                new MethodArr("includes", "引用using语句列表，JSON数组格式", true)
+                new MethodArr("includes", "引用using语句列表，JSON数组格式")
                     .SetItemType("string")
                     .AddExample("[\"System\", \"UnityEngine\"]")
                     .AddExample("[\"System.Collections.Generic\", \"UnityEditor\"]"),
                 
                 // 方法参数
-                new MethodArr("parameters", "方法参数，JSON数组格式", true)
+                new MethodArr("parameters", "方法参数，JSON数组格式")
                     .SetItemType("object")
                     .AddExample("[{\"name\": \"value\", \"type\": \"int\", \"value\": 42}]")
                     .AddExample("[{\"name\": \"message\", \"type\": \"string\", \"value\": \"test\"}]"),
                 
                 // 执行超时
-                new MethodInt("timeout", "执行超时（秒），默认30秒", true)
+                new MethodInt("timeout", "执行超时（秒），默认30秒")
                     .SetRange(1, 300)
                     .AddExample("30")
                     .SetDefault(30),
                 
                 // 清理临时文件
-                new MethodBool("cleanup", "执行后是否清理临时文件，默认true", true)
+                new MethodBool("cleanup", "执行后是否清理临时文件，默认true")
                     .SetDefault(true),
                 
                 // 返回输出
-                new MethodBool("return_output", "是否捕获并返回控制台输出，默认true", true)
+                new MethodBool("return_output", "是否捕获并返回控制台输出，默认true")
                     .SetDefault(true)
             };
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,98 +24,80 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "modify", "duplicate", "delete", "get_info", "search", "set_curve", "set_events"),
                 
                 // 动画路径
-                new MethodStr("path", "动画片段资源路径"),
+                new MethodStr("path", "动画片段资源路径", false),
                 
                 // 源路径
-                new MethodStr("source_path", "源动画片段路径", true),
+                new MethodStr("source_path", "源动画片段路径"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径", true),
+                new MethodStr("destination", "目标路径"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式", true)
-                    .SetDefault("*.anim"),
+                new MethodStr("query", "搜索模式"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索", true)
-                    .SetDefault(false),
+                new MethodBool("recursive", "递归搜索"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行", true)
-                    .SetDefault(false),
+                new MethodBool("force", "强制执行"),
                 
                 // 动画长度
-                new MethodFloat("length", "动画长度（秒）", true)
-                    .SetRange(0.1f, 3600f)
-                    .SetDefault(1f),
+                new MethodFloat("length", "动画长度（秒）")
+                    .SetRange(0.1f, 3600f),
                 
                 // 帧率
-                new MethodFloat("frame_rate", "帧率", true)
-                    .SetRange(1f, 120f)
-                    .SetDefault(30f),
+                new MethodFloat("frame_rate", "帧率")
+                    .SetRange(1f, 120f),
                 
                 // 循环播放
-                new MethodBool("loop_time", "循环播放", true)
-                    .SetDefault(true),
+                new MethodBool("loop_time", "循环播放"),
                 
                 // 循环姿势
-                new MethodBool("loop_pose", "循环姿势", true)
-                    .SetDefault(false),
+                new MethodBool("loop_pose", "循环姿势"),
                 
                 // 循环偏移
-                new MethodFloat("cycle_offset", "循环偏移", true)
-                    .SetRange(0f, 1f)
-                    .SetDefault(0f),
+                new MethodFloat("cycle_offset", "循环偏移")
+                    .SetRange(0f, 1f),
                 
                 // 根旋转Y轴偏移
-                new MethodFloat("root_rotation_offset_y", "根旋转Y轴偏移", true)
-                    .SetDefault(0f),
+                new MethodFloat("root_rotation_offset_y", "根旋转Y轴偏移"),
                 
                 // 根高度Y轴偏移
-                new MethodFloat("root_height_offset_y", "根高度Y轴偏移", true)
-                    .SetDefault(0f),
+                new MethodFloat("root_height_offset_y", "根高度Y轴偏移"),
                 
                 // 启用根高度Y轴偏移
-                new MethodBool("root_height_offset_y_active", "启用根高度Y轴偏移", true)
-                    .SetDefault(false),
+                new MethodBool("root_height_offset_y_active", "启用根高度Y轴偏移"),
                 
                 // 锁定根高度Y轴
-                new MethodBool("lock_root_height_y", "锁定根高度Y轴", true)
-                    .SetDefault(false),
+                new MethodBool("lock_root_height_y", "锁定根高度Y轴"),
                 
                 // 锁定根旋转Y轴
-                new MethodBool("lock_root_rotation_y", "锁定根旋转Y轴", true)
-                    .SetDefault(false),
+                new MethodBool("lock_root_rotation_y", "锁定根旋转Y轴"),
                 
                 // 锁定根旋转偏移Y轴
-                new MethodBool("lock_root_rotation_offset_y", "锁定根旋转偏移Y轴", true)
-                    .SetDefault(false),
+                new MethodBool("lock_root_rotation_offset_y", "锁定根旋转偏移Y轴"),
                 
                 // 保持原始方向Y轴
-                new MethodBool("keep_original_orientation_y", "保持原始方向Y轴", true)
-                    .SetDefault(false),
+                new MethodBool("keep_original_orientation_y", "保持原始方向Y轴"),
                 
                 // 从地面计算高度
-                new MethodBool("height_from_ground", "从地面计算高度", true)
-                    .SetDefault(false),
+                new MethodBool("height_from_ground", "从地面计算高度"),
                 
                 // 镜像
-                new MethodBool("mirror", "镜像", true)
-                    .SetDefault(false),
+                new MethodBool("mirror", "镜像"),
                 
                 // 身体方向
-                new MethodFloat("body_orientation", "身体方向", true)
-                    .SetDefault(0f),
+                new MethodFloat("body_orientation", "身体方向"),
                 
                 // 动画曲线数据
-                new MethodObj("curves", "动画曲线数据", true),
+                new MethodObj("curves", "动画曲线数据"),
                 
                 // 动画事件数据
-                new MethodArr("events", "动画事件数据", true)
+                new MethodArr("events", "动画事件数据")
             };
         }
 

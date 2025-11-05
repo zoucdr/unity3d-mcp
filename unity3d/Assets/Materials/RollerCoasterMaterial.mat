@@ -1,0 +1,10 @@
+Shader "Universal Render Pipeline/Lit"
+{
+    Properties
+    {
+        _BaseColor("Base Color", Color) = (0.9, 0.2, 0.2, 1)
+        _BaseMap("Base Map", 2D) = "white" {}
+        _Metallic("Metallic", Range(0, 1)) = 0.7
+        _Smoothness("Smoothness", Range(0, 1)) = 0.6
+    }
+}

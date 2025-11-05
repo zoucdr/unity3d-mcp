@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
@@ -24,28 +24,24 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 枚举
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("error", "warning", "log", "assert", "exception")
-                    .AddExamples("log", "error"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("error", "warning", "log", "assert", "exception"),
                 
                 // 日志消息内容 - 必需
-                new MethodStr("message", "要写入的日志消息内容")
+                new MethodStr("message", "要写入的日志消息内容", false)
                     .AddExamples("This is a test message", "Operation completed successfully"),
                 
                 // 日志标签
-                new MethodStr("tag", "日志标签，用于分类和过滤", true)
-                    .AddExamples("System", "Network")
-                    .SetDefault(""),
+                new MethodStr("tag", "日志标签，用于分类和过滤")
+                    .AddExamples("System", "Network"),
                 
                 // 上下文对象
-                new MethodStr("context", "上下文对象名称，用于在控制台中定位相关GameObject", true)
-                    .AddExamples("Player", "Main Camera")
-                    .SetDefault(""),
+                new MethodStr("context", "上下文对象名称，用于在控制台中定位相关GameObject")
+                    .AddExamples("Player", "Main Camera"),
                 
                 // 断言条件
-                new MethodStr("condition", "断言条件表达式（仅用于assert类型）", true)
+                new MethodStr("condition", "断言条件表达式（仅用于assert类型）")
                     .AddExamples("value != null", "count > 0")
-                    .SetDefault("")
             };
         }
 

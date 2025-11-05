@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
@@ -22,43 +22,36 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                // 搜索类型 - 枚举
+                // 搜索类型
                 new MethodStr("search_target", "搜索类型")
                     .SetEnumValues("asset", "folder", "script", "texture", "material", "prefab", "scene", "audio", "model")
                     .AddExamples("script", "material"),
                 
-                // 搜索关键词 - 必需
+                // 搜索关键词
                 new MethodStr("query", "搜索关键词")
                     .AddExamples("Player", "UI_*"),
                 
                 // 搜索路径
-                new MethodStr("directory", "搜索路径（相对于Assets）", true)
-                    .AddExamples("Scripts", "Materials")
-                    .SetDefault(""),
+                new MethodStr("directory", "搜索路径（相对于Assets）")
+                    .AddExamples("Scripts", "Materials"),
                 
                 // 文件扩展名过滤
-                new MethodStr("file_extension", "文件扩展名过滤", true)
+                new MethodStr("file_extension", "文件扩展名过滤")
                     .SetEnumValues("cs", "mat", "prefab", "unity", "png", "jpg", "fbx", "wav", "mp3")
-                    .AddExamples("cs", "mat")
-                    .SetDefault(""),
+                    .AddExamples("cs", "mat"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "是否递归搜索子文件夹", true)
-                    .SetDefault(true),
+                new MethodBool("recursive", "是否递归搜索子文件夹"),
                 
                 // 区分大小写
-                new MethodBool("case_sensitive", "是否区分大小写", true)
-                    .SetDefault(false),
+                new MethodBool("case_sensitive", "是否区分大小写"),
                 
                 // 最大结果数
-                new MethodInt("max_results", "最大返回结果数", true)
-                    .SetRange(1, 1000)
-                    .AddExample("50")
-                    .SetDefault(50),
+                new MethodInt("max_results", "最大返回结果数")
+                    .SetRange(1, 1000),
                 
                 // 包含meta文件
-                new MethodBool("include_meta", "是否包含.meta文件", true)
-                    .SetDefault(false)
+                new MethodBool("include_meta", "是否包含.meta文件")
             };
         }
 

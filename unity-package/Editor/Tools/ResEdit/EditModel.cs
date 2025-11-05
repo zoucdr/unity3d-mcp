@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,220 +24,137 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "remap_materials")
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "extract_materials", "optimize", "remap_materials")
                     .AddExamples("import", "get_info"),
                 
                 // 模型路径
-                new MethodStr("path", "模型资源路径")
+                new MethodStr("path", "模型资源路径", false)
                     .AddExamples("Assets/Models/Character.fbx", "Assets/Models/Building.obj"),
                 
                 // 源文件路径
-                new MethodStr("source_file", "源文件路径", true)
+                new MethodStr("source_file", "源文件路径")
                     .AddExamples("D:/Models/character.fbx", "C:/Assets/model.obj"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径", true)
+                new MethodStr("destination", "目标路径")
                     .AddExamples("Assets/Models/Copy/", "Assets/NewModels/"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式", true)
-                    .AddExamples("*.fbx", "*.obj")
-                    .SetDefault("*"),
+                new MethodStr("query", "搜索模式")
+                    .AddExamples("*.fbx", "*.obj"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索", true)
-                    .SetDefault(false),
-                
-                // 强制执行
-                new MethodBool("force", "强制执行", true)
-                    .SetDefault(false),
+                new MethodBool("recursive", "递归搜索"),
                 
                 // 导入设置
-                new MethodObj("import_settings", "导入设置", true),
+                new MethodObj("import_settings", "导入设置"),
                 
                 // 缩放因子
-                new MethodFloat("scale_factor", "缩放因子", true)
+                new MethodFloat("scale_factor", "缩放因子")
                     .SetRange(0.01f, 100f)
-                    .AddExample("1.0")
-                    .SetDefault(1.0f),
+                    .AddExample("1.0"),
                 
                 // 使用文件缩放
-                new MethodBool("use_file_scale", "使用文件缩放", true)
-                    .SetDefault(true),
-                
-                // 使用文件单位
-                new MethodBool("use_file_units", "使用文件单位", true)
-                    .SetDefault(true),
+                new MethodBool("use_file_scale", "使用文件缩放"),
                 
                 // 导入混合形状
-                new MethodBool("import_blend_shapes", "导入混合形状", true)
-                    .SetDefault(true),
-                
-                // 导入可见性
-                new MethodBool("import_visibility", "导入可见性", true)
-                    .SetDefault(true),
+                new MethodBool("import_blend_shapes", "导入混合形状"),
                 
                 // 导入相机
-                new MethodBool("import_cameras", "导入相机", true)
-                    .SetDefault(true),
-                
-                // 导入灯光
-                new MethodBool("import_lights", "导入灯光", true)
-                    .SetDefault(true),
+                new MethodBool("import_cameras", "导入相机"),
                 
                 // 保持层级
-                new MethodBool("preserve_hierarchy", "保持层级", true)
-                    .SetDefault(true),
-                
-                // 动画类型
-                new MethodStr("animation_type", "动画类型", true)
-                    .SetEnumValues("None", "Legacy", "Generic", "Humanoid")
-                    .AddExamples("Generic", "Humanoid")
-                    .SetDefault("None"),
+                new MethodBool("preserve_hierarchy", "保持层级"),
                 
                 // 优化网格
-                new MethodBool("optimize_mesh", "优化网格", true)
-                    .SetDefault(false),
-                
-                // 生成次要UV
-                new MethodBool("generate_secondary_uv", "生成次要UV", true)
-                    .SetDefault(false),
+                new MethodBool("optimize_mesh", "优化网格"),
                 
                 // 次要UV硬角度
-                new MethodFloat("secondary_uv_hard_angle", "次要UV硬角度", true)
+                new MethodFloat("secondary_uv_hard_angle", "次要UV硬角度")
                     .SetRange(0f, 180f)
-                    .AddExample("88.0")
-                    .SetDefault(88f),
+                    .AddExample("88.0"),
                 
                 // 次要UV打包边距
-                new MethodFloat("secondary_uv_pack_margin", "次要UV打包边距", true)
+                new MethodFloat("secondary_uv_pack_margin", "次要UV打包边距")
                     .SetRange(1f, 64f)
-                    .AddExample("4.0")
-                    .SetDefault(4f),
+                    .AddExample("4.0"),
                 
                 // 次要UV角度扭曲
-                new MethodFloat("secondary_uv_angle_distortion", "次要UV角度扭曲", true)
+                new MethodFloat("secondary_uv_angle_distortion", "次要UV角度扭曲")
                     .SetRange(1f, 75f)
-                    .AddExample("8.0")
-                    .SetDefault(8f),
+                    .AddExample("8.0"),
                 
                 // 次要UV面积扭曲
-                new MethodFloat("secondary_uv_area_distortion", "次要UV面积扭曲", true)
+                new MethodFloat("secondary_uv_area_distortion", "次要UV面积扭曲")
                     .SetRange(1f, 75f)
-                    .AddExample("15.0")
-                    .SetDefault(15f),
+                    .AddExample("15.0"),
                 
                 // 次要UV边缘扭曲
-                new MethodFloat("secondary_uv_edge_distortion", "次要UV边缘扭曲", true)
+                new MethodFloat("secondary_uv_edge_distortion", "次要UV边缘扭曲")
                     .SetRange(1f, 75f)
-                    .AddExample("10.0")
-                    .SetDefault(10f),
+                    .AddExample("10.0"),
                 
                 // 启用读写
-                new MethodBool("read_write_enabled", "启用读写", true)
-                    .SetDefault(false),
-                
-                // 优化游戏对象
-                new MethodBool("optimize_game_objects", "优化游戏对象", true)
-                    .SetDefault(false),
+                new MethodBool("read_write_enabled", "启用读写"),
                 
                 // 导入材质
-                new MethodBool("import_materials", "导入材质", true)
-                    .SetDefault(true),
-                
-                // 材质命名模式
-                new MethodStr("material_naming", "材质命名模式", true)
-                    .SetEnumValues("ByBaseTextureName", "ByModelName", "ByTextureName")
-                    .AddExample("ByBaseTextureName")
-                    .SetDefault("ByBaseTextureName"),
+                new MethodBool("import_materials", "导入材质"),
                 
                 // 材质搜索模式
-                new MethodStr("material_search", "材质搜索模式", true)
+                new MethodStr("material_search", "材质搜索模式")
                     .SetEnumValues("Local", "RecursiveUp", "Everywhere")
-                    .AddExample("Local")
-                    .SetDefault("Local"),
+                    .AddExample("Local"),
                 
                 // 提取材质
-                new MethodBool("extract_materials", "提取材质", true)
-                    .SetDefault(false),
-                
-                // 提取材质路径
-                new MethodStr("extract_materials_path", "提取材质路径", true)
-                    .AddExample("Assets/Materials/"),
+                new MethodBool("extract_materials", "提取材质"),
                 
                 // 网格压缩
-                new MethodStr("mesh_compression", "网格压缩", true)
+                new MethodStr("mesh_compression", "网格压缩")
                     .SetEnumValues("Off", "Low", "Medium", "High")
-                    .AddExample("Off")
-                    .SetDefault("Off"),
+                    .AddExample("Off"),
                 
                 // 添加碰撞器
-                new MethodBool("add_collider", "添加碰撞器", true)
-                    .SetDefault(false),
-                
-                // 保持四边形
-                new MethodBool("keep_quads", "保持四边形", true)
-                    .SetDefault(false),
+                new MethodBool("add_collider", "添加碰撞器"),
                 
                 // 焊接顶点
-                new MethodBool("weld_vertices", "焊接顶点", true)
-                    .SetDefault(true),
-                
-                // 索引格式
-                new MethodStr("index_format", "索引格式", true)
-                    .SetEnumValues("Auto", "UInt16", "UInt32")
-                    .AddExample("Auto")
-                    .SetDefault("Auto"),
+                new MethodBool("weld_vertices", "焊接顶点"),
                 
                 // 传统混合形状法线
-                new MethodBool("legacy_blend_shape_normals", "传统混合形状法线", true)
-                    .SetDefault(false),
-                
-                // 混合形状法线模式
-                new MethodStr("blend_shape_normals", "混合形状法线模式", true)
-                    .SetEnumValues("Default", "None", "Calculate", "Import")
-                    .AddExample("Default")
-                    .SetDefault("Default"),
+                new MethodBool("legacy_blend_shape_normals", "传统混合形状法线"),
                 
                 // 切线模式
-                new MethodStr("tangents", "切线模式", true)
+                new MethodStr("tangents", "切线模式")
                     .SetEnumValues("Default", "None", "Calculate", "Import")
-                    .AddExample("Default")
-                    .SetDefault("Default"),
+                    .AddExample("Default"),
                 
                 // 平滑度来源
-                new MethodStr("smoothness_source", "平滑度来源", true)
+                new MethodStr("smoothness_source", "平滑度来源")
                     .SetEnumValues("None", "DiffuseAlpha", "SpecularAlpha")
-                    .AddExample("None")
-                    .SetDefault("None"),
+                    .AddExample("None"),
                 
                 // 平滑度
-                new MethodFloat("smoothness", "平滑度", true)
+                new MethodFloat("smoothness", "平滑度")
                     .SetRange(0f, 1f)
-                    .AddExample("0.5")
-                    .SetDefault(0.5f),
+                    .AddExample("0.5"),
                 
                 // 法线导入模式
-                new MethodStr("normal_import_mode", "法线导入模式", true)
+                new MethodStr("normal_import_mode", "法线导入模式")
                     .SetEnumValues("Default", "None", "Calculate", "Import")
-                    .AddExample("Default")
-                    .SetDefault("Default"),
+                    .AddExample("Default"),
                 
                 // 法线贴图模式
-                new MethodStr("normal_map_mode", "法线贴图模式", true)
+                new MethodStr("normal_map_mode", "法线贴图模式")
                     .SetEnumValues("Default", "OpenGL", "DirectX")
-                    .AddExample("Default")
-                    .SetDefault("Default"),
+                    .AddExample("Default"),
                 
                 // 高度贴图模式
-                new MethodStr("height_map_mode", "高度贴图模式", true)
+                new MethodStr("height_map_mode", "高度贴图模式")
                     .SetEnumValues("Default", "OpenGL", "DirectX")
-                    .AddExample("Default")
-                    .SetDefault("Default"),
+                    .AddExample("Default"),
                 
                 // 材质重定向映射
-                new MethodObj("material_remaps", "材质重定向映射", true)
+                new MethodObj("material_remaps", "材质重定向映射")
             };
         }
 

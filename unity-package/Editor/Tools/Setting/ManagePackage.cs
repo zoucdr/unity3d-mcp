@@ -15,7 +15,7 @@ namespace Unity.Mcp.Tools
     /// Handles Unity Package Manager operations including adding, removing, listing, and searching packages.
     /// 对应方法名: manage_package
     /// </summary>
-    [ToolName("manage_package", "包管理")]
+    [ToolName("manage_package", "系统管理")]
     public class Package : StateMethodBase
     {
         // Results storage for async operations
@@ -147,64 +147,62 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("add", "remove", "list", "search", "refresh", "resolve", "status", "restore_auto_refresh")
                     .AddExamples("add", "list"),
                 
                 // 包来源类型
-                new MethodStr("source", "包来源类型", true)
+                new MethodStr("source", "包来源类型")
                     .SetEnumValues("registry", "github", "disk")
-                    .AddExamples("registry", "github")
-                    .SetDefault("registry"),
+                    .AddExamples("registry", "github"),
                 
                 // 包名称
-                new MethodStr("package_name", "包名称", true)
+                new MethodStr("package_name", "包名称")
                     .AddExamples("com.unity.textmeshpro", "com.unity.cinemachine"),
                 
                 // 包完整标识符
-                new MethodStr("package_identifier", "包完整标识符", true)
+                new MethodStr("package_identifier", "包完整标识符")
                     .AddExamples("com.unity.textmeshpro@3.0.6", "com.unity.cinemachine@2.8.9"),
                 
                 // 包版本
-                new MethodStr("version", "包版本", true)
-                    .AddExamples("3.0.6", "2.8.9")
-                    .SetDefault(""),
+                new MethodStr("version", "包版本")
+                    .AddExamples("3.0.6", "2.8.9"),
                 
                 // GitHub仓库URL
-                new MethodStr("repository_url", "GitHub仓库URL", true)
+                new MethodStr("repository_url", "GitHub仓库URL")
                     .AddExamples("https://github.com/Unity-Technologies/UnityCsReference.git", "https://github.com/user/repo.git"),
                 
                 // GitHub分支
-                new MethodStr("branch", "GitHub分支名", true)
+                new MethodStr("branch", "GitHub分支名")
                     .AddExamples("main", "develop")
                     .SetDefault("main"),
                 
                 // 包路径
-                new MethodStr("path", "包路径", true)
+                new MethodStr("path", "包路径")
                     .AddExamples("Packages/MyPackage", "D:/LocalPackages/MyPackage"),
                 
                 // 搜索关键词
-                new MethodStr("search_keywords", "搜索关键词", true)
+                new MethodStr("search_keywords", "搜索关键词")
                     .AddExamples("unity", "cinemachine")
                     .SetDefault(""),
                 
                 // 包含依赖信息
-                new MethodBool("include_dependencies", "包含依赖信息", true)
+                new MethodBool("include_dependencies", "包含依赖信息")
                     .SetDefault(false),
                 
                 // 包范围过滤
-                new MethodStr("scope", "包范围过滤", true)
+                new MethodStr("scope", "包范围过滤")
                     .AddExamples("com.unity", "com.mycompany")
                     .SetDefault(""),
                 
                 // 操作超时
-                new MethodInt("timeout", "操作超时（秒）", true)
+                new MethodInt("timeout", "操作超时（秒）")
                     .SetRange(10, 300)
                     .AddExample("60")
                     .SetDefault(60),
                 
                 // 禁用自动刷新
-                new MethodBool("disable_auto_refresh", "禁用自动程序集刷新", true)
+                new MethodBool("disable_auto_refresh", "禁用自动程序集刷新")
                     .SetDefault(false)
             };
         }

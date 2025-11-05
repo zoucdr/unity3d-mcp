@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -24,54 +24,45 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("fetch_document", "download_images", "preview", "get_conversion_rules")
-                    .AddExamples("fetch_document", "download_images"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("fetch_document", "download_images", "preview", "get_conversion_rules"),
                 
                 // Figma文件Key
-                new MethodStr("file_key", "Figma文件Key", true)
+                new MethodStr("file_key", "Figma文件Key")
                     .AddExample("abc123def456"),
                 
                 // 节点图片映射
-                new MethodObj("node_imgs", "节点图片映射", true),
+                new MethodObj("node_imgs", "节点图片映射"),
                 
                 // 节点ID
-                new MethodStr("node_id", "节点ID", true)
+                new MethodStr("node_id", "节点ID")
                     .AddExample("1:4"),
                 
                 // 保存路径
-                new MethodStr("save_path", "保存路径", true)
+                new MethodStr("save_path", "保存路径")
                     .AddExamples("Assets/UI/Images/", "Assets/Figma/"),
                 
                 // 图片格式
-                new MethodStr("image_format", "图片格式", true)
-                    .SetEnumValues("png", "jpg", "svg", "pdf")
-                    .AddExample("png")
-                    .SetDefault("png"),
+                new MethodStr("image_format", "图片格式")
+                    .SetEnumValues("png", "jpg", "svg", "pdf"),
                 
                 // 图片缩放比例
-                new MethodFloat("image_scale", "图片缩放比例", true)
-                    .SetRange(0.1f, 4f)
-                    .AddExample("1.0")
-                    .SetDefault(1f),
+                new MethodFloat("image_scale", "图片缩放比例")
+                    .SetRange(0.1f, 4f),
                 
                 // 包含子节点
-                new MethodBool("include_children", "包含子节点", true)
-                    .SetDefault(true),
+                new MethodBool("include_children", "包含子节点"),
                 
                 // 本地JSON路径
-                new MethodStr("local_json_path", "本地JSON文件路径", true)
+                new MethodStr("local_json_path", "本地JSON文件路径")
                     .AddExample("Assets/Figma/data.json"),
                 
                 // UI框架类型
-                new MethodStr("ui_framework", "UI框架类型", true)
-                    .SetEnumValues("ugui", "uitoolkit", "all")
-                    .AddExample("ugui")
-                    .SetDefault("all"),
+                new MethodStr("ui_framework", "UI框架类型")
+                    .SetEnumValues("ugui", "uitoolkit", "all"),
                 
                 // 使用预制件
-                new MethodBool("use_component_pfb", "使用现成预制件", true)
-                    .SetDefault(false)
+                new MethodBool("use_component_pfb", "使用现成预制件")
             };
         }
 
@@ -370,7 +361,7 @@ namespace Unity.Mcp.Tools
             apiRequest.SetRequestHeader("X-Figma-Token", token);
             apiRequest.timeout = 30;
             Debug.Log($"[FigmaManage] 预览图片请求URL: {apiUrl}");
-            
+
             var apiOperation = apiRequest.SendWebRequest();
 
             // 监听获取图片URL的进度

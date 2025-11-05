@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,23 +27,22 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("load", "save", "create", "get_hierarchy")
                     .AddExamples("load", "save"),
                 
                 // 场景名称
-                new MethodStr("name", "场景名称", true)
+                new MethodStr("name", "场景名称")
                     .AddExamples("MainScene", "Level1"),
                 
                 // 场景路径
-                new MethodStr("path", "场景资产路径", true)
+                new MethodStr("path", "场景资产路径")
                     .AddExamples("Assets/Scenes/MainScene.unity", "Assets/Levels/Level1.unity"),
                 
                 // 构建索引
-                new MethodInt("build_index", "构建索引", true)
+                new MethodInt("build_index", "构建索引")
                     .SetRange(0, 100)
                     .AddExample("0")
-                    .SetDefault(0)
             };
         }
 

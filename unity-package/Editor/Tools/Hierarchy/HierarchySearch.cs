@@ -28,29 +28,25 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 搜索方法 - 枚举
-                new MethodStr("search_type", "搜索方法")
+                new MethodStr("search_type", "搜索方法", false)
                     .SetEnumValues("by_name", "by_id", "by_tag", "by_layer", "by_component", "by_query")
                     .AddExamples("by_name", "by_tag"),
                 
                 // 搜索条件
-                new MethodStr("query", "搜索条件（可以是ID、名称或路径，支持通配符*）")
+                new MethodStr("query", "搜索条件（可以是ID、名称或路径，支持通配符*）", false)
                     .AddExamples("Player*", "UI/Canvas"),
                 
                 // 查找多个
-                new MethodBool("select_many", "是否查找所有匹配项", true)
-                    .SetDefault(false),
+                new MethodBool("select_many", "是否查找所有匹配项"),
                 
                 // 包含层次结构
-                new MethodBool("include_hierarchy", "是否包含所有子对象的完整层次结构数据", true)
-                    .SetDefault(false),
+                new MethodBool("include_hierarchy", "是否包含所有子对象的完整层次结构数据"),
                 
                 // 包含非激活对象
-                new MethodBool("include_inactive", "是否搜索非激活对象", true)
-                    .SetDefault(false),
+                new MethodBool("include_inactive", "是否搜索非激活对象"),
                 
                 // 使用正则表达式
-                new MethodBool("use_regex", "是否使用正则表达式", true)
-                    .SetDefault(false)
+                new MethodBool("use_regex", "是否使用正则表达式")
             };
         }
 

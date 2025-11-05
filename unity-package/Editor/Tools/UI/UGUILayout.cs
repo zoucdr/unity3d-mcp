@@ -48,54 +48,41 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 实例ID
-                new MethodInt("instance_id", "对象实例ID", true)
-                    .AddExample("12345"),
+                new MethodInt("instance_id", "对象实例ID")
+                    .AddExample("-12000"),
                 
-                // 层级路径
-                new MethodStr("path", "对象层级路径")
+                // 对象层级路径
+                new MethodStr("path", "对象层级路径", false)
                     .AddExamples("Canvas/Panel/Button", "UI/MainMenu/StartButton"),
                 
                 // 操作类型
-                new MethodStr("action", "操作类型", true)
-                    .SetEnumValues("do_layout", "get_layout", "tattoo")
-                    .AddExamples("do_layout", "get_layout")
-                    .SetDefault("get_layout"),
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("do_layout", "get_layout", "tattoo"),
                 
                 // 锚点位置
-                new MethodVector("anchored_pos", "锚点位置 [x, y]", true)
-                    .SetDefault(new float[] {0, 0}),
+                new MethodVector("anchored_pos", "锚点位置 [x, y]"),
                 
                 // 尺寸增量
-                new MethodVector("size_delta", "尺寸增量 [width, height]", true)
-                    .SetDefault(new float[] {100, 100}),
+                new MethodVector("size_delta", "尺寸增量 [width, height]"),
                 
                 // 最小锚点
-                new MethodVector("anchor_min", "最小锚点 [x, y]", true)
-                    .SetDefault(new float[] {0, 0}),
+                new MethodVector("anchor_min", "最小锚点 [x, y]"),
                 
                 // 最大锚点
-                new MethodVector("anchor_max", "最大锚点 [x, y]", true)
-                    .SetDefault(new float[] {1, 1}),
+                new MethodVector("anchor_max", "最大锚点 [x, y]"),
                 
                 // 锚点预设
-                new MethodStr("tattoo_preset", "锚点预设", true)
-                    .SetEnumValues("top_left", "top_center", "top_right", "middle_left", "middle_center", "middle_right", "bottom_left", "bottom_center", "bottom_right", "stretch_horizontal", "stretch_vertical", "stretch")
-                    .AddExamples("middle_center", "top_left")
-                    .SetDefault("middle_center"),
+                new MethodStr("tattoo_preset", "锚点预设")
+                    .SetEnumValues("top_left", "top_center", "top_right", "middle_left", "middle_center", "middle_right", "bottom_left", "bottom_center", "bottom_right", "stretch_horizontal", "stretch_vertical", "stretch"),
                 
                 // 基于自身位置
-                new MethodBool("tattoo_self", "基于自身位置", true)
-                    .SetDefault(false),
+                new MethodBool("tattoo_self", "位置基于自身"),
                 
                 // 轴心点
-                new MethodVector("pivot", "轴心点 [x, y]", true)
-                    .SetDefault(new float[] {0.5f, 0.5f}),
+                new MethodVector("pivot", "轴心点 [x, y]"),
                 
                 // 同级索引
-                new MethodInt("sibling_index", "同级索引", true)
-                    .SetRange(0, 100)
-                    .AddExample("0")
-                    .SetDefault(0)
+                new MethodInt("sibling_index", "同级索引"),
             };
         }
 

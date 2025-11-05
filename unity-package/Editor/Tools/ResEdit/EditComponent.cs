@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,28 +30,23 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 目标查找参数 - GameObject实例ID
-                new MethodStr("instance_id", "GameObject的实例ID，用于唯一标识对象")
-                    .AddExamples("-2524", "12345", "-1728")
-                    .SetDefault(""),
+                new MethodStr("instance_id", "GameObject的实例ID，用于唯一标识对象", false)
+                    .AddExamples("-2524", "12345", "-1728"),
                 
                 // 目标查找参数 - 层次结构路径
-                new MethodStr("path", "GameObject在层次结构中的路径")
-                    .AddExamples("Main Camera", "UI/Canvas/Button", "Player/Body/Head")
-                    .SetDefault(""),
+                new MethodStr("path", "GameObject在层次结构中的路径", false)
+                    .AddExamples("Main Camera", "UI/Canvas/Button", "Player/Body/Head"),
                 
                 // 操作类型 - 枚举
-                new MethodStr("action", "操作类型", true)
-                    .SetEnumValues("get_component_propertys", "set_component_propertys")
-                    .AddExamples("get_component_propertys", "set_component_propertys")
-                    .SetDefault("get_component_propertys"),
+                new MethodStr("action", "操作类型")
+                    .SetEnumValues("get_component_propertys", "set_component_propertys"),
                 
                 // 组件类型名称
-                new MethodStr("component_type", "组件类型名称（继承自Component的类型名）")
-                    .AddExamples("Transform", "MeshRenderer", "Rigidbody", "BoxCollider", "Camera", "Light", "AudioSource")
-                    .SetDefault("Transform"),
+                new MethodStr("component_type", "组件类型名称（继承自Component的类型名）", false)
+                    .AddExamples("Transform", "MeshRenderer", "Rigidbody", "BoxCollider", "Camera", "Light", "AudioSource"),
                 
                 // 属性字典 - 用于设置组件属性
-                new MethodObj("properties", "属性字典，用于设置组件属性值", true)
+                new MethodObj("properties", "属性字典，用于设置组件属性值")
                     .AddBooleanProperty("enabled")
                     .AddArrayProperty("position", "number")
                     .AddArrayProperty("rotation", "number")

@@ -11,7 +11,7 @@ namespace Unity.Mcp.Tools.Storage
     /// Handles EditorPrefs and PlayerPrefs operations for storing and retrieving preferences.
     /// 对应方法名: prefers
     /// </summary>
-    [ToolName("prefers", "偏好设置管理")]
+    [ToolName("prefers", "调试工具")]
     public class Prefers : StateMethodBase
     {
         /// <summary>
@@ -22,32 +22,27 @@ namespace Unity.Mcp.Tools.Storage
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("set", "get", "delete", "has", "delete_all", "get_all")
-                    .AddExamples("set", "get"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("set", "get", "delete", "has", "delete_all", "get_all"),
                 
                 // 偏好设置类型
-                new MethodStr("pref_type", "偏好设置类型", true)
-                    .SetEnumValues("editor", "player")
-                    .AddExample("editor")
-                    .SetDefault("editor"),
+                new MethodStr("pref_type", "偏好设置类型")
+                    .SetEnumValues("editor", "player"),
                 
                 // 键名
-                new MethodStr("key", "键名", true)
+                new MethodStr("key", "键名")
                     .AddExamples("MyKey", "Settings.Volume"),
                 
                 // 值
-                new MethodStr("value", "值", true)
+                new MethodStr("value", "值")
                     .AddExamples("Hello", "100"),
                 
                 // 值类型
-                new MethodStr("value_type", "值类型", true)
-                    .SetEnumValues("string", "int", "float", "bool")
-                    .AddExample("string")
-                    .SetDefault("string"),
+                new MethodStr("value_type", "值类型")
+                    .SetEnumValues("string", "int", "float", "bool"),
                 
                 // 默认值
-                new MethodStr("default_value", "默认值", true)
+                new MethodStr("default_value", "默认值")
                     .AddExample("DefaultValue")
             };
         }

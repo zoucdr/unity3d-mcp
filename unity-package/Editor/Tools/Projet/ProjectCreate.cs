@@ -27,53 +27,46 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 资源文件名称 - 必需
-                new MethodStr("name", "资源文件名称")
+                new MethodStr("name", "资源文件名称", false)
                     .AddExamples("MyScript", "NewMaterial"),
                 
                 // 创建来源类型 - 枚举
-                new MethodStr("source", "操作类型")
-                    .SetEnumValues("menu", "empty", "template", "copy")
-                    .AddExamples("empty", "template"),
+                new MethodStr("source", "操作类型", false)
+                    .SetEnumValues("menu", "empty", "template", "copy"),
                 
                 // 目标文件夹路径
-                new MethodStr("folder_path", "目标文件夹路径（相对于Assets）", true)
-                    .AddExamples("Scripts", "Materials")
-                    .SetDefault(""),
+                new MethodStr("folder_path", "目标文件夹路径（相对于Assets）")
+                    .AddExamples("Scripts", "Materials"),
                 
                 // 菜单路径
-                new MethodStr("menu_path", "菜单路径", true)
+                new MethodStr("menu_path", "菜单路径")
                     .AddExamples("Assets/Create/C# Script", "Assets/Create/Material"),
                 
                 // 模板文件路径
-                new MethodStr("template_path", "模板文件路径", true)
+                new MethodStr("template_path", "模板文件路径")
                     .AddExamples("Assets/Templates/ScriptTemplate.cs", "Assets/Templates/MaterialTemplate.mat"),
                 
                 // 复制源路径
-                new MethodStr("copy_source", "要复制的资源路径", true)
+                new MethodStr("copy_source", "要复制的资源路径")
                     .AddExamples("Assets/Scripts/BaseScript.cs", "Assets/Materials/BaseMaterial.mat"),
                 
                 // 文件扩展名
-                new MethodStr("extension", "文件扩展名（不含.）", true)
+                new MethodStr("extension", "文件扩展名（不含.）")
                     .SetEnumValues("cs", "mat", "prefab", "asset", "txt", "json")
-                    .AddExamples("cs", "mat")
-                    .SetDefault("cs"),
+                    .AddExamples("cs", "mat"),
                 
                 // 文件内容
-                new MethodStr("content", "文件内容（用于empty类型）", true)
-                    .AddExamples("// New C# Script", "{\n  \"version\": \"1.0\"\n}")
-                    .SetDefault(""),
+                new MethodStr("content", "文件内容（用于empty类型）")
+                    .AddExamples("// New C# Script", "{\n  \"version\": \"1.0\"\n}"),
                 
                 // 强制覆盖
-                new MethodBool("force", "是否强制覆盖已存在的文件", true)
-                    .SetDefault(false),
+                new MethodBool("force", "是否强制覆盖已存在的文件"),
                 
                 // 创建后打开
-                new MethodBool("open_after_create", "创建后是否打开文件", true)
-                    .SetDefault(false),
+                new MethodBool("open_after_create", "创建后是否打开文件"),
                 
                 // 创建后选中
-                new MethodBool("select_after_create", "创建后是否选中文件", true)
-                    .SetDefault(true)
+                new MethodBool("select_after_create", "创建后是否选中文件")
             };
         }
 

@@ -26,110 +26,110 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 目标查找参数
-                new MethodKey("instance_id", "GameObject的实例ID", true),
-                new MethodKey("path", "GameObject的层次结构路径", true),
+                new MethodKey("instance_id", "GameObject的实例ID", false),
+                new MethodKey("path", "GameObject的层次结构路径", false),
                 
                 // 操作类型
                 new MethodKey("action", "操作类型：init_component, get_properties, set_properties, play, pause, stop, clear, simulate, restart", false),
                 
                 // 主模块属性
-                new MethodKey("duration", "粒子系统持续时间", true),
-                new MethodKey("looping", "是否循环播放", true),
-                new MethodKey("prewarm", "是否预热", true),
-                new MethodKey("start_delay", "开始延迟", true),
-                new MethodKey("start_lifetime", "粒子生命周期", true),
-                new MethodKey("start_speed", "粒子初始速度", true),
-                new MethodKey("start_size", "粒子初始大小", true),
-                new MethodKey("start_rotation", "粒子初始旋转", true),
-                new MethodKey("start_color", "粒子初始颜色 [r,g,b,a]", true),
-                new MethodKey("gravity_modifier", "重力修正系数", true),
-                new MethodKey("simulation_space", "模拟空间：Local, World, Custom", true),
-                new MethodKey("simulation_speed", "模拟速度", true),
-                new MethodKey("scaling_mode", "缩放模式：Hierarchy, Local, Shape", true),
-                new MethodKey("play_on_awake", "唤醒时播放", true),
-                new MethodKey("max_particles", "最大粒子数", true),
+                new MethodKey("duration", "粒子系统持续时间"),
+                new MethodKey("looping", "是否循环播放"),
+                new MethodKey("prewarm", "是否预热"),
+                new MethodKey("start_delay", "开始延迟"),
+                new MethodKey("start_lifetime", "粒子生命周期"),
+                new MethodKey("start_speed", "粒子初始速度"),
+                new MethodKey("start_size", "粒子初始大小"),
+                new MethodKey("start_rotation", "粒子初始旋转"),
+                new MethodKey("start_color", "粒子初始颜色 [r,g,b,a]"),
+                new MethodKey("gravity_modifier", "重力修正系数"),
+                new MethodKey("simulation_space", "模拟空间：Local, World, Custom"),
+                new MethodKey("simulation_speed", "模拟速度"),
+                new MethodKey("scaling_mode", "缩放模式：Hierarchy, Local, Shape"),
+                new MethodKey("play_on_awake", "唤醒时播放"),
+                new MethodKey("max_particles", "最大粒子数"),
                 
                 // 发射模块
-                new MethodKey("emission_enabled", "是否启用发射", true),
-                new MethodKey("emission_rate_over_time", "每秒发射率", true),
-                new MethodKey("emission_rate_over_distance", "每单位距离发射率", true),
+                new MethodKey("emission_enabled", "是否启用发射"),
+                new MethodKey("emission_rate_over_time", "每秒发射率"),
+                new MethodKey("emission_rate_over_distance", "每单位距离发射率"),
                 
                 // 形状模块
-                new MethodKey("shape_enabled", "是否启用形状模块", true),
-                new MethodKey("shape_type", "形状类型：Sphere, Hemisphere, Cone, Box, Circle, Edge, Rectangle", true),
-                new MethodKey("shape_angle", "锥体角度", true),
-                new MethodKey("shape_radius", "半径", true),
-                new MethodKey("shape_box_thickness", "盒子厚度 [x,y,z]", true),
-                new MethodKey("shape_arc", "圆弧角度", true),
-                new MethodKey("shape_random_direction", "随机方向", true),
+                new MethodKey("shape_enabled", "是否启用形状模块"),
+                new MethodKey("shape_type", "形状类型：Sphere, Hemisphere, Cone, Box, Circle, Edge, Rectangle"),
+                new MethodKey("shape_angle", "锥体角度"),
+                new MethodKey("shape_radius", "半径"),
+                new MethodKey("shape_box_thickness", "盒子厚度 [x,y,z]"),
+                new MethodKey("shape_arc", "圆弧角度"),
+                new MethodKey("shape_random_direction", "随机方向"),
                 
                 // 速度模块
-                new MethodKey("velocity_over_lifetime_enabled", "是否启用生命周期速度", true),
-                new MethodKey("velocity_linear", "线性速度 [x,y,z]", true),
-                new MethodKey("velocity_orbital", "轨道速度 [x,y,z]", true),
+                new MethodKey("velocity_over_lifetime_enabled", "是否启用生命周期速度"),
+                new MethodKey("velocity_linear", "线性速度 [x,y,z]"),
+                new MethodKey("velocity_orbital", "轨道速度 [x,y,z]"),
                 
                 // 限制速度模块
-                new MethodKey("limit_velocity_enabled", "是否启用速度限制", true),
-                new MethodKey("limit_velocity_dampen", "速度衰减", true),
+                new MethodKey("limit_velocity_enabled", "是否启用速度限制"),
+                new MethodKey("limit_velocity_dampen", "速度衰减"),
                 
                 // 力场模块
-                new MethodKey("force_over_lifetime_enabled", "是否启用生命周期力", true),
-                new MethodKey("force_x", "X轴力", true),
-                new MethodKey("force_y", "Y轴力", true),
-                new MethodKey("force_z", "Z轴力", true),
+                new MethodKey("force_over_lifetime_enabled", "是否启用生命周期力"),
+                new MethodKey("force_x", "X轴力"),
+                new MethodKey("force_y", "Y轴力"),
+                new MethodKey("force_z", "Z轴力"),
                 
                 // 颜色模块
-                new MethodKey("color_over_lifetime_enabled", "是否启用生命周期颜色", true),
-                new MethodKey("color_gradient", "颜色渐变配置", true),
+                new MethodKey("color_over_lifetime_enabled", "是否启用生命周期颜色"),
+                new MethodKey("color_gradient", "颜色渐变配置"),
                 
                 // 大小模块
-                new MethodKey("size_over_lifetime_enabled", "是否启用生命周期大小", true),
-                new MethodKey("size_curve", "大小曲线配置", true),
+                new MethodKey("size_over_lifetime_enabled", "是否启用生命周期大小"),
+                new MethodKey("size_curve", "大小曲线配置"),
                 
                 // 旋转模块
-                new MethodKey("rotation_over_lifetime_enabled", "是否启用生命周期旋转", true),
-                new MethodKey("rotation_angular_velocity", "角速度", true),
+                new MethodKey("rotation_over_lifetime_enabled", "是否启用生命周期旋转"),
+                new MethodKey("rotation_angular_velocity", "角速度"),
                 
                 // 噪声模块
-                new MethodKey("noise_enabled", "是否启用噪声", true),
-                new MethodKey("noise_strength", "噪声强度", true),
-                new MethodKey("noise_frequency", "噪声频率", true),
+                new MethodKey("noise_enabled", "是否启用噪声"),
+                new MethodKey("noise_strength", "噪声强度"),
+                new MethodKey("noise_frequency", "噪声频率"),
                 
                 // 碰撞模块
-                new MethodKey("collision_enabled", "是否启用碰撞", true),
-                new MethodKey("collision_type", "碰撞类型：Planes, World", true),
-                new MethodKey("collision_dampen", "碰撞衰减", true),
-                new MethodKey("collision_bounce", "碰撞反弹", true),
+                new MethodKey("collision_enabled", "是否启用碰撞"),
+                new MethodKey("collision_type", "碰撞类型：Planes, World"),
+                new MethodKey("collision_dampen", "碰撞衰减"),
+                new MethodKey("collision_bounce", "碰撞反弹"),
                 
                 // 渲染模块
-                new MethodKey("render_mode", "渲染模式：Billboard, Stretch, HorizontalBillboard, VerticalBillboard, Mesh", true),
-                new MethodKey("material", "材质路径", true),
-                new MethodKey("trail_material", "拖尾材质路径", true),
-                new MethodKey("sorting_layer", "排序层", true),
-                new MethodKey("sorting_order", "排序顺序", true),
+                new MethodKey("render_mode", "渲染模式：Billboard, Stretch, HorizontalBillboard, VerticalBillboard, Mesh"),
+                new MethodKey("material", "材质路径"),
+                new MethodKey("trail_material", "拖尾材质路径"),
+                new MethodKey("sorting_layer", "排序层"),
+                new MethodKey("sorting_order", "排序顺序"),
                 
                 // 纹理表动画模块
-                new MethodKey("texture_sheet_animation_enabled", "是否启用纹理表动画", true),
-                new MethodKey("texture_sheet_tiles", "纹理表分块 [x,y]", true),
-                new MethodKey("texture_sheet_animation_type", "动画类型：WholeSheet, SingleRow", true),
-                new MethodKey("texture_sheet_fps", "动画帧率", true),
+                new MethodKey("texture_sheet_animation_enabled", "是否启用纹理表动画"),
+                new MethodKey("texture_sheet_tiles", "纹理表分块 [x,y]"),
+                new MethodKey("texture_sheet_animation_type", "动画类型：WholeSheet, SingleRow"),
+                new MethodKey("texture_sheet_fps", "动画帧率"),
                 
                 // 子发射器模块
-                new MethodKey("sub_emitters_enabled", "是否启用子发射器", true),
+                new MethodKey("sub_emitters_enabled", "是否启用子发射器"),
                 
                 // 灯光模块
-                new MethodKey("lights_enabled", "是否启用灯光", true),
-                new MethodKey("lights_ratio", "灯光比率", true),
+                new MethodKey("lights_enabled", "是否启用灯光"),
+                new MethodKey("lights_ratio", "灯光比率"),
                 
                 // 拖尾模块
-                new MethodKey("trails_enabled", "是否启用拖尾", true),
-                new MethodKey("trails_ratio", "拖尾比率", true),
-                new MethodKey("trails_lifetime", "拖尾生命周期", true),
+                new MethodKey("trails_enabled", "是否启用拖尾"),
+                new MethodKey("trails_ratio", "拖尾比率"),
+                new MethodKey("trails_lifetime", "拖尾生命周期"),
                 
                 // 播放控制
-                new MethodKey("simulate_time", "模拟时间（秒）", true),
-                new MethodKey("with_children", "是否包含子粒子系统", true),
-                new MethodKey("restart_mode", "重启模式：Default, Fast", true),
+                new MethodKey("simulate_time", "模拟时间（秒）"),
+                new MethodKey("with_children", "是否包含子粒子系统"),
+                new MethodKey("restart_mode", "重启模式：Default, Fast")
             };
         }
 

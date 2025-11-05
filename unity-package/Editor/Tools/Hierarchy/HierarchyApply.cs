@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -27,27 +27,25 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 固定为apply
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("apply")
                     .AddExample("apply"),
                 
                 // 目标对象标识符
-                new MethodStr("target_object", "目标GameObject标识符（用于应用操作）")
+                new MethodStr("target_object", "目标GameObject层级路径（用于应用操作）", false)
                     .AddExamples("Player", "UI/Canvas/Button"),
                 
                 // 预制体路径
-                new MethodStr("prefab_path", "预制体路径", true)
+                new MethodStr("prefab_path", "预制体路径")
                     .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/ButtonPrefab.prefab"),
                 
                 // 应用类型
-                new MethodStr("apply_type", "链接类型", true)
+                new MethodStr("apply_type", "链接类型")
                     .SetEnumValues("connect_to_prefab", "apply_prefab_changes", "break_prefab_connection")
-                    .AddExamples("connect_to_prefab", "apply_prefab_changes")
-                    .SetDefault("apply_prefab_changes"),
+                    .AddExamples("connect_to_prefab", "apply_prefab_changes"),
                 
                 // 强制应用
-                new MethodBool("force_apply", "是否强制创建链接（覆盖现有连接）", true)
-                    .SetDefault(false)
+                new MethodBool("force_apply", "是否强制创建链接（覆盖现有连接）")
             };
         }
 

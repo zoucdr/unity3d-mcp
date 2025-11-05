@@ -27,40 +27,32 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio", "screenshot")
-                    .AddExamples("get_resolution", "screenshot"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio", "screenshot"),
                 
                 // 窗口宽度
-                new MethodInt("width", "窗口宽度", true)
+                new MethodInt("width", "窗口宽度")
                     .SetRange(320, 3840)
                     .AddExample("1920"),
                 
                 // 窗口高度
-                new MethodInt("height", "窗口高度", true)
+                new MethodInt("height", "窗口高度")
                     .SetRange(240, 2160)
                     .AddExample("1080"),
                 
                 // 垂直同步
-                new MethodInt("vsync_count", "垂直同步", true)
-                    .SetEnumValues("0", "1", "2")
-                    .AddExample("1")
-                    .SetDefault(1),
+                new MethodInt("vsync_count", "垂直同步")
+                    .SetEnumValues("0", "1", "2"),
                 
                 // 目标帧率
-                new MethodInt("target_framerate", "目标帧率（-1=无限制）", true)
-                    .SetRange(-1, 300)
-                    .AddExample("60")
-                    .SetDefault(60),
+                new MethodInt("target_framerate", "目标帧率（-1=无限制）"),
                 
                 // 宽高比
-                new MethodStr("aspect_ratio", "宽高比", true)
-                    .SetEnumValues("16:9", "16:10", "4:3", "Free")
-                    .AddExamples("16:9", "Free")
-                    .SetDefault("Free"),
+                new MethodStr("aspect_ratio", "宽高比")
+                    .SetEnumValues("16:9", "16:10", "4:3", "Free"),
                 
                 // 截图保存路径
-                new MethodStr("save_path", "截图保存路径", true)
+                new MethodStr("save_path", "截图保存路径")
                     .AddExamples("Assets/Screenshots/game.png", "D:/Screenshots/capture.jpg")
             };
         }

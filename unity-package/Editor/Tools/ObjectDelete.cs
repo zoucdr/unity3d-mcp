@@ -19,7 +19,7 @@ namespace Unity.Mcp.Tools
     /// Uses coroutines with EditorUtility.DisplayDialog for interactive user confirmation.
     /// 对应方法名: object_delete
     /// </summary>
-    [ToolName("object_delete", "对象编辑")]
+    [ToolName("object_delete", "资源管理")]
     public class ObjectDelete : DualStateMethodBase
     {
         private IObjectSelector objectSelector;
@@ -37,16 +37,15 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 目标查找参数 - 层次结构路径
-                new MethodStr("path", "对象层次结构路径")
+                new MethodStr("path", "对象层次结构路径", false)
                     .AddExamples("Main Camera", "UI/Canvas/Button"),
                 
                 // 目标查找参数 - 实例ID
-                new MethodStr("instance_id", "对象实例ID", true)
+                new MethodStr("instance_id", "对象实例ID")
                     .AddExample("-2524"),
                 
                 // 确认对话框控制
-                new MethodBool("confirm", "强制确认对话框：true=总是确认，false/未设置=智能确认（≤3个自动，>3个对话框）", true)
-                    .SetDefault(false)
+                new MethodBool("confirm", "强制确认对话框：true=总是确认，false/未设置=智能确认（≤3个自动，>3个对话框）")
             };
         }
 

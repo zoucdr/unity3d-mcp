@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -25,17 +25,17 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型")
+                // 操作类型
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("import", "modify", "move", "duplicate", "rename", "get_info", "create_folder", "reload", "select", "ping", "select_depends", "select_usage", "tree")
                     .AddExamples("get_info", "move"),
                 
-                // 资产路径 - 必需
-                new MethodStr("path", "资产路径，Unity标准格式")
+                // 资产路径
+                new MethodStr("path", "资产路径，Unity标准格式", false)
                     .AddExamples("Assets/Scripts/MyScript.cs", "Assets/Materials/MyMaterial.mat"),
                 
                 // 资产属性
-                new MethodObj("properties", "资产属性字典，用于设置资产的各种属性", true)
+                new MethodObj("properties", "资产属性字典，用于设置资产的各种属性")
                     .AddProperty("importSettings", "object")
                     .AddProperty("labels", "array")
                     .AddProperty("assetBundleName", "string")
@@ -43,32 +43,26 @@ namespace Unity.Mcp.Tools
                     .AddExample("{\"assetBundleName\": \"ui_bundle\"}"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径（移动/复制时使用）", true)
+                new MethodStr("destination", "目标路径（移动/复制时使用）")
                     .AddExamples("Assets/NewFolder/", "Assets/Backup/MyScript.cs"),
                 
                 // 强制执行
-                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）", true)
-                    .SetDefault(false),
+                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）"),
                 
                 // 刷新类型
-                new MethodStr("refresh_type", "刷新类型，默认all", true)
-                    .SetEnumValues("all", "assets", "scripts")
-                    .AddExamples("all", "assets")
-                    .SetDefault("all"),
+                new MethodStr("refresh_type", "刷新类型，默认all")
+                    .SetEnumValues("all", "assets", "scripts"),
                 
                 // 刷新前保存
-                new MethodBool("save_before_refresh", "刷新前是否保存所有资产，默认true", true)
-                    .SetDefault(true),
+                new MethodBool("save_before_refresh", "刷新前是否保存所有资产，默认true"),
                 
                 // 包含间接依赖
-                new MethodBool("include_indirect", "是否包含间接依赖/引用，默认false", true)
-                    .SetDefault(false),
+                new MethodBool("include_indirect", "是否包含间接依赖/引用，默认false"),
                 
                 // 最大结果数量
-                new MethodInt("max_results", "最大结果数量，默认100", true)
+                new MethodInt("max_results", "最大结果数量，默认100")
                     .SetRange(1, 1000)
                     .AddExample("100")
-                    .SetDefault(100)
             };
         }
 

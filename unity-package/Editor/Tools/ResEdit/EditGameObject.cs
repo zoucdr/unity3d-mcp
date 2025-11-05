@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -39,63 +39,62 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 层级路径
-                new MethodStr("path", "对象层级路径")
-                    .AddExamples("Canvas/Panel/Button", "Player/Body/Head"),
+                new MethodStr("path", "对象层级路径", false)
+                    .AddExamples("Canvas/Panel/Button", "Player/Body/Head")
+                    .SetDefault("Canvas/Panel/Button"),
                 
                 // 实例ID
-                new MethodInt("instance_id", "对象实例ID", true)
+                new MethodInt("instance_id", "对象实例ID")
                     .AddExample("12345"),
                 
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "modify", "get_components", "add_component", "remove_component", "set_parent")
-                    .AddExamples("create", "modify"),
+                    .SetDefault("modify"),
                 
                 // 对象名称
-                new MethodStr("name", "GameObject名称", true)
+                new MethodStr("name", "GameObject名称")
                     .AddExamples("Player", "Enemy"),
                 
                 // 标签
-                new MethodStr("tag", "GameObject标签", true)
-                    .AddExamples("Player", "Enemy")
-                    .SetDefault("Untagged"),
+                new MethodStr("tag", "GameObject标签")
+                    .AddExamples("Player", "Enemy"),
                 
                 // 层
-                new MethodInt("layer", "GameObject层", true)
+                new MethodInt("layer", "GameObject层")
                     .SetRange(0, 31)
-                    .AddExample("0")
-                    .SetDefault(0),
+                    .AddExample("0"),
                 
                 // 父对象ID
-                new MethodInt("parent_id", "父对象实例ID", true)
+                new MethodInt("parent_id", "父对象实例ID")
                     .AddExample("54321"),
                 
                 // 父对象路径
-                new MethodStr("parent_path", "父对象场景路径", true)
+                new MethodStr("parent_path", "父对象场景路径")
                     .AddExamples("Canvas", "Player"),
                 
                 // 位置坐标
-                new MethodVector("position", "位置坐标 [x, y, z]", true)
+                new MethodVector("position", "位置坐标 [x, y, z]")
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 旋转角度
-                new MethodVector("rotation", "旋转角度 [x, y, z]", true)
+                new MethodVector("rotation", "旋转角度 [x, y, z]")
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 缩放比例
-                new MethodVector("scale", "缩放比例 [x, y, z]", true)
+                new MethodVector("scale", "缩放比例 [x, y, z]")
                     .SetDefault(new float[] {1, 1, 1}),
                 
                 // 激活状态
-                new MethodBool("active", "激活状态", true)
+                new MethodBool("active", "激活状态")
                     .SetDefault(true),
                 
                 // 组件类型
-                new MethodStr("component_type", "组件类型", true)
+                new MethodStr("component_type", "组件类型")
                     .AddExamples("Rigidbody", "Collider"),
                 
                 // 组件属性
-                new MethodObj("component_properties", "组件属性", true)
+                new MethodObj("component_properties", "组件属性")
             };
         }
 

@@ -12,7 +12,7 @@ namespace Unity.Mcp.Tools.Storage
     /// Handles asset and folder location operations, including opening folders and revealing files.
     /// 对应方法名: source_location
     /// </summary>
-    [ToolName("source_location", "资源定位")]
+    [ToolName("source_location", "调试工具")]
     public class SourceLocation : StateMethodBase
     {
         /// <summary>
@@ -23,28 +23,28 @@ namespace Unity.Mcp.Tools.Storage
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("reveal_in_finder", "open_folder", "ping_asset", "select_asset", "get_asset_path")
                     .AddExamples("reveal_in_finder", "ping_asset"),
                 
                 // 资源路径
-                new MethodStr("asset_path", "资源路径", true)
+                new MethodStr("asset_path", "资源路径")
                     .AddExamples("Assets/Scripts/Player.cs", "Assets/Textures/icon.png"),
                 
                 // 文件夹路径
-                new MethodStr("folder_path", "文件夹路径", true)
+                new MethodStr("folder_path", "文件夹路径")
                     .AddExamples("Assets/Scripts/", "D:/Projects/MyGame/"),
                 
                 // 实例ID
-                new MethodInt("instance_id", "实例ID", true)
+                new MethodInt("instance_id", "实例ID")
                     .AddExample("12345"),
                 
                 // 资源GUID
-                new MethodStr("guid", "资源GUID", true)
+                new MethodStr("guid", "资源GUID")
                     .AddExample("abc123def456ghi789"),
                 
                 // 对象名称
-                new MethodStr("object_name", "对象名称", true)
+                new MethodStr("object_name", "对象名称")
                     .AddExamples("Player", "MainCamera")
             };
         }

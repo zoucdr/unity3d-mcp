@@ -64,6 +64,8 @@ namespace Unity.Mcp
             get => _mcpOpenState;
             set
             {
+                Debug.Log("McpOpenState: " + value);
+
                 if (_mcpOpenState != value)
                 {
                     _mcpOpenState = value;

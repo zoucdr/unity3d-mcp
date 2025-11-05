@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -25,34 +25,33 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites")
                     .AddExamples("record_modify", "get_renames"),
                 
                 // UI名称
-                new MethodStr("name", "UI名称")
+                new MethodStr("name", "UI名称", false)
                     .AddExamples("MainMenu", "InventoryPanel"),
                 
                 // 修改描述
-                new MethodStr("modify_desc", "修改描述", true)
+                new MethodStr("modify_desc", "修改描述")
                     .AddExamples("更新按钮样式", "调整布局"),
                 
                 // 保存路径
-                new MethodStr("save_path", "保存路径", true)
+                new MethodStr("save_path", "保存路径")
                     .AddExamples("Assets/UI/Rules/", "Assets/Figma/Rules/"),
                 
                 // 属性数据
-                new MethodObj("properties", "属性数据", true),
+                new MethodObj("properties", "属性数据"),
                 
                 // 节点名称数据
-                new MethodObj("names_data", "节点名称数据", true),
+                new MethodObj("names_data", "节点名称数据"),
                 
                 // 精灵数据
-                new MethodObj("sprites_data", "精灵数据", true),
+                new MethodObj("sprites_data", "精灵数据"),
                 
                 // 自动加载精灵
-                new MethodBool("auto_load_sprites", "自动加载精灵", true)
-                    .SetDefault(true)
+                new MethodBool("auto_load_sprites", "自动加载精灵")
             };
         }
 

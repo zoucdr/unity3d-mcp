@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
@@ -24,30 +24,30 @@ namespace Unity.Mcp.Tools
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型")
+                // 操作类型
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("get_state", "get_windows", "get_selection", "execute_menu", "get_menu_items")
                     .AddExamples("get_state", "execute_menu"),
                 
                 // 等待完成
-                new MethodBool("wait_for_completion", "是否等待操作完成", true)
+                new MethodBool("wait_for_completion", "是否等待操作完成")
                     .SetDefault(true),
                 
                 // 菜单路径
-                new MethodStr("menu_path", "菜单路径（执行菜单时使用）", true)
+                new MethodStr("menu_path", "菜单路径（执行菜单时使用）")
                     .AddExamples("File/New Scene", "GameObject/Create Empty"),
                 
                 // 根菜单路径
-                new MethodStr("root_path", "根菜单路径（获取菜单项时使用）", true)
+                new MethodStr("root_path", "根菜单路径（获取菜单项时使用）")
                     .AddExamples("File", "GameObject")
                     .SetDefault(""),
                 
                 // 包含子菜单
-                new MethodBool("include_submenus", "包含子菜单（获取菜单项时使用）", true)
+                new MethodBool("include_submenus", "包含子菜单（获取菜单项时使用）")
                     .SetDefault(true),
                 
                 // 验证存在
-                new MethodBool("verify_exists", "验证菜单项是否存在（获取菜单项时使用）", true)
+                new MethodBool("verify_exists", "验证菜单项是否存在（获取菜单项时使用）")
                     .SetDefault(false)
             };
         }

@@ -29,70 +29,61 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // GameObject名称 - 必需
-                new MethodStr("name", "GameObject名称")
+                new MethodStr("name", "GameObject名称", false)
                     .AddExamples("Player", "UI_Button"),
                 
                 // 创建来源类型 - 枚举
-                new MethodStr("source", "操作类型")
-                    .SetEnumValues("menu", "primitive", "prefab", "empty", "copy")
-                    .AddExamples("empty", "primitive"),
+                new MethodStr("source", "模板来源", false)
+                    .SetEnumValues("menu", "primitive", "prefab", "empty", "copy"),
                 
                 // GameObject标签
-                new MethodStr("tag", "GameObject标签", true)
+                new MethodStr("tag", "GameObject标签")
                     .SetEnumValues("Untagged", "Player", "Enemy", "UI", "MainCamera", "EditorOnly")
-                    .AddExamples("Untagged", "Player")
-                    .SetDefault("Untagged"),
+                    .AddExamples("Untagged", "Player"),
                 
                 // GameObject层级
-                new MethodStr("layer", "GameObject所在层", true)
-                    .AddExamples("Default", "UI")
-                    .SetDefault("Default"),
+                new MethodStr("layer", "GameObject所在层")
+                    .AddExamples("Default", "UI"),
                 
                 // 父对象路径
-                new MethodStr("parent", "父对象名称或路径", true)
+                new MethodStr("parent", "父对象名称或路径")
                     .AddExamples("Canvas", "UI/Panel"),
                 
                 // 父对象ID
-                new MethodStr("parent_id", "父对象唯一ID", true)
+                new MethodStr("parent_id", "父对象唯一ID")
                     .AddExample("-1234"),
                 
                 // 位置坐标
-                new MethodVector("position", "位置坐标 [x, y, z]", true)
-                    .SetDefault(new float[] {0, 0, 0}),
+                new MethodVector("position", "位置坐标 [x, y, z]"),
                 
                 // 旋转角度
-                new MethodVector("rotation", "旋转角度 [x, y, z]", true)
-                    .SetDefault(new float[] {0, 0, 0}),
+                new MethodVector("rotation", "旋转角度 [x, y, z]"),
                 
                 // 缩放比例
-                new MethodVector("scale", "缩放比例 [x, y, z]", true)
-                    .SetDefault(new float[] {1, 1, 1}),
+                new MethodVector("scale", "缩放比例 [x, y, z]"),
                 
                 // 基元类型
-                new MethodStr("primitive_type", "基元类型", true)
+                new MethodStr("primitive_type", "基元类型")
                     .SetEnumValues("Cube", "Sphere", "Cylinder", "Capsule", "Plane", "Quad")
-                    .AddExamples("Cube", "Sphere")
-                    .SetDefault("Cube"),
+                    .AddExamples("Cube", "Sphere"),
                 
                 // 预制体路径
-                new MethodStr("prefab_path", "预制体路径", true)
+                new MethodStr("prefab_path", "预制体路径")
                     .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab"),
                 
                 // 菜单路径
-                new MethodStr("menu_path", "菜单路径", true)
+                new MethodStr("menu_path", "菜单路径")
                     .AddExamples("GameObject/3D Object/Cube", "GameObject/UI/Button"),
                 
                 // 复制源对象
-                new MethodStr("copy_source", "要复制的GameObject名称", true)
+                new MethodStr("copy_source", "要复制的GameObject名称")
                     .AddExamples("Player", "Main Camera"),
                 
                 // 保存为预制体
-                new MethodBool("save_as_prefab", "是否保存为预制体", true)
-                    .SetDefault(false),
+                new MethodBool("save_as_prefab", "是否保存为预制体"),
                 
                 // 设置激活状态
-                new MethodBool("set_active", "设置激活状态", true)
-                    .SetDefault(true)
+                new MethodBool("set_active", "设置激活状态")
             };
         }
 

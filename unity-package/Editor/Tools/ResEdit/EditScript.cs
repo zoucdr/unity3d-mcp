@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,38 +26,38 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "read", "modify", "delete", "search", "import")
                     .AddExamples("create", "read"),
                 
                 // 脚本名称
-                new MethodStr("name", "脚本名称")
+                new MethodStr("name", "脚本名称", false)
                     .AddExamples("PlayerController", "GameManager"),
                 
                 // 文件夹路径
-                new MethodStr("folder", "脚本所在文件夹")
+                new MethodStr("folder", "脚本所在文件夹", false)
                     .AddExamples("Assets/Scripts/", "Assets/Scripts/Player/"),
                 
                 // 代码内容
-                new MethodArr("lines", "C#代码内容", true),
+                new MethodArr("lines", "C#代码内容"),
                 
                 // 脚本类型
-                new MethodStr("script_type", "脚本类型", true)
+                new MethodStr("script_type", "脚本类型")
                     .SetEnumValues("MonoBehaviour", "ScriptableObject", "Class", "Interface", "Enum")
                     .AddExample("MonoBehaviour")
                     .SetDefault("MonoBehaviour"),
                 
                 // 命名空间
-                new MethodStr("namespace", "命名空间", true)
+                new MethodStr("namespace", "命名空间")
                     .AddExamples("MyGame", "MyGame.Player")
                     .SetDefault(""),
                 
                 // 查询字符串
-                new MethodStr("query", "查询字符串", true)
+                new MethodStr("query", "查询字符串")
                     .AddExamples("Player", "Controller"),
                 
                 // 源文件路径
-                new MethodStr("source_path", "源文件路径", true)
+                new MethodStr("source_path", "源文件路径")
                     .AddExamples("D:/Scripts/Player.cs", "C:/Code/GameManager.cs")
             };
         }

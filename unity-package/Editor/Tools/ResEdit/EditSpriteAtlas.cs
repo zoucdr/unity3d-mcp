@@ -25,86 +25,86 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "add_sprites", "remove_sprites", "set_settings", "get_settings", "pack"),
                 
                 // 图集路径
-                new MethodStr("atlas_path", "图集资源路径"),
+                new MethodStr("atlas_path", "图集资源路径", false),
                 
                 // 精灵路径
-                new MethodArr("sprite_paths", "精灵路径数组", true),
+                new MethodArr("sprite_paths", "精灵路径数组"),
                 
                 // 文件夹路径
-                new MethodArr("folder_paths", "文件夹路径数组", true),
+                new MethodArr("folder_paths", "文件夹路径数组"),
                 
                 // 包含子文件夹
-                new MethodBool("include_subfolders", "包含子文件夹", true)
+                new MethodBool("include_subfolders", "包含子文件夹")
                     .SetDefault(false),
                 
                 // 筛选模式
-                new MethodStr("filter_pattern", "筛选模式", true)
+                new MethodStr("filter_pattern", "筛选模式")
                     .SetDefault("*.png"),
                 
                 // 图集类型
-                new MethodStr("type", "图集类型", true)
+                new MethodStr("type", "图集类型")
                     .SetEnumValues("Master", "Variant")
                     .SetDefault("Master"),
                 
                 // 主图集路径
-                new MethodStr("master_atlas_path", "主图集路径", true),
+                new MethodStr("master_atlas_path", "主图集路径"),
                 
                 // 允许旋转
-                new MethodBool("allow_rotation", "允许旋转", true)
+                new MethodBool("allow_rotation", "允许旋转")
                     .SetDefault(false),
                 
                 // 紧凑排列
-                new MethodBool("tight_packing", "紧凑排列", true)
+                new MethodBool("tight_packing", "紧凑排列")
                     .SetDefault(false),
                 
                 // 图像间距
-                new MethodInt("padding", "图像间距", true)
+                new MethodInt("padding", "图像间距")
                     .SetRange(0, 32)
                     .SetDefault(4),
                 
                 // 可读
-                new MethodBool("readable", "可读", true)
+                new MethodBool("readable", "可读")
                     .SetDefault(false),
                 
                 // 生成Mip贴图
-                new MethodBool("generate_mip_maps", "生成Mip贴图", true)
+                new MethodBool("generate_mip_maps", "生成Mip贴图")
                     .SetDefault(false),
                 
                 // 过滤模式
-                new MethodStr("filter_mode", "过滤模式", true)
+                new MethodStr("filter_mode", "过滤模式")
                     .SetEnumValues("Point", "Bilinear", "Trilinear")
                     .SetDefault("Bilinear"),
                 
                 // 压缩格式
-                new MethodStr("compression", "压缩格式", true)
+                new MethodStr("compression", "压缩格式")
                     .SetEnumValues("None", "LowQuality", "NormalQuality", "HighQuality")
                     .SetDefault("NormalQuality"),
                 
                 // 平台名称
-                new MethodStr("platform", "平台名称", true)
+                new MethodStr("platform", "平台名称")
                     .SetEnumValues("Android", "iOS", "Standalone", "WebGL"),
                 
                 // 最大纹理尺寸
-                new MethodInt("max_texture_size", "最大纹理尺寸", true)
+                new MethodInt("max_texture_size", "最大纹理尺寸")
                     .SetEnumValues("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192")
                     .SetDefault(2048),
                 
                 // 纹理格式
-                new MethodStr("format", "纹理格式", true)
+                new MethodStr("format", "纹理格式")
                     .SetEnumValues("Automatic", "RGBA32", "RGB24", "ASTC_4x4", "ASTC_6x6", "ASTC_8x8", "ETC2_RGBA8")
                     .SetDefault("Automatic"),
                 
                 // 压缩质量
-                new MethodInt("compression_quality", "压缩质量", true)
+                new MethodInt("compression_quality", "压缩质量")
                     .SetRange(0, 100)
                     .SetDefault(50),
                 
                 // 覆盖平台设置
-                new MethodBool("override_for_platform", "覆盖平台设置", true)
+                new MethodBool("override_for_platform", "覆盖平台设置")
                     .SetDefault(false)
             };
         }

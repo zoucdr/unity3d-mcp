@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,57 +25,46 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型")
-                    .SetEnumValues("create", "modify", "optimize", "generate_primitive", "subdivide", "smooth", "export", "import")
-                    .AddExamples("create", "optimize"),
+                new MethodStr("action", "操作类型", false)
+                    .SetEnumValues("create", "modify", "optimize", "generate_primitive", "subdivide", "smooth", "export", "import"),
                 
                 // 网格路径
-                new MethodStr("path", "网格资产路径")
+                new MethodStr("path", "网格资产路径", false)
                     .AddExamples("Assets/Meshes/CustomMesh.asset", "Assets/Models/Terrain.asset"),
                 
                 // 网格类型
-                new MethodStr("mesh_type", "网格类型", true)
-                    .SetEnumValues("cube", "sphere", "cylinder", "plane", "custom")
-                    .AddExample("cube")
-                    .SetDefault("cube"),
+                new MethodStr("mesh_type", "网格类型")
+                    .SetEnumValues("cube", "sphere", "cylinder", "plane", "custom"),
                 
                 // 网格属性
-                new MethodObj("properties", "网格属性", true),
+                new MethodObj("properties", "网格属性"),
                 
                 // 源路径
-                new MethodStr("source_path", "源网格路径", true)
+                new MethodStr("source_path", "源网格路径")
                     .AddExamples("Assets/Meshes/Original.asset", "D:/Models/mesh.obj"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径", true)
+                new MethodStr("destination", "目标路径")
                     .AddExamples("Assets/Exports/", "D:/Exports/"),
                 
                 // 细分级别
-                new MethodInt("subdivision_level", "细分级别", true)
-                    .SetRange(0, 5)
-                    .AddExample("1")
-                    .SetDefault(1),
+                new MethodInt("subdivision_level", "细分级别")
+                    .SetRange(0, 5),
                 
                 // 平滑因子
-                new MethodFloat("smooth_factor", "平滑因子", true)
-                    .SetRange(0f, 1f)
-                    .AddExample("0.5")
-                    .SetDefault(0.5f),
+                new MethodFloat("smooth_factor", "平滑因子")
+                    .SetRange(0f, 1f),
                 
                 // 优化级别
-                new MethodStr("optimization_level", "优化级别", true)
-                    .SetEnumValues("low", "medium", "high")
-                    .AddExample("medium")
-                    .SetDefault("medium"),
+                new MethodStr("optimization_level", "优化级别")
+                    .SetEnumValues("low", "medium", "high"),
                 
                 // 导出格式
-                new MethodStr("export_format", "导出格式", true)
-                    .SetEnumValues("obj", "fbx", "stl", "ply")
-                    .AddExample("obj")
-                    .SetDefault("obj"),
+                new MethodStr("export_format", "导出格式")
+                    .SetEnumValues("obj", "fbx", "stl", "ply"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行", true)
+                new MethodBool("force", "强制执行")
                     .SetDefault(false)
             };
         }

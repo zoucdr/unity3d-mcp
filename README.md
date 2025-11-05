@@ -438,8 +438,7 @@ public class ToolClass : StateMethodBase
 **Cursor配置** (`~/.cursor/mcp.json`)：
 **Claude配置** (`~/AppData/Roaming/Claude/claude_desktop_config.json`)：
 **VS配置** (`~/.vs/mcp.json`)：  
-**Trae配置** (`~/.trae/mcp.json`)：  
-```
+**Trae配置** (`~/.trae/mcp.json`)
 
 #### Unity编辑器配置
 

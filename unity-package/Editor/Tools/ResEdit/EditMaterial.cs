@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,22 +24,22 @@ namespace Unity.Mcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 枚举字符串
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", "操作类型", false)
                     .SetEnumValues("create", "set_properties", "duplicate", "delete", "get_info", "search", "copy_properties", "change_shader", "enable_keyword", "disable_keyword")
-                    .AddExamples("create", "set_properties", "get_info"),
+                    .SetDefault("get_info"),
                 
                 // 材质路径 - 必需参数
-                new MethodStr("path", "材质资源路径，Unity标准格式")
+                new MethodStr("path", "材质资源路径，Unity标准格式", false)
                     .AddExamples("Assets/Materials/MyMaterial.mat", "Assets/Materials/UI/ButtonMaterial.mat")
                     .SetDefault("Assets/Materials/NewMaterial.mat"),
                 
                 // 着色器名称 - 可选参数
-                new MethodStr("shader_name", "着色器名称或路径", true)
+                new MethodStr("shader_name", "着色器名称或路径")
                     .AddExamples("Standard", "Universal Render Pipeline/Lit", "Unlit/Color", "Assets/Shaders/CustomShader.shader")
                     .SetDefault("Standard"),
                 
                 // 材质属性 - 对象类型
-                new MethodObj("properties", "材质属性字典，包含颜色、纹理、浮点数等属性", true)
+                new MethodObj("properties", "材质属性字典，包含颜色、纹理、浮点数等属性")
                     .AddProperty("_Color", "array")
                     .AddProperty("_MainTex", "string")
                     .AddProperty("_Metallic", "number")
@@ -48,28 +48,28 @@ namespace Unity.Mcp.Tools
                     .AddExample("{\"_MainTex\": \"Assets/Textures/Diffuse.png\", \"_BumpMap\": \"Assets/Textures/Normal.png\"}"),
                 
                 // 源路径 - 用于复制操作
-                new MethodStr("source_path", "源材质路径（复制属性时使用）", true)
+                new MethodStr("source_path", "源材质路径（复制属性时使用）")
                     .AddExamples("Assets/Materials/SourceMaterial.mat", "Assets/Materials/Templates/BaseMaterial.mat"),
                 
                 // 目标路径 - 用于复制/移动操作
-                new MethodStr("destination", "目标路径（复制/移动时使用）", true)
+                new MethodStr("destination", "目标路径（复制/移动时使用）")
                     .AddExamples("Assets/Materials/CopiedMaterial.mat", "Assets/Materials/Backup/MaterialCopy.mat"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式，支持通配符", true)
+                new MethodStr("query", "搜索模式，支持通配符")
                     .AddExamples("*.mat", "*UI*", "Button*", "Material_*")
                     .SetDefault("*.mat"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "是否递归搜索子文件夹", true)
+                new MethodBool("recursive", "是否递归搜索子文件夹")
                     .SetDefault(true),
                 
                 // 强制执行
-                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）", true)
+                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）")
                     .SetDefault(false),
                 
                 // 渲染队列
-                new MethodInt("render_queue", "渲染队列值，控制渲染顺序", true)
+                new MethodInt("render_queue", "渲染队列值，控制渲染顺序")
                     .SetRange(1000, 5000)
                     .AddExample(2000) // Geometry
                     .AddExample(2450) // AlphaTest
@@ -77,15 +77,15 @@ namespace Unity.Mcp.Tools
                     .SetDefault(2000),
                 
                 // GPU实例化
-                new MethodBool("enable_instancing", "是否启用GPU实例化", true)
+                new MethodBool("enable_instancing", "是否启用GPU实例化")
                     .SetDefault(false),
                 
                 // 双面全局光照
-                new MethodBool("double_sided_global_illumination", "是否启用双面全局光照", true)
+                new MethodBool("double_sided_global_illumination", "是否启用双面全局光照")
                     .SetDefault(false),
                 
                 // 关键字 - 用于启用/禁用着色器关键字
-                new MethodStr("keyword", "着色器关键字名称", true)
+                new MethodStr("keyword", "着色器关键字名称")
                     .AddExamples("_NORMALMAP", "_EMISSION", "_METALLICGLOSSMAP", "_ALPHATEST_ON")
             };
         }

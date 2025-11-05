@@ -15,7 +15,7 @@ namespace Unity.Mcp
         public List<string> EnumValues;
         public object DefaultValue;
 
-        public MethodKey(string key, string desc, bool optional = false, string type = "string")
+        public MethodKey(string key, string desc, bool optional = true, string type = "string")
         {
             Key = key;
             Desc = desc;
@@ -89,7 +89,7 @@ namespace Unity.Mcp
     /// </summary>
     public class MethodStr : MethodKey
     {
-        public MethodStr(string key, string desc, bool optional = false)
+        public MethodStr(string key, string desc, bool optional = true)
             : base(key, desc, optional, "string")
         {
         }
@@ -123,7 +123,7 @@ namespace Unity.Mcp
     /// </summary>
     public class MethodInt : MethodKey
     {
-        public MethodInt(string key, string desc, bool optional = false)
+        public MethodInt(string key, string desc, bool optional = true)
             : base(key, desc, optional, "integer")
         {
         }
@@ -170,7 +170,7 @@ namespace Unity.Mcp
     /// </summary>
     public class MethodFloat : MethodKey
     {
-        public MethodFloat(string key, string desc, bool optional = false)
+        public MethodFloat(string key, string desc, bool optional = true)
             : base(key, desc, optional, "number")
         {
         }
@@ -217,7 +217,7 @@ namespace Unity.Mcp
     /// </summary>
     public class MethodBool : MethodKey
     {
-        public MethodBool(string key, string desc, bool optional = false)
+        public MethodBool(string key, string desc, bool optional = true)
             : base(key, desc, optional, "boolean")
         {
             Examples.Add("true");
@@ -241,7 +241,7 @@ namespace Unity.Mcp
     {
         public string ItemType { get; set; }
 
-        public MethodArr(string key, string desc, bool optional = false, string itemType = "string")
+        public MethodArr(string key, string desc, bool optional = true, string itemType = "string")
             : base(key, desc, optional, "array")
         {
             ItemType = itemType;
@@ -283,7 +283,7 @@ namespace Unity.Mcp
         public Dictionary<string, string> Properties { get; set; }
         public Dictionary<string, string> ArrayItemTypes { get; set; }
 
-        public MethodObj(string key, string desc, bool optional = false)
+        public MethodObj(string key, string desc, bool optional = true)
             : base(key, desc, optional, "object")
         {
             Properties = new Dictionary<string, string>();
@@ -354,7 +354,7 @@ namespace Unity.Mcp
     {
         public int Dimension { get; set; }
 
-        public MethodVector(string key, string desc, bool optional = false, int dimension = 3)
+        public MethodVector(string key, string desc, bool optional = true, int dimension = 3)
             : base(key, desc, optional, "array")
         {
             Dimension = dimension;
@@ -397,7 +397,7 @@ namespace Unity.Mcp
     /// </summary>
     public class MethodColor : MethodKey
     {
-        public MethodColor(string key, string desc, bool optional = false)
+        public MethodColor(string key, string desc, bool optional = true)
             : base(key, desc, optional, "array")
         {
             Examples.Add("[1.0, 0.0, 0.0, 1.0]");
