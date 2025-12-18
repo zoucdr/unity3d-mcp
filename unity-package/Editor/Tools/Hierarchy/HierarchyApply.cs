@@ -19,6 +19,8 @@ namespace UniMcp.Tools
     [ToolName("hierarchy_apply", "层级管理")]
     public class HierarchyApply : StateMethodBase
     {
+        public override string Description => "层级应用工具，用于处理游戏对象预制体的应用和连接操作";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -28,8 +30,7 @@ namespace UniMcp.Tools
             {
                 // 操作类型 - 固定为apply
                 new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("apply")
-                    .AddExample("apply"),
+                    .SetEnumValues("apply"),
                 
                 // 目标对象标识符
                 new MethodStr("target_object", "目标GameObject层级路径（用于应用操作）", false)
@@ -41,8 +42,7 @@ namespace UniMcp.Tools
                 
                 // 应用类型
                 new MethodStr("apply_type", "链接类型")
-                    .SetEnumValues("connect_to_prefab", "apply_prefab_changes", "break_prefab_connection")
-                    .AddExamples("connect_to_prefab", "apply_prefab_changes"),
+                    .SetEnumValues("connect_to_prefab", "apply_prefab_changes", "break_prefab_connection"),
                 
                 // 强制应用
                 new MethodBool("force_apply", "是否强制创建链接（覆盖现有连接）")

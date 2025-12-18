@@ -19,6 +19,8 @@ namespace UniMcp.Tools
     [ToolName("console_read", "开发工具")]
     public class ConsoleRead : StateMethodBase
     {
+        public override string Description => "控制台读取工具，用于读取和清除Unity Editor控制台的日志条目";
+
         // 注意：实际的控制台操作功能已移至 ConsoleController
 
         /// <summary>
@@ -38,8 +40,7 @@ namespace UniMcp.Tools
                 
                 // 最大返回消息数
                 new MethodInt("count", "最大返回消息数，不设置则获取全部")
-                    .SetRange(1, 1000)
-                    .AddExample("50"),
+                    .SetRange(1, 1000),
                 
                 // 文本过滤器
                 new MethodStr("filterText", "文本过滤器，过滤包含指定文本的日志")

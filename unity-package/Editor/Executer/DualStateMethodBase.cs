@@ -30,6 +30,11 @@ namespace UniMcp
         private MethodKey[] _keys;
 
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public abstract string Description {get;}
+
+        /// <summary>
         /// 当前方法支持的参数键列表，用于API文档生成和参数验证。
         /// 子类必须实现此属性，定义该方法接受的所有可能参数键。
         /// </summary>

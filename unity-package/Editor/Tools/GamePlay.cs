@@ -19,6 +19,8 @@ namespace UniMcp.Tools
     [ToolName("gameplay", "游戏控制")]
     public class GamePlay : StateMethodBase
     {
+        public override string Description => "游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理等功能";
+
         // Game窗口相关的反射类型和方法
         private static Type gameViewType;
         private static MethodInfo repaintMethod;

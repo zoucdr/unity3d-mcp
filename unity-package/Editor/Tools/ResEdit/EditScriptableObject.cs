@@ -14,9 +14,11 @@ namespace UniMcp.Tools
     /// Handles Unity ScriptableObject asset management operations including create, modify, duplicate, etc.
     /// 对应方法名: manage_scriptableobject
     /// </summary>
-    [ToolName("edit_scriptableobject", "资源管理")]
+    [ToolName("edit_scriptable_object", "资源管理")]
     public class EditScriptableObject : StateMethodBase
     {
+        public override string Description => "ScriptableObject编辑工具，用于修改和管理ScriptableObject资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

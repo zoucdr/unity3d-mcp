@@ -15,6 +15,8 @@ namespace UniMcp.Tools
     [ToolName("project_search", "项目管理")]
     public class ProjectSearch : StateMethodBase
     {
+        public override string Description => "项目资源搜索工具，支持按类型和关键词搜索项目中的资源文件";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

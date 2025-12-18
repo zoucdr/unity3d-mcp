@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +20,8 @@ namespace UniMcp.Tools
     [ToolName("hierarchy_search", "层级管理")]
     public class HierarchySearch : StateMethodBase
     {
+        public override string Description => "层级搜索工具，支持在场景层级中搜索和查找游戏对象";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -29,8 +31,7 @@ namespace UniMcp.Tools
             {
                 // 搜索方法 - 枚举
                 new MethodStr("search_type", "搜索方法", false)
-                    .SetEnumValues("by_name", "by_id", "by_tag", "by_layer", "by_component", "by_query")
-                    .AddExamples("by_name", "by_tag"),
+                    .SetEnumValues("by_name", "by_id", "by_tag", "by_layer", "by_component", "by_query"),
                 
                 // 搜索条件
                 new MethodStr("query", "搜索条件（可以是ID、名称或路径，支持通配符*）", false)

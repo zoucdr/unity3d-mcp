@@ -18,6 +18,11 @@ namespace UniMcp.Tools
     public class TagLayer : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "标签和图层管理工具，用于处理Unity项目中的标签和图层操作，支持添加、删除和获取标签，添加、删除和获取图层等功能";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

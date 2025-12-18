@@ -16,6 +16,8 @@ namespace UniMcp.Tools
     [ToolName("edit_particle_system", "资源管理")]
     public class EditParticleSystem : DualStateMethodBase
     {
+        public override string Description => "粒子系统编辑工具，用于修改和管理粒子系统资源属性";
+
         private IObjectSelector objectSelector;
 
         /// <summary>

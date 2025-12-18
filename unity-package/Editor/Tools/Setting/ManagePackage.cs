@@ -18,6 +18,8 @@ namespace UniMcp.Tools
     [ToolName("manage_package", "系统管理")]
     public class Package : StateMethodBase
     {
+        public override string Description => "Unity包管理器工具，支持添加、删除、列表和搜索包等操作";
+
         // Results storage for async operations
         private object operationResult;
 

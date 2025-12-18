@@ -16,6 +16,11 @@ namespace UniMcp.Tools.Storage
     public class SourceLocation : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "资源和文件夹位置操作工具，支持在资源管理器中显示文件、打开文件夹、定位资源、选择资源和获取资源路径等功能";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

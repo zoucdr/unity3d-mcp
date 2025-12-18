@@ -10,6 +10,13 @@ namespace UniMcp
     /// </summary>
     public interface IToolMethod
     {
+        /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        string Description { get; }
+        /// <summary>
+        /// 工具方法的键值，用于在状态树中引用
+        /// </summary>
         MethodKey[] Keys { get; }
         /// <summary>
         /// 执行工具方法（同步版本，保持向后兼容）

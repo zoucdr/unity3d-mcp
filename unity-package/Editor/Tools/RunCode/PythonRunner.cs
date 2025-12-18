@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +19,8 @@ namespace UniMcp.Tools
     [ToolName("python_runner", "开发工具")]
     public class PythonRunner : StateMethodBase
     {
+        public override string Description => "Python脚本执行工具，支持验证和运行Python代码，处理脚本输出和错误信息";
+
         // Python execution tracking
         private class PythonOperation
         {

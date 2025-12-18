@@ -16,6 +16,8 @@ namespace UniMcp.Tools
     [ToolName("console_write", "开发工具")]
     public class ConsoleWrite : StateMethodBase
     {
+        public override string Description => "控制台写入工具，用于向Unity Editor控制台输出不同类型的日志消息";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

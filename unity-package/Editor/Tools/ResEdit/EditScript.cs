@@ -18,6 +18,8 @@ namespace UniMcp.Tools
     [ToolName("edit_script", "资源管理")]
     public class EditScript : StateMethodBase
     {
+        public override string Description => "脚本编辑工具，用于修改和管理脚本资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

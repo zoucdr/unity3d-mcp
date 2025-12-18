@@ -15,6 +15,8 @@ namespace UniMcp.Tools
     [ToolName("edit_terrain", "资源管理")]
     public class EditTerrain : StateMethodBase
     {
+        public override string Description => "地形编辑工具，用于修改和管理地形资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

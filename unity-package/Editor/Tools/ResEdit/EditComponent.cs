@@ -18,6 +18,8 @@ namespace UniMcp.Tools
     [ToolName("edit_component", "资源管理")]
     public class EditComponent : DualStateMethodBase
     {
+        public override string Description => "组件编辑工具，用于修改和管理游戏对象组件属性";
+
         /// <summary>
         /// 目标查找
         /// </summary>

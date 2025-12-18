@@ -16,6 +16,8 @@ namespace UniMcp.Tools
     [ToolName("edit_prefab", "资源管理")]
     public class EditPrefab : StateMethodBase
     {
+        public override string Description => "预制体编辑工具，用于修改和管理预制体资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

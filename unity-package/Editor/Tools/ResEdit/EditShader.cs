@@ -17,6 +17,8 @@ namespace UniMcp.Tools
     [ToolName("edit_shader", "资源管理")]
     public class EditShader : StateMethodBase
     {
+        public override string Description => "着色器编辑工具，用于修改和管理着色器资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

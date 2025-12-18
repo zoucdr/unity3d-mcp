@@ -23,6 +23,8 @@ namespace UniMcp.Tools
     [ToolName("code_runner", "开发工具")]
     public class CodeRunner : StateMethodBase
     {
+        public override string Description => "C#代码执行工具，支持编译和运行任意C#方法，处理代码执行结果和错误信息";
+
         // Code execution tracking
         private class CodeOperation
         {

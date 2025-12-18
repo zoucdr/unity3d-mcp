@@ -22,6 +22,8 @@ namespace UniMcp.Tools
     [ToolName("object_delete", "资源管理")]
     public class ObjectDelete : DualStateMethodBase
     {
+        public override string Description => "对象删除工具，用于处理Unity对象（GameObject、资源等）的删除操作，支持交互式确认";
+        
         private IObjectSelector objectSelector;
 
         public ObjectDelete()

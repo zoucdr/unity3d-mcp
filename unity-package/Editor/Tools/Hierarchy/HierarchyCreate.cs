@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
@@ -21,6 +21,8 @@ namespace UniMcp.Tools
     [ToolName("hierarchy_create", "层级管理")]
     public class HierarchyCreate : StateMethodBase
     {
+        public override string Description => "层级创建工具，支持在场景层级中创建各种类型的游戏对象";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -38,8 +40,7 @@ namespace UniMcp.Tools
                 
                 // GameObject标签
                 new MethodStr("tag", "GameObject标签")
-                    .SetEnumValues("Untagged", "Player", "Enemy", "UI", "MainCamera", "EditorOnly")
-                    .AddExamples("Untagged", "Player"),
+                    .SetEnumValues("Untagged", "Player", "Enemy", "UI", "MainCamera", "EditorOnly"),
                 
                 // GameObject层级
                 new MethodStr("layer", "GameObject所在层")
@@ -64,8 +65,7 @@ namespace UniMcp.Tools
                 
                 // 基元类型
                 new MethodStr("primitive_type", "基元类型")
-                    .SetEnumValues("Cube", "Sphere", "Cylinder", "Capsule", "Plane", "Quad")
-                    .AddExamples("Cube", "Sphere"),
+                    .SetEnumValues("Cube", "Sphere", "Cylinder", "Capsule", "Plane", "Quad"),
                 
                 // 预制体路径
                 new MethodStr("prefab_path", "预制体路径")

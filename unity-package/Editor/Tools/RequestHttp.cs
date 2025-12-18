@@ -20,6 +20,8 @@ namespace UniMcp.Tools
     [ToolName("request_http", "网络功能")]
     public class RequestHttp : StateMethodBase
     {
+        public override string Description => "HTTP请求工具，用于处理网络操作，包括HTTP请求、文件下载、上传和API调用等功能";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

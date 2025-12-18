@@ -18,6 +18,11 @@ namespace UniMcp.Tools
     public class UIRuleManage : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "UI规则管理工具，负责管理UI制作方案和修改记录，支持记录修改、记录重命名、下载精灵等操作";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

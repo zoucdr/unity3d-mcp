@@ -15,7 +15,7 @@ data:	data:text/plain;base64,SGVsbG8=	✅ 内联数据
 vscode:// / cursor://	编辑器内部资源引用	✅ 仅本地
 s3://, gs://, azure://	云对象存储	取决于配置
     */
-    public string Url => $"file://{System.Environment.CurrentDirectory}/Assets/Extends/CustomResources/ProjectTree.yaml".Replace("\\", "/");;
+    public string Url => $"file://{System.Environment.CurrentDirectory}/Assets/Extends/CustomResources/ProjectTree.yaml".Replace("\\", "/");
     public string Name => "project_tree";
     public string Description => "工程文件夹树型结构";
     public string MimeType => "application/yaml";

@@ -16,6 +16,8 @@ namespace UniMcp.Tools
     [ToolName("edit_material", "资源管理")]
     public class EditMaterial : StateMethodBase
     {
+        public override string Description => "材质编辑工具，用于修改和管理材质资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

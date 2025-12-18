@@ -15,6 +15,8 @@ namespace UniMcp.Tools
     [ToolName("edit_texture", "资源管理")]
     public class EditTexture : StateMethodBase
     {
+        public override string Description => "纹理编辑工具，用于修改和管理纹理导入设置和属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

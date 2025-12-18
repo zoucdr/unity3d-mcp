@@ -15,6 +15,11 @@ namespace UniMcp.Tools.Storage
     public class Prefers : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "偏好设置管理工具，用于处理EditorPrefs和PlayerPrefs的存储、检索、删除等操作";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

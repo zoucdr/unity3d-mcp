@@ -17,6 +17,8 @@ namespace UniMcp.Tools
     [ToolName("base_editor", "系统管理")]
     public class BaseEditor : StateMethodBase
     {
+        public override string Description => "Unity编辑器状态管理工具，用于获取编辑器状态、窗口信息、选择对象和执行菜单命令等功能";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

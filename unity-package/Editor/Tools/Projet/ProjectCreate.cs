@@ -19,6 +19,8 @@ namespace UniMcp.Tools
     [ToolName("project_create", "项目管理")]
     public class ProjectCreate : StateMethodBase
     {
+        public override string Description => "项目资源创建工具，支持在项目窗口中创建各种类型的资源文件";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

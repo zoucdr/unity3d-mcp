@@ -18,6 +18,8 @@ namespace UniMcp.Tools
     [ToolName("project_operate", "项目管理")]
     public class ProjectOperate : StateMethodBase
     {
+        public override string Description => "项目资源操作工具，支持导入、修改、移动、复制、重命名等资源管理操作";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

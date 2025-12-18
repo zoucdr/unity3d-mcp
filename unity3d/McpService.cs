@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -852,7 +852,7 @@ namespace UniMcp
             var toolInfo = new ToolInfo
             {
                 name = toolName,
-                description = toolInstance.Description ?? $"Unity工具: {toolName}"
+                description = !string.IsNullOrEmpty(toolInstance.Description) ? toolInstance.Description : $"Unity工具: {toolName}"
             };
 
             // 从Keys属性构建输入模式

@@ -10,6 +10,7 @@ namespace UniMcp.Tools
     [ToolName("cmd_tool", "系统工具")]
     public class CMCmdTool : StateMethodBase
     {
+        override public string Description => "执行系统CMD命令";
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

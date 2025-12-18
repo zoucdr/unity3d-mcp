@@ -20,6 +20,11 @@ namespace UniMcp.Tools
     public class GameView : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "游戏视图管理和控制工具，支持设置分辨率、获取统计信息、设置垂直同步、设置目标帧率、截图等操作";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
@@ -32,13 +37,11 @@ namespace UniMcp.Tools
                 
                 // 窗口宽度
                 new MethodInt("width", "窗口宽度")
-                    .SetRange(320, 3840)
-                    .AddExample("1920"),
+                    .SetRange(320, 3840),
                 
                 // 窗口高度
                 new MethodInt("height", "窗口高度")
-                    .SetRange(240, 2160)
-                    .AddExample("1080"),
+                    .SetRange(240, 2160),
                 
                 // 垂直同步
                 new MethodInt("vsync_count", "垂直同步")

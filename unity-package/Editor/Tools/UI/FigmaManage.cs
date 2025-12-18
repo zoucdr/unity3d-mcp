@@ -17,6 +17,11 @@ namespace UniMcp.Tools
         private const string FIGMA_API_BASE = "https://api.figma.com/v1";
 
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "Figma管理工具，用于处理Figma文档获取、图片下载、预览和转换规则获取等操作";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

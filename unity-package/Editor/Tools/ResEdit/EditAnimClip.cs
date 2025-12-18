@@ -16,6 +16,8 @@ namespace UniMcp.Tools
     [ToolName("edit_anim_clip", "资源管理")]
     public class EditAnimClip : StateMethodBase
     {
+        public override string Description => "动画剪辑编辑工具，用于修改和管理动画剪辑资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

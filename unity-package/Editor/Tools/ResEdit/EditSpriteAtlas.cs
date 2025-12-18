@@ -17,6 +17,8 @@ namespace UniMcp.Tools
     [ToolName("edit_sprite_atlas", "资源管理")]
     public class EditSpriteAtlas : StateMethodBase
     {
+        public override string Description => "精灵图集编辑工具，用于修改和管理精灵图集资源属性";
+
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>

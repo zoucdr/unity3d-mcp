@@ -22,6 +22,8 @@ namespace UniMcp.Tools
     [ToolName("edit_gameobject", "资源管理")]
     public class EditGameObject : DualStateMethodBase
     {
+        public override string Description => "游戏对象编辑工具，用于修改和管理游戏对象属性";
+
         private HierarchyCreate hierarchyCreate;
         private IObjectSelector objectSelector;
 

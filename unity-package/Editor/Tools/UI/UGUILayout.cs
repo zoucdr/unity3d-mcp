@@ -41,6 +41,11 @@ namespace UniMcp.Tools
     public class UGUILayout : DualStateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "UGUI布局管理工具，用于处理RectTransform的修改操作，支持执行布局修改、获取布局属性、设置锚点预设等功能";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()

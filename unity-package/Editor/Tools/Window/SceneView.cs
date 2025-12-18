@@ -17,6 +17,11 @@ namespace UniMcp.Tools
     public class SceneView : StateMethodBase
     {
         /// <summary>
+        /// 工具方法的描述，用于在状态树中引用
+        /// </summary>
+        public override string Description => "场景视图管理和控制工具，支持获取信息、聚焦、最大化、截图、设置轴心等操作";
+
+        /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
         protected override MethodKey[] CreateKeys()
@@ -25,8 +30,7 @@ namespace UniMcp.Tools
             {
                 // 操作类型
                 new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("get_info", "focus", "maximize", "screenshot", "set_pivot", "set_rotation", "set_2d_mode", "align_with_view", "frame_selected")
-                    .AddExamples("get_info", "screenshot"),
+                    .SetEnumValues("get_info", "focus", "maximize", "screenshot", "set_pivot", "set_rotation", "set_2d_mode", "align_with_view", "frame_selected"),
                 
                 // 截图保存路径
                 new MethodStr("save_path", "截图保存路径")
@@ -47,7 +51,6 @@ namespace UniMcp.Tools
                 // 对齐视图方向
                 new MethodStr("align_view", "对齐视图方向")
                     .SetEnumValues("top", "bottom", "left", "right", "front", "back")
-                    .AddExamples("top", "front")
             };
         }
 
