@@ -7,9 +7,9 @@ namespace UniMcp
 {
     /// <summary>
     /// MCP本地设置管理器，用于管理MCP相关的本地配置和偏好设置
-    /// 保存到Library/McpLocalSettings.asset，不会被版本控制系统跟踪
+    /// 保存到UserSettings/McpLocalSettings.asset，不会被版本控制系统跟踪   
     /// </summary>
-    [FilePath("Library/McpLocalSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+    [FilePath("UserSettings/McpLocalSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpLocalSettings : ScriptableSingleton<McpLocalSettings>
     {
         [SerializeField]
