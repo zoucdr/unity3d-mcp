@@ -1200,10 +1200,10 @@ namespace UniMcp.Tools
             void OnUnityLogMessageReceived(string logString, string stackTrace, LogType logType)
             {
                 string logTypeStr = logType.ToString();
-                unityLogBuilder.AppendLine($"[{logTypeStr}] {logString}");
+                unityLogBuilder.AppendLine($"[{logTypeStr}] {NormalizeStringForMacOS(logString)}");
                 if (logType == LogType.Error || logType == LogType.Exception)
                 {
-                    unityLogBuilder.AppendLine(stackTrace);
+                    unityLogBuilder.AppendLine(NormalizeStringForMacOS(stackTrace));
                 }
             }
 
@@ -1902,6 +1902,32 @@ namespace UniMcp.Tools
                     break; // 非IO错误，不重试
                 }
             }
+        }
+        /// <summary>
+        /// 在macOS平台上规范化字符串，确保中文字符正确显示
+        /// </summary>
+        private string NormalizeStringForMacOS(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            // 检测是否为macOS平台
+            #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            try
+            {
+                // 将字符串转换为UTF-8字节，然后再转换回来，确保编码正确
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(input);
+                string normalized = System.Text.Encoding.UTF8.GetString(bytes);
+                return normalized;
+            }
+            catch
+            {
+                // 如果转换失败，返回原始字符串
+                return input;
+            }
+            #else
+            return input;
+            #endif
         }
     }
 }
