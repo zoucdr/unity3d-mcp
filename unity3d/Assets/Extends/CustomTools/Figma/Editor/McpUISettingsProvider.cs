@@ -40,8 +40,12 @@ namespace UniMcp.Gui
         private static void DrawMcpUISettings()
         {
             var settings = McpSettings.Instance;
-            if (settings.uiSettings == null)
-                settings.uiSettings = new McpUISettings();
+            var uiSettings = settings.GetSubSettings<McpUISettings>("McpUISettings");
+            if (uiSettings == null)
+            {
+                uiSettings = new McpUISettings();
+                settings.AddSubSettings(uiSettings);
+            }
 
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
@@ -57,14 +61,14 @@ namespace UniMcp.Gui
             // UI类型选择器
             EditorGUILayout.LabelField("UI类型选择", EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
-            var newUIType = (UIType)EditorGUILayout.EnumPopup("当前UI类型", settings.uiSettings.selectedUIType);
+            var newUIType = (UIType)EditorGUILayout.EnumPopup("当前UI类型", uiSettings.selectedUIType);
             if (EditorGUI.EndChangeCheck())
             {
                 // 保存当前数据
-                settings.uiSettings.SerializeUITypeData();
+                uiSettings.SerializeUITypeData();
 
                 // 切换UI类型
-                settings.uiSettings.selectedUIType = newUIType;
+                uiSettings.selectedUIType = newUIType;
                 currentUIType = newUIType;
 
                 // 重置列表以刷新显示
@@ -77,13 +81,13 @@ namespace UniMcp.Gui
                 settings.SaveSettings();
             }
 
-            EditorGUILayout.HelpBox($"当前选择: {settings.uiSettings.selectedUIType} - 每种UI类型都有独立的构建步骤和环境配置", MessageType.Info);
+            EditorGUILayout.HelpBox($"当前选择: {uiSettings.selectedUIType} - 每种UI类型都有独立的构建步骤和环境配置", MessageType.Info);
             EditorGUILayout.Space(10);
 
             // 初始化ReorderableList
             if (buildStepsList == null)
             {
-                buildStepsList = new ReorderableList(settings.uiSettings.ui_build_steps, typeof(string), true, true, true, true);
+                buildStepsList = new ReorderableList(uiSettings.ui_build_steps, typeof(string), true, true, true, true);
                 buildStepsList.drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "");
@@ -94,7 +98,7 @@ namespace UniMcp.Gui
                     {
                         if (EditorUtility.DisplayDialog("确认写入", "确定要将当前UI构建步骤写入到代码中作为默认值吗？", "确定", "取消"))
                         {
-                            WriteDefaultBuildStepsToCode(settings.uiSettings.ui_build_steps);
+                            WriteDefaultBuildStepsToCode(uiSettings.ui_build_steps);
                         }
                     }
 
@@ -102,26 +106,26 @@ namespace UniMcp.Gui
                     Rect resetButtonRect = new Rect(rect.width - 60, rect.y, 60, rect.height);
                     if (GUI.Button(resetButtonRect, "重置"))
                     {
-                        if (EditorUtility.DisplayDialog("确认重置", $"确定要重置{settings.uiSettings.selectedUIType}的UI构建步骤为默认值吗？", "确定", "取消"))
+                        if (EditorUtility.DisplayDialog("确认重置", $"确定要重置{uiSettings.selectedUIType}的UI构建步骤为默认值吗？", "确定", "取消"))
                         {
-                            settings.uiSettings.ui_build_steps = McpUISettings.GetDefaultBuildSteps(settings.uiSettings.selectedUIType);
+                            uiSettings.ui_build_steps = McpUISettings.GetDefaultBuildSteps(uiSettings.selectedUIType);
                             settings.SaveSettings();
                         }
                     }
                 };
                 buildStepsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
-                    settings.uiSettings.ui_build_steps[index] = EditorGUI.TextField(rect, settings.uiSettings.ui_build_steps[index]);
+                    uiSettings.ui_build_steps[index] = EditorGUI.TextField(rect, uiSettings.ui_build_steps[index]);
                 };
                 buildStepsList.onAddCallback = (ReorderableList list) =>
                 {
-                    settings.uiSettings.ui_build_steps.Add("新步骤？");
+                    uiSettings.ui_build_steps.Add("新步骤？");
                 };
             }
 
             if (preferredComponentsList == null)
             {
-                preferredComponentsList = new ReorderableList(settings.uiSettings.ui_build_enviroments, typeof(string), true, true, true, true);
+                preferredComponentsList = new ReorderableList(uiSettings.ui_build_enviroments, typeof(string), true, true, true, true);
                 preferredComponentsList.drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "");
@@ -132,7 +136,7 @@ namespace UniMcp.Gui
                     {
                         if (EditorUtility.DisplayDialog("确认写入", "确定要将当前UI环境说明写入到代码中作为默认值吗？", "确定", "取消"))
                         {
-                            WriteDefaultBuildEnvironmentsToCode(settings.uiSettings.ui_build_enviroments);
+                            WriteDefaultBuildEnvironmentsToCode(uiSettings.ui_build_enviroments);
                         }
                     }
 
@@ -140,40 +144,40 @@ namespace UniMcp.Gui
                     Rect resetButtonRect = new Rect(rect.width - 60, rect.y, 60, rect.height);
                     if (GUI.Button(resetButtonRect, "重置"))
                     {
-                        if (EditorUtility.DisplayDialog("确认重置", $"确定要重置{settings.uiSettings.selectedUIType}的UI环境说明为默认值吗？", "确定", "取消"))
+                        if (EditorUtility.DisplayDialog("确认重置", $"确定要重置{uiSettings.selectedUIType}的UI环境说明为默认值吗？", "确定", "取消"))
                         {
-                            settings.uiSettings.ui_build_enviroments = McpUISettings.GetDefaultBuildEnvironments(settings.uiSettings.selectedUIType);
+                            uiSettings.ui_build_enviroments = McpUISettings.GetDefaultBuildEnvironments(uiSettings.selectedUIType);
                             settings.SaveSettings();
                         }
                     }
                 };
                 preferredComponentsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
-                    if (index > settings.uiSettings.ui_build_enviroments.Count)
+                    if (index > uiSettings.ui_build_enviroments.Count)
                     {
-                        settings.uiSettings.ui_build_enviroments.Add("");
+                        uiSettings.ui_build_enviroments.Add("");
                     }
-                    settings.uiSettings.ui_build_enviroments[index] = EditorGUI.TextField(rect, settings.uiSettings.ui_build_enviroments[index]);
+                    uiSettings.ui_build_enviroments[index] = EditorGUI.TextField(rect, uiSettings.ui_build_enviroments[index]);
                 };
                 preferredComponentsList.onAddCallback = (ReorderableList list) =>
                 {
-                    settings.uiSettings.ui_build_enviroments.Add("");
+                    uiSettings.ui_build_enviroments.Add("");
                 };
             }
 
             // 初始化通用资源文件夹列表
-            InitializeCommonFoldersList(settings);
+            InitializeCommonFoldersList(settings, uiSettings);
 
             // 绘制UI构建步骤列表
-            EditorGUILayout.LabelField($"UI构建步骤 ({settings.uiSettings.selectedUIType})", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox($"定义{settings.uiSettings.selectedUIType}类型UI生成的步骤流程，按顺序执行。", MessageType.Info);
+            EditorGUILayout.LabelField($"UI构建步骤 ({uiSettings.selectedUIType})", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox($"定义{uiSettings.selectedUIType}类型UI生成的步骤流程，按顺序执行。", MessageType.Info);
             buildStepsList.DoLayoutList();
 
             EditorGUILayout.Space(10);
 
             // 绘制偏好组件列表
-            EditorGUILayout.LabelField($"UI环境说明 ({settings.uiSettings.selectedUIType})", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox($"配置{settings.uiSettings.selectedUIType}类型UI生成时的环境和约束条件。", MessageType.Info);
+            EditorGUILayout.LabelField($"UI环境说明 ({uiSettings.selectedUIType})", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox($"配置{uiSettings.selectedUIType}类型UI生成时的环境和约束条件。", MessageType.Info);
             preferredComponentsList.DoLayoutList();
 
             EditorGUILayout.Space(20);
@@ -209,7 +213,7 @@ namespace UniMcp.Gui
             if (GUI.changed)
             {
                 // 序列化UI类型数据
-                settings.uiSettings.SerializeUITypeData();
+                uiSettings.SerializeUITypeData();
                 settings.SaveSettings();
             }
         }
@@ -217,12 +221,12 @@ namespace UniMcp.Gui
         /// <summary>
         /// 初始化通用资源文件夹列表
         /// </summary>
-        private static void InitializeCommonFoldersList(McpSettings settings)
+        private static void InitializeCommonFoldersList(McpSettings settings, McpUISettings uiSettings)
         {
             // 初始化通用精灵文件夹列表
             if (commonSpriteFoldersList == null)
             {
-                commonSpriteFoldersList = new ReorderableList(settings.uiSettings.commonSpriteFolders, typeof(string), true, true, true, true);
+                commonSpriteFoldersList = new ReorderableList(uiSettings.commonSpriteFolders, typeof(string), true, true, true, true);
                 commonSpriteFoldersList.drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "精灵文件夹路径");
@@ -236,11 +240,11 @@ namespace UniMcp.Gui
                     Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
                     Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
 
-                    settings.uiSettings.commonSpriteFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonSpriteFolders[index]);
+                    uiSettings.commonSpriteFolders[index] = EditorGUI.TextField(textFieldRect, uiSettings.commonSpriteFolders[index]);
 
                     if (GUI.Button(folderButtonRect, "浏览..."))
                     {
-                        string currentPath = settings.uiSettings.commonSpriteFolders[index];
+                        string currentPath = uiSettings.commonSpriteFolders[index];
                         string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
                         string selectedPath = EditorUtility.OpenFolderPanel("选择精灵文件夹", initialPath, "");
 
@@ -251,20 +255,20 @@ namespace UniMcp.Gui
                             {
                                 selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
                             }
-                            settings.uiSettings.commonSpriteFolders[index] = selectedPath;
+                            uiSettings.commonSpriteFolders[index] = selectedPath;
                         }
                     }
                 };
                 commonSpriteFoldersList.onAddCallback = (ReorderableList list) =>
                 {
-                    settings.uiSettings.commonSpriteFolders.Add("Assets/Sprites");
+                    uiSettings.commonSpriteFolders.Add("Assets/Sprites");
                 };
             }
 
             // 初始化通用纹理文件夹列表
             if (commonTextureFoldersList == null)
             {
-                commonTextureFoldersList = new ReorderableList(settings.uiSettings.commonTextureFolders, typeof(string), true, true, true, true);
+                commonTextureFoldersList = new ReorderableList(uiSettings.commonTextureFolders, typeof(string), true, true, true, true);
                 commonTextureFoldersList.drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "纹理文件夹路径");
@@ -278,11 +282,11 @@ namespace UniMcp.Gui
                     Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
                     Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
 
-                    settings.uiSettings.commonTextureFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonTextureFolders[index]);
+                    uiSettings.commonTextureFolders[index] = EditorGUI.TextField(textFieldRect, uiSettings.commonTextureFolders[index]);
 
                     if (GUI.Button(folderButtonRect, "浏览..."))
                     {
-                        string currentPath = settings.uiSettings.commonTextureFolders[index];
+                        string currentPath = uiSettings.commonTextureFolders[index];
                         string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
                         string selectedPath = EditorUtility.OpenFolderPanel("选择纹理文件夹", initialPath, "");
 
@@ -293,20 +297,20 @@ namespace UniMcp.Gui
                             {
                                 selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
                             }
-                            settings.uiSettings.commonTextureFolders[index] = selectedPath;
+                            uiSettings.commonTextureFolders[index] = selectedPath;
                         }
                     }
                 };
                 commonTextureFoldersList.onAddCallback = (ReorderableList list) =>
                 {
-                    settings.uiSettings.commonTextureFolders.Add("Assets/Textures");
+                    uiSettings.commonTextureFolders.Add("Assets/Textures");
                 };
             }
 
             // 初始化通用字体文件夹列表
             if (commonFontFoldersList == null)
             {
-                commonFontFoldersList = new ReorderableList(settings.uiSettings.commonFontFolders, typeof(string), true, true, true, true);
+                commonFontFoldersList = new ReorderableList(uiSettings.commonFontFolders, typeof(string), true, true, true, true);
                 commonFontFoldersList.drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "字体文件夹路径");
@@ -320,11 +324,11 @@ namespace UniMcp.Gui
                     Rect folderButtonRect = new Rect(rect.x + rect.width - 60, rect.y, 60, rect.height);
                     Rect textFieldRect = new Rect(rect.x, rect.y, rect.width - 65, rect.height);
 
-                    settings.uiSettings.commonFontFolders[index] = EditorGUI.TextField(textFieldRect, settings.uiSettings.commonFontFolders[index]);
+                    uiSettings.commonFontFolders[index] = EditorGUI.TextField(textFieldRect, uiSettings.commonFontFolders[index]);
 
                     if (GUI.Button(folderButtonRect, "浏览..."))
                     {
-                        string currentPath = settings.uiSettings.commonFontFolders[index];
+                        string currentPath = uiSettings.commonFontFolders[index];
                         string initialPath = string.IsNullOrEmpty(currentPath) ? "Assets" : currentPath;
                         string selectedPath = EditorUtility.OpenFolderPanel("选择字体文件夹", initialPath, "");
 
@@ -335,13 +339,13 @@ namespace UniMcp.Gui
                             {
                                 selectedPath = "Assets" + selectedPath.Substring(Application.dataPath.Length);
                             }
-                            settings.uiSettings.commonFontFolders[index] = selectedPath;
+                            uiSettings.commonFontFolders[index] = selectedPath;
                         }
                     }
                 };
                 commonFontFoldersList.onAddCallback = (ReorderableList list) =>
                 {
-                    settings.uiSettings.commonFontFolders.Add("Assets/Fonts");
+                    uiSettings.commonFontFolders.Add("Assets/Fonts");
                 };
             }
         }
@@ -367,7 +371,8 @@ namespace UniMcp.Gui
 
                 // 获取当前UI类型
                 var settings = McpSettings.Instance;
-                var currentType = settings?.uiSettings?.selectedUIType ?? UIType.UGUI;
+                var uiSettings = settings.GetSubSettings<McpUISettings>("McpUISettings");
+                var currentType = uiSettings?.selectedUIType ?? UIType.UGUI;
 
                 // 构建新的GetDefaultBuildSteps方法代码
                 var newMethodCode = GenerateGetDefaultBuildStepsCode(buildSteps, currentType);
@@ -440,7 +445,8 @@ namespace UniMcp.Gui
 
                 // 获取当前UI类型
                 var settings = McpSettings.Instance;
-                var currentType = settings?.uiSettings?.selectedUIType ?? UIType.UGUI;
+                var uiSettings = settings.GetSubSettings<McpUISettings>("McpUISettings");
+                var currentType = uiSettings?.selectedUIType ?? UIType.UGUI;
 
                 // 构建新的GetDefaultBuildEnvironments方法代码
                 var newMethodCode = GenerateGetDefaultBuildEnvironmentsCode(environments, currentType);

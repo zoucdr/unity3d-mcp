@@ -230,31 +230,33 @@ namespace UniMcp.Tools
             {
                 var result = new JsonClass();
                 result["ui_framework"] = uiFramework;
+                
+                var figmaSettings = GetFigmaSettings();
 
                 // 根据参数返回相应的规则，去除根节点 result 与 rules 下的重复数据
                 if (uiFramework == "ugui")
                 {
-                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.UGUI);
+                    result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.UGUI);
                     return Response.Success("成功获取 UGUI 转换规则", result);
                 }
                 else if (uiFramework == "uitoolkit")
                 {
-                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.UIToolkit);
+                    result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.UIToolkit);
                     return Response.Success("成功获取 UI Toolkit 转换规则", result);
                 }
                 else if (uiFramework == "ngui")
                 {
-                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.NGUI);
+                    result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.NGUI);
                     return Response.Success("成功获取 NGUI 转换规则", result);
                 }
                 else if (uiFramework == "fairygui")
                 {
-                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetPromptForUIType(UIType.FairyGUI);
+                    result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.FairyGUI);
                     return Response.Success("成功获取 FairyGUI 转换规则", result);
                 }
                 else
                 {
-                    result["conversion_prompt"] = McpSettings.Instance.figmaSettings.GetCurrentPrompt();
+                    result["conversion_prompt"] = figmaSettings.GetCurrentPrompt();
                     return Response.Success("成功获取 UI 转换规则", result);
                 }
             }
@@ -723,17 +725,19 @@ namespace UniMcp.Tools
         {
             remappedPath = filePath;
 
+#if UNITY_EDITOR
             // 加载McpUISettings
-            var settings = UniMcp.McpSettings.Instance?.uiSettings;
-            if (settings == null)
+            var settings = McpSettings.Instance;
+            var uiSettings = settings.GetSubSettings<McpUISettings>("McpUISettings");
+            if (uiSettings == null)
                 return false;
 
             // 获取所有可能的公共目录（sprite 和 texture）
             var commonFolders = new List<string>();
-            if (settings.commonSpriteFolders != null)
-                commonFolders.AddRange(settings.commonSpriteFolders);
-            if (settings.commonTextureFolders != null)
-                commonFolders.AddRange(settings.commonTextureFolders);
+            if (uiSettings.commonSpriteFolders != null)
+                commonFolders.AddRange(uiSettings.commonSpriteFolders);
+            if (uiSettings.commonTextureFolders != null)
+                commonFolders.AddRange(uiSettings.commonTextureFolders);
             // 将filePath所在的文件夹也加入到commonFolders（如果不为空且未重复）
             string fileDir = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(fileDir) && !commonFolders.Contains(fileDir))
@@ -810,6 +814,10 @@ namespace UniMcp.Tools
 
             // 不在公共目录或未找到相同hash的文件
             return false;
+#else
+            // 非编辑器环境下，不支持公共目录检查
+            return false;
+#endif
         }
 
 
@@ -1599,15 +1607,27 @@ namespace UniMcp.Tools
         }
 
         /// <summary>
+        /// 获取Figma设置
+        /// </summary>
+        private FigmaSettings GetFigmaSettings()
+        {
+            var settings = McpSettings.Instance;
+            var figmaSettings = settings.GetSubSettings<FigmaSettings>("FigmaSettings");
+            if (figmaSettings == null)
+            {
+                figmaSettings = new FigmaSettings();
+                settings.AddSubSettings(figmaSettings);
+            }
+            return figmaSettings;
+        }
+
+        /// <summary>
         /// 获取Figma访问令牌
         /// </summary>
         private string GetFigmaToken()
         {
-            var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                return null;
-
-            return settings.figmaSettings.figma_access_token;
+            var figmaSettings = GetFigmaSettings();
+            return figmaSettings.figma_access_token;
         }
 
         /// <summary>
@@ -1615,11 +1635,8 @@ namespace UniMcp.Tools
         /// </summary>
         private string GetFigmaAssetsPath()
         {
-            var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                return "Assets/FigmaAssets";
-
-            return settings.figmaSettings.figma_assets_path;
+            var figmaSettings = GetFigmaSettings();
+            return figmaSettings.figma_assets_path;
         }
 
         /// <summary>
@@ -1627,11 +1644,8 @@ namespace UniMcp.Tools
         /// </summary>
         private string GetFigmaPreviewPath()
         {
-            var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                return "Assets/FigmaAssets/Previews";
-
-            return settings.figmaSettings.figma_preview_path;
+            var figmaSettings = GetFigmaSettings();
+            return figmaSettings.figma_preview_path;
         }
 
         /// <summary>
@@ -1639,11 +1653,8 @@ namespace UniMcp.Tools
         /// </summary>
         private bool GetAutoConvertToSprite()
         {
-            var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                return true; // 默认开启
-
-            return settings.figmaSettings.auto_convert_to_sprite;
+            var figmaSettings = GetFigmaSettings();
+            return figmaSettings.auto_convert_to_sprite;
         }
 
         /// <summary>
@@ -1651,11 +1662,8 @@ namespace UniMcp.Tools
         /// </summary>
         private int GetPreviewMaxSize()
         {
-            var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                return 100; // 默认值
-
-            return settings.figmaSettings.preview_max_size;
+            var figmaSettings = GetFigmaSettings();
+            return figmaSettings.preview_max_size;
         }
 
 

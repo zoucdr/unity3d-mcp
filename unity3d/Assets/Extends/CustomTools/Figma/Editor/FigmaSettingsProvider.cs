@@ -37,8 +37,12 @@ namespace UniMcp.Gui
         private static void DrawFigmaSettings()
         {
             var settings = McpSettings.Instance;
-            if (settings.figmaSettings == null)
-                settings.figmaSettings = new FigmaSettings();
+            var figmaSettings = settings.GetSubSettings<FigmaSettings>("FigmaSettings");
+            if (figmaSettings == null)
+            {
+                figmaSettings = new FigmaSettings();
+                settings.AddSubSettings(figmaSettings);
+            }
 
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
@@ -59,11 +63,11 @@ namespace UniMcp.Gui
                 EditorGUI.indentLevel++;
 
                 EditorGUILayout.BeginHorizontal();
-                string token = settings.figmaSettings.figma_access_token;
+                string token = figmaSettings.figma_access_token;
                 token = EditorGUILayout.PasswordField(
                     "Figma访问令牌",
                     token);
-                settings.figmaSettings.figma_access_token = token;
+                figmaSettings.figma_access_token = token;
                 EditorGUILayout.LabelField("💾", GUILayout.Width(20));
                 EditorGUILayout.EndHorizontal();
 
@@ -83,34 +87,34 @@ namespace UniMcp.Gui
             {
                 EditorGUI.indentLevel++;
 
-                settings.figmaSettings.default_download_path = EditorGUILayout.TextField(
+                figmaSettings.default_download_path = EditorGUILayout.TextField(
                     "默认下载路径",
-                    settings.figmaSettings.default_download_path);
+                    figmaSettings.default_download_path);
 
-                settings.figmaSettings.figma_assets_path = EditorGUILayout.TextField(
+                figmaSettings.figma_assets_path = EditorGUILayout.TextField(
                     "Figma数据资产路径",
-                    settings.figmaSettings.figma_assets_path);
+                    figmaSettings.figma_assets_path);
 
-                settings.figmaSettings.figma_preview_path = EditorGUILayout.TextField(
+                figmaSettings.figma_preview_path = EditorGUILayout.TextField(
                     "Figma预览图保存路径",
-                    settings.figmaSettings.figma_preview_path);
+                    figmaSettings.figma_preview_path);
 
-                settings.figmaSettings.auto_download_images = EditorGUILayout.Toggle(
+                figmaSettings.auto_download_images = EditorGUILayout.Toggle(
                     "自动下载图片",
-                    settings.figmaSettings.auto_download_images);
+                    figmaSettings.auto_download_images);
 
-                settings.figmaSettings.image_scale = EditorGUILayout.FloatField(
+                figmaSettings.image_scale = EditorGUILayout.FloatField(
                     "图片缩放倍数",
-                    settings.figmaSettings.image_scale);
+                    figmaSettings.image_scale);
 
-                settings.figmaSettings.preview_max_size = EditorGUILayout.IntSlider(
+                figmaSettings.preview_max_size = EditorGUILayout.IntSlider(
                     "预览图最大尺寸",
-                    settings.figmaSettings.preview_max_size,
+                    figmaSettings.preview_max_size,
                     50, 600);
 
-                settings.figmaSettings.auto_convert_to_sprite = EditorGUILayout.Toggle(
+                figmaSettings.auto_convert_to_sprite = EditorGUILayout.Toggle(
                     "自动转换为Sprite",
-                    settings.figmaSettings.auto_convert_to_sprite);
+                    figmaSettings.auto_convert_to_sprite);
 
                 EditorGUI.indentLevel--;
             }
@@ -134,14 +138,14 @@ namespace UniMcp.Gui
                 EditorGUILayout.LabelField("UI框架类型:", EditorStyles.boldLabel);
 
                 // 使用EnumPopup绘制UI类型选择器
-                settings.figmaSettings.selectedUIType = (UIType)EditorGUILayout.EnumPopup(
+                figmaSettings.selectedUIType = (UIType)EditorGUILayout.EnumPopup(
                     "选择UI框架",
-                    settings.figmaSettings.selectedUIType);
+                    figmaSettings.selectedUIType);
 
                 EditorGUILayout.Space(5);
 
                 // 显示多行文本编辑器
-                EditorGUILayout.LabelField(string.Format("提示词内容 ({0}):", settings.figmaSettings.selectedUIType.ToString()), EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(string.Format("提示词内容 ({0}):", figmaSettings.selectedUIType.ToString()), EditorStyles.boldLabel);
 
                 // 创建一个滚动视图来显示多行文本
                 GUIStyle textAreaStyle = new GUIStyle(EditorStyles.textArea)
@@ -151,7 +155,7 @@ namespace UniMcp.Gui
                 };
 
                 // 根据选择的UI类型显示对应的提示词
-                string currentPrompt = settings.figmaSettings.GetPromptForUIType(settings.figmaSettings.selectedUIType, false);
+                string currentPrompt = figmaSettings.GetPromptForUIType(figmaSettings.selectedUIType, false);
                 string newPrompt = EditorGUILayout.TextArea(
                     currentPrompt,
                     textAreaStyle,
@@ -161,7 +165,7 @@ namespace UniMcp.Gui
                 // 如果提示词被修改，更新对应UI类型的提示词
                 if (newPrompt != currentPrompt)
                 {
-                    settings.figmaSettings.SetPromptForUIType(settings.figmaSettings.selectedUIType, newPrompt);
+                    figmaSettings.SetPromptForUIType(figmaSettings.selectedUIType, newPrompt);
                 }
 
                 EditorGUILayout.Space(5);
@@ -169,14 +173,14 @@ namespace UniMcp.Gui
                 // 重置按钮
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(string.Format("重置{0}提示词为默认值", settings.figmaSettings.selectedUIType.ToString()), GUILayout.Width(200)))
+                if (GUILayout.Button(string.Format("重置{0}提示词为默认值", figmaSettings.selectedUIType.ToString()), GUILayout.Width(200)))
                 {
                     if (EditorUtility.DisplayDialog("确认重置",
-                        string.Format("确定要将{0}的AI提示词重置为默认值吗？\n当前的自定义内容将丢失。", settings.figmaSettings.selectedUIType.ToString()),
+                        string.Format("确定要将{0}的AI提示词重置为默认值吗？\n当前的自定义内容将丢失。", figmaSettings.selectedUIType.ToString()),
                         "确定", "取消"))
                     {
                         // 重置当前选择的UI类型的提示词为默认值
-                        settings.figmaSettings.SetPromptForUIType(settings.figmaSettings.selectedUIType, settings.figmaSettings.GetDefaultPrompt());
+                        figmaSettings.SetPromptForUIType(figmaSettings.selectedUIType, figmaSettings.GetDefaultPrompt());
                         GUI.changed = true;
                     }
                 }
@@ -199,48 +203,48 @@ namespace UniMcp.Gui
                     MessageType.Info);
 
                 // 初始化engineSupportEffect如果为null
-                if (settings.figmaSettings.engineSupportEffect == null)
-                    settings.figmaSettings.engineSupportEffect = new FigmaSettings.EngineSupportEffect();
+                if (figmaSettings.engineSupportEffect == null)
+                    figmaSettings.engineSupportEffect = new FigmaSettings.EngineSupportEffect();
 
                 // 圆角支持
                 EditorGUILayout.BeginHorizontal();
-                settings.figmaSettings.engineSupportEffect.roundCorner = EditorGUILayout.Toggle(
+                figmaSettings.engineSupportEffect.roundCorner = EditorGUILayout.Toggle(
                     "圆角支持 (ProceduralUIImage)",
-                    settings.figmaSettings.engineSupportEffect.roundCorner,
+                    figmaSettings.engineSupportEffect.roundCorner,
                     GUILayout.Width(200));
 
-                if (settings.figmaSettings.engineSupportEffect.roundCorner)
+                if (figmaSettings.engineSupportEffect.roundCorner)
                 {
-                    settings.figmaSettings.engineSupportEffect.roundCornerPrompt = EditorGUILayout.TextField(
-                        settings.figmaSettings.engineSupportEffect.roundCornerPrompt);
+                    figmaSettings.engineSupportEffect.roundCornerPrompt = EditorGUILayout.TextField(
+                        figmaSettings.engineSupportEffect.roundCornerPrompt);
                 }
                 EditorGUILayout.EndHorizontal();
 
                 // 描边支持
                 EditorGUILayout.BeginHorizontal();
-                settings.figmaSettings.engineSupportEffect.outLineImg = EditorGUILayout.Toggle(
+                figmaSettings.engineSupportEffect.outLineImg = EditorGUILayout.Toggle(
                     "描边支持 (Outline组件)",
-                    settings.figmaSettings.engineSupportEffect.outLineImg,
+                    figmaSettings.engineSupportEffect.outLineImg,
                     GUILayout.Width(200));
 
-                if (settings.figmaSettings.engineSupportEffect.outLineImg)
+                if (figmaSettings.engineSupportEffect.outLineImg)
                 {
-                    settings.figmaSettings.engineSupportEffect.outLinePrompt = EditorGUILayout.TextField(
-                        settings.figmaSettings.engineSupportEffect.outLinePrompt);
+                    figmaSettings.engineSupportEffect.outLinePrompt = EditorGUILayout.TextField(
+                        figmaSettings.engineSupportEffect.outLinePrompt);
                 }
                 EditorGUILayout.EndHorizontal();
 
                 // 渐变支持
                 EditorGUILayout.BeginHorizontal();
-                settings.figmaSettings.engineSupportEffect.gradientImg = EditorGUILayout.Toggle(
+                figmaSettings.engineSupportEffect.gradientImg = EditorGUILayout.Toggle(
                     "渐变支持 (UI Gradient)",
-                    settings.figmaSettings.engineSupportEffect.gradientImg,
+                    figmaSettings.engineSupportEffect.gradientImg,
                     GUILayout.Width(200));
 
-                if (settings.figmaSettings.engineSupportEffect.gradientImg)
+                if (figmaSettings.engineSupportEffect.gradientImg)
                 {
-                    settings.figmaSettings.engineSupportEffect.gradientPrompt = EditorGUILayout.TextField(
-                        settings.figmaSettings.engineSupportEffect.gradientPrompt);
+                    figmaSettings.engineSupportEffect.gradientPrompt = EditorGUILayout.TextField(
+                        figmaSettings.engineSupportEffect.gradientPrompt);
                 }
                 EditorGUILayout.EndHorizontal();
 
