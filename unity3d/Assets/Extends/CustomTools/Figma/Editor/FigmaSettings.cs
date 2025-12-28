@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UniMcp
 {
@@ -8,8 +10,12 @@ namespace UniMcp
     /// Figma设置类，用于管理与Figma集成相关的配置
     /// </summary>
     [System.Serializable]
-    public class FigmaSettings
+    public class FigmaSettings : IMcpSubSettings
     {
+        /// <summary>
+        /// 设置名称，用于在McpSettings中唯一标识此设置
+        /// </summary>
+        public string Name => "FigmaSettings";
         /// <summary>
         /// 默认下载路径
         /// </summary>
@@ -122,11 +128,17 @@ namespace UniMcp
         {
             get
             {
+#if UNITY_EDITOR
                 return EditorPrefs.GetString("UniMcp.Figma.AccessToken", "");
+#else
+                return "";
+#endif
             }
             set
             {
+#if UNITY_EDITOR
                 EditorPrefs.SetString("UniMcp.Figma.AccessToken", value);
+#endif
             }
         }
 

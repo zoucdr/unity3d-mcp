@@ -4,8 +4,13 @@ using UnityEngine;
 namespace UniMcp
 {
     [System.Serializable]
-    public class McpUISettings
+    public class McpUISettings : IMcpSubSettings
     {
+        /// <summary>
+        /// 设置名称，用于在McpSettings中唯一标识此设置
+        /// </summary>
+        public string Name => "McpUISettings";
+        
         /// <summary>
         /// 当前选择的UI类型
         /// </summary>

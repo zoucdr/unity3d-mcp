@@ -430,7 +430,7 @@ namespace UniMcp.Gui
 
             // 获取全局UI设置
             var mcpSettings = McpSettings.Instance;
-            var uiSettings = mcpSettings?.uiSettings;
+            var uiSettings = mcpSettings?.GetSubSettings<McpUISettings>("McpUISettings");
 
             // 标题
             markdown.AppendLine($"# Unity UI规则信息 - {ruleObject.name}");
