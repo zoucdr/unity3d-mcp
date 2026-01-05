@@ -217,11 +217,9 @@ namespace UniMcp.Gui
                 // 处理组开关状态变化
                 if (newGroupToggleState != groupToggleState)
                 {
-                    // 根据新状态启用或禁用组内所有工具
-                    foreach (var (methodName, method, assemblyName) in methods)
-                    {
-                        McpService.GetLocalSettings().SetToolEnabled(methodName, newGroupToggleState);
-                    }
+                    // 使用批量设置方法来提高效率
+                    var toolNames = methods.Select(m => m.methodName).ToList();
+                    McpService.GetLocalSettings().SetToolsEnabled(toolNames, newGroupToggleState);
 
                     Debug.Log($"[McpServiceGUI] 工具组 '{groupName}' 所有工具已{(newGroupToggleState ? "启用" : "禁用")}");
                 }
