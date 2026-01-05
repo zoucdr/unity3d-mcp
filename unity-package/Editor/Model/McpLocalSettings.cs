@@ -105,6 +105,7 @@ namespace UniMcp
         {
             EditorUtility.SetDirty(this);
             Save(true);
+            Debug.Log($"[McpLocalSettings] SaveSettings 调用完成 - 文件路径: UserSettings/McpLocalSettings.asset");
         }
 
         /// <summary>
@@ -167,6 +168,45 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 批量设置工具启用状态（用于组开关，更高效）
+        /// </summary>
+        /// <param name="toolNames">工具名称列表</param>
+        /// <param name="enabled">是否启用</param>
+        public void SetToolsEnabled(IEnumerable<string> toolNames, bool enabled)
+        {
+            if (_disabledTools == null)
+            {
+                _disabledTools = new List<string>();
+            }
+
+            bool changed = false;
+
+            foreach (var toolName in toolNames)
+            {
+                bool currentlyEnabled = !_disabledTools.Contains(toolName);
+
+                if (enabled && !currentlyEnabled)
+                {
+                    // 启用工具：从禁用列表中移除
+                    _disabledTools.Remove(toolName);
+                    changed = true;
+                }
+                else if (!enabled && currentlyEnabled)
+                {
+                    // 禁用工具：添加到禁用列表
+                    _disabledTools.Add(toolName);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                SaveSettings();
+                Debug.Log($"[McpLocalSettings] 批量设置完成，当前禁用工具数量: {_disabledTools.Count}");
+            }
+        }
+
+        /// <summary>
         /// 设置工具启用状态
         /// </summary>
         /// <param name="toolName">工具名称</param>
@@ -179,18 +219,27 @@ namespace UniMcp
             }
 
             bool currentlyEnabled = !_disabledTools.Contains(toolName);
+            bool changed = false;
 
             if (enabled && !currentlyEnabled)
             {
                 // 启用工具：从禁用列表中移除
                 _disabledTools.Remove(toolName);
-                SaveSettings();
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 启用工具: {toolName}");
             }
             else if (!enabled && currentlyEnabled)
             {
                 // 禁用工具：添加到禁用列表
                 _disabledTools.Add(toolName);
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 禁用工具: {toolName}");
+            }
+
+            if (changed)
+            {
                 SaveSettings();
+                Debug.Log($"[McpLocalSettings] 设置已保存，当前禁用工具数量: {_disabledTools.Count}");
             }
         }
 
@@ -284,12 +333,15 @@ namespace UniMcp
         /// </summary>
         public string GetSettingsSummary()
         {
+            var disabledToolsList = _disabledTools != null ? string.Join(", ", _disabledTools) : "无";
             return $"MCP本地设置摘要:\n" +
                    $"- 服务器端口: {McpServerPort}\n" +
                    $"- 上次工具数量: {LastToolCount}\n" +
                    $"- 服务开启状态: {McpOpenState}\n" +
                    $"- Resources功能状态: {ResourcesCapability}\n" +
-                   $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}";
+                   $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}\n" +
+                   $"- 禁用工具列表: {disabledToolsList}";
         }
+
     }
 }
