@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using UnityEditor;
@@ -106,7 +106,8 @@ namespace UniMcp.Gui
                 {
                     fontSize = 14,
                     alignment = TextAnchor.MiddleCenter,
-                    normal = { textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black }
+                    normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                    fontStyle = FontStyle.Bold
                 };
             }
 
@@ -129,7 +130,6 @@ namespace UniMcp.Gui
                     wordWrap = true,        // 强制启用自动换行
                     fontSize = 12,
                     fontStyle = FontStyle.Normal,
-                    normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.9f, 0.9f, 0.9f) : Color.black },
                     stretchWidth = false,   // 不自动拉伸宽度
                     stretchHeight = true,   // 允许高度拉伸
                     fixedWidth = 0,         // 不使用固定宽度
@@ -137,6 +137,10 @@ namespace UniMcp.Gui
                     margin = new RectOffset(2, 2, 2, 2),
                     padding = new RectOffset(4, 4, 4, 4)
                 };
+                inputStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                inputStyle.normal.background = Texture2D.blackTexture;
+                inputStyle.active.textColor = Color.white;
+                inputStyle.focused.textColor = Color.white;
             }
 
             if (resultStyle == null)
@@ -146,13 +150,16 @@ namespace UniMcp.Gui
                     wordWrap = true,        // 启用自动换行
                     fontSize = 12,          // 与输入框保持一致的字体大小
                     fontStyle = FontStyle.Normal,
-                    normal = { textColor = EditorGUIUtility.isProSkin ? new Color(0.9f, 0.9f, 0.9f) : Color.black },
                     richText = true,        // 支持富文本，方便显示格式化内容
                     stretchWidth = false,   // 与输入框保持一致，不自动拉伸宽度
                     stretchHeight = true,   // 拉伸以适应容器高度
                     margin = new RectOffset(2, 2, 2, 2),    // 与输入框保持一致的边距
                     padding = new RectOffset(4, 4, 4, 4)    // 与输入框保持一致的内边距
                 };
+                resultStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                resultStyle.normal.background = Texture2D.blackTexture;
+                resultStyle.active.textColor = Color.white;
+                resultStyle.focused.textColor = Color.white;
             }
 
             InitializeRecordList();
@@ -168,6 +175,9 @@ namespace UniMcp.Gui
 
                 recordList.drawHeaderCallback = (Rect rect) =>
                 {
+                    // 绘制背景
+                    EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f, 1f));
+                    
                     var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
                     int successCount = records.Where(r => r.success).Count();
                     int errorCount = records.Count - successCount;
@@ -177,7 +187,11 @@ namespace UniMcp.Gui
                     var groups = recordObject.recordGroups;
                     if (groups.Count == 0)
                     {
-                        EditorGUI.LabelField(rect, "暂无分组");
+                        GUIStyle headerLabelStyle = new GUIStyle(EditorStyles.boldLabel);
+                        headerLabelStyle.normal.textColor = Color.white;
+                        headerLabelStyle.alignment = TextAnchor.MiddleLeft;
+                        headerLabelStyle.padding = new RectOffset(10, 0, 0, 0);
+                        EditorGUI.LabelField(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), "暂无分组", headerLabelStyle);
                     }
                     else
                     {
@@ -191,8 +205,13 @@ namespace UniMcp.Gui
                         int currentIndex = groups.FindIndex(g => g.id == recordObject.currentGroupId);
                         if (currentIndex == -1) currentIndex = 0;
 
+                        GUIStyle popupStyle = new GUIStyle(EditorStyles.boldLabel);
+                        popupStyle.normal.textColor = Color.white;
+                        popupStyle.alignment = TextAnchor.MiddleLeft;
+                        popupStyle.padding = new RectOffset(10, 0, 0, 0);
+
                         EditorGUI.BeginChangeCheck();
-                        int newIndex = EditorGUI.Popup(rect, currentIndex, groupNames, EditorStyles.boldLabel);
+                        int newIndex = EditorGUI.Popup(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), currentIndex, groupNames, popupStyle);
                         if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < groups.Count)
                         {
                             recordObject.SwitchToGroup(groups[newIndex].id);
@@ -295,6 +314,10 @@ namespace UniMcp.Gui
         {
             InitializeStyles();
 
+            // 绘制窗口背景
+            Rect windowRect = new Rect(0, 0, position.width, position.height);
+            EditorGUI.DrawRect(windowRect, new Color(0.22f, 0.22f, 0.22f, 1f));
+
             // 计算标题区域的实际高度
             float headerHeight = CalculateHeaderHeight();
 
@@ -313,13 +336,16 @@ namespace UniMcp.Gui
             // Style for the status button, looks like a label but is clickable
             GUIStyle statusButtonStyle = new GUIStyle(EditorStyles.label)
             {
-                alignment = TextAnchor.MiddleCenter,
-                richText = true
+                alignment = TextAnchor.MiddleRight,
+                richText = true,
+                fontSize = 11,
+                normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                padding = new RectOffset(0, 10, 0, 0)
             };
 
             // Generate the status text
             bool isRunning = McpService.Instance.IsRunning;
-            Color statusColor = isRunning ? new Color(0.2f, 0.8f, 0.2f) : Color.red;
+            Color statusColor = isRunning ? new Color(0.2f, 0.8f, 0.2f) : new Color(0.9f, 0.2f, 0.2f);
             string statusText = isRunning ? "Running" : "Stopped";
             int clientCount = McpService.Instance.ConnectedClientCount;
             string portText = McpService.Instance.IsRunning ? $" on port {McpService.mcpPort}" : "";
@@ -327,6 +353,7 @@ namespace UniMcp.Gui
             string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} 请求记录{portText})";
 
             // Draw a single button that covers the whole area and acts as the status display
+            // 移除背景，只显示文字，避免遮挡标题
             if (GUI.Button(rect, new GUIContent(fullStatusText, "点击查看请求记录详情"), statusButtonStyle))
             {
                 McpServiceStatusWindow.ShowWindow();
@@ -365,14 +392,24 @@ namespace UniMcp.Gui
 
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("刷新", GUILayout.Width(50)))
+            Color originalBg = GUI.backgroundColor;
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 10;
+            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.normal.textColor = Color.white;
+            buttonStyle.hover.textColor = Color.white;
+            buttonStyle.active.textColor = Color.white;
+
+            GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+            if (GUILayout.Button("刷新", buttonStyle, GUILayout.Width(50), GUILayout.Height(22)))
             {
                 recordList = null;
                 InitializeRecordList();
                 Repaint();
             }
 
-            if (GUILayout.Button("清空当前分组", GUILayout.Width(100)))
+            GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+            if (GUILayout.Button("清空当前分组", buttonStyle, GUILayout.Width(100), GUILayout.Height(22)))
             {
                 string confirmMessage = $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。";
 
@@ -387,11 +424,13 @@ namespace UniMcp.Gui
                 }
             }
 
-            if (GUILayout.Button(showGroupManager ? "隐藏" : "管理", GUILayout.Width(60)))
+            GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
+            if (GUILayout.Button(showGroupManager ? "隐藏" : "管理", buttonStyle, GUILayout.Width(60), GUILayout.Height(22)))
             {
                 showGroupManager = !showGroupManager;
             }
 
+            GUI.backgroundColor = originalBg;
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
             GUI.EndGroup();
@@ -418,14 +457,9 @@ namespace UniMcp.Gui
                 recordList.list = records;
 
                 float listContentHeight = recordList.GetHeight();
-                float availableHeight = rect.height - currentY - padding;
-
-                // 确保有最小高度
-                if (availableHeight < 100)
-                {
-                    availableHeight = 100;
-                }
-
+                // 让列表完全填充到底部，不留边距
+                float availableHeight = rect.height;
+                // 列表区域直接填充到底部，左右保留padding，底部不留边距
                 Rect scrollViewRect = new Rect(padding, currentY, rect.width - padding * 2, availableHeight);
                 Rect scrollContentRect = new Rect(0, 0, scrollViewRect.width - 16, listContentHeight);
 
@@ -438,8 +472,21 @@ namespace UniMcp.Gui
         private void DrawRightPanel(float headerHeight, Rect rect)
         {
             var rightWidth = position.width - rect.x;
-            // 先绘制标题在顶部居中
+            
+            // 绘制标题区域背景
             Rect titleRect = new Rect(rect.x, 0, rightWidth, headerHeight);
+            
+            // 在Repaint阶段绘制背景，确保不遮挡文字
+            if (Event.current.type == EventType.Repaint)
+            {
+                EditorGUI.DrawRect(titleRect, new Color(0.25f, 0.25f, 0.25f, 1f));
+                
+                // 绘制边框
+                EditorGUI.DrawRect(new Rect(titleRect.x, titleRect.y, titleRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+                EditorGUI.DrawRect(new Rect(titleRect.x, titleRect.y + titleRect.height - 1, titleRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+            }
+            
+            // 先绘制标题在顶部居中
             GUI.BeginGroup(titleRect);
             GUILayout.BeginArea(new Rect(0, 0, titleRect.width, titleRect.height));
             GUILayout.Space(8); // 顶部间距
@@ -447,24 +494,14 @@ namespace UniMcp.Gui
             GUILayout.EndArea();
             GUI.EndGroup();
 
-            // 在右上角绘制连接状态
-            Rect statusRect = new Rect(rect.x, titleRect.yMax - 2 * EditorGUIUtility.singleLineHeight, rightWidth, 40);
-            // GUI.Label(statusRect, "连接状态",EditorStyles.textField);
+            // 在标题下方绘制连接状态，避免覆盖标题
+            Rect statusRect = new Rect(rect.x + rightWidth - 350, titleRect.yMax - 2, 340, 20);
             DrawConnectionStatus(statusRect);
 
             GUILayout.BeginArea(rect);
 
-            // 使用垂直布局组来控制整体宽度
-            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width));
-
-            // 说明文字
-            EditorGUILayout.HelpBox(
-                "输入异步函数调用:\n{\"id\": \"task_id\", \"type\": \"in\", \"func\": \"function_name\", \"args\": {...}}\n\n" +
-                "获取异步结果:\n{\"id\": \"task_id\", \"type\": \"out\"}\n\n" +
-                "或批量调用 (顺序执行):\n{\"funcs\": [{\"func\": \"...\", \"args\": {...}}, ...]}",
-                MessageType.Info);
-
-            GUILayout.Space(5);
+            // 使用垂直布局组来控制整体宽度，允许扩展高度
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width), GUILayout.ExpandHeight(true));
 
             // JSON输入框区域
             DrawInputArea(rect.width);
@@ -476,10 +513,13 @@ namespace UniMcp.Gui
 
             GUILayout.Space(10);
 
-            // 结果显示区域
+            // 结果显示区域 - 填充剩余空间
             if (showResult)
             {
+                // 使用FlexibleSpace让结果区域填充剩余空间
+                GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
                 DrawResultArea(rect.width);
+                GUILayout.EndVertical();
             }
 
             GUILayout.EndVertical();
@@ -488,10 +528,12 @@ namespace UniMcp.Gui
 
         private void DrawSplitter(Rect rect)
         {
-            Color originalColor = GUI.color;
-            GUI.color = EditorGUIUtility.isProSkin ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.6f, 0.6f, 0.6f);
-            GUI.DrawTexture(rect, EditorGUIUtility.whiteTexture);
-            GUI.color = originalColor;
+            // 绘制分隔条背景
+            EditorGUI.DrawRect(rect, new Color(0.3f, 0.3f, 0.3f, 1f));
+            
+            // 绘制中间线
+            float centerX = rect.x + rect.width / 2;
+            EditorGUI.DrawRect(new Rect(centerX - 0.5f, rect.y, 1, rect.height), new Color(0.5f, 0.5f, 0.5f));
 
             EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeHorizontal);
         }
@@ -544,19 +586,19 @@ namespace UniMcp.Gui
             // 处理鼠标事件（双击检测）
             HandleRecordElementMouseEvents(rect, index);
 
+            // 绘制背景（交替颜色）
+            Color bgColor = index % 2 == 0 ? new Color(0.25f, 0.25f, 0.25f, 0.5f) : new Color(0.22f, 0.22f, 0.22f, 0.5f);
             if (isActive || selectedRecordIndex == index)
             {
-                // 选中时显示背景颜色（在原始rect上绘制，不受padding影响）
-                GUI.color = new Color(0.3f, 0.7f, 1f, 0.3f); // 蓝色高亮
-                GUI.DrawTexture(rect, EditorGUIUtility.whiteTexture);
+                // 选中时显示背景颜色
+                bgColor = new Color(0.3f, 0.5f, 0.8f, 0.3f); // 蓝色高亮
             }
-            else
-            {
-                // 未选中时绘制box边框
-                Color boxColor = EditorGUIUtility.isProSkin ? new Color(0.4f, 0.4f, 0.4f) : new Color(0.7f, 0.7f, 0.7f);
-                GUI.color = boxColor;
-                GUI.Box(paddedRect, "", EditorStyles.helpBox);
-            }
+            EditorGUI.DrawRect(rect, bgColor);
+
+            // 绘制边框
+            Color borderColor = new Color(0.4f, 0.4f, 0.4f);
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, 1), borderColor);
+            EditorGUI.DrawRect(new Rect(rect.x, rect.y + rect.height - 1, rect.width, 1), borderColor);
 
             GUI.color = originalColor;
 
@@ -573,20 +615,25 @@ namespace UniMcp.Gui
             var records = McpExecuteRecordObject.instance.GetCurrentGroupRecords();
             int displayIndex = index + 1; // 正序显示序号，从1开始
             Rect numberRect = new Rect(contentRect.x, contentRect.y, numberWidth, 14f);
-            Color numberColor = EditorGUIUtility.isProSkin ? new Color(0.6f, 0.6f, 0.6f) : new Color(0.5f, 0.5f, 0.5f);
+            Color numberColor = new Color(0.6f, 0.6f, 0.6f);
             Color originalContentColor = GUI.contentColor;
             GUI.contentColor = numberColor;
-            GUI.Label(numberRect, $"#{displayIndex}", EditorStyles.miniLabel);
+            GUIStyle numberStyle = new GUIStyle(EditorStyles.miniLabel);
+            numberStyle.fontStyle = FontStyle.Bold;
+            GUI.Label(numberRect, $"#{displayIndex}", numberStyle);
             GUI.contentColor = originalContentColor;
 
-            // 状态图标（在box内部）
-            string statusIcon = record.success ? "●" : "×";
-            Rect iconRect = new Rect(contentRect.x + numberWidth + 2f, contentRect.y, iconWidth, 16f);
-
-            // 为状态图标设置颜色
-            Color iconColor = record.success ? Color.green : Color.red;
+            // 状态图标（在box内部）- 使用彩色指示条
+            Rect statusRect = new Rect(contentRect.x + numberWidth + 2f, contentRect.y + 2f, 3, 12f);
+            Color statusColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
+            EditorGUI.DrawRect(statusRect, statusColor);
+            
+            // 状态文字
+            string statusText = record.success ? "✓" : "✗";
+            Rect iconRect = new Rect(contentRect.x + numberWidth + 6f, contentRect.y, iconWidth, 16f);
+            Color iconColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
             GUI.contentColor = iconColor;
-            GUI.Label(iconRect, statusIcon, EditorStyles.boldLabel);
+            GUI.Label(iconRect, statusText, EditorStyles.boldLabel);
             GUI.contentColor = originalContentColor;
 
             // 函数名（第一行）- 在box内部，为序号和图标留出空间
@@ -625,9 +672,15 @@ namespace UniMcp.Gui
                     editingStarted = false;
                 }
 
+                // 绘制输入框背景
+                EditorGUI.DrawRect(funcRect, new Color(0.1f, 0.1f, 0.1f, 1f));
+                
                 // 使用BeginChangeCheck来检测文本变化
                 EditorGUI.BeginChangeCheck();
-                string newName = EditorGUI.TextField(funcRect, editingText);
+                GUIStyle editStyle = new GUIStyle(EditorStyles.textField);
+                editStyle.normal.textColor = Color.white;
+                editStyle.normal.background = Texture2D.blackTexture;
+                string newName = EditorGUI.TextField(funcRect, editingText, editStyle);
                 if (EditorGUI.EndChangeCheck())
                 {
                     editingText = newName;
@@ -653,7 +706,9 @@ namespace UniMcp.Gui
             else
             {
                 // 正常模式：显示函数名
-                GUI.Label(funcRect, record.name, EditorStyles.boldLabel);
+                GUIStyle nameStyle = new GUIStyle(EditorStyles.boldLabel);
+                nameStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                GUI.Label(funcRect, record.name, nameStyle);
             }
 
             // 时间和来源（第二行）- 在box内部
@@ -662,13 +717,18 @@ namespace UniMcp.Gui
             string timeInfo = $"{record.timestamp} | [{record.source}]";
             if (record.duration > 0)
             {
-                timeInfo += $" | {record.duration:F1}ms";
+                // 根据时长设置颜色
+                Color durationColor = record.duration < 100 ? new Color(0.4f, 0.8f, 0.4f) : 
+                                    (record.duration < 500 ? new Color(0.8f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f));
+                timeInfo += $" | <color=#{ColorUtility.ToHtmlStringRGB(durationColor)}>{record.duration:F1}ms</color>";
             }
 
             // 为时间信息设置较淡的颜色
-            Color timeColor = EditorGUIUtility.isProSkin ? new Color(0.8f, 0.8f, 0.8f) : new Color(0.4f, 0.4f, 0.4f);
+            Color timeColor = new Color(0.7f, 0.7f, 0.7f);
             GUI.contentColor = timeColor;
-            GUI.Label(timeRect, timeInfo, EditorStyles.miniLabel);
+            GUIStyle timeStyle = new GUIStyle(EditorStyles.miniLabel);
+            timeStyle.richText = true;
+            GUI.Label(timeRect, timeInfo, timeStyle);
             GUI.contentColor = originalContentColor;
         }
 
@@ -677,13 +737,26 @@ namespace UniMcp.Gui
         /// </summary>
         private void DrawInputArea(float availableWidth)
         {
-            GUILayout.Label("MCP调用 (JSON格式):");
+            // 标题样式
+            GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
+            labelStyle.fontSize = 11;
+            labelStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            labelStyle.fontStyle = FontStyle.Bold;
+            GUILayout.Label("MCP调用 (JSON格式):", labelStyle);
 
             float inputHeight = CalculateInputHeight();
             float textAreaWidth = availableWidth; // 减去边距和滚动条宽度
 
             // 创建输入框的滚动区域，限制宽度避免水平滚动
-            GUILayout.BeginVertical(EditorStyles.helpBox);
+            Rect inputBoxRect = EditorGUILayout.BeginVertical();
+            EditorGUI.DrawRect(inputBoxRect, new Color(0.15f, 0.15f, 0.15f, 1f));
+            
+            // 绘制边框
+            EditorGUI.DrawRect(new Rect(inputBoxRect.x, inputBoxRect.y, inputBoxRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(inputBoxRect.x, inputBoxRect.y + inputBoxRect.height - 1, inputBoxRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(inputBoxRect.x, inputBoxRect.y, 1, inputBoxRect.height), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(inputBoxRect.x + inputBoxRect.width - 1, inputBoxRect.y, 1, inputBoxRect.height), new Color(0.3f, 0.3f, 0.3f));
+            
             inputScrollPosition = EditorGUILayout.BeginScrollView(
                 inputScrollPosition,
                 false, true,  // 禁用水平滚动条，启用垂直滚动条
@@ -701,11 +774,13 @@ namespace UniMcp.Gui
             );
 
             EditorGUILayout.EndScrollView();
-            GUILayout.EndVertical();
+            EditorGUILayout.EndVertical();
 
             // 显示行数信息
             int lineCount = inputJson?.Split('\n').Length ?? 0;
-            GUILayout.Label($"行数: {lineCount} | 高度: {inputHeight:F0}px", EditorStyles.miniLabel);
+            GUIStyle infoStyle = new GUIStyle(EditorStyles.miniLabel);
+            infoStyle.normal.textColor = new Color(0.6f, 0.6f, 0.6f);
+            GUILayout.Label($"行数: {lineCount} | 高度: {inputHeight:F0}px", infoStyle);
         }
 
         /// <summary>
@@ -719,39 +794,56 @@ namespace UniMcp.Gui
             // 第一行按钮
             GUILayout.BeginHorizontal();
 
+            Color originalBg = GUI.backgroundColor;
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 11;
+            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.normal.textColor = Color.white;
+            buttonStyle.hover.textColor = Color.white;
+            buttonStyle.active.textColor = Color.white;
+
             GUI.enabled = !isExecuting;
-            if (GUILayout.Button("执行", GUILayout.Height(30), GUILayout.Width(100)))
+            GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
+            if (GUILayout.Button("执行", buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteCall();
             }
 
             GUI.enabled = !isExecuting && clipboardAvailable;
-            if (GUILayout.Button("执行剪贴板", GUILayout.Height(30), GUILayout.Width(100)))
+            GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+            if (GUILayout.Button("执行剪贴板", buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteClipboard();
             }
             GUI.enabled = true;
 
-            if (GUILayout.Button("格式化JSON", GUILayout.Height(30), GUILayout.Width(120)))
+            GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
+            if (GUILayout.Button("格式化JSON", buttonStyle, GUILayout.Height(30), GUILayout.Width(120)))
             {
                 FormatJson();
             }
 
-            if (GUILayout.Button("清空", GUILayout.Height(30), GUILayout.Width(60)))
+            GUI.backgroundColor = new Color(0.7f, 0.4f, 0.4f);
+            if (GUILayout.Button("清空", buttonStyle, GUILayout.Height(30), GUILayout.Width(60)))
             {
                 inputJson = "{}";
                 ClearResults();
             }
 
+            GUI.backgroundColor = originalBg;
+
             if (isExecuting)
             {
+                GUIStyle executingStyle = new GUIStyle(EditorStyles.label);
+                executingStyle.normal.textColor = new Color(0.8f, 0.8f, 0.4f);
+                executingStyle.fontStyle = FontStyle.Bold;
                 if (totalExecutionCount > 1)
                 {
-                    GUILayout.Label($"执行中... ({currentExecutionIndex}/{totalExecutionCount})", GUILayout.Width(150));
+                    GUILayout.Label($"执行中... ({currentExecutionIndex}/{totalExecutionCount})", executingStyle, GUILayout.Width(150));
                 }
                 else
                 {
-                    GUILayout.Label("执行中...", GUILayout.Width(100));
+                    GUILayout.Label("执行中...", executingStyle, GUILayout.Width(100));
                 }
             }
 
@@ -762,16 +854,19 @@ namespace UniMcp.Gui
 
             // 剪贴板操作按钮 - 根据剪贴板内容动态启用/禁用
             GUI.enabled = clipboardAvailable;
-            if (GUILayout.Button("粘贴到输入框", GUILayout.Height(25), GUILayout.Width(100)))
+            GUI.backgroundColor = new Color(0.4f, 0.6f, 0.8f);
+            if (GUILayout.Button("粘贴到输入框", buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PasteFromClipboard();
             }
 
-            if (GUILayout.Button("预览剪贴板", GUILayout.Height(25), GUILayout.Width(100)))
+            GUI.backgroundColor = new Color(0.4f, 0.5f, 0.7f);
+            if (GUILayout.Button("预览剪贴板", buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PreviewClipboard();
             }
             GUI.enabled = true;
+            GUI.backgroundColor = originalBg;
 
             // 显示剪贴板状态 - 带颜色指示
             DrawClipboardStatus();
@@ -784,16 +879,29 @@ namespace UniMcp.Gui
         /// </summary>
         private void DrawResultArea(float availableWidth)
         {
-            EditorGUILayout.LabelField("执行结果", EditorStyles.boldLabel);
+            // 标题样式
+            GUIStyle labelStyle = new GUIStyle(EditorStyles.boldLabel);
+            labelStyle.fontSize = 11;
+            labelStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            labelStyle.fontStyle = FontStyle.Bold;
+            EditorGUILayout.LabelField("执行结果", labelStyle);
 
             float textAreaWidth = availableWidth - 40; // 减去边距和滚动条宽度
 
             // 创建结果显示的滚动区域，限制宽度避免水平滚动
-            GUILayout.BeginVertical(EditorStyles.helpBox);
+            Rect resultBoxRect = EditorGUILayout.BeginVertical();
+            EditorGUI.DrawRect(resultBoxRect, new Color(0.15f, 0.15f, 0.15f, 1f));
+            
+            // 绘制边框
+            EditorGUI.DrawRect(new Rect(resultBoxRect.x, resultBoxRect.y, resultBoxRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(resultBoxRect.x, resultBoxRect.y + resultBoxRect.height - 1, resultBoxRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(resultBoxRect.x, resultBoxRect.y, 1, resultBoxRect.height), new Color(0.3f, 0.3f, 0.3f));
+            EditorGUI.DrawRect(new Rect(resultBoxRect.x + resultBoxRect.width - 1, resultBoxRect.y, 1, resultBoxRect.height), new Color(0.3f, 0.3f, 0.3f));
+            
             resultScrollPosition = EditorGUILayout.BeginScrollView(
                 resultScrollPosition,
                 false, true,  // 禁用水平滚动条，启用垂直滚动条
-                GUILayout.Height(ResultAreaHeight),
+                GUILayout.ExpandHeight(true),  // 填充剩余空间
                 GUILayout.MaxWidth(availableWidth)
             );
 
@@ -806,15 +914,24 @@ namespace UniMcp.Gui
             );
 
             EditorGUILayout.EndScrollView();
-            GUILayout.EndVertical();
+            EditorGUILayout.EndVertical();
 
             // 结果操作按钮
             GUILayout.BeginHorizontal();
 
+            Color originalBg = GUI.backgroundColor;
+            GUIStyle resultButtonStyle = new GUIStyle(GUI.skin.button);
+            resultButtonStyle.fontSize = 10;
+            resultButtonStyle.fontStyle = FontStyle.Bold;
+            resultButtonStyle.normal.textColor = Color.white;
+            resultButtonStyle.hover.textColor = Color.white;
+            resultButtonStyle.active.textColor = Color.white;
+
             // 记录结果按钮 - 只有当有执行结果且不是从历史记录加载时才显示
             if (currentResult != null && !string.IsNullOrEmpty(inputJson))
             {
-                if (GUILayout.Button("记录结果", GUILayout.Width(80)))
+                GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
+                if (GUILayout.Button("记录结果", resultButtonStyle, GUILayout.Width(80)))
                 {
                     RecordCurrentResult();
                 }
@@ -823,7 +940,8 @@ namespace UniMcp.Gui
             // 格式化结果按钮 - 只有当有结果文本时才显示
             if (!string.IsNullOrEmpty(resultText))
             {
-                if (GUILayout.Button("格式化结果", GUILayout.Width(80)))
+                GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
+                if (GUILayout.Button("格式化结果", resultButtonStyle, GUILayout.Width(80)))
                 {
                     FormatResultText();
                 }
@@ -832,17 +950,20 @@ namespace UniMcp.Gui
             // 检查是否为批量结果，如果是则显示额外操作
             if (IsBatchResultDisplayed())
             {
-                if (GUILayout.Button("复制统计", GUILayout.Width(80)))
+                GUI.backgroundColor = new Color(0.4f, 0.6f, 0.8f);
+                if (GUILayout.Button("复制统计", resultButtonStyle, GUILayout.Width(80)))
                 {
                     CopyBatchStatistics();
                 }
 
-                if (GUILayout.Button("仅显示错误", GUILayout.Width(80)))
+                GUI.backgroundColor = new Color(0.8f, 0.5f, 0.3f);
+                if (GUILayout.Button("仅显示错误", resultButtonStyle, GUILayout.Width(80)))
                 {
                     ShowOnlyErrors();
                 }
             }
 
+            GUI.backgroundColor = originalBg;
             GUILayout.EndHorizontal();
         }
 
@@ -2235,21 +2356,66 @@ namespace UniMcp.Gui
         /// <summary>
         /// 绘制分组管理界面
         /// </summary>
+        // 静态变量存储背景纹理，避免重复创建
+        private static Texture2D groupManagerBgTexture = null;
+
         private void DrawGroupManager(float width)
         {
             var recordObject = McpExecuteRecordObject.instance;
 
-            GUILayout.BeginVertical(EditorStyles.helpBox);
-            GUILayout.Label("分组管理", EditorStyles.boldLabel);
+            // 使用helpBox样式，但自定义背景颜色
+            GUIStyle boxStyle = new GUIStyle(EditorStyles.helpBox);
+            // 创建或重用深色背景纹理
+            if (groupManagerBgTexture == null)
+            {
+                groupManagerBgTexture = new Texture2D(1, 1);
+                groupManagerBgTexture.SetPixel(0, 0, new Color(0.25f, 0.25f, 0.25f, 1f));
+                groupManagerBgTexture.Apply();
+            }
+            boxStyle.normal.background = groupManagerBgTexture;
+            
+            EditorGUILayout.BeginVertical(boxStyle);
+            EditorGUILayout.Space(5);
+            
+            GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
+            titleStyle.fontSize = 12;
+            titleStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            GUILayout.Label("分组管理", titleStyle);
+            EditorGUILayout.Space(5);
 
             // 创建新分组
-            GUILayout.Label("创建新分组:");
-            newGroupName = EditorGUILayout.TextField("名称", newGroupName);
-            newGroupDescription = EditorGUILayout.TextField("描述", newGroupDescription);
+            GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
+            labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+            labelStyle.fontSize = 10;
+            GUILayout.Label("创建新分组:", labelStyle);
+            
+            // 输入框样式 - 使用正常的TextField样式，只修改文字颜色
+            GUIStyle textFieldStyle = new GUIStyle(EditorStyles.textField);
+            textFieldStyle.normal.textColor = Color.white;
+            textFieldStyle.focused.textColor = Color.white;
+            textFieldStyle.active.textColor = Color.white;
+            // 不设置background，使用默认样式以确保可编辑
+            
+            // 保存原始标签宽度
+            float originalLabelWidth = EditorGUIUtility.labelWidth;
+            // 设置较小的标签宽度，让输入框占用更多空间
+            EditorGUIUtility.labelWidth = 40;
+            
+            newGroupName = EditorGUILayout.TextField("名称", newGroupName, textFieldStyle);
+            newGroupDescription = EditorGUILayout.TextField("描述", newGroupDescription, textFieldStyle);
+            
+            // 恢复原始标签宽度
+            EditorGUIUtility.labelWidth = originalLabelWidth;
 
             GUILayout.BeginHorizontal();
             GUI.enabled = !string.IsNullOrWhiteSpace(newGroupName);
-            if (GUILayout.Button("创建分组", GUILayout.Width(80)))
+            Color createButtonBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
+            GUIStyle createButtonStyle = new GUIStyle(GUI.skin.button);
+            createButtonStyle.fontSize = 10;
+            createButtonStyle.fontStyle = FontStyle.Bold;
+            createButtonStyle.normal.textColor = Color.white;
+            if (GUILayout.Button("创建分组", createButtonStyle, GUILayout.Width(80), GUILayout.Height(22)))
             {
                 string groupId = System.Guid.NewGuid().ToString("N")[..8];
                 string groupNameTrimmed = newGroupName.Trim();
@@ -2265,13 +2431,14 @@ namespace UniMcp.Gui
                 }
             }
             GUI.enabled = true;
+            GUI.backgroundColor = createButtonBg;
             GUILayout.EndHorizontal();
 
             // 分组列表（缩小高度）
             if (recordObject.recordGroups.Count > 0)
             {
                 GUILayout.Space(5);
-                GUILayout.Label("现有分组:");
+                GUILayout.Label("现有分组:", labelStyle);
 
                 // 使用固定高度的滚动区域
                 groupScrollPosition = GUILayout.BeginScrollView(groupScrollPosition, GUILayout.Height(120));
@@ -2280,20 +2447,37 @@ namespace UniMcp.Gui
                 {
                     var group = recordObject.recordGroups[i];
 
-                    GUILayout.BeginVertical(EditorStyles.helpBox);
-
+                    // 绘制分组项背景
+                    Rect groupItemRect = EditorGUILayout.BeginVertical();
+                    Color itemBgColor = i % 2 == 0 ? new Color(0.2f, 0.2f, 0.2f, 0.5f) : new Color(0.18f, 0.18f, 0.18f, 0.5f);
+                    EditorGUI.DrawRect(groupItemRect, itemBgColor);
+                    
+                    EditorGUILayout.Space(3);
                     GUILayout.BeginHorizontal();
 
                     // 分组信息（简化显示）
                     GUILayout.BeginVertical();
-                    GUILayout.Label($"{group.name}", EditorStyles.boldLabel);
-                    GUILayout.Label($"{recordObject.GetGroupStatistics(group.id)}", EditorStyles.miniLabel);
+                    GUIStyle groupNameStyle = new GUIStyle(EditorStyles.boldLabel);
+                    groupNameStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                    groupNameStyle.fontSize = 11;
+                    GUILayout.Label($"{group.name}", groupNameStyle);
+                    
+                    GUIStyle statsStyle = new GUIStyle(EditorStyles.miniLabel);
+                    statsStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+                    GUILayout.Label($"{recordObject.GetGroupStatistics(group.id)}", statsStyle);
                     GUILayout.EndVertical();
 
                     GUILayout.FlexibleSpace();
 
                     // 操作按钮（水平排列）
-                    if (GUILayout.Button("切换", GUILayout.Width(50), GUILayout.Height(20)))
+                    Color groupButtonBg = GUI.backgroundColor;
+                    GUIStyle groupButtonStyle = new GUIStyle(GUI.skin.button);
+                    groupButtonStyle.fontSize = 9;
+                    groupButtonStyle.fontStyle = FontStyle.Bold;
+                    groupButtonStyle.normal.textColor = Color.white;
+                    
+                    GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+                    if (GUILayout.Button("切换", groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
                     {
                         recordObject.SwitchToGroup(group.id);
                         recordList = null;
@@ -2301,7 +2485,8 @@ namespace UniMcp.Gui
                     }
 
                     GUI.enabled = !group.isDefault;
-                    if (GUILayout.Button("删除", GUILayout.Width(50), GUILayout.Height(20)))
+                    GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+                    if (GUILayout.Button("删除", groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
                     {
                         if (EditorUtility.DisplayDialog("确认删除",
                             $"确定要删除分组 '{group.name}' 吗？\n\n该分组的所有记录将被移动到默认分组。",
@@ -2313,15 +2498,18 @@ namespace UniMcp.Gui
                         }
                     }
                     GUI.enabled = true;
+                    GUI.backgroundColor = groupButtonBg;
 
                     GUILayout.EndHorizontal();
-                    GUILayout.EndVertical();
+                    EditorGUILayout.Space(3);
+                    EditorGUILayout.EndVertical();
                 }
 
                 GUILayout.EndScrollView();
             }
 
-            GUILayout.EndVertical();
+            EditorGUILayout.Space(5);
+            EditorGUILayout.EndVertical();
         }
 
         /// <summary>

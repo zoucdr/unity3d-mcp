@@ -9,6 +9,6 @@ namespace UniMcp.Res
         public string Url => $"file://{System.Environment.CurrentDirectory}/ProjectSettings/ProjectVersion.txt".Replace("\\", "/");
         public string Name => "project_version";
         public string Description => "工程版本信息";
-        public string MimeType => "application/text";
+        public string MimeType => "text/plain";
     }
 }

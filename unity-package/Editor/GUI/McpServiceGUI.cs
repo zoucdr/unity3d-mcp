@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -32,28 +32,52 @@ namespace UniMcp.Gui
             // 使用垂直布局管理整个窗口，确保充分利用空间
             EditorGUILayout.BeginVertical(GUILayout.ExpandHeight(true));
 
-            // 标题行
+            // 美化标题区域 - 添加背景框和渐变效果
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            // 标题行 - 使用更大的字体和更好的样式
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Unity3D MCP Service", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            
+            // 标题样式
+            GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 16,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.2f, 0.4f, 0.8f) }
+            };
+            EditorGUILayout.LabelField("⚡ Unity3D MCP Service", titleStyle, GUILayout.ExpandWidth(true));
 
-            // 日志级别下拉菜单
-            EditorGUILayout.LabelField("日志级别:", GUILayout.Width(60));
+            // 日志级别下拉菜单 - 美化样式
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("日志级别", EditorStyles.miniLabel, GUILayout.Width(60));
             var currentLogLevel = McpLogger.GetLogLevel();
             var newLogLevel = (McpLogger.LogLevel)EditorGUILayout.EnumPopup(currentLogLevel, GUILayout.Width(100));
             if (newLogLevel != currentLogLevel)
             {
                 McpLogger.SetLogLevel(newLogLevel);
             }
+            EditorGUILayout.EndVertical();
 
-            // 状态窗口按钮
-            if (GUILayout.Button("状态窗口", GUILayout.Width(80)))
+            // 状态窗口按钮 - 美化按钮样式
+            GUIStyle statusButtonStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                padding = new RectOffset(8, 8, 4, 4),
+                fontSize = 11
+            };
+            Color originalBgColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f); // 淡蓝色
+            
+            if (GUILayout.Button("📊 状态窗口", statusButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
             {
                 McpServiceStatusWindow.ShowWindow();
             }
-
+            
+            GUI.backgroundColor = originalBgColor;
             EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.EndVertical();
 
-            EditorGUILayout.Space(10);
+            EditorGUILayout.Space(8);
 
             // 添加工具方法列表 - 让它填充剩余空间
             DrawMethodsList();
@@ -93,36 +117,73 @@ namespace UniMcp.Gui
         /// </summary>
         private static void DrawMethodsList()
         {
+            // 使用更美观的背景框
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
 
-            // 标题栏：左侧显示标题，右侧显示调试按钮
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("可用工具方法", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            // 美化标题栏：添加背景色和更好的布局
+            Rect headerRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(28));
+            
+            // 绘制标题背景渐变效果
+            Color headerBgColor = new Color(0.25f, 0.25f, 0.3f, 0.3f);
+            EditorGUI.DrawRect(headerRect, headerBgColor);
+            
+            // 标题样式
+            GUIStyle headerTitleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
+                padding = new RectOffset(8, 0, 4, 0)
+            };
+            EditorGUILayout.LabelField("🔧 可用工具方法", headerTitleStyle, GUILayout.ExpandWidth(true));
 
-            // 工具信息按钮
-            GUIStyle toolInfoButtonStyle = new GUIStyle(EditorStyles.miniButton);
+            // 工具信息按钮 - 美化样式
+            GUIStyle toolInfoButtonStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                padding = new RectOffset(10, 10, 4, 4),
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
             Color toolInfoOriginalColor = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(1f, 0.9f, 0.7f); // 淡橙色背景
-
+            
             int totalToolCount = McpService.GetToolCount();
             int enabledToolCount = McpService.GetEnabledToolCount();
             string toolButtonText = enabledToolCount == totalToolCount ?
-                $"工具({enabledToolCount})" :
-                $"工具({enabledToolCount}/{totalToolCount})";
+                $"✅ 工具({enabledToolCount})" :
+                $"⚠️ 工具({enabledToolCount}/{totalToolCount})";
+            
+            // 根据启用状态设置按钮颜色
+            if (enabledToolCount == totalToolCount)
+            {
+                GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f); // 绿色 - 全部启用
+            }
+            else if (enabledToolCount > 0)
+            {
+                GUI.backgroundColor = new Color(1f, 0.85f, 0.4f, 0.8f); // 橙色 - 部分启用
+            }
+            else
+            {
+                GUI.backgroundColor = new Color(1f, 0.5f, 0.5f, 0.8f); // 红色 - 全部禁用
+            }
 
-            if (GUILayout.Button(toolButtonText, toolInfoButtonStyle, GUILayout.Width(80)))
+            if (GUILayout.Button(toolButtonText, toolInfoButtonStyle, GUILayout.Width(100), GUILayout.Height(22)))
             {
                 ShowToolDebugInfo();
             }
 
             GUI.backgroundColor = toolInfoOriginalColor;
 
-            // 调试窗口按钮
-            GUIStyle titleDebugButtonStyle = new GUIStyle(EditorStyles.miniButton);
+            // 调试窗口按钮 - 美化样式
+            GUIStyle titleDebugButtonStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                padding = new RectOffset(10, 10, 4, 4),
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
             Color titleOriginalColor = GUI.backgroundColor;
-            GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // 淡蓝色背景
+            GUI.backgroundColor = new Color(0.5f, 0.7f, 1f, 0.8f); // 更柔和的蓝色
 
-            if (GUILayout.Button("调试窗口", titleDebugButtonStyle, GUILayout.Width(70)))
+            if (GUILayout.Button("🐛 调试窗口", titleDebugButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
             {
                 // 打开调试窗口（不预填充内容）
                 McpDebugWindow.ShowWindow();
@@ -130,6 +191,8 @@ namespace UniMcp.Gui
 
             GUI.backgroundColor = titleOriginalColor;
             EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space(4);
 
             // 确保方法已注册
             ToolsCall.EnsureMethodsRegisteredStatic();
@@ -156,10 +219,9 @@ namespace UniMcp.Gui
                 methodsByGroup[groupName].Add((methodName, method, assemblyName));
             }
 
-            // 动态计算可用高度并应用到滚动视图
-            float availableHeight = CalculateAvailableMethodsHeight();
+            // 滚动视图填充剩余空间
             methodsScrollPosition = EditorGUILayout.BeginScrollView(methodsScrollPosition,
-                GUILayout.Height(availableHeight));
+                GUILayout.ExpandHeight(true));
 
             // 重置分组序号
             groupIndex = 0;
@@ -182,35 +244,59 @@ namespace UniMcp.Gui
                 // 确定组开关的状态：全部启用时为true，部分启用时为mixed，全部禁用时为false
                 bool groupToggleState = allToolsEnabled;
 
-                // 绘制分组折叠标题
+                // 绘制分组折叠标题 - 不使用背景色，避免文字模糊
                 EditorGUILayout.BeginVertical("box");
 
                 GUIStyle groupFoldoutStyle = new GUIStyle(EditorStyles.foldout)
                 {
                     fontStyle = FontStyle.Bold,
-                    fontSize = 12
+                    fontSize = 13
+                    // 使用默认padding，确保展开箭头可见
                 };
 
-                // 如果组内所有工具都被禁用，标题显示红色
-                if (!hasEnabledTools)
+                // 根据启用状态设置文字颜色
+                if (allToolsEnabled)
                 {
-                    groupFoldoutStyle.normal.textColor = Color.red;
-                    groupFoldoutStyle.onNormal.textColor = Color.red;
-                    groupFoldoutStyle.focused.textColor = Color.red;
-                    groupFoldoutStyle.onFocused.textColor = Color.red;
+                    groupFoldoutStyle.normal.textColor = new Color(0.2f, 0.7f, 0.3f);
+                    groupFoldoutStyle.onNormal.textColor = new Color(0.2f, 0.7f, 0.3f);
                 }
+                else if (hasEnabledTools)
+                {
+                    groupFoldoutStyle.normal.textColor = new Color(0.8f, 0.7f, 0.2f);
+                    groupFoldoutStyle.onNormal.textColor = new Color(0.8f, 0.7f, 0.2f);
+                }
+                else
+                {
+                    groupFoldoutStyle.normal.textColor = new Color(0.9f, 0.3f, 0.3f);
+                    groupFoldoutStyle.onNormal.textColor = new Color(0.9f, 0.3f, 0.3f);
+                }
+                groupFoldoutStyle.focused.textColor = groupFoldoutStyle.normal.textColor;
+                groupFoldoutStyle.onFocused.textColor = groupFoldoutStyle.normal.textColor;
 
-                EditorGUILayout.BeginHorizontal();
-
-                // 绘制组开关（最左侧）
-                // 如果部分启用，用黄色背景提示混合状态
+                // 使用GetControlRect手动布局，确保位置正确
+                Rect groupRowRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
+                
+                // 计算各个元素的宽度和位置
+                float groupToggleWidth = 22f;
+                float groupSpacing = 4f;
+                
+                // 绘制组开关（最左侧）- 美化样式
                 Color originalBackgroundColor = GUI.backgroundColor;
-                if (hasEnabledTools && !allToolsEnabled)
+                if (allToolsEnabled)
                 {
-                    GUI.backgroundColor = new Color(1f, 1f, 0.5f); // 淡黄色表示部分启用
+                    GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.6f); // 绿色
+                }
+                else if (hasEnabledTools)
+                {
+                    GUI.backgroundColor = new Color(1f, 0.9f, 0.4f, 0.6f); // 黄色
+                }
+                else
+                {
+                    GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f, 0.6f); // 红色
                 }
 
-                bool newGroupToggleState = EditorGUILayout.Toggle(groupToggleState, GUILayout.Width(20));
+                Rect groupToggleRect = new Rect(groupRowRect.x, groupRowRect.y + (groupRowRect.height - 20) / 2, groupToggleWidth, 20);
+                bool newGroupToggleState = EditorGUI.Toggle(groupToggleRect, groupToggleState);
 
                 GUI.backgroundColor = originalBackgroundColor;
 
@@ -225,77 +311,101 @@ namespace UniMcp.Gui
                 }
 
                 groupIndex++;
-                groupFoldouts[groupName] = EditorGUILayout.Foldout(
+                
+                // 添加状态图标
+                string statusIcon = allToolsEnabled ? "✅" : (hasEnabledTools ? "⚠️" : "❌");
+                
+                // ========== 【一级标题点击展开区域 - 可手动修改】 ==========
+                // 计算foldout的位置（在toggle右边）
+                float groupFoldoutStartX = groupToggleRect.xMax + groupSpacing;  // ← 修改这里调整展开区域起始位置
+                float groupFoldoutWidth = groupRowRect.xMax - groupFoldoutStartX; // ← 修改这里调整展开区域宽度
+                
+                Rect groupFoldoutRect = new Rect(
+                    groupFoldoutStartX,      // ← 展开区域X坐标
+                    groupRowRect.y,          // ← 展开区域Y坐标
+                    groupFoldoutWidth,       // ← 展开区域宽度
+                    groupRowRect.height      // ← 展开区域高度
+                );
+                // ========== 【一级标题点击展开区域 - 可手动修改】 ==========
+                
+                // 绘制foldout，确保展开箭头可见
+                // 注意：foldoutRect定义了可点击展开的区域范围
+                groupFoldouts[groupName] = EditorGUI.Foldout(
+                    groupFoldoutRect,        // ← 这个Rect定义了可点击展开的区域
                     groupFoldouts[groupName],
-                    $"🔧 {groupIndex}. {groupName} ({methods.Count})",
+                    $"{statusIcon} {groupIndex}. {groupName} ({methods.Count})",
                     true,
                     groupFoldoutStyle
                 );
-                EditorGUILayout.EndHorizontal();
 
                 // 如果分组展开，显示其中的方法
                 if (groupFoldouts[groupName])
                 {
                     EditorGUILayout.BeginVertical();
                     EditorGUI.indentLevel++;
-
+                    int methodIndex = 0;
                     foreach (var (methodName, method, assemblyName) in methods)
                     {
+                        methodIndex++;
                         // 确保该方法在字典中有一个条目
                         if (!methodFoldouts.ContainsKey(methodName))
                         {
                             methodFoldouts[methodName] = false;
                         }
 
-                        // 绘制方法折叠标题
+                        // 绘制方法折叠标题 - 不使用背景色，避免文字模糊
                         EditorGUILayout.BeginVertical("box");
-
+                        
                         // 获取工具启用状态
                         bool toolEnabled = McpService.GetLocalSettings().IsToolEnabled(methodName);
 
                         // 折叠标题栏样式
                         GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout)
                         {
-                            fontStyle = FontStyle.Bold
+                            fontStyle = FontStyle.Bold,
+                            fontSize = 11,
+                            padding = new RectOffset(0, 0, 1, 1), // 移除左padding，避免覆盖toggle
+                            contentOffset = new Vector2(0, 0) // 确保内容不偏移
                         };
 
-                        // 如果工具被禁用，标题显示红色
-                        if (!toolEnabled)
+                        // 根据启用状态设置文字颜色
+                        if (toolEnabled)
                         {
-                            foldoutStyle.normal.textColor = Color.red;
-                            foldoutStyle.onNormal.textColor = Color.red;
-                            foldoutStyle.focused.textColor = Color.red;
-                            foldoutStyle.onFocused.textColor = Color.red;
+                            foldoutStyle.normal.textColor = new Color(0.7f, 0.9f, 0.7f);
+                            foldoutStyle.onNormal.textColor = new Color(0.7f, 0.9f, 0.7f);
                         }
+                        else
+                        {
+                            foldoutStyle.normal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                            foldoutStyle.onNormal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                        }
+                        foldoutStyle.focused.textColor = foldoutStyle.normal.textColor;
+                        foldoutStyle.onFocused.textColor = foldoutStyle.normal.textColor;
 
                         // 在一行中显示开关、折叠标题、程序集标签、问号按钮和调试按钮
-                        EditorGUILayout.BeginHorizontal();
-
-                        // 绘制工具开关（最左侧）
-                        bool newToolEnabled = EditorGUILayout.Toggle(toolEnabled, GUILayout.Width(20));
-
-                        // 绘制折叠标题
-                        Rect foldoutRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
-
-                        // 计算按钮和程序集标签的位置
+                        // 使用GetControlRect获取整行的Rect，然后手动绘制各个元素
+                        Rect rowRect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
+                        
+                        // 计算各个元素的宽度和位置
+                        float toggleWidth = 22f;
+                        float spacing = 4f;
                         float buttonWidth = 20f;
                         float buttonHeight = 18f;
-                        float padding = 6f; // 增加间距，避免重叠
+                        float padding = 6f;
 
                         // 计算程序集标签宽度
                         string assemblyLabel = $"({assemblyName})";
                         GUIStyle assemblyLabelStyle = new GUIStyle(EditorStyles.miniLabel);
-                        // 确保标签有足够的宽度，避免文本被截断
                         float calculatedWidth = assemblyLabelStyle.CalcSize(new GUIContent(assemblyLabel)).x;
-                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 90f); // 增加最小宽度
+                        float assemblyLabelWidth = Mathf.Max(calculatedWidth + padding * 2, 90f);
 
-                        // 从右到左计算各区域位置，确保有足够间距
-                        float rightEdge = foldoutRect.xMax;
-
+                        // 从右到左计算各区域位置
+                        float rightEdge = rowRect.xMax;
+                        
                         // 1. 调试按钮区域（最右侧）
                         Rect debugButtonRect = new Rect(
                             rightEdge - buttonWidth,
-                            foldoutRect.y + (foldoutRect.height - buttonHeight) / 2,
+                            rowRect.y + (rowRect.height - buttonHeight) / 2,
                             buttonWidth,
                             buttonHeight
                         );
@@ -304,7 +414,7 @@ namespace UniMcp.Gui
                         // 2. 问号按钮区域
                         Rect helpButtonRect = new Rect(
                             rightEdge - buttonWidth,
-                            foldoutRect.y + (foldoutRect.height - buttonHeight) / 2,
+                            rowRect.y + (rowRect.height - buttonHeight) / 2,
                             buttonWidth,
                             buttonHeight
                         );
@@ -313,47 +423,70 @@ namespace UniMcp.Gui
                         // 3. 程序集标签区域
                         Rect assemblyLabelRect = new Rect(
                             rightEdge - assemblyLabelWidth,
-                            foldoutRect.y,
+                            rowRect.y,
                             assemblyLabelWidth,
-                            foldoutRect.height
+                            rowRect.height
                         );
-                        rightEdge -= (assemblyLabelWidth + padding * 2); // 标签后增加更多间距
+                        rightEdge -= (assemblyLabelWidth + padding * 2);
 
-                        // 4. 折叠标题区域（剩余空间），确保最小宽度
-                        float minFoldoutWidth = 100f; // 确保折叠标题有最小宽度
-                        float availableWidth = rightEdge - foldoutRect.x;
-                        if (availableWidth < minFoldoutWidth)
+                        // ========== 【二级标题点击展开区域 - 可手动修改】 ==========
+                        // 4. 折叠标题区域（剩余空间）
+                        float minFoldoutWidth = 100f;
+                        float foldoutStartX = rowRect.x + toggleWidth + spacing; // ← 修改这里调整展开区域起始位置（toggle宽度 + 间距）
+                        float foldoutAvailableWidth = rightEdge - foldoutStartX; // ← 修改这里调整展开区域可用宽度
+                        
+                        if (foldoutAvailableWidth < minFoldoutWidth)
                         {
                             // 如果空间不够，缩小程序集标签宽度
-                            float reduction = minFoldoutWidth - availableWidth;
+                            float reduction = minFoldoutWidth - foldoutAvailableWidth;
                             assemblyLabelWidth = Mathf.Max(assemblyLabelWidth - reduction, 60f);
                             assemblyLabelRect.width = assemblyLabelWidth;
                             assemblyLabelRect.x = rightEdge - assemblyLabelWidth;
-                            availableWidth = minFoldoutWidth;
+                            foldoutAvailableWidth = minFoldoutWidth;
                         }
 
-                        Rect actualFoldoutRect = new Rect(
-                            foldoutRect.x,
-                            foldoutRect.y,
-                            availableWidth,
-                            foldoutRect.height
+                        Rect foldoutRect = new Rect(
+                            foldoutStartX,          // ← 展开区域X坐标
+                            rowRect.y,              // ← 展开区域Y坐标
+                            foldoutAvailableWidth,  // ← 展开区域宽度
+                            rowRect.height          // ← 展开区域高度
                         );
+                        // ========== 【二级标题点击展开区域 - 可手动修改】 ==========
 
-                        // 绘制折叠标题（只显示方法名）
+                        // 绘制toggle（最左侧）
+                        Color toggleOriginalBg = GUI.backgroundColor;
+                        if (toolEnabled)
+                        {
+                            GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.5f);
+                        }
+                        else
+                        {
+                            GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f, 0.5f);
+                        }
+                        Rect toggleRect = new Rect(rowRect.x, rowRect.y + (rowRect.height - 18) / 2, toggleWidth + 10, 18);
+                        bool newToolEnabled = EditorGUI.Toggle(toggleRect, toolEnabled);
+                        GUI.backgroundColor = toggleOriginalBg;
+
+                        // 绘制foldout（在toggle右边）
+                        // 注意：foldoutRect定义了可点击展开的区域范围
                         methodFoldouts[methodName] = EditorGUI.Foldout(
-                            actualFoldoutRect,
+                            foldoutRect,        // ← 这个Rect定义了可点击展开的区域
                             methodFoldouts[methodName],
-                            methodName,
+                            $" {methodName}",
                             true,
-                            foldoutStyle);
+                            groupFoldoutStyle);
 
-                        // 绘制程序集标签
+                        // 绘制程序集标签 - 美化样式
                         Color originalColor = GUI.color;
-                        GUI.color = new Color(0.6f, 0.6f, 0.6f, 0.8f); // 更淡的灰色
+                        GUI.color = new Color(0.5f, 0.65f, 0.8f, 0.9f); // 淡蓝色
 
                         // 设置右对齐的标签样式
-                        GUIStyle rightAlignedLabelStyle = new GUIStyle(EditorStyles.miniLabel);
-                        rightAlignedLabelStyle.alignment = TextAnchor.MiddleRight;
+                        GUIStyle rightAlignedLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleRight,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 9
+                        };
 
                         EditorGUI.LabelField(assemblyLabelRect, assemblyLabel, rightAlignedLabelStyle);
                         GUI.color = originalColor;
@@ -368,21 +501,34 @@ namespace UniMcp.Gui
                             Debug.Log($"[McpServiceGUI] 工具 '{methodName}' 状态已更改为: {(newToolEnabled ? "启用" : "禁用")}");
                         }
 
-                        // 绘制问号按钮
-                        GUIStyle helpButtonStyle = new GUIStyle(EditorStyles.miniButton);
+                        // 绘制问号按钮 - 美化样式
+                        GUIStyle helpButtonStyle = new GUIStyle(EditorStyles.miniButton)
+                        {
+                            fontSize = 12,
+                            fontStyle = FontStyle.Bold,
+                            padding = new RectOffset(0, 0, 0, 0)
+                        };
+                        Color helpButtonOriginalBg = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.6f, 0.8f, 1f, 0.7f); // 淡蓝色
 
                         if (GUI.Button(helpButtonRect, "?", helpButtonStyle))
                         {
                             // 处理按钮点击事件
                             HandleMethodHelpClick(methodName, method);
                         }
+                        GUI.backgroundColor = helpButtonOriginalBg;
 
-                        // 绘制调试按钮
-                        GUIStyle debugButtonStyle = new GUIStyle(EditorStyles.miniButton);
+                        // 绘制调试按钮 - 美化样式
+                        GUIStyle debugButtonStyle = new GUIStyle(EditorStyles.miniButton)
+                        {
+                            fontSize = 10,
+                            fontStyle = FontStyle.Bold,
+                            padding = new RectOffset(0, 0, 0, 0)
+                        };
                         originalBackgroundColor = GUI.backgroundColor;
-                        GUI.backgroundColor = new Color(0.7f, 0.9f, 1f); // 淡蓝色背景
+                        GUI.backgroundColor = new Color(0.5f, 0.7f, 0.95f, 0.8f); // 更柔和的蓝色背景
 
-                        if (GUI.Button(debugButtonRect, "T", debugButtonStyle))
+                        if (GUI.Button(debugButtonRect, "🔍", debugButtonStyle))
                         {
                             // 处理调试按钮点击事件
                             HandleMethodDebugClick(methodName, method);
@@ -390,15 +536,19 @@ namespace UniMcp.Gui
 
                         GUI.backgroundColor = originalBackgroundColor;
 
-                        EditorGUILayout.EndHorizontal();
-
                         // 如果展开，显示预览信息
                         if (methodFoldouts[methodName])
                         {
                             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                            EditorGUILayout.Space(4);
 
                             // === 参数Keys信息部分 ===
-                            EditorGUILayout.BeginVertical("box");
+                            EditorGUILayout.LabelField("📋 参数信息", EditorStyles.boldLabel);
+                            EditorGUILayout.Space(2);
+                            
+                            Rect paramsBoxRect = EditorGUILayout.BeginVertical("box");
+                            Color paramsBgColor = new Color(0.2f, 0.25f, 0.3f, 0.2f);
+                            EditorGUI.DrawRect(paramsBoxRect, paramsBgColor);
 
                             var keys = method.Keys;
                             if (keys != null && keys.Length > 0)
@@ -407,18 +557,40 @@ namespace UniMcp.Gui
                                 {
                                     // 创建参数行的样式
                                     EditorGUILayout.BeginHorizontal();
-                                    // 参数名称 - 必需参数用粗体，可选参数用普通字体
-                                    GUIStyle keyStyle = EditorStyles.miniBoldLabel;
+                                    
+                                    // 参数名称 - 美化样式
+                                    GUIStyle keyStyle = new GUIStyle(EditorStyles.miniBoldLabel)
+                                    {
+                                        fontSize = 10,
+                                        padding = new RectOffset(4, 4, 2, 2)
+                                    };
                                     Color originalKeyColor = GUI.color;
 
-                                    // 必需参数用红色标记，可选参数用灰色标记
-                                    GUI.color = key.Optional ? Color.red : Color.green;
+                                    // 必需参数用绿色标记，可选参数用橙色标记
+                                    if (key.Optional)
+                                    {
+                                        GUI.color = new Color(1f, 0.7f, 0.3f); // 橙色 - 可选
+                                        EditorGUILayout.LabelField("○", EditorStyles.miniLabel, GUILayout.Width(12));
+                                    }
+                                    else
+                                    {
+                                        GUI.color = new Color(0.3f, 0.8f, 0.4f); // 绿色 - 必需
+                                        EditorGUILayout.LabelField("●", EditorStyles.miniLabel, GUILayout.Width(12));
+                                    }
+                                    
                                     // 参数名称
-                                    EditorGUILayout.SelectableLabel(key.Key, keyStyle, GUILayout.Width(120), GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    EditorGUILayout.SelectableLabel(key.Key, keyStyle, GUILayout.Width(130), GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     GUI.color = originalKeyColor;
 
-                                    // 参数描述
-                                    EditorGUILayout.SelectableLabel(key.Desc, keyStyle, GUILayout.Width(120), GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    // 参数描述 - 美化样式
+                                    GUIStyle descStyle = new GUIStyle(EditorStyles.miniLabel)
+                                    {
+                                        fontSize = 9,
+                                        fontStyle = FontStyle.Italic,
+                                        normal = { textColor = new Color(0.7f, 0.7f, 0.7f) },
+                                        padding = new RectOffset(4, 4, 2, 2)
+                                    };
+                                    EditorGUILayout.SelectableLabel(key.Desc, descStyle, GUILayout.Width(150), GUILayout.Height(EditorGUIUtility.singleLineHeight));
 
                                     var paramJson = new JsonClass();
 
@@ -450,24 +622,41 @@ namespace UniMcp.Gui
                                     // Json字符串美化
                                     string paramJsonStr = paramJson.ToString();
 
-                                    // 使用word wrap多行显示JSON
-                                    EditorGUILayout.SelectableLabel(paramJsonStr, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    // 使用word wrap多行显示JSON - 美化样式
+                                    GUIStyle jsonStyle = new GUIStyle(EditorStyles.miniLabel)
+                                    {
+                                        fontSize = 9,
+                                        normal = { textColor = new Color(0.6f, 0.8f, 1f) },
+                                        wordWrap = true,
+                                        padding = new RectOffset(4, 4, 2, 2)
+                                    };
+                                    EditorGUILayout.SelectableLabel(paramJsonStr, jsonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     EditorGUILayout.EndHorizontal();
+                                    
+                                    EditorGUILayout.Space(2);
 
                                 }
                             }
                             else
                             {
-                                EditorGUILayout.LabelField("无参数", EditorStyles.centeredGreyMiniLabel);
+                                GUIStyle noParamsStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                                {
+                                    fontSize = 10,
+                                    fontStyle = FontStyle.Italic
+                                };
+                                EditorGUILayout.LabelField("📭 无参数", noParamsStyle);
                             }
 
                             EditorGUILayout.EndVertical();
-
-                            // 添加一些间距
-                            EditorGUILayout.Space(3);
+                            EditorGUILayout.Space(6);
 
                             // === 状态树结构部分 ===
-                            EditorGUILayout.BeginVertical("box");
+                            EditorGUILayout.LabelField("📄 预览信息", EditorStyles.boldLabel);
+                            EditorGUILayout.Space(2);
+                            
+                            Rect previewBoxRect = EditorGUILayout.BeginVertical("box");
+                            Color previewBgColor = new Color(0.2f, 0.25f, 0.3f, 0.2f);
+                            EditorGUI.DrawRect(previewBoxRect, previewBgColor);
 
                             // 获取预览信息
                             string preview = method.Preview();
@@ -479,11 +668,20 @@ namespace UniMcp.Gui
                                 lineCount = preview.Split('\n').Length;
                             }
 
-                            // 显示预览信息
-                            EditorGUILayout.SelectableLabel(preview, EditorStyles.wordWrappedLabel,
-                            GUILayout.Height(EditorGUIUtility.singleLineHeight * lineCount * 0.8f));
+                            // 显示预览信息 - 美化样式
+                            GUIStyle previewStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+                            {
+                                fontSize = 10,
+                                normal = { textColor = new Color(0.85f, 0.85f, 0.9f) },
+                                padding = new RectOffset(6, 6, 4, 4),
+                                wordWrap = true
+                            };
+                            EditorGUILayout.SelectableLabel(preview, previewStyle,
+                            GUILayout.ExpandWidth(true),
+                            GUILayout.Height(EditorGUIUtility.singleLineHeight * Mathf.Max(lineCount * 0.9f, 2f)));
 
                             EditorGUILayout.EndVertical();
+                            EditorGUILayout.Space(4);
                             EditorGUILayout.EndVertical();
                         }
 
@@ -495,7 +693,7 @@ namespace UniMcp.Gui
                 }
 
                 EditorGUILayout.EndVertical();
-                EditorGUILayout.Space(10);
+                EditorGUILayout.Space(8);
             }
 
             EditorGUILayout.EndScrollView();
