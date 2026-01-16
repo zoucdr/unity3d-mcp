@@ -25,6 +25,12 @@ namespace UniMcp
         private List<string> _disabledTools = new List<string>();
 
         [SerializeField]
+        private List<string> _disabledResources = new List<string>();
+
+        [SerializeField]
+        private List<string> _disabledPrompts = new List<string>();
+
+        [SerializeField]
         private bool _resourcesCapability = false;
 
         /// <summary>
@@ -329,18 +335,218 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 检查资源是否启用（仅用于配置的资源）
+        /// </summary>
+        /// <param name="resourceName">资源名称</param>
+        /// <returns>是否启用</returns>
+        public bool IsResourceEnabled(string resourceName)
+        {
+            if (_disabledResources == null)
+            {
+                _disabledResources = new List<string>();
+                return true;
+            }
+            return !_disabledResources.Contains(resourceName);
+        }
+
+        /// <summary>
+        /// 设置资源启用状态（仅用于配置的资源）
+        /// </summary>
+        /// <param name="resourceName">资源名称</param>
+        /// <param name="enabled">是否启用</param>
+        public void SetResourceEnabled(string resourceName, bool enabled)
+        {
+            if (_disabledResources == null)
+            {
+                _disabledResources = new List<string>();
+            }
+
+            bool currentlyEnabled = !_disabledResources.Contains(resourceName);
+            bool changed = false;
+
+            if (enabled && !currentlyEnabled)
+            {
+                _disabledResources.Remove(resourceName);
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 启用资源: {resourceName}");
+            }
+            else if (!enabled && currentlyEnabled)
+            {
+                _disabledResources.Add(resourceName);
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 禁用资源: {resourceName}");
+            }
+
+            if (changed)
+            {
+                SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// 批量设置资源启用状态
+        /// </summary>
+        /// <param name="resourceNames">资源名称列表</param>
+        /// <param name="enabled">是否启用</param>
+        public void SetResourcesEnabled(IEnumerable<string> resourceNames, bool enabled)
+        {
+            if (_disabledResources == null)
+            {
+                _disabledResources = new List<string>();
+            }
+
+            bool changed = false;
+            foreach (var resourceName in resourceNames)
+            {
+                bool currentlyEnabled = !_disabledResources.Contains(resourceName);
+
+                if (enabled && !currentlyEnabled)
+                {
+                    _disabledResources.Remove(resourceName);
+                    changed = true;
+                }
+                else if (!enabled && currentlyEnabled)
+                {
+                    _disabledResources.Add(resourceName);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// 过滤出启用的资源列表（仅用于配置的资源）
+        /// </summary>
+        /// <param name="allResourceNames">所有资源名称列表</param>
+        /// <returns>启用的资源名称列表</returns>
+        public List<string> FilterEnabledResources(List<string> allResourceNames)
+        {
+            if (allResourceNames == null) return new List<string>();
+            if (_disabledResources == null) return new List<string>(allResourceNames);
+
+            return allResourceNames.Where(resource => !_disabledResources.Contains(resource)).ToList();
+        }
+
+        /// <summary>
+        /// 检查提示词是否启用（仅用于配置的提示词）
+        /// </summary>
+        /// <param name="promptName">提示词名称</param>
+        /// <returns>是否启用</returns>
+        public bool IsPromptEnabled(string promptName)
+        {
+            if (_disabledPrompts == null)
+            {
+                _disabledPrompts = new List<string>();
+                return true;
+            }
+            return !_disabledPrompts.Contains(promptName);
+        }
+
+        /// <summary>
+        /// 设置提示词启用状态（仅用于配置的提示词）
+        /// </summary>
+        /// <param name="promptName">提示词名称</param>
+        /// <param name="enabled">是否启用</param>
+        public void SetPromptEnabled(string promptName, bool enabled)
+        {
+            if (_disabledPrompts == null)
+            {
+                _disabledPrompts = new List<string>();
+            }
+
+            bool currentlyEnabled = !_disabledPrompts.Contains(promptName);
+            bool changed = false;
+
+            if (enabled && !currentlyEnabled)
+            {
+                _disabledPrompts.Remove(promptName);
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 启用提示词: {promptName}");
+            }
+            else if (!enabled && currentlyEnabled)
+            {
+                _disabledPrompts.Add(promptName);
+                changed = true;
+                Debug.Log($"[McpLocalSettings] 禁用提示词: {promptName}");
+            }
+
+            if (changed)
+            {
+                SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// 批量设置提示词启用状态
+        /// </summary>
+        /// <param name="promptNames">提示词名称列表</param>
+        /// <param name="enabled">是否启用</param>
+        public void SetPromptsEnabled(IEnumerable<string> promptNames, bool enabled)
+        {
+            if (_disabledPrompts == null)
+            {
+                _disabledPrompts = new List<string>();
+            }
+
+            bool changed = false;
+            foreach (var promptName in promptNames)
+            {
+                bool currentlyEnabled = !_disabledPrompts.Contains(promptName);
+
+                if (enabled && !currentlyEnabled)
+                {
+                    _disabledPrompts.Remove(promptName);
+                    changed = true;
+                }
+                else if (!enabled && currentlyEnabled)
+                {
+                    _disabledPrompts.Add(promptName);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                SaveSettings();
+            }
+        }
+
+        /// <summary>
+        /// 过滤出启用的提示词列表（仅用于配置的提示词）
+        /// </summary>
+        /// <param name="allPromptNames">所有提示词名称列表</param>
+        /// <returns>启用的提示词名称列表</returns>
+        public List<string> FilterEnabledPrompts(List<string> allPromptNames)
+        {
+            if (allPromptNames == null) return new List<string>();
+            if (_disabledPrompts == null) return new List<string>(allPromptNames);
+
+            return allPromptNames.Where(prompt => !_disabledPrompts.Contains(prompt)).ToList();
+        }
+
+        /// <summary>
         /// 获取设置摘要信息（用于调试）
         /// </summary>
         public string GetSettingsSummary()
         {
             var disabledToolsList = _disabledTools != null ? string.Join(", ", _disabledTools) : "无";
+            var disabledResourcesList = _disabledResources != null ? string.Join(", ", _disabledResources) : "无";
+            var disabledPromptsList = _disabledPrompts != null ? string.Join(", ", _disabledPrompts) : "无";
             return $"MCP本地设置摘要:\n" +
                    $"- 服务器端口: {McpServerPort}\n" +
                    $"- 上次工具数量: {LastToolCount}\n" +
                    $"- 服务开启状态: {McpOpenState}\n" +
                    $"- Resources功能状态: {ResourcesCapability}\n" +
                    $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}\n" +
-                   $"- 禁用工具列表: {disabledToolsList}";
+                   $"- 禁用工具列表: {disabledToolsList}\n" +
+                   $"- 禁用资源数量: {(_disabledResources?.Count ?? 0)}\n" +
+                   $"- 禁用资源列表: {disabledResourcesList}\n" +
+                   $"- 禁用提示词数量: {(_disabledPrompts?.Count ?? 0)}\n" +
+                   $"- 禁用提示词列表: {disabledPromptsList}";
         }
 
     }
