@@ -576,9 +576,13 @@ namespace UniMcp.Tools
                     fullScreen = Screen.fullScreen,
                     currentResolution = new
                     {
-                        width = Screen.currentResolution.width,
-                        height = Screen.currentResolution.height,
-                        refreshRate = Screen.currentResolution.refreshRate
+                        width = UnityEngine.Screen.currentResolution.width,
+                        height = UnityEngine.Screen.currentResolution.height,
+#if UNITY_2022_2_OR_NEWER
+                        refreshRate = UnityEngine.Screen.currentResolution.refreshRateRatio.value
+#else
+                        refreshRate = UnityEngine.Screen.currentResolution.refreshRate
+#endif
                     }
                 };
 

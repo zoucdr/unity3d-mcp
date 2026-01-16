@@ -17,7 +17,7 @@ namespace UniMcp.Tools
     /// Handles network operations including HTTP requests, file downloads, and API calls.
     /// 对应方法名: request_http
     /// </summary>
-    [ToolName("request_http", "网络功能")]
+    [ToolName("request_http", "网络工具")]
     public class RequestHttp : StateMethodBase
     {
         public override string Description => "HTTP请求工具，用于处理网络操作，包括HTTP请求、文件下载、上传和API调用等功能";

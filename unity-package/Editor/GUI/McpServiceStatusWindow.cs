@@ -62,8 +62,12 @@ namespace UniMcp.Gui
         /// </summary>
         private void InitializeHttpRequestRecordsList()
         {
-            // 使用一个固定的列表引用，避免每次都创建新的列表
-            var records = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+            // 获取记录并按时间降序排序（最新的在前）
+            var records = new List<UniMcp.Models.McpExecuteRecordObject.HttpRequestRecord>(
+                UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords()
+            );
+            records.Sort((a, b) => b.requestTime.CompareTo(a.requestTime)); // 时间大的排前面
+            
             httpRequestRecordsList = new ReorderableList(
                 records,
                 typeof(UniMcp.Models.McpExecuteRecordObject.HttpRequestRecord),
@@ -73,17 +77,31 @@ namespace UniMcp.Gui
                 false  // 不可删除
             );
 
-            // 设置标题
+            // 设置标题样式
             httpRequestRecordsList.drawHeaderCallback = (Rect rect) =>
             {
-                EditorGUI.LabelField(rect, "HTTP请求记录");
+                // 绘制背景
+                EditorGUI.DrawRect(rect, new Color(0.2f, 0.2f, 0.2f, 1f));
+                
+                // 绘制标题文字
+                GUIStyle headerStyle = new GUIStyle(EditorStyles.boldLabel);
+                headerStyle.normal.textColor = Color.white;
+                headerStyle.alignment = TextAnchor.MiddleLeft;
+                headerStyle.padding = new RectOffset(10, 0, 0, 0);
+                
+                EditorGUI.LabelField(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), 
+                    "HTTP请求记录", headerStyle);
             };
 
             // 设置元素高度
             httpRequestRecordsList.elementHeightCallback = (int index) =>
             {
-                // 获取最新的记录列表
-                var currentRecords = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                // 获取最新的记录列表并排序
+                var currentRecords = new List<UniMcp.Models.McpExecuteRecordObject.HttpRequestRecord>(
+                    UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords()
+                );
+                currentRecords.Sort((a, b) => b.requestTime.CompareTo(a.requestTime)); // 时间大的排前面
+                
                 if (index >= currentRecords.Count) return EditorGUIUtility.singleLineHeight;
 
                 var record = currentRecords[index];
@@ -101,21 +119,30 @@ namespace UniMcp.Gui
                 // 如果展开，增加高度以显示详细信息
                 if (isExpanded)
                 {
-                    // 基本信息行 + 请求内容 + 响应内容 + 处理时长
-                    height += EditorGUIUtility.singleLineHeight * 8; // 基本信息行
+                    // 基本信息行（客户端、请求时间、处理时间、HTTP方法、状态码、状态）
+                    height += (EditorGUIUtility.singleLineHeight + 2) * 6; // 6行基本信息，每行间距2
+                    
+                    height += 4; // 分隔间距
 
                     // 请求内容和响应内容区域
                     if (!string.IsNullOrEmpty(record.requestContent))
                     {
-                        height += 40; // 请求内容文本区域
+                        height += EditorGUIUtility.singleLineHeight + 2; // 标题行
+                        height += 80; // 请求内容文本区域（增加高度）
+                        height += 4; // 间距
                     }
 
                     if (!string.IsNullOrEmpty(record.responseContent))
                     {
-                        height += 40; // 响应内容文本区域
+                        height += EditorGUIUtility.singleLineHeight + 2; // 标题行
+                        height += 80; // 响应内容文本区域（增加高度）
+                        height += 4; // 间距
                     }
 
-                    height += 8; // 额外间距
+                    // 处理时长行
+                    height += EditorGUIUtility.singleLineHeight + 2;
+                    
+                    height += 12; // 底部额外间距
                 }
 
                 return height;
@@ -124,8 +151,12 @@ namespace UniMcp.Gui
             // 设置绘制元素
             httpRequestRecordsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
-                // 获取最新的记录列表
-                var currentRecords = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                // 获取最新的记录列表并排序
+                var currentRecords = new List<UniMcp.Models.McpExecuteRecordObject.HttpRequestRecord>(
+                    UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords()
+                );
+                currentRecords.Sort((a, b) => b.requestTime.CompareTo(a.requestTime));
+                
                 if (index >= currentRecords.Count) return;
 
                 var record = currentRecords[index];
@@ -136,84 +167,178 @@ namespace UniMcp.Gui
                     recordFoldoutStates[record.id] = false;
                 }
 
-                // 绘制折叠控件和基本信息
-                Rect foldoutRect = new Rect(rect.x, rect.y + 2, rect.width, EditorGUIUtility.singleLineHeight);
+                // 绘制背景（交替颜色）
+                Color bgColor = index % 2 == 0 ? new Color(0.25f, 0.25f, 0.25f, 0.5f) : new Color(0.22f, 0.22f, 0.22f, 0.5f);
+                if (isActive)
+                {
+                    bgColor = new Color(0.3f, 0.5f, 0.8f, 0.3f);
+                }
+                EditorGUI.DrawRect(rect, bgColor);
 
-                // 创建标题文本
-                string title = $"{record.endPoint} - {record.httpMethod} - {record.requestTime:HH:mm:ss} - {(record.success ? "成功" : "失败")}";
+                // 绘制折叠控件和基本信息
+                Rect foldoutRect = new Rect(rect.x + 5, rect.y + 2, rect.width - 10, EditorGUIUtility.singleLineHeight);
+
+                // 创建标题文本，优化显示
+                string statusText = record.success ? "✓ 成功" : "✗ 失败";
+                Color statusColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
+                string title = $"[{record.requestTime:HH:mm:ss}] {record.httpMethod} | {record.endPoint} | {statusText}";
+
+                // 绘制状态颜色指示
+                Rect statusRect = new Rect(rect.x + 2, rect.y + 4, 3, EditorGUIUtility.singleLineHeight - 4);
+                EditorGUI.DrawRect(statusRect, statusColor);
 
                 // 绘制折叠控件
-                recordFoldoutStates[record.id] = EditorGUI.Foldout(foldoutRect, recordFoldoutStates[record.id], title, true);
+                GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout);
+                foldoutStyle.fontStyle = FontStyle.Bold;
+                foldoutStyle.normal.textColor = Color.white;
+                foldoutStyle.onNormal.textColor = Color.white;
+                foldoutStyle.focused.textColor = Color.white;
+                foldoutStyle.onFocused.textColor = Color.white;
+                
+                recordFoldoutStates[record.id] = EditorGUI.Foldout(foldoutRect, recordFoldoutStates[record.id], title, true, foldoutStyle);
 
                 // 如果展开，绘制详细信息
                 if (recordFoldoutStates[record.id])
                 {
-                    float yOffset = rect.y + EditorGUIUtility.singleLineHeight + 4;
-                    float detailWidth = rect.width - 10;
+                    float yOffset = rect.y + EditorGUIUtility.singleLineHeight + 6;
+                    float detailWidth = rect.width - 20;
 
                     // 绘制详细信息区域背景
-                    Rect detailsRect = new Rect(rect.x + 5, yOffset, detailWidth, rect.height - EditorGUIUtility.singleLineHeight - 4);
-                    GUI.Box(detailsRect, "", EditorStyles.helpBox);
+                    Rect detailsRect = new Rect(rect.x + 10, yOffset, detailWidth, rect.height - EditorGUIUtility.singleLineHeight - 6);
+                    EditorGUI.DrawRect(detailsRect, new Color(0.15f, 0.15f, 0.15f, 0.8f));
+                    
+                    // 绘制边框
+                    EditorGUI.DrawRect(new Rect(detailsRect.x, detailsRect.y, detailsRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+                    EditorGUI.DrawRect(new Rect(detailsRect.x, detailsRect.y + detailsRect.height - 1, detailsRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+                    EditorGUI.DrawRect(new Rect(detailsRect.x, detailsRect.y, 1, detailsRect.height), new Color(0.4f, 0.4f, 0.4f));
+                    EditorGUI.DrawRect(new Rect(detailsRect.x + detailsRect.width - 1, detailsRect.y, 1, detailsRect.height), new Color(0.4f, 0.4f, 0.4f));
 
                     // 内容区域
-                    float contentX = detailsRect.x + 5;
-                    float contentWidth = detailsRect.width - 10;
-                    float contentY = yOffset + 5;
+                    float contentX = detailsRect.x + 10;
+                    float contentWidth = detailsRect.width - 20;
+                    float contentY = yOffset + 8;
 
-                    // 基本信息
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"客户端: {record.endPoint}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    // 基本信息 - 使用更好的样式
+                    GUIStyle labelStyle = new GUIStyle(EditorStyles.miniLabel);
+                    labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+                    
+                    GUIStyle valueStyle = new GUIStyle(EditorStyles.miniLabel);
+                    valueStyle.normal.textColor = Color.white;
+                    valueStyle.fontStyle = FontStyle.Bold;
 
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"请求时间: {record.requestTime:HH:mm:ss}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    // 两列布局显示信息
+                    float labelWidth = 80;
+                    float valueWidth = contentWidth - labelWidth - 10;
 
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"处理时间: {record.responseTime:HH:mm:ss}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    DrawInfoRow(contentX, contentY, "客户端", record.endPoint, labelWidth, valueWidth, labelStyle, valueStyle);
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"HTTP方法: {record.httpMethod}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    DrawInfoRow(contentX, contentY, "请求时间", record.requestTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"状态码: {record.statusCode}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    DrawInfoRow(contentX, contentY, "处理时间", record.responseTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"成功: {(record.success ? "是" : "否")}", EditorStyles.miniLabel);
-                    contentY += EditorGUIUtility.singleLineHeight;
+                    DrawInfoRow(contentX, contentY, "HTTP方法", record.httpMethod, labelWidth, valueWidth, labelStyle, valueStyle);
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
+
+                    // 状态码带颜色
+                    Color statusCodeColor = record.statusCode >= 200 && record.statusCode < 300 ? 
+                        new Color(0.4f, 0.8f, 0.4f) : 
+                        (record.statusCode >= 400 ? new Color(0.9f, 0.4f, 0.4f) : new Color(0.8f, 0.8f, 0.4f));
+                    valueStyle.normal.textColor = statusCodeColor;
+                    DrawInfoRow(contentX, contentY, "状态码", record.statusCode.ToString(), labelWidth, valueWidth, labelStyle, valueStyle);
+                    valueStyle.normal.textColor = Color.white;
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
+
+                    // 成功状态带颜色
+                    valueStyle.normal.textColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
+                    DrawInfoRow(contentX, contentY, "状态", record.success ? "成功" : "失败", labelWidth, valueWidth, labelStyle, valueStyle);
+                    valueStyle.normal.textColor = Color.white;
+                    contentY += EditorGUIUtility.singleLineHeight + 2;
+
+                    contentY += 4;
 
                     // 请求内容
                     if (!string.IsNullOrEmpty(record.requestContent))
                     {
+                        GUIStyle sectionStyle = new GUIStyle(EditorStyles.miniBoldLabel);
+                        sectionStyle.normal.textColor = new Color(0.6f, 0.8f, 1f);
                         EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                            "请求内容:", EditorStyles.miniBoldLabel);
-                        contentY += EditorGUIUtility.singleLineHeight;
+                            "请求内容:", sectionStyle);
+                        contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                        EditorGUI.TextArea(new Rect(contentX, contentY, contentWidth, 40),
-                            record.requestContent, EditorStyles.textArea);
-                        contentY += 40;
+                        // 绘制文本框背景和边框
+                        Rect textAreaRect = new Rect(contentX, contentY, contentWidth, 80);
+                        EditorGUI.DrawRect(textAreaRect, new Color(0.1f, 0.1f, 0.1f, 1f));
+                        
+                        // 绘制边框
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y, textAreaRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y + textAreaRect.height - 1, textAreaRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y, 1, textAreaRect.height), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x + textAreaRect.width - 1, textAreaRect.y, 1, textAreaRect.height), new Color(0.3f, 0.3f, 0.3f));
+
+                        // 创建深色主题的文本框样式
+                        GUIStyle textAreaStyle = new GUIStyle(EditorStyles.textArea);
+                        textAreaStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                        textAreaStyle.normal.background = Texture2D.blackTexture;
+                        textAreaStyle.active.textColor = Color.white;
+                        textAreaStyle.focused.textColor = Color.white;
+                        textAreaStyle.wordWrap = true;
+                        
+                        EditorGUI.TextArea(new Rect(contentX + 4, contentY + 4, contentWidth - 8, 72),
+                            record.requestContent, textAreaStyle);
+                        contentY += 84;
                     }
 
                     // 响应内容
                     if (!string.IsNullOrEmpty(record.responseContent))
                     {
+                        GUIStyle sectionStyle = new GUIStyle(EditorStyles.miniBoldLabel);
+                        sectionStyle.normal.textColor = new Color(0.6f, 0.8f, 1f);
                         EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                            "响应内容:", EditorStyles.miniBoldLabel);
-                        contentY += EditorGUIUtility.singleLineHeight;
+                            "响应内容:", sectionStyle);
+                        contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                        EditorGUI.TextArea(new Rect(contentX, contentY, contentWidth, 40),
-                            record.responseContent, EditorStyles.textArea);
-                        contentY += 40;
+                        // 绘制文本框背景和边框
+                        Rect textAreaRect = new Rect(contentX, contentY, contentWidth, 80);
+                        EditorGUI.DrawRect(textAreaRect, new Color(0.1f, 0.1f, 0.1f, 1f));
+                        
+                        // 绘制边框
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y, textAreaRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y + textAreaRect.height - 1, textAreaRect.width, 1), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x, textAreaRect.y, 1, textAreaRect.height), new Color(0.3f, 0.3f, 0.3f));
+                        EditorGUI.DrawRect(new Rect(textAreaRect.x + textAreaRect.width - 1, textAreaRect.y, 1, textAreaRect.height), new Color(0.3f, 0.3f, 0.3f));
+
+                        // 创建深色主题的文本框样式
+                        GUIStyle textAreaStyle = new GUIStyle(EditorStyles.textArea);
+                        textAreaStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                        textAreaStyle.normal.background = Texture2D.blackTexture;
+                        textAreaStyle.active.textColor = Color.white;
+                        textAreaStyle.focused.textColor = Color.white;
+                        textAreaStyle.wordWrap = true;
+                        
+                        EditorGUI.TextArea(new Rect(contentX + 4, contentY + 4, contentWidth - 8, 72),
+                            record.responseContent, textAreaStyle);
+                        contentY += 84;
                     }
 
                     // 处理时长
-                    EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                        $"处理时长: {record.duration:F2}毫秒", EditorStyles.miniLabel);
+                    Color durationColor = record.duration < 100 ? new Color(0.4f, 0.8f, 0.4f) : 
+                                        (record.duration < 500 ? new Color(0.8f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f));
+                    valueStyle.normal.textColor = durationColor;
+                    DrawInfoRow(contentX, contentY, "处理时长", $"{record.duration:F2} 毫秒", labelWidth, valueWidth, labelStyle, valueStyle);
                 }
             };
+        }
+
+        /// <summary>
+        /// 绘制信息行（标签+值）
+        /// </summary>
+        private void DrawInfoRow(float x, float y, string label, string value, float labelWidth, float valueWidth, GUIStyle labelStyle, GUIStyle valueStyle)
+        {
+            EditorGUI.LabelField(new Rect(x, y, labelWidth, EditorGUIUtility.singleLineHeight), label + ":", labelStyle);
+            EditorGUI.LabelField(new Rect(x + labelWidth + 5, y, valueWidth, EditorGUIUtility.singleLineHeight), value, valueStyle);
         }
 
         private void OnDisable()
@@ -244,7 +369,11 @@ namespace UniMcp.Gui
                 // 更新ReorderableList - 重新初始化以确保数据同步
                 if (httpRequestRecordsList != null)
                 {
-                    var records = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords();
+                    var records = new List<UniMcp.Models.McpExecuteRecordObject.HttpRequestRecord>(
+                        UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords()
+                    );
+                    records.Sort((a, b) => b.requestTime.CompareTo(a.requestTime)); // 时间大的排前面
+                    
                     // 检查数据是否发生变化
                     if (httpRequestRecordsList.list.Count != records.Count)
                     {
@@ -253,7 +382,7 @@ namespace UniMcp.Gui
                     }
                     else
                     {
-                        // 数据没有变化，只更新引用
+                        // 数据没有变化，只更新引用（保持排序）
                         httpRequestRecordsList.list = records;
                     }
                 }
@@ -264,26 +393,73 @@ namespace UniMcp.Gui
 
         private void OnGUI()
         {
+            // 绘制窗口背景
+            Rect windowRect = new Rect(0, 0, position.width, position.height);
+            EditorGUI.DrawRect(windowRect, new Color(0.22f, 0.22f, 0.22f, 1f));
+
             // 使用垂直布局管理整个窗口
             EditorGUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+            EditorGUILayout.Space(5);
 
-            // Unity Bridge Section
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            // Unity Bridge Section - 美化背景
+            Rect sectionRect = EditorGUILayout.BeginVertical();
+            EditorGUI.DrawRect(sectionRect, new Color(0.25f, 0.25f, 0.25f, 1f));
+            
+            // 绘制边框
+            EditorGUI.DrawRect(new Rect(sectionRect.x, sectionRect.y, sectionRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(sectionRect.x, sectionRect.y + sectionRect.height - 1, sectionRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(sectionRect.x, sectionRect.y, 1, sectionRect.height), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(sectionRect.x + sectionRect.width - 1, sectionRect.y, 1, sectionRect.height), new Color(0.4f, 0.4f, 0.4f));
 
-            // 标题行
+            EditorGUILayout.Space(8);
+
+            // 标题行 - 美化样式
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Unity MCP Services", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
+            titleStyle.fontSize = 14;
+            titleStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            EditorGUILayout.LabelField("Unity MCP Services", titleStyle, GUILayout.ExpandWidth(true));
             EditorGUILayout.EndHorizontal();
-            var installStatusRect = EditorGUILayout.BeginHorizontal(GUILayout.Height(20));
-            DrawStatusDot(installStatusRect, isServiceRunning ? Color.green : Color.red);
-            EditorGUILayout.LabelField($"       Status: {(isServiceRunning ? "Running" : "Stopped")}");
+
+            EditorGUILayout.Space(5);
+
+            // 状态行
+            EditorGUILayout.BeginHorizontal(GUILayout.Height(22));
+            
+            // 先绘制状态图标，使用固定宽度
+            Rect statusIconRect = EditorGUILayout.GetControlRect(false, 22, GUILayout.Width(30));
+            DrawStatusDot(statusIconRect, isServiceRunning ? new Color(0.2f, 0.8f, 0.2f) : new Color(0.9f, 0.2f, 0.2f));
+            
+            // 添加足够的间距，避免图标和文字重叠
+            EditorGUILayout.Space(12);
+            
+            GUIStyle statusStyle = new GUIStyle(EditorStyles.label);
+            statusStyle.fontSize = 11;
+            statusStyle.normal.textColor = isServiceRunning ? new Color(0.4f, 0.9f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
+            statusStyle.fontStyle = FontStyle.Bold;
+            EditorGUILayout.LabelField($"Status: {(isServiceRunning ? "Running" : "Stopped")}", statusStyle);
 
             // 端口配置
             DrawPortConfiguration();
             EditorGUILayout.EndHorizontal();
 
-            // 启动/停止按钮和重启按钮在同一行
-            if (GUILayout.Button(isServiceRunning ? "Stop Server" : "Start Server"))
+            EditorGUILayout.Space(8);
+
+            // 按钮区域
+            EditorGUILayout.BeginHorizontal();
+            
+            // 启动/停止按钮
+            Color originalBg = GUI.backgroundColor;
+            Color buttonColor = isServiceRunning ? new Color(0.8f, 0.3f, 0.3f) : new Color(0.3f, 0.7f, 0.3f);
+            GUI.backgroundColor = buttonColor;
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fontSize = 11;
+            buttonStyle.fontStyle = FontStyle.Bold;
+            buttonStyle.normal.textColor = Color.white;
+            buttonStyle.hover.textColor = Color.white;
+            buttonStyle.active.textColor = Color.white;
+            
+            if (GUILayout.Button(isServiceRunning ? "Stop Server" : "Start Server", buttonStyle, GUILayout.Height(28)))
             {
                 ToggleService();
             }
@@ -291,13 +467,17 @@ namespace UniMcp.Gui
             // 重启服务器按钮（只在服务运行时显示）
             if (isServiceRunning)
             {
-                if (GUILayout.Button("Restart Server"))
+                GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+                if (GUILayout.Button("Restart Server", buttonStyle, GUILayout.Height(28)))
                 {
                     RestartServer();
                 }
             }
+            
+            GUI.backgroundColor = originalBg;
+            EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.Space(5);
+            EditorGUILayout.Space(8);
             EditorGUILayout.EndVertical();
 
             // 客户端连接状态部分
@@ -311,7 +491,12 @@ namespace UniMcp.Gui
 
         private static void DrawStatusDot(Rect statusRect, Color statusColor)
         {
-            Rect dotRect = new(statusRect.x + 6, statusRect.y + 4, 12, 12);
+            // 图标居中绘制在提供的矩形内
+            float iconSize = 14;
+            float iconX = statusRect.x + (statusRect.width - iconSize) / 2;
+            float iconY = statusRect.y + (statusRect.height - iconSize) / 2;
+            Rect dotRect = new(iconX, iconY, iconSize, iconSize);
+            
             Vector3 center = new(
                 dotRect.x + (dotRect.width / 2),
                 dotRect.y + (dotRect.height / 2),
@@ -319,15 +504,20 @@ namespace UniMcp.Gui
             );
             float radius = dotRect.width / 2;
 
+            // Draw glow effect (outer ring)
+            Color glowColor = new Color(statusColor.r, statusColor.g, statusColor.b, 0.3f);
+            Handles.color = glowColor;
+            Handles.DrawSolidDisc(center, Vector3.forward, radius + 2);
+
             // Draw the main dot
             Handles.color = statusColor;
             Handles.DrawSolidDisc(center, Vector3.forward, radius);
 
             // Draw the border
-            Color borderColor = new(
-                statusColor.r * 0.7f,
-                statusColor.g * 0.7f,
-                statusColor.b * 0.7f
+            Color borderColor = new Color(
+                Mathf.Max(0, statusColor.r - 0.2f),
+                Mathf.Max(0, statusColor.g - 0.2f),
+                Mathf.Max(0, statusColor.b - 0.2f)
             );
             Handles.color = borderColor;
             Handles.DrawWireDisc(center, Vector3.forward, radius);
@@ -383,38 +573,59 @@ namespace UniMcp.Gui
         private void DrawClientConnectionStatus()
         {
             EditorGUILayout.Space(10);
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
 
             // 客户端请求记录标题和工具栏
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("HTTP请求记录", EditorStyles.boldLabel, GUILayout.ExpandWidth(true));
+            
+            // 标题样式优化
+            GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
+            titleStyle.fontSize = 13;
+            titleStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+            EditorGUILayout.LabelField("HTTP请求记录", titleStyle, GUILayout.ExpandWidth(true));
 
             // 显示记录数量
             int clientCount = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords().Count;
-            Color countColor = clientCount > 0 ? Color.green : Color.gray;
+            Color countColor = clientCount > 0 ? new Color(0.4f, 0.8f, 0.4f) : Color.gray;
             GUIStyle countStyle = new GUIStyle(EditorStyles.label);
             countStyle.normal.textColor = countColor;
             countStyle.fontStyle = FontStyle.Bold;
+            countStyle.fontSize = 11;
 
             EditorGUILayout.LabelField($"记录数: {clientCount}", countStyle, GUILayout.Width(80));
 
             // 刷新按钮
-            if (GUILayout.Button("刷新", GUILayout.Width(50)))
+            Color originalBg = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+            GUIStyle refreshButtonStyle = new GUIStyle(GUI.skin.button);
+            refreshButtonStyle.fontSize = 10;
+            refreshButtonStyle.fontStyle = FontStyle.Bold;
+            refreshButtonStyle.normal.textColor = Color.white;
+            refreshButtonStyle.hover.textColor = Color.white;
+            refreshButtonStyle.active.textColor = Color.white;
+            
+            if (GUILayout.Button("刷新", refreshButtonStyle, GUILayout.Width(50), GUILayout.Height(22)))
             {
                 RefreshHttpRequestRecordsList();
             }
+            GUI.backgroundColor = originalBg;
 
             // 清空记录按钮
-            if (clientCount > 0 && GUILayout.Button("清空", GUILayout.Width(50)))
+            if (clientCount > 0)
             {
-                if (EditorUtility.DisplayDialog("清空请求记录", "确定要清空所有HTTP请求记录吗？", "确定", "取消"))
+                GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+                if (GUILayout.Button("清空", refreshButtonStyle, GUILayout.Width(50), GUILayout.Height(22)))
                 {
-                    UniMcp.Models.McpExecuteRecordObject.instance.ClearHttpRequestRecords();
-                    // 清空折叠状态字典
-                    recordFoldoutStates.Clear();
-                    // 刷新列表
-                    RefreshHttpRequestRecordsList();
+                    if (EditorUtility.DisplayDialog("清空请求记录", "确定要清空所有HTTP请求记录吗？", "确定", "取消"))
+                    {
+                        UniMcp.Models.McpExecuteRecordObject.instance.ClearHttpRequestRecords();
+                        // 清空折叠状态字典
+                        recordFoldoutStates.Clear();
+                        // 刷新列表
+                        RefreshHttpRequestRecordsList();
+                    }
                 }
+                GUI.backgroundColor = originalBg;
             }
 
             EditorGUILayout.EndHorizontal();
@@ -423,17 +634,13 @@ namespace UniMcp.Gui
             {
                 EditorGUILayout.Space(5);
 
-                // 使用ReorderableList显示HTTP请求记录
-                clientsScrollPosition = EditorGUILayout.BeginScrollView(clientsScrollPosition,
-                    GUILayout.MinHeight(100), GUILayout.MaxHeight(300));
-
                 // 确保ReorderableList已初始化
                 if (httpRequestRecordsList == null)
                 {
                     InitializeHttpRequestRecordsList();
                 }
 
-                // 绘制ReorderableList
+                // 直接绘制ReorderableList，填充剩余空间
                 if (httpRequestRecordsList != null)
                 {
                     try
@@ -451,12 +658,16 @@ namespace UniMcp.Gui
                         }
                     }
                 }
-
-                EditorGUILayout.EndScrollView();
             }
             else
             {
-                EditorGUILayout.LabelField("暂无客户端连接", EditorStyles.centeredGreyMiniLabel);
+                EditorGUILayout.Space(20);
+                GUIStyle emptyLabelStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel);
+                emptyLabelStyle.fontSize = 12;
+                emptyLabelStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f);
+                emptyLabelStyle.fontStyle = FontStyle.Italic;
+                EditorGUILayout.LabelField("暂无HTTP请求记录", emptyLabelStyle);
+                EditorGUILayout.Space(20);
             }
 
             EditorGUILayout.EndVertical();
@@ -597,12 +808,33 @@ namespace UniMcp.Gui
                 portInputInitialized = true;
             }
 
-            // 端口标签
-            EditorGUILayout.LabelField("端口:", GUILayout.Width(30));
+            GUILayout.FlexibleSpace();
 
-            // 端口输入框
+            // 端口标签 - 美化样式
+            GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
+            labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+            labelStyle.fontSize = 11;
+            EditorGUILayout.LabelField("端口:", labelStyle, GUILayout.Width(35));
+
+            // 端口输入框 - 美化样式
             GUI.SetNextControlName("PortInput");
-            string newPortString = EditorGUILayout.TextField(portInputString, GUILayout.Width(60));
+            
+            // 绘制输入框背景
+            Rect textFieldRect = EditorGUILayout.GetControlRect(false, 20, GUILayout.Width(70));
+            EditorGUI.DrawRect(textFieldRect, new Color(0.15f, 0.15f, 0.15f, 1f));
+            EditorGUI.DrawRect(new Rect(textFieldRect.x, textFieldRect.y, textFieldRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(textFieldRect.x, textFieldRect.y + textFieldRect.height - 1, textFieldRect.width, 1), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(textFieldRect.x, textFieldRect.y, 1, textFieldRect.height), new Color(0.4f, 0.4f, 0.4f));
+            EditorGUI.DrawRect(new Rect(textFieldRect.x + textFieldRect.width - 1, textFieldRect.y, 1, textFieldRect.height), new Color(0.4f, 0.4f, 0.4f));
+            
+            GUIStyle textFieldStyle = new GUIStyle(EditorStyles.textField);
+            textFieldStyle.normal.textColor = Color.white;
+            textFieldStyle.normal.background = Texture2D.blackTexture;
+            textFieldStyle.alignment = TextAnchor.MiddleCenter;
+            textFieldStyle.fontSize = 11;
+            
+            string newPortString = EditorGUI.TextField(new Rect(textFieldRect.x + 2, textFieldRect.y + 1, textFieldRect.width - 4, textFieldRect.height - 2), 
+                portInputString, textFieldStyle);
 
             // 检测输入变化
             if (newPortString != portInputString)
@@ -625,19 +857,31 @@ namespace UniMcp.Gui
 
             // 根据端口有效性设置按钮颜色
             Color originalColor = GUI.backgroundColor;
+            Color originalTextColor = GUI.color;
+            
             if (!isValidPort && !string.IsNullOrEmpty(portInputString))
             {
-                GUI.backgroundColor = Color.red;
+                GUI.backgroundColor = new Color(0.8f, 0.2f, 0.2f);
             }
             else if (isValidPort && portValue != McpService.mcpPort)
             {
-                GUI.backgroundColor = Color.green;
+                GUI.backgroundColor = new Color(0.2f, 0.7f, 0.2f);
+            }
+            else
+            {
+                GUI.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
             }
 
             bool buttonEnabled = isValidPort && portValue != McpService.mcpPort;
             GUI.enabled = buttonEnabled;
 
-            if (GUILayout.Button("应用", GUILayout.Width(40)))
+            GUIStyle applyButtonStyle = new GUIStyle(GUI.skin.button);
+            applyButtonStyle.fontSize = 10;
+            applyButtonStyle.normal.textColor = Color.white;
+            applyButtonStyle.hover.textColor = Color.white;
+            applyButtonStyle.active.textColor = Color.white;
+
+            if (GUILayout.Button("应用", applyButtonStyle, GUILayout.Width(45), GUILayout.Height(20)))
             {
                 if (McpService.SetMcpPort(portValue))
                 {
@@ -657,30 +901,33 @@ namespace UniMcp.Gui
             GUI.backgroundColor = originalColor;
 
             // 端口诊断按钮
-            if (GUILayout.Button("诊断", GUILayout.Width(40)))
+            GUI.backgroundColor = new Color(0.3f, 0.5f, 0.8f);
+            if (GUILayout.Button("诊断", applyButtonStyle, GUILayout.Width(45), GUILayout.Height(20)))
             {
                 ShowPortDiagnostics();
             }
+            GUI.backgroundColor = originalColor;
 
             // 显示端口状态提示
+            GUIStyle statusLabelStyle = new GUIStyle(EditorStyles.miniLabel);
+            statusLabelStyle.fontSize = 9;
+            
             if (!string.IsNullOrEmpty(portInputString) && !isValidPort)
             {
-                Color originalTextColor = GUI.color;
-                GUI.color = Color.red;
-                EditorGUILayout.LabelField("无效", EditorStyles.miniLabel, GUILayout.Width(30));
-                GUI.color = originalTextColor;
+                statusLabelStyle.normal.textColor = new Color(0.9f, 0.3f, 0.3f);
+                EditorGUILayout.LabelField("无效", statusLabelStyle, GUILayout.Width(35));
             }
             else if (isValidPort && portValue == McpService.mcpPort)
             {
-                Color originalTextColor = GUI.color;
-                GUI.color = Color.gray;
-                EditorGUILayout.LabelField("当前", EditorStyles.miniLabel, GUILayout.Width(30));
-                GUI.color = originalTextColor;
+                statusLabelStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f);
+                EditorGUILayout.LabelField("当前", statusLabelStyle, GUILayout.Width(35));
             }
             else
             {
-                EditorGUILayout.LabelField("", GUILayout.Width(30)); // 占位符保持布局一致
+                EditorGUILayout.LabelField("", GUILayout.Width(35)); // 占位符保持布局一致
             }
+            
+            GUI.color = originalTextColor;
         }
 
         /// <summary>

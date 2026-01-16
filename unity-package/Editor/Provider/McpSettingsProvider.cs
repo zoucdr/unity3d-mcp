@@ -28,13 +28,37 @@ namespace UniMcp.Gui
         {
             var settings = McpSettings.Instance;
 
-            EditorGUILayout.LabelField("MCP (Model Context Protocol)", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(
-                "MCP是一个强大的Unity扩展工具，提供了智能的UI生成、代码管理和项目优化功能。" +
-                "通过与AI模型的深度集成，MCP能够帮助开发者快速创建高质量的Unity项目。",
-                MessageType.Info);
+            // 美化标题区域
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            // 标题样式
+            GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.2f, 0.5f, 0.9f) },
+                padding = new RectOffset(0, 0, 8, 8)
+            };
+            
+            // 美化帮助信息
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUIStyle helpTextStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 11,
+                wordWrap = true,
+                normal = { textColor = new Color(0.85f, 0.85f, 0.9f) },
+                padding = new RectOffset(8, 8, 6, 6)
+            };
+            
+            EditorGUILayout.LabelField(
+                "🚀 Unity3d-MCP是一个强大的Unity扩展工具，提供了智能的UI生成、代码管理和项目优化功能。\n" +
+                "💡 通过与AI模型的深度集成，Unity3D MCP能够帮助开发者快速创建高质量的Unity项目。",
+                helpTextStyle);
+            
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndVertical();
 
-            EditorGUILayout.Space(10);
+            EditorGUILayout.Space(8);
 
             // 绘制完整的MCP管理GUI
             McpServiceGUI.DrawGUI();
