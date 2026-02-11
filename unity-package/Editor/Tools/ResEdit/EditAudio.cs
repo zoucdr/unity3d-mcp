@@ -13,7 +13,7 @@ namespace UniMcp.Tools
     /// 专门的音频管理工具，提供音频的导入、修改、复制、删除等操作
     /// 对应方法名: edit_audio
     /// </summary>
-    [ToolName("edit_audio", "Resource Management")]
+    [ToolName("edit_audio", "Resource Management", "资源管理")]
     public class EditAudio : StateMethodBase
     {
         public override string Description => L.T("Manage audio files including import, modify, copy, delete", "管理音频文件，包括导入、修改、复制和删除");
@@ -31,19 +31,19 @@ namespace UniMcp.Tools
                 
                 // 音频路径
                 new MethodStr("path", L.T("Audio asset path", "音频资源路径"), false)
-                    .AddExamples("Assets/Audio/music.wav", "Assets/Sounds/effect.mp3"),
+                    .AddExample("Assets/Audio/music.wav"),
                 
                 // 源文件路径
                 new MethodStr("source_file", L.T("Source file path", "源文件路径"))
-                    .AddExamples("D:/Audio/music.wav", "C:/Sounds/effect.mp3"),
+                    .AddExample("D:/Audio/music.wav"),
                 
                 // 目标路径
                 new MethodStr("destination", L.T("Target path", "目标路径"))
-                    .AddExamples("Assets/Audio/Copy/", "Assets/NewSounds/"),
+                    .AddExample("Assets/Audio/Copy/"),
                 
                 // 搜索模式
                 new MethodStr("query", L.T("Search pattern", "搜索模式"))
-                    .AddExamples("*.wav", "*.mp3"),
+                    .AddExample("*.wav"),
                 
                 // 递归搜索
                 new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
@@ -56,21 +56,18 @@ namespace UniMcp.Tools
                 
                 // 目标格式
                 new MethodStr("target_format", L.T("Target format", "目标格式"))
-                    .SetEnumValues("wav", "mp3", "ogg")
-                    .AddExample("wav"),
+                    .SetEnumValues("wav", "mp3", "ogg"),
                 
                 // 强制单声道
                 new MethodBool("force_to_mono", L.T("Force to mono", "强制单声道")),
                 
                 // 加载类型
                 new MethodStr("load_type", L.T("Load type", "加载类型"))
-                    .SetEnumValues("DecompressOnLoad", "CompressedInMemory", "Streaming")
-                    .AddExample("CompressedInMemory"),
+                    .SetEnumValues("DecompressOnLoad", "CompressedInMemory", "Streaming"),
                 
                 // 压缩格式
                 new MethodStr("compression_format", L.T("Compression format", "压缩格式"))
-                    .SetEnumValues("PCM", "Vorbis", "MP3", "ADPCM")
-                    .AddExample("Vorbis"),
+                    .SetEnumValues("PCM", "Vorbis", "MP3", "ADPCM"),
                 
                 // 质量
                 new MethodFloat("quality", L.T("Quality", "质量"))
@@ -78,8 +75,7 @@ namespace UniMcp.Tools
 
                 // 采样率设置
                 new MethodStr("sample_rate_setting", L.T("Sample rate setting", "采样率设置"))
-                    .SetEnumValues("PreserveSampleRate", "OptimizeSampleRate")
-                    .AddExample("OptimizeSampleRate"),
+                    .SetEnumValues("PreserveSampleRate", "OptimizeSampleRate"),
                 
                 // 采样率
                 new MethodInt("sample_rate", L.T("Sample rate", "采样率"))
@@ -96,8 +92,7 @@ namespace UniMcp.Tools
                 
                 // DSP缓冲区大小
                 new MethodStr("dsp_buffer_size", L.T("DSP buffer size", "DSP缓冲区大小"))
-                    .SetEnumValues("Default", "GoodLatency", "BestLatency", "BestPerformance")
-                    .AddExample("GoodLatency"),
+                    .SetEnumValues("Default", "GoodLatency", "BestLatency", "BestPerformance"),
                 
                 // 静音时虚拟化
                 new MethodBool("virtualize_when_silent", L.T("Virtualize when silent", "静音时虚拟化")),

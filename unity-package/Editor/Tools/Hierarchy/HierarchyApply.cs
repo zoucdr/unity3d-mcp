@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// Handles GameObject prefab applying and connection operations.
     /// Corresponding method name: hierarchy_apply
     /// </summary>
-    [ToolName("hierarchy_apply", "Hierarchy Management")]
+    [ToolName("hierarchy_apply", "Hierarchy Management", "层级管理")]
     public class HierarchyApply : StateMethodBase
     {
         public override string Description => L.T("Hierarchy apply tool, handles prefab apply and connection operations for game objects", "层级应用工具，处理游戏对象的预制体应用和连接操作");
@@ -34,11 +34,11 @@ namespace UniMcp.Tools
                 
                 // Target object identifier
                 new MethodStr("target_object", L.T("Target GameObject hierarchy path (for apply operation)", "目标游戏对象层级路径（用于应用操作）"), false)
-                    .AddExamples("Player", "UI/Canvas/Button"),
+                    .AddExample("Player"),
                 
                 // Prefab path
                 new MethodStr("prefab_path", L.T("Prefab path", "预制体路径"))
-                    .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/ButtonPrefab.prefab"),
+                    .AddExample("Assets/Prefabs/Player.prefab"),
                 
                 // Apply type
                 new MethodStr("apply_type", L.T("Connection type", "连接类型"))

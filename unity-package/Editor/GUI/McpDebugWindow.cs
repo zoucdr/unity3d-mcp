@@ -72,6 +72,9 @@ namespace UniMcp.Gui
         private string newGroupName = ""; // 新分组名称
         private string newGroupDescription = ""; // 新分组描述
         private Vector2 groupScrollPosition; // 分组列表滚动位置
+        private string editingGroupId = null; // 当前正在编辑的分组ID
+        private string editingGroupName = ""; // 编辑中的分组名称
+        private string editingGroupDescription = ""; // 编辑中的分组描述
         // 移除未使用的选中分组索引字段
 
         // 编辑相关变量
@@ -318,6 +321,9 @@ namespace UniMcp.Gui
 
         private void OnGUI()
         {
+            // 动态更新窗口标题以支持语言切换
+            titleContent = new GUIContent(L.T("Unity MCP Debug Client", "Unity MCP 调试客户端"));
+            
             InitializeStyles();
 
             // 绘制窗口背景
@@ -415,7 +421,7 @@ namespace UniMcp.Gui
             }
 
             GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
-            if (GUILayout.Button(L.T("Clear Current Group", "清空当前分组"), buttonStyle, GUILayout.Width(100), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("Clear Current", "清空当前组"), buttonStyle, GUILayout.Width(100), GUILayout.Height(22)))
             {
                 string confirmMessage = L.IsChinese() 
                     ? $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。"
@@ -502,7 +508,7 @@ namespace UniMcp.Gui
             GUI.BeginGroup(titleRect);
             GUILayout.BeginArea(new Rect(0, 0, titleRect.width, titleRect.height));
             GUILayout.Space(8); // 顶部间距
-            GUILayout.Label("Unity MCP Debug Client", headerStyle);
+            GUILayout.Label(L.T("Unity MCP Debug Client", "Unity MCP 调试客户端"), headerStyle);
             GUILayout.EndArea();
             GUI.EndGroup();
 
@@ -792,7 +798,7 @@ namespace UniMcp.Gui
             int lineCount = inputJson?.Split('\n').Length ?? 0;
             GUIStyle infoStyle = new GUIStyle(EditorStyles.miniLabel);
             infoStyle.normal.textColor = new Color(0.6f, 0.6f, 0.6f);
-            GUILayout.Label($"行数: {lineCount} | 高度: {inputHeight:F0}px", infoStyle);
+            GUILayout.Label($"{L.T("Lines", "行数")}: {lineCount} | {L.T("Height", "高度")}: {inputHeight:F0}px", infoStyle);
         }
 
         /// <summary>
@@ -946,7 +952,7 @@ namespace UniMcp.Gui
             if (currentResult != null && !string.IsNullOrEmpty(inputJson))
             {
                 GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
-                if (GUILayout.Button("记录结果", resultButtonStyle, GUILayout.Width(80)))
+                if (GUILayout.Button(L.T("Record Result", "记录结果"), resultButtonStyle, GUILayout.Width(90)))
                 {
                     RecordCurrentResult();
                 }
@@ -956,7 +962,7 @@ namespace UniMcp.Gui
             if (!string.IsNullOrEmpty(resultText))
             {
                 GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
-                if (GUILayout.Button("格式化结果", resultButtonStyle, GUILayout.Width(80)))
+                if (GUILayout.Button(L.T("Format Result", "格式化结果"), resultButtonStyle, GUILayout.Width(90)))
                 {
                     FormatResultText();
                 }
@@ -966,13 +972,13 @@ namespace UniMcp.Gui
             if (IsBatchResultDisplayed())
             {
                 GUI.backgroundColor = new Color(0.4f, 0.6f, 0.8f);
-                if (GUILayout.Button("复制统计", resultButtonStyle, GUILayout.Width(80)))
+                if (GUILayout.Button(L.T("Copy Statistics", "复制统计"), resultButtonStyle, GUILayout.Width(90)))
                 {
                     CopyBatchStatistics();
                 }
 
                 GUI.backgroundColor = new Color(0.8f, 0.5f, 0.3f);
-                if (GUILayout.Button("仅显示错误", resultButtonStyle, GUILayout.Width(80)))
+                if (GUILayout.Button(L.T("Show Errors Only", "仅显示错误"), resultButtonStyle, GUILayout.Width(100)))
                 {
                     ShowOnlyErrors();
                 }
@@ -1499,7 +1505,7 @@ namespace UniMcp.Gui
 
         private string FormatResult(JsonNode result, TimeSpan duration)
         {
-            string formattedResult = $"执行时间: {duration.TotalMilliseconds:F2}ms\n\n";
+            string formattedResult = $"{L.T("Execution Time", "执行时间")}: {duration.TotalMilliseconds:F2}ms\n\n";
 
             // 判断结果的 status
             string status = "success";
@@ -1576,11 +1582,11 @@ namespace UniMcp.Gui
                 var output = new StringBuilder();
 
                 // 显示总体统计
-                output.AppendLine("=== 批量调用执行结果 ===");
-                output.AppendLine($"总调用数: {totalCalls}");
-                output.AppendLine($"成功: {successfulCalls}");
-                output.AppendLine($"失败: {failedCalls}");
-                output.AppendLine($"整体状态: {(overallSuccess ? "成功" : "部分失败")}");
+                output.AppendLine($"=== {L.T("Batch Call Execution Result", "批量调用执行结果")} ===");
+                output.AppendLine($"{L.T("Total Calls", "总调用数")}: {totalCalls}");
+                output.AppendLine($"{L.T("Success", "成功")}: {successfulCalls}");
+                output.AppendLine($"{L.T("Failed", "失败")}: {failedCalls}");
+                output.AppendLine($"{L.T("Overall Status", "整体状态")}: {(overallSuccess ? L.T("Success", "成功") : L.T("Partial Failure", "部分失败"))}");
                 output.AppendLine();
 
                 // 分条显示每个结果
@@ -1588,7 +1594,7 @@ namespace UniMcp.Gui
                 {
                     for (int i = 0; i < results.Count; i++)
                     {
-                        output.AppendLine($"--- 调用 #{i + 1} ---");
+                        output.AppendLine($"--- {L.T("Call", "调用")} #{i + 1} ---");
 
                         var singleResult = results[i];
 
@@ -1611,7 +1617,7 @@ namespace UniMcp.Gui
 
                         if (isSuccess)
                         {
-                            output.AppendLine("✅ 成功");
+                            output.AppendLine($"✅ {L.T("Success", "成功")}");
                             try
                             {
                                 string formattedSingleResult = Json.FromObject(singleResult);
@@ -1624,7 +1630,7 @@ namespace UniMcp.Gui
                         }
                         else
                         {
-                            output.AppendLine("❌ 失败");
+                            output.AppendLine($"❌ {L.T("Failed", "失败")}");
 
                             // 显示结果（如果有）
                             if (singleResult != null && !singleResult.type.Equals(JsonNodeType.Null))
@@ -1632,7 +1638,7 @@ namespace UniMcp.Gui
                                 try
                                 {
                                     string formattedSingleResult = Json.FromObject(singleResult);
-                                    output.AppendLine("结果详情:");
+                                    output.AppendLine($"{L.T("Result Details", "结果详情")}:");
                                     output.AppendLine(formattedSingleResult);
                                 }
                                 catch
@@ -1644,7 +1650,7 @@ namespace UniMcp.Gui
                             // 显示错误信息
                             if (errors != null && i < errors.Count && errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                             {
-                                output.AppendLine($"错误信息: {errors[i]}");
+                                output.AppendLine($"{L.T("Error Message", "错误信息")}: {errors[i]}");
                             }
                         }
                         output.AppendLine();
@@ -1654,7 +1660,7 @@ namespace UniMcp.Gui
                 // 显示所有错误汇总
                 if (errors != null && errors.Count > 0)
                 {
-                    output.AppendLine("=== 错误汇总 ===");
+                    output.AppendLine($"=== {L.T("Error Summary", "错误汇总")} ===");
                     for (int i = 0; i < errors.Count; i++)
                     {
                         if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
@@ -1668,7 +1674,9 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                return $"批量结果格式化失败: {e.Message}\n\n原始结果:\n{Json.FromObject(result)}";
+                return L.IsChinese()
+                    ? $"批量结果格式化失败: {e.Message}\n\n原始结果:\n{Json.FromObject(result)}"
+                    : $"Batch result formatting failed: {e.Message}\n\nOriginal result:\n{Json.FromObject(result)}";
             }
         }
 
@@ -1710,18 +1718,24 @@ namespace UniMcp.Gui
                 var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
                 var overallSuccess = resultObj["success"]?.AsBool ?? false;
 
-                var statistics = $"批量调用统计:\n" +
-                               $"总调用数: {totalCalls}\n" +
-                               $"成功: {successfulCalls}\n" +
-                               $"失败: {failedCalls}\n" +
-                               $"整体状态: {(overallSuccess ? "成功" : "部分失败")}";
+                var statistics = L.IsChinese()
+                    ? $"批量调用统计:\n总调用数: {totalCalls}\n成功: {successfulCalls}\n失败: {failedCalls}\n整体状态: {(overallSuccess ? "成功" : "部分失败")}"
+                    : $"Batch Call Statistics:\nTotal Calls: {totalCalls}\nSuccess: {successfulCalls}\nFailed: {failedCalls}\nOverall Status: {(overallSuccess ? "Success" : "Partial Failure")}";
 
                 EditorGUIUtility.systemCopyBuffer = statistics;
-                EditorUtility.DisplayDialog("已复制", "统计信息已复制到剪贴板", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Copied", "已复制"), 
+                    L.T("Statistics copied to clipboard", "统计信息已复制到剪贴板"), 
+                    L.T("OK", "确定"));
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("复制失败", $"无法复制统计信息: {e.Message}", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Copy Failed", "复制失败"), 
+                    L.IsChinese() 
+                        ? $"无法复制统计信息: {e.Message}" 
+                        : $"Cannot copy statistics: {e.Message}", 
+                    L.T("OK", "确定"));
             }
         }
 
@@ -1742,8 +1756,8 @@ namespace UniMcp.Gui
                 var failedCalls = resultObj["failed_calls"]?.AsInt ?? 0;
 
                 var output = new StringBuilder();
-                output.AppendLine("=== 错误信息汇总 ===");
-                output.AppendLine($"失败调用数: {failedCalls}");
+                output.AppendLine($"=== {L.T("Error Summary", "错误信息汇总")} ===");
+                output.AppendLine($"{L.T("Failed Calls", "失败调用数")}: {failedCalls}");
                 output.AppendLine();
 
                 if (errors != null && errors.Count > 0)
@@ -1752,7 +1766,7 @@ namespace UniMcp.Gui
                     {
                         if (errors[i] != null && !string.IsNullOrEmpty(errors[i].Value))
                         {
-                            output.AppendLine($"错误 #{i + 1}:");
+                            output.AppendLine($"{L.T("Error", "错误")} #{i + 1}:");
                             output.AppendLine($"  {errors[i]}");
                             output.AppendLine();
                         }
@@ -1760,14 +1774,16 @@ namespace UniMcp.Gui
                 }
                 else
                 {
-                    output.AppendLine("没有发现错误信息。");
+                    output.AppendLine(L.T("No errors found.", "没有发现错误信息。"));
                 }
 
                 resultText = output.ToString();
             }
             catch (Exception e)
             {
-                resultText = $"显示错误信息失败: {e.Message}";
+                resultText = L.IsChinese()
+                    ? $"显示错误信息失败: {e.Message}"
+                    : $"Failed to show errors: {e.Message}";
             }
         }
 
@@ -1782,21 +1798,29 @@ namespace UniMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("错误", "剪贴板为空", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Error", "错误"), 
+                        L.T("Clipboard is empty", "剪贴板为空"), 
+                        L.T("OK", "确定"));
                     return;
                 }
 
                 // 验证JSON格式
                 if (!ValidateClipboardJson(clipboardContent, out string errorMessage))
                 {
-                    EditorUtility.DisplayDialog("JSON格式错误", $"剪贴板内容不是有效的JSON:\n{errorMessage}", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("JSON Format Error", "JSON格式错误"), 
+                        L.IsChinese() 
+                            ? $"剪贴板内容不是有效的JSON:\n{errorMessage}" 
+                            : $"Clipboard content is not valid JSON:\n{errorMessage}", 
+                        L.T("OK", "确定"));
                     return;
                 }
 
                 // 执行剪贴板内容
                 isExecuting = true;
                 showResult = true;
-                resultText = "正在执行剪贴板内容...";
+                resultText = L.T("Executing clipboard content...", "正在执行剪贴板内容...");
 
                 try
                 {
@@ -1806,7 +1830,7 @@ namespace UniMcp.Gui
                     // 如果结果为null，表示异步执行
                     if (result == null)
                     {
-                        resultText = "异步执行剪贴板内容中...";
+                        resultText = L.T("Executing clipboard content asynchronously...", "异步执行剪贴板内容中...");
                         // 刷新界面显示异步状态
                         Repaint();
                         // 注意：isExecuting保持为true，等待异步回调完成
@@ -1820,7 +1844,9 @@ namespace UniMcp.Gui
                         // 存储当前结果并格式化
                         currentResult = result;
                         string formattedResult = FormatResult(result, duration);
-                        resultText = $"📋 从剪贴板执行\n原始JSON:\n{clipboardContent}\n\n{formattedResult}";
+                        string executeFromLabel = L.T("📋 Executed from Clipboard", "📋 从剪贴板执行");
+                        string originalJsonLabel = L.T("Original JSON", "原始JSON");
+                        resultText = $"{executeFromLabel}\n{originalJsonLabel}:\n{clipboardContent}\n\n{formattedResult}";
 
                         // 刷新界面
                         Repaint();
@@ -1829,10 +1855,12 @@ namespace UniMcp.Gui
                 }
                 catch (Exception e)
                 {
-                    string errorResult = $"执行剪贴板内容错误:\n{e.Message}\n\n堆栈跟踪:\n{e.StackTrace}";
+                    string errorPrefix = L.T("Error executing clipboard content", "执行剪贴板内容错误");
+                    string stackTraceLabel = L.T("Stack Trace", "堆栈跟踪");
+                    string errorResult = $"{errorPrefix}:\n{e.Message}\n\n{stackTraceLabel}:\n{e.StackTrace}";
                     resultText = errorResult;
 
-                    Debug.LogError($"[McpDebugWindow] 执行剪贴板内容时发生错误: {e}");
+                    Debug.LogError($"[McpDebugWindow] {L.T("Error executing clipboard content", "执行剪贴板内容时发生错误")}: {e}");
                 }
                 finally
                 {
@@ -1841,7 +1869,12 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("执行失败", $"无法执行剪贴板内容: {e.Message}", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Execution Failed", "执行失败"), 
+                    L.IsChinese() 
+                        ? $"无法执行剪贴板内容: {e.Message}" 
+                        : $"Cannot execute clipboard content: {e.Message}", 
+                    L.T("OK", "确定"));
                 isExecuting = false;
             }
         }
@@ -1856,7 +1889,9 @@ namespace UniMcp.Gui
                 // 剪贴板格式的UI更新
                 currentResult = result;
                 string formattedResult = FormatResult(result, duration);
-                resultText = $"📋 从剪贴板执行\n原始JSON:\n{jsonString}\n\n{formattedResult}";
+                string executeFromLabel = L.T("📋 Executed from Clipboard", "📋 从剪贴板执行");
+                string originalJsonLabel = L.T("Original JSON", "原始JSON");
+                resultText = $"{executeFromLabel}\n{originalJsonLabel}:\n{jsonString}\n\n{formattedResult}";
 
                 // 刷新界面
                 Repaint();
@@ -1877,26 +1912,41 @@ namespace UniMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("提示", "剪贴板为空", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Tip", "提示"), 
+                        L.T("Clipboard is empty", "剪贴板为空"), 
+                        L.T("OK", "确定"));
                     return;
                 }
 
                 // 验证JSON格式
                 if (!ValidateClipboardJson(clipboardContent, out string errorMessage))
                 {
-                    bool proceed = EditorUtility.DisplayDialog("JSON格式警告",
-                        $"剪贴板内容可能不是有效的JSON:\n{errorMessage}\n\n是否仍要粘贴？",
-                        "仍要粘贴", "取消");
+                    bool proceed = EditorUtility.DisplayDialog(
+                        L.T("JSON Format Warning", "JSON格式警告"),
+                        L.IsChinese()
+                            ? $"剪贴板内容可能不是有效的JSON:\n{errorMessage}\n\n是否仍要粘贴？"
+                            : $"Clipboard content may not be valid JSON:\n{errorMessage}\n\nPaste anyway?",
+                        L.T("Paste Anyway", "仍要粘贴"), 
+                        L.T("Cancel", "取消"));
 
                     if (!proceed) return;
                 }
 
                 inputJson = clipboardContent;
-                EditorUtility.DisplayDialog("成功", "已粘贴剪贴板内容到输入框", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Success", "成功"), 
+                    L.T("Clipboard content pasted to input box", "已粘贴剪贴板内容到输入框"), 
+                    L.T("OK", "确定"));
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("粘贴失败", $"无法粘贴剪贴板内容: {e.Message}", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Paste Failed", "粘贴失败"), 
+                    L.IsChinese() 
+                        ? $"无法粘贴剪贴板内容: {e.Message}" 
+                        : $"Cannot paste clipboard content: {e.Message}", 
+                    L.T("OK", "确定"));
             }
         }
 
@@ -1911,7 +1961,10 @@ namespace UniMcp.Gui
 
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
-                    EditorUtility.DisplayDialog("剪贴板预览", "剪贴板为空", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Clipboard Preview", "剪贴板预览"), 
+                        L.T("Clipboard is empty", "剪贴板为空"), 
+                        L.T("OK", "确定"));
                     return;
                 }
 
@@ -1919,20 +1972,29 @@ namespace UniMcp.Gui
                 string preview = clipboardContent;
                 if (preview.Length > 500)
                 {
-                    preview = preview.Substring(0, 500) + "\n...(内容过长，已截断)";
+                    preview = preview.Substring(0, 500) + L.T("\n...(Content too long, truncated)", "\n...(内容过长，已截断)");
                 }
 
                 // 验证JSON格式
                 string jsonStatus = ValidateClipboardJson(clipboardContent, out string errorMessage)
-                    ? "✅ 有效的JSON格式"
-                    : $"❌ JSON格式错误: {errorMessage}";
+                    ? L.T("✅ Valid JSON format", "✅ 有效的JSON格式")
+                    : $"{L.T("❌ JSON format error", "❌ JSON格式错误")}: {errorMessage}";
 
-                EditorUtility.DisplayDialog("剪贴板预览",
-                    $"格式状态: {jsonStatus}\n\n内容预览:\n{preview}", "确定");
+                string formatStatusLabel = L.T("Format Status", "格式状态");
+                string contentPreviewLabel = L.T("Content Preview", "内容预览");
+                EditorUtility.DisplayDialog(
+                    L.T("Clipboard Preview", "剪贴板预览"),
+                    $"{formatStatusLabel}: {jsonStatus}\n\n{contentPreviewLabel}:\n{preview}", 
+                    L.T("OK", "确定"));
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("预览失败", $"无法预览剪贴板内容: {e.Message}", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Preview Failed", "预览失败"), 
+                    L.IsChinese() 
+                        ? $"无法预览剪贴板内容: {e.Message}" 
+                        : $"Cannot preview clipboard content: {e.Message}", 
+                    L.T("OK", "确定"));
             }
         }
 
@@ -1970,7 +2032,7 @@ namespace UniMcp.Gui
                 if (string.IsNullOrWhiteSpace(clipboardContent))
                 {
                     statusColor = Color.red;
-                    statusText = "剪切板: 空";
+                    statusText = L.T("Clipboard: Empty", "剪切板: 空");
                 }
                 else
                 {
@@ -1978,12 +2040,14 @@ namespace UniMcp.Gui
                     if (isValidJson)
                     {
                         statusColor = Color.green;
-                        statusText = $"剪切板: ✅ Json ({clipboardContent.Length} 字符)";
+                        string charsLabel = L.T("chars", "字符");
+                        statusText = $"{L.T("Clipboard", "剪切板")}: ✅ Json ({clipboardContent.Length} {charsLabel})";
                     }
                     else
                     {
                         statusColor = new Color(1f, 0.5f, 0f); // 橙色
-                        statusText = $"剪切板: ❌ 非JSON ({clipboardContent.Length} 字符)";
+                        string charsLabel = L.T("chars", "字符");
+                        statusText = $"{L.T("Clipboard", "剪切板")}: ❌ {L.T("Non-JSON", "非JSON")} ({clipboardContent.Length} {charsLabel})";
                     }
                 }
 
@@ -1997,7 +2061,7 @@ namespace UniMcp.Gui
             {
                 Color originalColor = GUI.color;
                 GUI.color = Color.red;
-                GUILayout.Label("剪切板: 读取失败", EditorStyles.miniLabel);
+                GUILayout.Label(L.T("Clipboard: Read Failed", "剪切板: 读取失败"), EditorStyles.miniLabel);
                 GUI.color = originalColor;
             }
         }
@@ -2011,7 +2075,7 @@ namespace UniMcp.Gui
 
             if (string.IsNullOrWhiteSpace(content))
             {
-                errorMessage = "内容为空";
+                errorMessage = L.T("Content is empty", "内容为空");
                 return false;
             }
 
@@ -2059,7 +2123,7 @@ namespace UniMcp.Gui
         /// </summary>
         private string ExtractErrorMessage(object result)
         {
-            if (result == null) return "结果为空";
+            if (result == null) return L.T("Result is null", "结果为空");
 
             try
             {
@@ -2069,13 +2133,13 @@ namespace UniMcp.Gui
                 // 尝试从error字段获取错误信息
                 if (resultObj.ContainsKey("error"))
                 {
-                    return resultObj["error"]?.Value ?? "未知错误";
+                    return resultObj["error"]?.Value ?? L.T("Unknown error", "未知错误");
                 }
 
                 // 尝试从message字段获取错误信息
                 if (resultObj.ContainsKey("message"))
                 {
-                    return resultObj["message"]?.Value ?? "未知错误";
+                    return resultObj["message"]?.Value ?? L.T("Unknown error", "未知错误");
                 }
 
                 return result.ToString();
@@ -2093,7 +2157,10 @@ namespace UniMcp.Gui
         {
             if (currentResult == null || string.IsNullOrEmpty(inputJson))
             {
-                EditorUtility.DisplayDialog("无法记录", "没有可记录的执行结果", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Cannot Record", "无法记录"), 
+                    L.T("No execution result to record", "没有可记录的执行结果"), 
+                    L.T("OK", "确定"));
                 return;
             }
 
@@ -2115,11 +2182,17 @@ namespace UniMcp.Gui
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("记录失败", "无法解析输入的JSON格式", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Record Failed", "记录失败"), 
+                        L.T("Cannot parse input JSON format", "无法解析输入的JSON格式"), 
+                        L.T("OK", "确定"));
                     return;
                 }
 
-                EditorUtility.DisplayDialog("记录成功", "执行结果已保存到记录中", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Record Success", "记录成功"), 
+                    L.T("Execution result saved to records", "执行结果已保存到记录中"), 
+                    L.T("OK", "确定"));
 
                 // 刷新记录列表
                 recordList = null;
@@ -2127,8 +2200,13 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                EditorUtility.DisplayDialog("记录失败", $"记录执行结果时发生错误: {e.Message}", "确定");
-                Debug.LogError($"[McpDebugWindow] 手动记录结果时发生错误: {e}");
+                EditorUtility.DisplayDialog(
+                    L.T("Record Failed", "记录失败"), 
+                    L.IsChinese() 
+                        ? $"记录执行结果时发生错误: {e.Message}" 
+                        : $"Error recording execution result: {e.Message}", 
+                    L.T("OK", "确定"));
+                Debug.LogError($"[McpDebugWindow] {L.T("Error recording result manually", "手动记录结果时发生错误")}: {e}");
             }
         }
 
@@ -2157,7 +2235,7 @@ namespace UniMcp.Gui
             }
             else
             {
-                errorMsg = result != null ? ExtractErrorMessage(result) : "执行失败，返回null";
+                errorMsg = result != null ? ExtractErrorMessage(result) : L.T("Execution failed, returned null", "执行失败，返回null");
                 resultJson = result != null ? Json.FromObject(result) : "";
             }
 
@@ -2167,7 +2245,7 @@ namespace UniMcp.Gui
                 resultJson,
                 errorMsg,
                 0, // 手动记录时没有执行时间
-                "Debug Window (手动记录)"
+                L.T("Debug Window (Manual Record)", "Debug Window (手动记录)")
             );
             recordObject.saveRecords();
         }
@@ -2215,7 +2293,7 @@ namespace UniMcp.Gui
                             }
                             else
                             {
-                                errorMsg = "批量调用中此项失败";
+                                errorMsg = L.T("This item failed in batch call", "批量调用中此项失败");
                             }
                         }
 
@@ -2225,7 +2303,9 @@ namespace UniMcp.Gui
                             singleResultJson,
                             errorMsg,
                             0, // 手动记录时没有执行时间
-                            $"Debug Window (手动记录 {i + 1}/{funcsArray.Count})"
+                            L.IsChinese() 
+                                ? $"Debug Window (手动记录 {i + 1}/{funcsArray.Count})"
+                                : $"Debug Window (Manual Record {i + 1}/{funcsArray.Count})"
                         );
                     }
 
@@ -2234,7 +2314,9 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                throw new Exception($"记录批量结果时发生错误: {e.Message}", e);
+                throw new Exception(L.IsChinese() 
+                    ? $"记录批量结果时发生错误: {e.Message}" 
+                    : $"Error recording batch result: {e.Message}", e);
             }
         }
 
@@ -2257,26 +2339,26 @@ namespace UniMcp.Gui
             {
                 showResult = true;
                 var resultBuilder = new StringBuilder();
-                resultBuilder.AppendLine($"📋 从执行记录加载 (索引: {index})");
-                resultBuilder.AppendLine($"函数: {record.name}");
-                resultBuilder.AppendLine($"时间: {record.timestamp}");
-                resultBuilder.AppendLine($"来源: {record.source}");
-                resultBuilder.AppendLine($"状态: {(record.success ? "成功" : "失败")}");
+                resultBuilder.AppendLine($"📋 {L.T("Loaded from Execution Record", "从执行记录加载")} ({L.T("Index", "索引")}: {index})");
+                resultBuilder.AppendLine($"{L.T("Function", "函数")}: {record.name}");
+                resultBuilder.AppendLine($"{L.T("Time", "时间")}: {record.timestamp}");
+                resultBuilder.AppendLine($"{L.T("Source", "来源")}: {record.source}");
+                resultBuilder.AppendLine($"{L.T("Status", "状态")}: {(record.success ? L.T("Success", "成功") : L.T("Failed", "失败"))}");
                 if (record.duration > 0)
                 {
-                    resultBuilder.AppendLine($"执行时间: {record.duration:F2}ms");
+                    resultBuilder.AppendLine($"{L.T("Execution Time", "执行时间")}: {record.duration:F2}ms");
                 }
                 resultBuilder.AppendLine();
 
                 if (!string.IsNullOrEmpty(record.result))
                 {
-                    resultBuilder.AppendLine("执行结果:");
+                    resultBuilder.AppendLine($"{L.T("Execution Result", "执行结果")}:");
                     resultBuilder.AppendLine(record.result);
                 }
 
                 if (!string.IsNullOrEmpty(record.error))
                 {
-                    resultBuilder.AppendLine("错误信息:");
+                    resultBuilder.AppendLine($"{L.T("Error Message", "错误信息")}:");
                     resultBuilder.AppendLine(record.error);
                 }
 
@@ -2358,7 +2440,7 @@ namespace UniMcp.Gui
                     McpExecuteRecordObject.instance.saveRecords();
 
                     // 显示成功提示（可选）
-                    Debug.Log($"[McpDebugWindow] 记录名称已更新: {newName.Trim()}");
+                    Debug.Log($"[McpDebugWindow] {L.T("Record name updated", "记录名称已更新")}: {newName.Trim()}");
                 }
             }
 
@@ -2411,14 +2493,14 @@ namespace UniMcp.Gui
             GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
             titleStyle.fontSize = 12;
             titleStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
-            GUILayout.Label("分组管理", titleStyle);
+            GUILayout.Label(L.T("Group Management", "分组管理"), titleStyle);
             EditorGUILayout.Space(5);
 
             // 创建新分组
             GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
             labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
             labelStyle.fontSize = 10;
-            GUILayout.Label("创建新分组:", labelStyle);
+            GUILayout.Label(L.T("Create New Group:", "创建新分组:"), labelStyle);
             
             // 输入框样式 - 使用正常的TextField样式，只修改文字颜色
             GUIStyle textFieldStyle = new GUIStyle(EditorStyles.textField);
@@ -2432,8 +2514,8 @@ namespace UniMcp.Gui
             // 设置较小的标签宽度，让输入框占用更多空间
             EditorGUIUtility.labelWidth = 40;
             
-            newGroupName = EditorGUILayout.TextField("名称", newGroupName, textFieldStyle);
-            newGroupDescription = EditorGUILayout.TextField("描述", newGroupDescription, textFieldStyle);
+            newGroupName = EditorGUILayout.TextField(L.T("Name", "名称"), newGroupName, textFieldStyle);
+            newGroupDescription = EditorGUILayout.TextField(L.T("Description", "描述"), newGroupDescription, textFieldStyle);
             
             // 恢复原始标签宽度
             EditorGUIUtility.labelWidth = originalLabelWidth;
@@ -2446,7 +2528,7 @@ namespace UniMcp.Gui
             createButtonStyle.fontSize = 10;
             createButtonStyle.fontStyle = FontStyle.Bold;
             createButtonStyle.normal.textColor = Color.white;
-            if (GUILayout.Button("创建分组", createButtonStyle, GUILayout.Width(80), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("Create Group", "创建分组"), createButtonStyle, GUILayout.Width(100), GUILayout.Height(22)))
             {
                 string groupId = System.Guid.NewGuid().ToString("N")[..8];
                 string groupNameTrimmed = newGroupName.Trim();
@@ -2454,11 +2536,19 @@ namespace UniMcp.Gui
                 {
                     newGroupName = "";
                     newGroupDescription = "";
-                    EditorUtility.DisplayDialog("成功", $"分组 '{groupNameTrimmed}' 创建成功！", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Success", "成功"), 
+                        L.IsChinese() 
+                            ? $"分组 '{groupNameTrimmed}' 创建成功！" 
+                            : $"Group '{groupNameTrimmed}' created successfully!", 
+                        L.T("OK", "确定"));
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("失败", "创建分组失败，请检查名称是否重复。", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Failed", "失败"), 
+                        L.T("Failed to create group. Please check if the name already exists.", "创建分组失败，请检查名称是否重复。"), 
+                        L.T("OK", "确定"));
                 }
             }
             GUI.enabled = true;
@@ -2469,7 +2559,7 @@ namespace UniMcp.Gui
             if (recordObject.recordGroups.Count > 0)
             {
                 GUILayout.Space(5);
-                GUILayout.Label("现有分组:", labelStyle);
+                GUILayout.Label(L.T("Existing Groups:", "现有分组:"), labelStyle);
 
                 // 使用固定高度的滚动区域
                 groupScrollPosition = GUILayout.BeginScrollView(groupScrollPosition, GUILayout.Height(120));
@@ -2484,54 +2574,127 @@ namespace UniMcp.Gui
                     EditorGUI.DrawRect(groupItemRect, itemBgColor);
                     
                     EditorGUILayout.Space(3);
-                    GUILayout.BeginHorizontal();
 
-                    // 分组信息（简化显示）
-                    GUILayout.BeginVertical();
-                    GUIStyle groupNameStyle = new GUIStyle(EditorStyles.boldLabel);
-                    groupNameStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
-                    groupNameStyle.fontSize = 11;
-                    GUILayout.Label($"{group.name}", groupNameStyle);
-                    
-                    GUIStyle statsStyle = new GUIStyle(EditorStyles.miniLabel);
-                    statsStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
-                    GUILayout.Label($"{recordObject.GetGroupStatistics(group.id)}", statsStyle);
-                    GUILayout.EndVertical();
-
-                    GUILayout.FlexibleSpace();
-
-                    // 操作按钮（水平排列）
-                    Color groupButtonBg = GUI.backgroundColor;
-                    GUIStyle groupButtonStyle = new GUIStyle(GUI.skin.button);
-                    groupButtonStyle.fontSize = 9;
-                    groupButtonStyle.fontStyle = FontStyle.Bold;
-                    groupButtonStyle.normal.textColor = Color.white;
-                    
-                    GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
-                    if (GUILayout.Button("切换", groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
+                    // 检查是否正在编辑此分组
+                    if (editingGroupId == group.id)
                     {
-                        recordObject.SwitchToGroup(group.id);
-                        recordList = null;
-                        InitializeRecordList();
-                    }
-
-                    GUI.enabled = !group.isDefault;
-                    GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
-                    if (GUILayout.Button("删除", groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
-                    {
-                        if (EditorUtility.DisplayDialog("确认删除",
-                            $"确定要删除分组 '{group.name}' 吗？\n\n该分组的所有记录将被移动到默认分组。",
-                            "删除", "取消"))
+                        // 编辑模式
+                        GUILayout.BeginVertical();
+                        
+                        GUIStyle editLabelStyle = new GUIStyle(EditorStyles.miniLabel);
+                        editLabelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+                        
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(L.T("Name:", "名称:"), editLabelStyle, GUILayout.Width(40));
+                        editingGroupName = EditorGUILayout.TextField(editingGroupName);
+                        GUILayout.EndHorizontal();
+                        
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(L.T("Desc:", "描述:"), editLabelStyle, GUILayout.Width(40));
+                        editingGroupDescription = EditorGUILayout.TextField(editingGroupDescription);
+                        GUILayout.EndHorizontal();
+                        
+                        GUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        
+                        Color editButtonBg = GUI.backgroundColor;
+                        GUIStyle editButtonStyle = new GUIStyle(GUI.skin.button);
+                        editButtonStyle.fontSize = 9;
+                        editButtonStyle.fontStyle = FontStyle.Bold;
+                        
+                        GUI.backgroundColor = new Color(0.3f, 0.8f, 0.3f);
+                        if (GUILayout.Button(L.T("Save", "保存"), editButtonStyle, GUILayout.Width(50), GUILayout.Height(18)))
                         {
-                            recordObject.DeleteGroup(group.id);
+                            if (recordObject.RenameGroup(group.id, editingGroupName, editingGroupDescription))
+                            {
+                                editingGroupId = null;
+                                recordList = null;
+                                InitializeRecordList();
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog(
+                                    L.T("Rename Failed", "重命名失败"),
+                                    L.T("Failed to rename group. Please check if the name is valid and not duplicated.", "重命名失败，请检查名称是否有效且未重复。"),
+                                    L.T("OK", "确定"));
+                            }
+                        }
+                        
+                        GUI.backgroundColor = new Color(0.6f, 0.6f, 0.6f);
+                        if (GUILayout.Button(L.T("Cancel", "取消"), editButtonStyle, GUILayout.Width(50), GUILayout.Height(18)))
+                        {
+                            editingGroupId = null;
+                        }
+                        
+                        GUI.backgroundColor = editButtonBg;
+                        GUILayout.EndHorizontal();
+                        GUILayout.EndVertical();
+                    }
+                    else
+                    {
+                        // 显示模式
+                        GUILayout.BeginHorizontal();
+
+                        // 分组信息（简化显示）
+                        GUILayout.BeginVertical();
+                        GUIStyle groupNameStyle = new GUIStyle(EditorStyles.boldLabel);
+                        groupNameStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
+                        groupNameStyle.fontSize = 11;
+                        GUILayout.Label($"{group.name}", groupNameStyle);
+                        
+                        GUIStyle statsStyle = new GUIStyle(EditorStyles.miniLabel);
+                        statsStyle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+                        GUILayout.Label($"{recordObject.GetGroupStatistics(group.id)}", statsStyle);
+                        GUILayout.EndVertical();
+
+                        GUILayout.FlexibleSpace();
+
+                        // 操作按钮（水平排列）
+                        Color groupButtonBg = GUI.backgroundColor;
+                        GUIStyle groupButtonStyle = new GUIStyle(GUI.skin.button);
+                        groupButtonStyle.fontSize = 9;
+                        groupButtonStyle.fontStyle = FontStyle.Bold;
+                        groupButtonStyle.normal.textColor = Color.white;
+                        
+                        GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
+                        if (GUILayout.Button(L.T("Switch", "切换"), groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
+                        {
+                            recordObject.SwitchToGroup(group.id);
                             recordList = null;
                             InitializeRecordList();
                         }
-                    }
-                    GUI.enabled = true;
-                    GUI.backgroundColor = groupButtonBg;
 
-                    GUILayout.EndHorizontal();
+                        GUI.enabled = !group.isDefault;
+                        GUI.backgroundColor = new Color(0.6f, 0.7f, 0.4f);
+                        if (GUILayout.Button(L.T("Rename", "重命名"), groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
+                        {
+                            editingGroupId = group.id;
+                            editingGroupName = group.name;
+                            editingGroupDescription = group.description;
+                        }
+
+                        GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+                        if (GUILayout.Button(L.T("Delete", "删除"), groupButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
+                        {
+                            if (EditorUtility.DisplayDialog(
+                                L.T("Confirm Delete", "确认删除"),
+                                L.IsChinese()
+                                    ? $"确定要删除分组 '{group.name}' 吗？\n\n该分组的所有记录将被移动到默认分组。"
+                                    : $"Are you sure you want to delete group '{group.name}'?\n\nAll records in this group will be moved to the default group.",
+                                L.T("Delete", "删除"), 
+                                L.T("Cancel", "取消")))
+                            {
+                                recordObject.DeleteGroup(group.id);
+                                recordList = null;
+                                InitializeRecordList();
+                            }
+                        }
+                        GUI.enabled = true;
+                        GUI.backgroundColor = groupButtonBg;
+
+                        GUILayout.EndHorizontal();
+                    }
+
                     EditorGUILayout.Space(3);
                     EditorGUILayout.EndVertical();
                 }
@@ -2566,7 +2729,7 @@ namespace UniMcp.Gui
         {
             var recordObject = McpExecuteRecordObject.instance;
             var currentGroup = recordObject.GetCurrentGroup();
-            return currentGroup?.name ?? "未知分组";
+            return currentGroup?.name ?? L.T("Unknown Group", "未知分组");
         }
 
         #endregion

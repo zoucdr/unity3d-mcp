@@ -10,7 +10,7 @@ namespace UniMcp.Tools.Storage
     /// Handles EditorPrefs and PlayerPrefs operations for storing and retrieving preferences.
     /// 对应方法名: prefers
     /// </summary>
-    [ToolName("prefers", "Storage Management")]
+    [ToolName("prefers", "Storage Management", "存储管理")]
     public class Prefers : StateMethodBase
     {
         public override string Description => L.T("Manage EditorPrefs and PlayerPrefs storage", "管理编辑器偏好和玩家偏好存储");
@@ -32,11 +32,11 @@ namespace UniMcp.Tools.Storage
                 
                 // Key name
                 new MethodStr("key", L.T("Key name", "键名"))
-                    .AddExamples("MyKey", "Settings.Volume"),
+                    .AddExample("MyKey"),
                 
                 // Value
                 new MethodStr("value", L.T("Value", "值"))
-                    .AddExamples("Hello", "100"),
+                    .AddExample("Hello"),
                 
                 // Value type
                 new MethodStr("value_type", L.T("Value type", "值类型"))

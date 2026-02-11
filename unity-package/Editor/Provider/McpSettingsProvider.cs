@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEditor;
+using UniMcp.Utils;
+using UniMcp.Executer;
 
 namespace UniMcp.Gui
 {
@@ -8,6 +10,40 @@ namespace UniMcp.Gui
     /// </summary>
     public static class McpSettingsProvider
     {
+        private static string lastLanguage = "";
+        
+        [InitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            // 监听语言变化
+            EditorApplication.update += CheckLanguageChange;
+        }
+        
+        private static void CheckLanguageChange()
+        {
+            string currentLanguage = McpLocalSettings.Instance.CurrentLanguage;
+            if (lastLanguage != currentLanguage)
+            {
+                lastLanguage = currentLanguage;
+                Debug.Log($"[McpSettingsProvider] Language changed to: {currentLanguage}");
+                
+                // 清除工具缓存，让工具实例重新创建
+                ToolsCall.ClearRegisteredMethods();
+                
+                // 刷新ProjectSettings窗口
+                EditorApplication.delayCall += () =>
+                {
+                    var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+                    foreach (var window in windows)
+                    {
+                        if (window.GetType().Name == "ProjectSettingsWindow")
+                        {
+                            window.Repaint();
+                        }
+                    }
+                };
+            }
+        }
         [SettingsProvider]
         public static SettingsProvider CreateMcpSettingsProvider()
         {
@@ -50,10 +86,13 @@ namespace UniMcp.Gui
                 padding = new RectOffset(8, 8, 6, 6)
             };
             
-            EditorGUILayout.LabelField(
-                "🚀 Unity3d-MCP是一个强大的Unity扩展工具，提供了智能的UI生成、代码管理和项目优化功能。\n" +
-                "💡 通过与AI模型的深度集成，Unity3D MCP能够帮助开发者快速创建高质量的Unity项目。",
-                helpTextStyle);
+            string helpText = L.IsChinese()
+                ? "🚀 Unity3d-MCP是一个强大的Unity扩展工具，提供了智能的UI生成、代码管理和项目优化功能。\n" +
+                  "💡 通过与AI模型的深度集成，Unity3D MCP能够帮助开发者快速创建高质量的Unity项目。"
+                : "🚀 Unity3d-MCP is a powerful Unity extension tool that provides intelligent UI generation, code management and project optimization features.\n" +
+                  "💡 Through deep integration with AI models, Unity3D MCP helps developers quickly create high-quality Unity projects.";
+            
+            EditorGUILayout.LabelField(helpText, helpTextStyle);
             
             EditorGUILayout.EndVertical();
             EditorGUILayout.EndVertical();

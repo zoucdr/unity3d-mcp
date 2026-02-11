@@ -13,7 +13,7 @@ namespace UniMcp.Tools
     /// 专门的动画片段管理工具，提供动画片段的创建、修改、复制、删除等操作
     /// 对应方法名: manage_anim_clip
     /// </summary>
-    [ToolName("edit_anim_clip", "Resource Management")]
+    [ToolName("edit_anim_clip", "Resource Management", "资源管理")]
     public class EditAnimClip : StateMethodBase
     {
         public override string Description => L.T("Manage animation clips including create, modify, copy, delete", "管理动画片段，包括创建、修改、复制和删除");

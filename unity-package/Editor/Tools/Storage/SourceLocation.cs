@@ -11,7 +11,7 @@ namespace UniMcp.Tools.Storage
     /// Handles asset and folder location operations, including opening folders and revealing files.
     /// 对应方法名: source_location
     /// </summary>
-    [ToolName("source_location", "Storage Management")]
+    [ToolName("source_location", "Storage Management", "存储管理")]
     public class SourceLocation : StateMethodBase
     {
         public override string Description => L.T("Locate and reveal assets and folders in the system", "定位并显示系统中的资源和文件夹");
@@ -33,7 +33,7 @@ namespace UniMcp.Tools.Storage
                 
                 // Folder path
                 new MethodStr("folder_path", L.T("Folder path", "文件夹路径"))
-                    .AddExamples("Assets", "D:/MyGame"),
+                    .AddExample("Assets"),
                 
                 // Instance ID
                 new MethodInt("instance_id", L.T("Instance ID", "实例ID"))
@@ -45,7 +45,7 @@ namespace UniMcp.Tools.Storage
                 
                 // Object name
                 new MethodStr("object_name", L.T("Object name", "对象名称"))
-                    .AddExamples("Player", "MainCamera")
+                    .AddExample("Player")
             };
         }
 

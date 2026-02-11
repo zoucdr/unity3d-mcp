@@ -14,7 +14,7 @@ namespace UniMcp.Tools
     /// Handles Unity Editor state management and controls.
     /// 对应方法名: base_editor
     /// </summary>
-    [ToolName("base_editor", "System Management")]
+    [ToolName("base_editor", "System Management", "系统管理")]
     public class BaseEditor : StateMethodBase
     {
         public override string Description => L.T("Manage Unity Editor state and controls", "管理Unity编辑器状态和控制");
@@ -32,25 +32,21 @@ namespace UniMcp.Tools
                     .AddExamples("get_state", "execute_menu"),
                 
                 // Wait for completion
-                new MethodBool("wait_for_completion", L.T("Whether to wait for operation completion", "是否等待操作完成"))
-                    .SetDefault(true),
+                new MethodBool("wait_for_completion", L.T("Whether to wait for operation completion", "是否等待操作完成")),
                 
                 // Menu path
                 new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
-                    .AddExamples("File/New Scene", "GameObject/Create Empty"),
+                    .AddExample("File/New Scene"),
                 
                 // Root menu path
                 new MethodStr("root_path", L.T("Root menu path (used when getting menu items)", "根菜单路径（获取菜单项时使用）"))
-                    .AddExamples("File", "GameObject")
                     .SetDefault(""),
                 
                 // Include submenus
-                new MethodBool("include_submenus", L.T("Include submenus (used when getting menu items)", "包含子菜单（获取菜单项时使用）"))
-                    .SetDefault(true),
+                new MethodBool("include_submenus", L.T("Include submenus (used when getting menu items)", "包含子菜单（获取菜单项时使用）")),
                 
                 // Verify exists
                 new MethodBool("verify_exists", L.T("Verify if menu item exists (used when getting menu items)", "验证菜单项是否存在（获取菜单项时使用）"))
-                    .SetDefault(false)
             };
         }
 

@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// Uses reflection to access internal LogEntry methods/properties.
     /// Corresponding method name: console_reader
     /// </summary>
-    [ToolName("console_read", "Development Tools")]
+    [ToolName("console_read", "Development Tools", "开发工具")]
     public class ConsoleRead : StateMethodBase
     {
         public override string Description => L.T("Console reader tool for reading and clearing Unity Editor console log entries", "控制台读取工具，用于读取和清除Unity编辑器控制台日志条目");
@@ -36,7 +36,7 @@ namespace UniMcp.Tools
                 
                 // Message type list
                 new MethodStr("types", L.T("Message type list, defaults to all types", "消息类型列表，默认为所有类型"))
-                    .AddExamples("error,warning", "log"),
+                    .AddExample("error,warning"),
                 
                 // Maximum number of messages to return
                 new MethodInt("count", L.T("Maximum number of messages to return, returns all if not set", "返回的最大消息数量，未设置则返回全部"))
@@ -44,7 +44,7 @@ namespace UniMcp.Tools
                 
                 // Text filter
                 new MethodStr("filterText", L.T("Text filter, filters logs containing specified text", "文本过滤器，过滤包含指定文本的日志"))
-                    .AddExamples("Error", "NullReference"),
+                    .AddExample("Error"),
                 
                 // Output format
                 new MethodStr("format", L.T("Output format, defaults to detailed", "输出格式，默认为详细"))

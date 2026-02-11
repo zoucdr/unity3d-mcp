@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Unity Package Manager operations including adding, removing, listing, and searching packages.
     /// 对应方法名: manage_package
     /// </summary>
-    [ToolName("manage_package", "System Management")]
+    [ToolName("manage_package", "System Management", "系统管理")]
     public class Package : StateMethodBase
     {
         public override string Description => L.T("Manage Unity Package Manager packages", "管理Unity包管理器包");
@@ -150,51 +150,45 @@ namespace UniMcp.Tools
             {
                 // Action type
                 new MethodStr("action", L.T("Action type", "操作类型"), false)
-                    .SetEnumValues("add", "remove", "list", "search", "refresh", "resolve", "status", "restore_auto_refresh")
-                    .AddExamples("add", "list"),
+                    .SetEnumValues("add", "remove", "list", "search", "refresh", "resolve", "status", "restore_auto_refresh"),
                 
                 // Package source type
                 new MethodStr("source", L.T("Package source type", "包来源类型"))
-                    .SetEnumValues("registry", "github", "disk")
-                    .AddExamples("registry", "github"),
+                    .SetEnumValues("registry", "github", "disk"),
                 
                 // Package name
                 new MethodStr("package_name", L.T("Package name", "包名称"))
-                    .AddExamples("com.unity.textmeshpro", "com.unity.cinemachine"),
+                    .AddExample("com.unity.textmeshpro"),
                 
                 // Package identifier
                 new MethodStr("package_identifier", L.T("Package identifier", "包标识符"))
-                    .AddExamples("com.unity.textmeshpro@3.0.6", "com.unity.cinemachine@2.8.9"),
+                    .AddExample("com.unity.textmeshpro@3.0.6"),
                 
                 // Package version
                 new MethodStr("version", L.T("Package version", "包版本"))
-                    .AddExamples("3.0.6", "2.8.9"),
+                    .AddExample("3.0.6"),
                 
                 // GitHub repository URL
                 new MethodStr("repository_url", L.T("GitHub repository URL", "GitHub仓库URL"))
-                    .AddExamples("https://github.com/Unity-Technologies/UnityCsReference.git", "https://github.com/user/repo.git"),
+                    .AddExample("https://github.com/Unity-Technologies/UnityCsReference.git"),
                 
                 // GitHub branch
                 new MethodStr("branch", L.T("GitHub branch", "GitHub分支"))
-                    .AddExamples("main", "develop")
                     .SetDefault("main"),
                 
                 // Package path
                 new MethodStr("path", L.T("Package path", "包路径"))
-                    .AddExamples("Packages/MyPackage", "D:/LocalPackages/MyPackage"),
+                    .AddExample("Packages/MyPackage"),
                 
                 // Search keywords
                 new MethodStr("search_keywords", L.T("Search keywords", "搜索关键词"))
-                    .AddExamples("unity", "cinemachine")
                     .SetDefault(""),
                 
                 // Include dependencies
-                new MethodBool("include_dependencies", L.T("Include dependency information", "包含依赖信息"))
-                    .SetDefault(false),
+                new MethodBool("include_dependencies", L.T("Include dependency information", "包含依赖信息")),
                 
                 // Package scope filter
                 new MethodStr("scope", L.T("Package scope filter", "包范围过滤器"))
-                    .AddExamples("com.unity", "com.mycompany")
                     .SetDefault(""),
                 
                 // Operation timeout
@@ -205,7 +199,6 @@ namespace UniMcp.Tools
                 
                 // Disable auto refresh
                 new MethodBool("disable_auto_refresh", L.T("Disable automatic assembly refresh", "禁用自动程序集刷新"))
-                    .SetDefault(false)
             };
         }
 

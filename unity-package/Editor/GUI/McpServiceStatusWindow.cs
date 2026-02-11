@@ -43,7 +43,7 @@ namespace UniMcp.Gui
         [MenuItem("Window/MCP/Status")]
         public static void ShowWindow()
         {
-            instance = GetWindow<McpServiceStatusWindow>("MCP服务状态");
+            instance = GetWindow<McpServiceStatusWindow>(L.T("MCP Service Status", "MCP服务状态"));
             instance.minSize = new Vector2(300, 200);
         }
 
@@ -90,7 +90,7 @@ namespace UniMcp.Gui
                 headerStyle.padding = new RectOffset(10, 0, 0, 0);
                 
                 EditorGUI.LabelField(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), 
-                    "HTTP请求记录", headerStyle);
+                    L.T("HTTP Request Records", "HTTP请求记录"), headerStyle);
             };
 
             // 设置元素高度
@@ -179,7 +179,7 @@ namespace UniMcp.Gui
                 Rect foldoutRect = new Rect(rect.x + 5, rect.y + 2, rect.width - 10, EditorGUIUtility.singleLineHeight);
 
                 // 创建标题文本，优化显示
-                string statusText = record.success ? "✓ 成功" : "✗ 失败";
+                string statusText = record.success ? L.T("✓ Success", "✓ 成功") : L.T("✗ Failed", "✗ 失败");
                 Color statusColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
                 string title = $"[{record.requestTime:HH:mm:ss}] {record.httpMethod} | {record.endPoint} | {statusText}";
 
@@ -230,16 +230,16 @@ namespace UniMcp.Gui
                     float labelWidth = 80;
                     float valueWidth = contentWidth - labelWidth - 10;
 
-                    DrawInfoRow(contentX, contentY, "客户端", record.endPoint, labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Client", "客户端"), record.endPoint, labelWidth, valueWidth, labelStyle, valueStyle);
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    DrawInfoRow(contentX, contentY, "请求时间", record.requestTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Request Time", "请求时间"), record.requestTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    DrawInfoRow(contentX, contentY, "处理时间", record.responseTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Response Time", "处理时间"), record.responseTime.ToString("yyyy-MM-dd HH:mm:ss.fff"), labelWidth, valueWidth, labelStyle, valueStyle);
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
-                    DrawInfoRow(contentX, contentY, "HTTP方法", record.httpMethod, labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("HTTP Method", "HTTP方法"), record.httpMethod, labelWidth, valueWidth, labelStyle, valueStyle);
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
                     // 状态码带颜色
@@ -247,13 +247,13 @@ namespace UniMcp.Gui
                         new Color(0.4f, 0.8f, 0.4f) : 
                         (record.statusCode >= 400 ? new Color(0.9f, 0.4f, 0.4f) : new Color(0.8f, 0.8f, 0.4f));
                     valueStyle.normal.textColor = statusCodeColor;
-                    DrawInfoRow(contentX, contentY, "状态码", record.statusCode.ToString(), labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Status Code", "状态码"), record.statusCode.ToString(), labelWidth, valueWidth, labelStyle, valueStyle);
                     valueStyle.normal.textColor = Color.white;
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
                     // 成功状态带颜色
                     valueStyle.normal.textColor = record.success ? new Color(0.4f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f);
-                    DrawInfoRow(contentX, contentY, "状态", record.success ? "成功" : "失败", labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Status", "状态"), record.success ? L.T("Success", "成功") : L.T("Failed", "失败"), labelWidth, valueWidth, labelStyle, valueStyle);
                     valueStyle.normal.textColor = Color.white;
                     contentY += EditorGUIUtility.singleLineHeight + 2;
 
@@ -265,7 +265,7 @@ namespace UniMcp.Gui
                         GUIStyle sectionStyle = new GUIStyle(EditorStyles.miniBoldLabel);
                         sectionStyle.normal.textColor = new Color(0.6f, 0.8f, 1f);
                         EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                            "请求内容:", sectionStyle);
+                            L.T("Request Content:", "请求内容:"), sectionStyle);
                         contentY += EditorGUIUtility.singleLineHeight + 2;
 
                         // 绘制文本框背景和边框
@@ -297,7 +297,7 @@ namespace UniMcp.Gui
                         GUIStyle sectionStyle = new GUIStyle(EditorStyles.miniBoldLabel);
                         sectionStyle.normal.textColor = new Color(0.6f, 0.8f, 1f);
                         EditorGUI.LabelField(new Rect(contentX, contentY, contentWidth, EditorGUIUtility.singleLineHeight),
-                            "响应内容:", sectionStyle);
+                            L.T("Response Content:", "响应内容:"), sectionStyle);
                         contentY += EditorGUIUtility.singleLineHeight + 2;
 
                         // 绘制文本框背景和边框
@@ -327,7 +327,7 @@ namespace UniMcp.Gui
                     Color durationColor = record.duration < 100 ? new Color(0.4f, 0.8f, 0.4f) : 
                                         (record.duration < 500 ? new Color(0.8f, 0.8f, 0.4f) : new Color(0.9f, 0.4f, 0.4f));
                     valueStyle.normal.textColor = durationColor;
-                    DrawInfoRow(contentX, contentY, "处理时长", $"{record.duration:F2} 毫秒", labelWidth, valueWidth, labelStyle, valueStyle);
+                    DrawInfoRow(contentX, contentY, L.T("Processing Time", "处理时长"), $"{record.duration:F2} {L.T("ms", "毫秒")}", labelWidth, valueWidth, labelStyle, valueStyle);
                 }
             };
         }
@@ -393,6 +393,9 @@ namespace UniMcp.Gui
 
         private void OnGUI()
         {
+            // 动态更新窗口标题以支持语言切换
+            titleContent = new GUIContent(L.T("MCP Service Status", "MCP服务状态"));
+            
             // 绘制窗口背景
             Rect windowRect = new Rect(0, 0, position.width, position.height);
             EditorGUI.DrawRect(windowRect, new Color(0.22f, 0.22f, 0.22f, 1f));
@@ -543,16 +546,19 @@ namespace UniMcp.Gui
                     isServiceRunning = true;
                     // 启动成功时设置 ResourcesCapability 为 true
                     McpLocalSettings.Instance.ResourcesCapability = true;
-                    McpLogger.Log($"Unity MCP Bridge 已启动，端口: {mcpPort}");
+                    McpLogger.Log($"{L.T("Unity MCP Bridge started, port", "Unity MCP Bridge 已启动，端口")}: {mcpPort}");
                 }
                 else
                 {
                     isServiceRunning = false;
                     // 启动失败时设置 ResourcesCapability 为 false
                     McpLocalSettings.Instance.ResourcesCapability = false;
-                    EditorUtility.DisplayDialog("启动失败",
-                        $"无法在端口 {mcpPort} 启动Unity MCP Bridge。\n" +
-                        "请检查是否有其他进程占用了所有端口。", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Startup Failed", "启动失败"),
+                        L.IsChinese()
+                            ? $"无法在端口 {mcpPort} 启动Unity MCP Bridge。\n请检查是否有其他进程占用了所有端口。"
+                            : $"Cannot start Unity MCP Bridge on port {mcpPort}.\nPlease check if other processes are occupying all ports.",
+                        L.T("OK", "确定"));
                 }
             }
             McpLocalSettings.Instance.McpOpenState = isServiceRunning;
@@ -582,7 +588,7 @@ namespace UniMcp.Gui
             GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel);
             titleStyle.fontSize = 13;
             titleStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
-            EditorGUILayout.LabelField("HTTP请求记录", titleStyle, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField(L.T("HTTP Request Records", "HTTP请求记录"), titleStyle, GUILayout.ExpandWidth(true));
 
             // 显示记录数量
             int clientCount = UniMcp.Models.McpExecuteRecordObject.instance.GetHttpRequestRecords().Count;
@@ -592,7 +598,7 @@ namespace UniMcp.Gui
             countStyle.fontStyle = FontStyle.Bold;
             countStyle.fontSize = 11;
 
-            EditorGUILayout.LabelField($"记录数: {clientCount}", countStyle, GUILayout.Width(80));
+            EditorGUILayout.LabelField($"{L.T("Records", "记录数")}: {clientCount}", countStyle, GUILayout.Width(100));
 
             // 刷新按钮
             Color originalBg = GUI.backgroundColor;
@@ -604,7 +610,7 @@ namespace UniMcp.Gui
             refreshButtonStyle.hover.textColor = Color.white;
             refreshButtonStyle.active.textColor = Color.white;
             
-            if (GUILayout.Button("刷新", refreshButtonStyle, GUILayout.Width(50), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("Refresh", "刷新"), refreshButtonStyle, GUILayout.Width(60), GUILayout.Height(22)))
             {
                 RefreshHttpRequestRecordsList();
             }
@@ -614,9 +620,13 @@ namespace UniMcp.Gui
             if (clientCount > 0)
             {
                 GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
-                if (GUILayout.Button("清空", refreshButtonStyle, GUILayout.Width(50), GUILayout.Height(22)))
+                if (GUILayout.Button(L.T("Clear", "清空"), refreshButtonStyle, GUILayout.Width(60), GUILayout.Height(22)))
                 {
-                    if (EditorUtility.DisplayDialog("清空请求记录", "确定要清空所有HTTP请求记录吗？", "确定", "取消"))
+                    if (EditorUtility.DisplayDialog(
+                        L.T("Clear Request Records", "清空请求记录"), 
+                        L.T("Are you sure you want to clear all HTTP request records?", "确定要清空所有HTTP请求记录吗？"), 
+                        L.T("Confirm", "确定"), 
+                        L.T("Cancel", "取消")))
                     {
                         UniMcp.Models.McpExecuteRecordObject.instance.ClearHttpRequestRecords();
                         // 清空折叠状态字典
@@ -666,7 +676,7 @@ namespace UniMcp.Gui
                 emptyLabelStyle.fontSize = 12;
                 emptyLabelStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f);
                 emptyLabelStyle.fontStyle = FontStyle.Italic;
-                EditorGUILayout.LabelField("暂无HTTP请求记录", emptyLabelStyle);
+                EditorGUILayout.LabelField(L.T("No HTTP request records", "暂无HTTP请求记录"), emptyLabelStyle);
                 EditorGUILayout.Space(20);
             }
 
@@ -679,10 +689,11 @@ namespace UniMcp.Gui
         {
             // 显示确认对话框
             bool confirm = EditorUtility.DisplayDialog(
-                "重启MCP服务器",
-                "确定要重启MCP服务器吗？\n\n这将断开所有当前连接的客户端。",
-                "确定",
-                "取消"
+                L.T("Restart MCP Server", "重启MCP服务器"),
+                L.T("Are you sure you want to restart the MCP server?\n\nThis will disconnect all currently connected clients.", 
+                    "确定要重启MCP服务器吗？\n\n这将断开所有当前连接的客户端。"),
+                L.T("Confirm", "确定"),
+                L.T("Cancel", "取消")
             );
 
             if (!confirm)
@@ -707,7 +718,10 @@ namespace UniMcp.Gui
         private static IEnumerator RestartServerCoroutine()
         {
             // 显示进度条
-            EditorUtility.DisplayProgressBar("重启MCP服务器", "正在停止服务器...", 0.3f);
+            EditorUtility.DisplayProgressBar(
+                L.T("Restarting MCP Server", "重启MCP服务器"), 
+                L.T("Stopping server...", "正在停止服务器..."), 
+                0.3f);
 
             // 停止服务器
             try
@@ -721,18 +735,23 @@ namespace UniMcp.Gui
             {
                 EditorUtility.ClearProgressBar();
                 EditorUtility.DisplayDialog(
-                    "停止服务器错误",
-                    $"停止MCP服务器时发生错误：\n\n{ex.Message}",
-                    "确定"
+                    L.T("Stop Server Error", "停止服务器错误"),
+                    L.IsChinese()
+                        ? $"停止MCP服务器时发生错误：\n\n{ex.Message}"
+                        : $"Error stopping MCP server:\n\n{ex.Message}",
+                    L.T("OK", "确定")
                 );
-                McpLogger.LogError($"[McpServiceStatusWindow] 停止MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                McpLogger.LogError($"[McpServiceStatusWindow] {L.T("Error stopping MCP server", "停止MCP服务器时发生错误")}: {ex.Message}\n{ex.StackTrace}");
                 yield break; // 终止协程
             }
 
             // 等待0.5秒确保资源释放（不能在try-catch中使用yield return）
             yield return new WaitForSeconds(1);
 
-            EditorUtility.DisplayProgressBar("重启MCP服务器", "正在启动服务器...", 0.7f);
+            EditorUtility.DisplayProgressBar(
+                L.T("Restarting MCP Server", "重启MCP服务器"), 
+                L.T("Starting server...", "正在启动服务器..."), 
+                0.7f);
 
             // 启动服务器
             try
@@ -743,11 +762,13 @@ namespace UniMcp.Gui
             {
                 EditorUtility.ClearProgressBar();
                 EditorUtility.DisplayDialog(
-                    "启动服务器错误",
-                    $"启动MCP服务器时发生错误：\n\n{ex.Message}",
-                    "确定"
+                    L.T("Start Server Error", "启动服务器错误"),
+                    L.IsChinese()
+                        ? $"启动MCP服务器时发生错误：\n\n{ex.Message}"
+                        : $"Error starting MCP server:\n\n{ex.Message}",
+                    L.T("OK", "确定")
                 );
-                McpLogger.LogError($"[McpServiceStatusWindow] 启动MCP服务器时发生错误: {ex.Message}\n{ex.StackTrace}");
+                McpLogger.LogError($"[McpServiceStatusWindow] {L.T("Error starting MCP server", "启动MCP服务器时发生错误")}: {ex.Message}\n{ex.StackTrace}");
                 // 启动失败时确保 ResourcesCapability 为 false
                 McpLocalSettings.Instance.ResourcesCapability = false;
                 yield break; // 终止协程
@@ -764,11 +785,13 @@ namespace UniMcp.Gui
                 McpLocalSettings.Instance.ResourcesCapability = true;
                 // 检查服务状态
                 EditorUtility.DisplayDialog(
-                    "重启成功",
-                    $"MCP服务器已成功重启！\n\n端口: {mcpPort}",
-                    "确定"
+                    L.T("Restart Successful", "重启成功"),
+                    L.IsChinese()
+                        ? $"MCP服务器已成功重启！\n\n端口: {mcpPort}"
+                        : $"MCP server restarted successfully!\n\nPort: {mcpPort}",
+                    L.T("OK", "确定")
                 );
-                McpLogger.Log($"[McpServiceStatusWindow] MCP服务器已重启，端口: {mcpPort}");
+                McpLogger.Log($"[McpServiceStatusWindow] {L.T("MCP server restarted, port", "MCP服务器已重启，端口")}: {mcpPort}");
 
                 // 更新McpLocalSettings状态
                 McpLocalSettings.Instance.McpOpenState = true;
@@ -779,11 +802,11 @@ namespace UniMcp.Gui
                 // 启动失败时设置 ResourcesCapability 为 false
                 McpLocalSettings.Instance.ResourcesCapability = false;
                 EditorUtility.DisplayDialog(
-                    "重启失败",
-                    "MCP服务器重启失败，请查看控制台日志了解详情。",
-                    "确定"
+                    L.T("Restart Failed", "重启失败"),
+                    L.T("MCP server restart failed. Please check the console logs for details.", "MCP服务器重启失败，请查看控制台日志了解详情。"),
+                    L.T("OK", "确定")
                 );
-                McpLogger.LogError("[McpServiceStatusWindow] MCP服务器重启失败");
+                McpLogger.LogError($"[McpServiceStatusWindow] {L.T("MCP server restart failed", "MCP服务器重启失败")}");
 
                 // 更新McpLocalSettings状态
                 McpLocalSettings.Instance.McpOpenState = false;
@@ -814,7 +837,7 @@ namespace UniMcp.Gui
             GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
             labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
             labelStyle.fontSize = 11;
-            EditorGUILayout.LabelField("端口:", labelStyle, GUILayout.Width(35));
+            EditorGUILayout.LabelField(L.T("Port:", "端口:"), labelStyle, GUILayout.Width(40));
 
             // 端口输入框 - 美化样式
             GUI.SetNextControlName("PortInput");
@@ -881,19 +904,29 @@ namespace UniMcp.Gui
             applyButtonStyle.hover.textColor = Color.white;
             applyButtonStyle.active.textColor = Color.white;
 
-            if (GUILayout.Button("应用", applyButtonStyle, GUILayout.Width(45), GUILayout.Height(20)))
+            if (GUILayout.Button(L.T("Apply", "应用"), applyButtonStyle, GUILayout.Width(50), GUILayout.Height(20)))
             {
                 if (McpService.SetMcpPort(portValue))
                 {
-                    Debug.Log($"[McpServiceStatusWindow] 端口已更改为: {portValue}");
+                    Debug.Log($"[McpServiceStatusWindow] {L.T("Port changed to", "端口已更改为")}: {portValue}");
                     if (McpService.Instance.IsRunning)
                     {
-                        EditorUtility.DisplayDialog("端口更改", $"端口已更改为 {portValue}，服务器已自动重启。", "确定");
+                        EditorUtility.DisplayDialog(
+                            L.T("Port Changed", "端口更改"), 
+                            L.IsChinese()
+                                ? $"端口已更改为 {portValue}，服务器已自动重启。"
+                                : $"Port changed to {portValue}. Server restarted automatically.", 
+                            L.T("OK", "确定"));
                     }
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("端口错误", $"无效的端口号: {portValue}\n端口范围应为 1024-65535", "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Port Error", "端口错误"), 
+                        L.IsChinese()
+                            ? $"无效的端口号: {portValue}\n端口范围应为 1024-65535"
+                            : $"Invalid port number: {portValue}\nPort range should be 1024-65535", 
+                        L.T("OK", "确定"));
                 }
             }
 
@@ -902,7 +935,7 @@ namespace UniMcp.Gui
 
             // 端口诊断按钮
             GUI.backgroundColor = new Color(0.3f, 0.5f, 0.8f);
-            if (GUILayout.Button("诊断", applyButtonStyle, GUILayout.Width(45), GUILayout.Height(20)))
+            if (GUILayout.Button(L.T("Diagnose", "诊断"), applyButtonStyle, GUILayout.Width(60), GUILayout.Height(20)))
             {
                 ShowPortDiagnostics();
             }
@@ -915,16 +948,16 @@ namespace UniMcp.Gui
             if (!string.IsNullOrEmpty(portInputString) && !isValidPort)
             {
                 statusLabelStyle.normal.textColor = new Color(0.9f, 0.3f, 0.3f);
-                EditorGUILayout.LabelField("无效", statusLabelStyle, GUILayout.Width(35));
+                EditorGUILayout.LabelField(L.T("Invalid", "无效"), statusLabelStyle, GUILayout.Width(40));
             }
             else if (isValidPort && portValue == McpService.mcpPort)
             {
                 statusLabelStyle.normal.textColor = new Color(0.5f, 0.5f, 0.5f);
-                EditorGUILayout.LabelField("当前", statusLabelStyle, GUILayout.Width(35));
+                EditorGUILayout.LabelField(L.T("Current", "当前"), statusLabelStyle, GUILayout.Width(40));
             }
             else
             {
-                EditorGUILayout.LabelField("", GUILayout.Width(35)); // 占位符保持布局一致
+                EditorGUILayout.LabelField("", GUILayout.Width(40)); // 占位符保持布局一致
             }
             
             GUI.color = originalTextColor;
@@ -938,21 +971,37 @@ namespace UniMcp.Gui
             int currentPort = McpService.mcpPort;
             bool isRunning = McpService.Instance.IsRunning;
 
-            string message = $"MCP服务器端口诊断:\n\n";
-            message += $"当前端口: {currentPort}\n";
-            message += $"服务状态: {(isRunning ? "运行中" : "已停止")}\n\n";
+            string title = L.T("MCP Server Port Diagnostics", "MCP服务器端口诊断");
+            string message = L.IsChinese()
+                ? $"MCP服务器端口诊断:\n\n当前端口: {currentPort}\n服务状态: {(isRunning ? "运行中" : "已停止")}\n\n"
+                : $"MCP Server Port Diagnostics:\n\nCurrent Port: {currentPort}\nService Status: {(isRunning ? "Running" : "Stopped")}\n\n";
 
             // 获取详细的端口状态信息
             string portInfo = McpService.GetPortStatusInfo(currentPort);
             message += portInfo;
 
-            message += "\n建议:\n";
-            message += "1. 如果端口被占用，尝试更换端口\n";
-            message += "2. 检查防火墙是否阻止了连接\n";
-            message += "3. 确保Cursor MCP客户端连接到正确的端口\n";
-            message += "4. 查看Unity控制台的详细日志\n";
+            if (L.IsChinese())
+            {
+                message += "\n建议:\n";
+                message += "1. 如果端口被占用，尝试更换端口\n";
+                message += "2. 检查防火墙是否阻止了连接\n";
+                message += "3. 确保Cursor MCP客户端连接到正确的端口\n";
+                message += "4. 查看Unity控制台的详细日志\n";
+            }
+            else
+            {
+                message += "\nSuggestions:\n";
+                message += "1. If port is occupied, try changing to another port\n";
+                message += "2. Check if firewall is blocking the connection\n";
+                message += "3. Ensure Cursor MCP client connects to the correct port\n";
+                message += "4. Check Unity console for detailed logs\n";
+            }
 
-            if (EditorUtility.DisplayDialog("端口诊断", message, "测试连接", "关闭"))
+            if (EditorUtility.DisplayDialog(
+                title, 
+                message, 
+                L.T("Test Connection", "测试连接"), 
+                L.T("Close", "关闭")))
             {
                 TestMcpConnection();
             }
@@ -965,7 +1014,10 @@ namespace UniMcp.Gui
         {
             if (!McpService.Instance.IsRunning)
             {
-                EditorUtility.DisplayDialog("连接测试", "MCP服务器未运行，无法测试连接。", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Connection Test", "连接测试"), 
+                    L.T("MCP server is not running, cannot test connection.", "MCP服务器未运行，无法测试连接。"), 
+                    L.T("OK", "确定"));
                 return;
             }
 
@@ -976,36 +1028,37 @@ namespace UniMcp.Gui
                     client.Timeout = TimeSpan.FromSeconds(5);
 
                     string url = $"http://127.0.0.1:{McpService.mcpPort}/";
-                    Debug.Log($"[McpServiceStatusWindow] 测试连接到: {url}");
+                    Debug.Log($"[McpServiceStatusWindow] {L.T("Testing connection to", "测试连接到")}: {url}");
 
                     var response = await client.GetAsync(url);
                     var content = await response.Content.ReadAsStringAsync();
 
-                    string result = $"连接测试成功!\n\n";
-                    result += $"URL: {url}\n";
-                    result += $"状态码: {response.StatusCode}\n";
-                    result += $"响应长度: {content.Length} 字符\n\n";
-                    result += $"响应内容预览:\n{content.Substring(0, Math.Min(200, content.Length))}";
+                    string result = L.IsChinese()
+                        ? $"连接测试成功!\n\nURL: {url}\n状态码: {response.StatusCode}\n响应长度: {content.Length} 字符\n\n响应内容预览:\n{content.Substring(0, Math.Min(200, content.Length))}"
+                        : $"Connection test successful!\n\nURL: {url}\nStatus Code: {response.StatusCode}\nResponse Length: {content.Length} chars\n\nResponse Preview:\n{content.Substring(0, Math.Min(200, content.Length))}";
 
                     if (content.Length > 200)
                     {
                         result += "...";
                     }
 
-                    EditorUtility.DisplayDialog("连接测试结果", result, "确定");
+                    EditorUtility.DisplayDialog(
+                        L.T("Connection Test Result", "连接测试结果"), 
+                        result, 
+                        L.T("OK", "确定"));
                 }
             }
             catch (Exception ex)
             {
-                string errorMsg = $"连接测试失败!\n\n";
-                errorMsg += $"错误: {ex.Message}\n\n";
-                errorMsg += "可能的原因:\n";
-                errorMsg += "1. 服务器未正确启动\n";
-                errorMsg += "2. 端口被防火墙阻止\n";
-                errorMsg += "3. 网络配置问题\n";
+                string errorMsg = L.IsChinese()
+                    ? $"连接测试失败!\n\n错误: {ex.Message}\n\n可能的原因:\n1. 服务器未正确启动\n2. 端口被防火墙阻止\n3. 网络配置问题\n"
+                    : $"Connection test failed!\n\nError: {ex.Message}\n\nPossible causes:\n1. Server not started correctly\n2. Port blocked by firewall\n3. Network configuration issue\n";
 
-                EditorUtility.DisplayDialog("连接测试失败", errorMsg, "确定");
-                Debug.LogError($"[McpServiceStatusWindow] 连接测试失败: {ex}");
+                EditorUtility.DisplayDialog(
+                    L.T("Connection Test Failed", "连接测试失败"), 
+                    errorMsg, 
+                    L.T("OK", "确定"));
+                Debug.LogError($"[McpServiceStatusWindow] {L.T("Connection test failed", "连接测试失败")}: {ex}");
             }
         }
     }

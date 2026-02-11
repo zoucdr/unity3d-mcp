@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Unity Game window management and controls.
     /// 对应方法名: game_view
     /// </summary>
-    [ToolName("game_view", "Window Management")]
+    [ToolName("game_view", "Window Management", "窗口管理")]
     public class GameView : StateMethodBase
     {
         public override string Description => L.T("Manage and control Unity Game view window", "管理和控制Unity游戏视图窗口");
@@ -52,7 +52,7 @@ namespace UniMcp.Tools
                 
                 // Screenshot save path
                 new MethodStr("save_path", L.T("Screenshot save path", "截图保存路径"))
-                    .AddExamples("Assets/Screenshots/game.png", "D:/Screenshots/capture.jpg")
+                    .AddExample("Assets/Screenshots/game.png")
             };
         }
 

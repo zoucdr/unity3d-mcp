@@ -16,6 +16,7 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp;
+using UniMcp.Utils;
 
 namespace UniMcp.Tools
 {
@@ -23,10 +24,10 @@ namespace UniMcp.Tools
     /// 网页管理工具，支持添加、删除、查询、列表等操作
     /// 对应方法名: webpage_manage
     /// </summary>
-    [ToolName("webpage_manage", "网络工具")]
+    [ToolName("webpage_manage", "Network Tools", "网络工具")]
     public class WebPageManage : StateMethodBase
     {
-        public override string Description => "网页管理工具，支持添加、删除、查询、列表等操作";
+        public override string Description => L.T("Web page management tool, supports add, remove, query, list and other operations", "网页管理工具，支持添加、删除、查询、列表等操作");
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -35,32 +36,32 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 枚举
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("add", "remove", "update", "search","categories", "open", "details"),
                 
                 // 网站URL
-                new MethodStr("url", "网站URL地址")
+                new MethodStr("url", L.T("Website URL address", "网站URL地址"))
                     .AddExamples("https://docs.unity3d.com", "https://github.com/user/repo"),
                 
                 // 网站描述
-                new MethodStr("description", "网站名称或说明")
-                    .AddExamples("Unity官方文档", "GitHub仓库", "项目管理后台"),
+                new MethodStr("description", L.T("Website name or description", "网站名称或说明"))
+                    .AddExamples(L.T("Unity Official Documentation", "Unity官方文档"), L.T("GitHub repository", "GitHub仓库"), L.T("Project management backend", "项目管理后台")),
                 
                 // 分类标签
-                new MethodStr("category", "分类标签，用于组织网页")
-                    .AddExamples("文档", "工具", "社区", "项目")
-                    .SetDefault("默认"),
+                new MethodStr("category", L.T("Category tag for organizing web pages", "分类标签，用于组织网页"))
+                    .AddExamples(L.T("Documentation", "文档"), L.T("Tools", "工具"), L.T("Community", "社区"), L.T("Project", "项目"))
+                    .SetDefault(L.T("Default", "默认")),
                 
                 // 备注信息
-                new MethodStr("note", "备注信息")
-                    .AddExamples("常用参考", "重要资源", "待整理"),
+                new MethodStr("note", L.T("Note", "备注信息"))
+                    .AddExamples(L.T("Common reference", "常用参考"), L.T("Important resource", "重要资源"), L.T("To be organized", "待整理")),
                 
                 // 搜索正则表达式
-                new MethodStr("pattern", "正则表达式模式（用于search操作，匹配URL、描述、分类、备注）")
-                    .AddExamples("Unity.*API", "^https://github", "文档|工具"),
+                new MethodStr("pattern", L.T("Regex pattern for search (matches URL, description, category, note)", "正则表达式模式（用于search操作，匹配URL、描述、分类、备注）"))
+                    .AddExamples("Unity.*API", "^https://github", L.T("Documentation|Tools", "文档|工具")),
                 
                 // 唯一ID
-                new MethodInt("id", "网页唯一ID（用于remove和update操作，推荐使用）")
+                new MethodInt("id", L.T("Unique web page ID (for remove/update, recommended)", "网页唯一ID（用于remove和update操作，推荐使用）"))
                     .AddExample(1)
                     .AddExample(5),
             };
@@ -99,7 +100,7 @@ namespace UniMcp.Tools
                 // 验证URL格式
                 if (!IsValidUrl(url))
                 {
-                    return Response.Error($"无效的URL格式: {url}");
+                    return Response.Error(string.Format(L.T("Invalid URL format: {0}", "无效的URL格式: {0}"), url));
                 }
 
                 // 添加到设置中
@@ -108,13 +109,13 @@ namespace UniMcp.Tools
                 var resultData = BuildSimplifiedPageData(description, url, category);
                 resultData.Add("total", new JsonData(WebPageSetting.instance.GetCount()));
 
-                McpLogger.Log($"[WebPageManager] 添加网页成功: {description} - {url}");
-                return Response.Success($"已添加: {description}", resultData);
+                McpLogger.Log($"[WebPageManager] {L.T("Added web page successfully", "添加网页成功")}: {description} - {url}");
+                return Response.Success(string.Format(L.T("Added: {0}", "已添加: {0}"), description), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 添加网页失败: {e.Message}");
-                return Response.Error($"添加网页失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to add web page", "添加网页失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to add web page: {0}", "添加网页失败: {0}"), e.Message));
             }
         }
 
@@ -140,12 +141,12 @@ namespace UniMcp.Tools
                             var resultData = new JsonClass();
                             resultData.Add("total", new JsonData(WebPageSetting.instance.GetCount()));
 
-                            McpLogger.Log($"[WebPageManager] 删除网页成功: {page.description} (ID: {id})");
-                            return Response.Success($"已删除: {page.description}", resultData);
+                            McpLogger.Log($"[WebPageManager] {L.T("Removed web page successfully", "删除网页成功")}: {page.description} (ID: {id})");
+                            return Response.Success(string.Format(L.T("Removed: {0}", "已删除: {0}"), page.description), resultData);
                         }
                     }
 
-                    return Response.Error($"未找到ID: {id}");
+                    return Response.Error(string.Format(L.T("ID not found: {0}", "未找到ID: {0}"), id));
                 }
                 // 使用URL删除
                 else if (args.ContainsKey("url"))
@@ -158,12 +159,12 @@ namespace UniMcp.Tools
                         var resultData = new JsonClass();
                         resultData.Add("total", new JsonData(WebPageSetting.instance.GetCount()));
 
-                        McpLogger.Log($"[WebPageManager] 删除网页成功: {url}");
-                        return Response.Success($"已删除", resultData);
+                        McpLogger.Log($"[WebPageManager] {L.T("Removed web page successfully", "删除网页成功")}: {url}");
+                        return Response.Success(L.T("Removed", "已删除"), resultData);
                     }
                     else
                     {
-                        return Response.Error($"未找到URL: {url}");
+                        return Response.Error(string.Format(L.T("URL not found: {0}", "未找到URL: {0}"), url));
                     }
                 }
                 // 使用索引删除（已废弃）
@@ -181,22 +182,22 @@ namespace UniMcp.Tools
                             var resultData = new JsonClass();
                             resultData.Add("total", new JsonData(WebPageSetting.instance.GetCount()));
 
-                            McpLogger.Log($"[WebPageManager] 删除网页成功: {page.description}");
-                            return Response.Success($"已删除: {page.description}", resultData);
+                            McpLogger.Log($"[WebPageManager] {L.T("Removed web page successfully", "删除网页成功")}: {page.description}");
+                            return Response.Success(string.Format(L.T("Removed: {0}", "已删除: {0}"), page.description), resultData);
                         }
                     }
 
-                    return Response.Error($"无效的索引: {index}");
+                    return Response.Error(string.Format(L.T("Invalid index: {0}", "无效的索引: {0}"), index));
                 }
                 else
                 {
-                    return Response.Error("删除操作需要提供 'id'（推荐）、'url' 或 'index' 参数");
+                    return Response.Error(L.T("Remove operation requires 'id' (recommended), 'url' or 'index' parameter", "删除操作需要提供 'id'（推荐）、'url' 或 'index' 参数"));
                 }
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 删除网页失败: {e.Message}");
-                return Response.Error($"删除网页失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to remove web page", "删除网页失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to remove web page: {0}", "删除网页失败: {0}"), e.Message));
             }
         }
 
@@ -211,7 +212,7 @@ namespace UniMcp.Tools
 
                 if (string.IsNullOrEmpty(pattern))
                 {
-                    return Response.Error("pattern 参数不能为空");
+                    return Response.Error(L.T("pattern parameter cannot be empty", "pattern 参数不能为空"));
                 }
 
                 var allPages = WebPageSetting.instance.WebPages;
@@ -226,7 +227,7 @@ namespace UniMcp.Tools
                 }
                 catch (Exception ex)
                 {
-                    return Response.Error($"无效的正则表达式: {ex.Message}");
+                    return Response.Error(string.Format(L.T("Invalid regex pattern: {0}", "无效的正则表达式: {0}"), ex.Message));
                 }
 
                 foreach (var page in allPages)
@@ -257,13 +258,13 @@ namespace UniMcp.Tools
                 // 只返回id和name的简化列表
                 var resultData = BuildSimpleListData(results);
 
-                McpLogger.Log($"[WebPageManager] 正则搜索 '{pattern}'，找到 {results.Count} 个");
-                return Response.Success($"找到 {results.Count} 个", resultData);
+                McpLogger.Log(string.Format(L.T("[WebPageManager] Regex search '{0}', found {1} result(s)", "[WebPageManager] 正则搜索 '{0}'，找到 {1} 个"), pattern, results.Count));
+                return Response.Success(string.Format(L.T("Found {0} result(s)", "找到 {0} 个"), results.Count), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 搜索网页失败: {e.Message}");
-                return Response.Error($"搜索网页失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to search web pages", "搜索网页失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to search web pages: {0}", "搜索网页失败: {0}"), e.Message));
             }
         }
 
@@ -287,7 +288,7 @@ namespace UniMcp.Tools
 
                     if (targetPage == null)
                     {
-                        return Response.Error($"未找到ID: {id}");
+                        return Response.Error(string.Format(L.T("ID not found: {0}", "未找到ID: {0}"), id));
                     }
                 }
                 // 使用URL
@@ -299,7 +300,7 @@ namespace UniMcp.Tools
 
                     if (targetPage == null)
                     {
-                        return Response.Error($"未找到URL: {url}");
+                        return Response.Error(string.Format(L.T("URL not found: {0}", "未找到URL: {0}"), url));
                     }
                 }
                 // 使用索引（已废弃）
@@ -307,16 +308,16 @@ namespace UniMcp.Tools
                 {
                     int index = ExtractIndex(args);
                     targetPage = WebPageSetting.instance.GetWebPageAt(index);
-                    identifier = $"索引 {index}";
+                    identifier = string.Format(L.T("Index {0}", "索引 {0}"), index);
 
                     if (targetPage == null)
                     {
-                        return Response.Error($"无效的索引: {index}");
+                        return Response.Error(string.Format(L.T("Invalid index: {0}", "无效的索引: {0}"), index));
                     }
                 }
                 else
                 {
-                    return Response.Error("修改操作需要提供 'id'（推荐）、'url' 或 'index' 参数来定位要修改的网页");
+                    return Response.Error(L.T("Update operation requires 'id' (recommended), 'url' or 'index' parameter to locate the web page", "修改操作需要提供 'id'（推荐）、'url' 或 'index' 参数来定位要修改的网页"));
                 }
 
                 // 保存原始信息用于日志
@@ -356,7 +357,7 @@ namespace UniMcp.Tools
 
                 if (!hasChanges)
                 {
-                    return Response.Error("未提供任何要修改的字段（description、category、note）");
+                    return Response.Error(L.T("No fields to update provided (description, category, note)", "未提供任何要修改的字段（description、category、note）"));
                 }
 
                 // 保存更改
@@ -378,13 +379,13 @@ namespace UniMcp.Tools
                     resultData.Add("note", new JsonData(targetPage.note));
                 }
 
-                McpLogger.Log($"[WebPageManager] 修改网页成功: {originalDesc} ({identifier})");
-                return Response.Success($"已修改: {targetPage.description}", resultData);
+                McpLogger.Log($"[WebPageManager] {L.T("Updated web page successfully", "修改网页成功")}: {originalDesc} ({identifier})");
+                return Response.Success(string.Format(L.T("Updated: {0}", "已修改: {0}"), targetPage.description), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 修改网页失败: {e.Message}");
-                return Response.Error($"修改网页失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to update web page", "修改网页失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to update web page: {0}", "修改网页失败: {0}"), e.Message));
             }
         }
 
@@ -414,13 +415,13 @@ namespace UniMcp.Tools
                 resultData.Add("categories", categoriesArray);
                 resultData.Add("total", new JsonData(categories.Count));
 
-                McpLogger.Log($"[WebPageManager] 获取分类，共 {categories.Count} 个");
-                return Response.Success($"{categories.Count} 个分类", resultData);
+                McpLogger.Log(string.Format(L.T("[WebPageManager] Retrieved categories, total {0}", "[WebPageManager] 获取分类，共 {0} 个"), categories.Count));
+                return Response.Success(string.Format(L.T("{0} categories", "{0} 个分类"), categories.Count), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 获取分类失败: {e.Message}");
-                return Response.Error($"获取分类失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to get categories", "获取分类失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to get categories: {0}", "获取分类失败: {0}"), e.Message));
             }
         }
 
@@ -444,7 +445,7 @@ namespace UniMcp.Tools
                     }
                     else
                     {
-                        return Response.Error($"未找到ID: {id}");
+                        return Response.Error(string.Format(L.T("ID not found: {0}", "未找到ID: {0}"), id));
                     }
                 }
                 else if (args.ContainsKey("url"))
@@ -461,17 +462,17 @@ namespace UniMcp.Tools
                     }
                     else
                     {
-                        return Response.Error($"无效的索引: {index}");
+                        return Response.Error(string.Format(L.T("Invalid index: {0}", "无效的索引: {0}"), index));
                     }
                 }
                 else
                 {
-                    return Response.Error("打开操作需要提供 'id'（推荐）、'url' 或 'index' 参数");
+                    return Response.Error(L.T("Open operation requires 'id' (recommended), 'url' or 'index' parameter", "打开操作需要提供 'id'（推荐）、'url' 或 'index' 参数"));
                 }
 
                 if (string.IsNullOrEmpty(url))
                 {
-                    return Response.Error("URL不能为空");
+                    return Response.Error(L.T("URL cannot be empty", "URL不能为空"));
                 }
 
                 // 在浏览器中打开URL
@@ -480,13 +481,13 @@ namespace UniMcp.Tools
                 var resultData = new JsonClass();
                 resultData.Add("url", new JsonData(url));
 
-                McpLogger.Log($"[WebPageManager] 打开网页: {url}");
-                return Response.Success($"已打开: {url}", resultData);
+                McpLogger.Log($"[WebPageManager] {L.T("Opened web page", "打开网页")}: {url}");
+                return Response.Success(string.Format(L.T("Opened: {0}", "已打开: {0}"), url), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 打开网页失败: {e.Message}");
-                return Response.Error($"打开网页失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to open web page", "打开网页失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to open web page: {0}", "打开网页失败: {0}"), e.Message));
             }
         }
 
@@ -499,7 +500,7 @@ namespace UniMcp.Tools
             {
                 if (!args.ContainsKey("id"))
                 {
-                    return Response.Error("details操作需要提供 'id' 参数");
+                    return Response.Error(L.T("details operation requires 'id' parameter", "details操作需要提供 'id' 参数"));
                 }
 
                 int id = ExtractId(args);
@@ -507,7 +508,7 @@ namespace UniMcp.Tools
 
                 if (page == null)
                 {
-                    return Response.Error($"未找到ID: {id}");
+                    return Response.Error(string.Format(L.T("ID not found: {0}", "未找到ID: {0}"), id));
                 }
 
                 // 返回完整详细信息
@@ -515,17 +516,17 @@ namespace UniMcp.Tools
                 resultData.Add("id", new JsonData(page.id));
                 resultData.Add("description", new JsonData(page.description ?? ""));
                 resultData.Add("url", new JsonData(page.url ?? ""));
-                resultData.Add("category", new JsonData(page.category ?? "默认"));
+                resultData.Add("category", new JsonData((string.IsNullOrEmpty(page.category) || page.category == "默认") ? L.T("Default", "默认") : page.category));
                 resultData.Add("note", new JsonData(page.note ?? ""));
                 resultData.Add("addTime", new JsonData(page.addTime ?? ""));
 
-                McpLogger.Log($"[WebPageManager] 获取详情: ID {id} - {page.description}");
-                return Response.Success($"详情: {page.description}", resultData);
+                McpLogger.Log($"[WebPageManager] {L.T("Retrieved details", "获取详情")}: ID {id} - {page.description}");
+                return Response.Success(string.Format(L.T("Details: {0}", "详情: {0}"), page.description), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[WebPageManager] 获取详情失败: {e.Message}");
-                return Response.Error($"获取详情失败: {e.Message}");
+                LogError($"[WebPageManager] {L.T("Failed to get details", "获取详情失败")}: {e.Message}");
+                return Response.Error(string.Format(L.T("Failed to get details: {0}", "获取详情失败: {0}"), e.Message));
             }
         }
 
@@ -536,7 +537,7 @@ namespace UniMcp.Tools
         {
             string action = args["action"]?.Value;
             if (string.IsNullOrEmpty(action)) action = "null";
-            return Response.Error($"未知操作: '{action}'。有效操作: 'add'(添加), 'remove'(删除), 'update'(修改), 'search'(正则搜索), 'list'(列表), 'categories'(分类), 'open'(打开), 'details'(详情)");
+            return Response.Error(string.Format(L.T("Unknown action: '{0}'. Valid actions: 'add'(add), 'remove'(remove), 'update'(update), 'search'(regex search), 'list'(list), 'categories'(categories), 'open'(open), 'details'(details)", "未知操作: '{0}'。有效操作: 'add'(添加), 'remove'(删除), 'update'(修改), 'search'(正则搜索), 'list'(列表), 'categories'(分类), 'open'(打开), 'details'(详情)"), action));
         }
 
         // --- Parameter Extraction Helper Methods ---
@@ -549,7 +550,7 @@ namespace UniMcp.Tools
             string description = args["description"]?.Value;
             if (string.IsNullOrEmpty(description))
             {
-                throw new ArgumentException("description 参数是必需的且不能为空");
+                throw new ArgumentException(L.T("description parameter is required and cannot be empty", "description 参数是必需的且不能为空"));
             }
             return description;
         }
@@ -562,7 +563,7 @@ namespace UniMcp.Tools
             string url = args["url"]?.Value;
             if (string.IsNullOrEmpty(url))
             {
-                throw new ArgumentException("url 参数是必需的且不能为空");
+                throw new ArgumentException(L.T("url parameter is required and cannot be empty", "url 参数是必需的且不能为空"));
             }
             return url;
         }
@@ -613,7 +614,7 @@ namespace UniMcp.Tools
                     return id;
                 }
             }
-            throw new ArgumentException("id 参数必须是有效的整数");
+            throw new ArgumentException(L.T("id parameter must be a valid integer", "id 参数必须是有效的整数"));
         }
 
         /// <summary>
@@ -629,7 +630,7 @@ namespace UniMcp.Tools
                     return index;
                 }
             }
-            throw new ArgumentException("index 参数必须是有效的整数");
+            throw new ArgumentException(L.T("index parameter must be a valid integer", "index 参数必须是有效的整数"));
         }
 
         // --- Helper Methods ---

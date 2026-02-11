@@ -20,7 +20,7 @@ namespace UniMcp.Tools
     /// Handles C# code execution including compilation and running arbitrary C# methods.
     /// 对应方法名: code_runner
     /// </summary>
-    [ToolName("code_runner", "Development Tools")]
+    [ToolName("code_runner", "Development Tools", "开发工具")]
     public class CodeRunner : StateMethodBase
     {
         public override string Description => L.T("Compile and execute C# code in the Unity editor", "在Unity编辑器中编译和执行C#代码");
@@ -63,50 +63,41 @@ namespace UniMcp.Tools
                 // Operation type
                 new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("execute", "validate")
-                    .AddExamples("execute", "validate")
                     .SetDefault("execute"),
                 
                 // C# code content
                 new MethodStr("code", L.T("C# code content to execute", "要执行的C#代码内容"))
-                    .AddExamples("Debug.Log(\"Hello World!\");", "var result = 1 + 2; Debug.Log(result);")
                     .SetDefault(""),
                 
                 // Code function description
                 new MethodStr("description", L.T("Code function description", "代码功能描述"))
-                    .AddExamples("Test code execution", "Calculate math expression")
                     .SetDefault(""),
                 
                 // Class name
                 new MethodStr("class_name", L.T("Class name, default is CodeClass", "类名，默认为CodeClass"))
-                    .AddExamples("CodeClass", "TestRunner")
                     .SetDefault("CodeClass"),
                 
                 // Entry method name
                 new MethodStr("entry_method", L.T("Entry method name, default is Execute", "入口方法名称，默认为Execute"))
-                    .AddExamples("Execute", "Run")
                     .SetDefault("Execute"),
                 
                 // Namespace
                 new MethodStr("namespace", L.T("Namespace, default is CodeNamespace", "命名空间，默认为CodeNamespace"))
-                    .AddExamples("CodeNamespace", "TestNamespace")
                     .SetDefault("CodeNamespace"),
                 
                 // Using statements list
                 new MethodArr("includes", L.T("Using statement list, JSON array format", "using语句列表，JSON数组格式"))
                     .SetItemType("string")
-                    .AddExample("[\"System\", \"UnityEngine\"]")
-                    .AddExample("[\"System.Collections.Generic\", \"UnityEditor\"]"),
+                    .AddExample("[\"System\", \"UnityEngine\"]"),
                 
                 // Method parameters
                 new MethodArr("parameters", L.T("Method parameters, JSON array format", "方法参数，JSON数组格式"))
                     .SetItemType("object")
-                    .AddExample("[{\"name\": \"value\", \"type\": \"int\", \"value\": 42}]")
-                    .AddExample("[{\"name\": \"message\", \"type\": \"string\", \"value\": \"test\"}]"),
+                    .AddExample("[{\"name\": \"value\", \"type\": \"int\", \"value\": 42}]"),
                 
                 // Execution timeout
                 new MethodInt("timeout", L.T("Execution timeout (seconds), default 30 seconds", "执行超时时间（秒），默认30秒"))
                     .SetRange(1, 300)
-                    .AddExample("30")
                     .SetDefault(30),
                 
                 // Clean up temporary files

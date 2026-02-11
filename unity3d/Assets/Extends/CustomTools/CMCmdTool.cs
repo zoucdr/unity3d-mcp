@@ -4,13 +4,15 @@ using UnityEngine;
 using UniMcp;
 using UniMcp.Tools;
 using UniMcp.Models;
+using UniMcp.Utils;
 
 namespace UniMcp.Tools
 {
-    [ToolName("cmd_tool", "系统工具")]
+    [ToolName("cmd_tool", "System Tools", "系统工具")]
     public class CMCmdTool : StateMethodBase
     {
-        override public string Description => "执行系统CMD命令";
+        public override string Description => L.T("Execute system CMD commands", "执行系统CMD命令");
+        
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -18,13 +20,13 @@ namespace UniMcp.Tools
         {
             return new MethodKey[]
             {
-                new MethodStr("cmd", "CMD命令", false),
-                new MethodArr("args", "CMD命令参数", true, "string"),
-                new MethodObj("env", "CMD命令环境变量", true)
+                new MethodStr("cmd", L.T("CMD command", "CMD命令"), false),
+                new MethodArr("args", L.T("CMD command arguments", "CMD命令参数"), true, "string"),
+                new MethodObj("env", L.T("CMD command environment variables", "CMD命令环境变量"), true)
                     .AddStringProperty("PATH")
                     .AddStringProperty("HOME"),
-                new MethodStr("working_dir", "工作目录", true),
-                new MethodInt("timeout", "超时时间(秒)", true).SetDefault(30).SetRange(1, 300),
+                new MethodStr("working_dir", L.T("Working directory", "工作目录"), true),
+                new MethodInt("timeout", L.T("Timeout (seconds)", "超时时间(秒)"), true).SetDefault(30).SetRange(1, 300),
             };
         }
 
@@ -77,7 +79,7 @@ namespace UniMcp.Tools
 
                 if (string.IsNullOrEmpty(cmd))
                 {
-                    context.Complete(Response.Error("CMD命令不能为空"));
+                    context.Complete(Response.Error(L.T("CMD command cannot be empty", "CMD命令不能为空")));
                     return;
                 }
 
@@ -125,7 +127,7 @@ namespace UniMcp.Tools
                     if (!finished)
                     {
                         process.Kill();
-                        context.Complete(Response.Error($"命令执行超时 ({timeout}秒)"));
+                        context.Complete(Response.Error(L.T($"Command execution timeout ({timeout} seconds)", $"命令执行超时 ({timeout}秒)")));
                         return;
                     }
 
@@ -141,17 +143,17 @@ namespace UniMcp.Tools
 
                     if (exitCode != 0)
                     {
-                        context.Complete(Response.Error($"命令执行失败，退出码: {exitCode}，错误信息: {error}", result));
+                        context.Complete(Response.Error(L.T($"Command execution failed, exit code: {exitCode}, error message: {error}", $"命令执行失败，退出码: {exitCode}，错误信息: {error}"), result));
                     }
                     else
                     {
-                        context.Complete(Response.Success($"命令执行成功: {cmd}", result));
+                        context.Complete(Response.Success(L.T($"Command executed successfully: {cmd}", $"命令执行成功: {cmd}"), result));
                     }
                 }
             }
             catch (System.Exception ex)
             {
-                context.Complete(Response.Error($"执行CMD命令时发生异常: {ex.Message}"));
+                context.Complete(Response.Error(L.T($"Exception occurred while executing CMD command: {ex.Message}", $"执行CMD命令时发生异常: {ex.Message}")));
             }
         }
     }

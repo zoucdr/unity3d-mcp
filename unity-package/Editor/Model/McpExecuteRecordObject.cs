@@ -173,13 +173,13 @@ namespace UniMcp.Models
         {
             if (recordGroups.Count == 0)
             {
-                CreateGroup("default", "默认分组", "系统默认分组，用于存放未分类的记录", true);
+                CreateGroup("default", "Default", "Default group, used to store records that are not classified", true);
             }
 
             // 确保有默认分组
             if (!HasGroup("default"))
             {
-                CreateGroup("default", "默认分组", "系统默认分组，用于存放未分类的记录", true);
+                CreateGroup("default", "Default", "Default group, used to store records that are not classified", true);
             }
 
             // 如果当前分组ID无效，重置为默认
@@ -244,6 +244,49 @@ namespace UniMcp.Models
             }
 
             saveRecords();
+            return true;
+        }
+
+        /// <summary>
+        /// 重命名分组
+        /// </summary>
+        public bool RenameGroup(string groupId, string newName, string newDescription = null)
+        {
+            if (groupId == "default")
+            {
+                Debug.LogWarning("不能重命名默认分组");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                Debug.LogWarning("分组名称不能为空");
+                return false;
+            }
+
+            var group = GetGroup(groupId);
+            if (group == null)
+            {
+                Debug.LogWarning($"分组 '{groupId}' 不存在");
+                return false;
+            }
+
+            // 检查新名称是否与其他分组重复（除了自己）
+            var existingGroup = recordGroups.Find(g => g.name == newName.Trim() && g.id != groupId);
+            if (existingGroup != null)
+            {
+                Debug.LogWarning($"分组名称 '{newName}' 已被使用");
+                return false;
+            }
+
+            group.name = newName.Trim();
+            if (newDescription != null)
+            {
+                group.description = newDescription.Trim();
+            }
+
+            saveRecords();
+            Debug.Log($"[McpExecuteRecordObject] 分组 '{groupId}' 已重命名为 '{group.name}'");
             return true;
         }
 
@@ -380,12 +423,14 @@ namespace UniMcp.Models
         public string GetGroupStatistics(string groupId)
         {
             var group = GetGroup(groupId);
-            if (group == null) return "分组不存在";
+            if (group == null) return L.T("Group not found", "分组不存在");
 
             int successCount = group.records.Count(r => r.success);
             int errorCount = group.records.Count - successCount;
 
-            return $"{group.records.Count}个记录 (成功:{successCount} 失败:{errorCount})";
+            return L.IsChinese()
+                ? $"{group.records.Count}个记录 (成功:{successCount} 失败:{errorCount})"
+                : $"{group.records.Count} records (success:{successCount} failed:{errorCount})";
         }
 
         #endregion

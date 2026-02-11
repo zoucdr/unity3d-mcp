@@ -12,7 +12,7 @@ namespace UniMcp.Tools
     /// Handles Project window search operations for finding assets and objects.
     /// 对应方法名: project_search
     /// </summary>
-    [ToolName("project_search", "Project Management")]
+    [ToolName("project_search", "Project Management", "项目管理")]
     public class ProjectSearch : StateMethodBase
     {
         public override string Description => L.T("Search for assets and objects in the Project window", "在项目窗口中搜索资源和对象");
@@ -26,21 +26,19 @@ namespace UniMcp.Tools
             {
                 // Search type
                 new MethodStr("search_target", L.T("Search type", "搜索类型"))
-                    .SetEnumValues("asset", "folder", "script", "texture", "material", "prefab", "scene", "audio", "model")
-                    .AddExamples("script", "material"),
+                    .SetEnumValues("asset", "folder", "script", "texture", "material", "prefab", "scene", "audio", "model"),
                 
                 // Search keywords
                 new MethodStr("query", L.T("Search keywords", "搜索关键词"))
-                    .AddExamples("Player", "UI_*"),
+                    .AddExample("Player"),
                 
                 // Search path
                 new MethodStr("directory", L.T("Search path (relative to Assets)", "搜索路径（相对于Assets）"))
-                    .AddExamples("Scripts", "Materials"),
+                    .AddExample("Scripts"),
                 
                 // File extension filter
                 new MethodStr("file_extension", L.T("File extension filter", "文件扩展名过滤器"))
-                    .SetEnumValues("cs", "mat", "prefab", "unity", "png", "jpg", "fbx", "wav", "mp3")
-                    .AddExamples("cs", "mat"),
+                    .SetEnumValues("cs", "mat", "prefab", "unity", "png", "jpg", "fbx", "wav", "mp3"),
                 
                 // Recursive search
                 new MethodBool("recursive", L.T("Recursively search subfolders", "递归搜索子文件夹")),

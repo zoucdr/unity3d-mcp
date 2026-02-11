@@ -14,7 +14,7 @@ namespace UniMcp.Tools
     /// Handles CRUD operations for shader files within the Unity project.
     /// 对应方法名: manage_shader
     /// </summary>
-    [ToolName("edit_shader", "Resource Management")]
+    [ToolName("edit_shader", "Resource Management", "资源管理")]
     public class EditShader : StateMethodBase
     {
         public override string Description => L.T("Manage shader assets including create and modify", "管理着色器资源，包括创建和修改");

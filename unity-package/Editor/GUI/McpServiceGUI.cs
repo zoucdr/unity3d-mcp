@@ -118,6 +118,24 @@ namespace UniMcp.Gui
                 string newLanguage = languages[newIndex];
                 McpService.GetLocalSettings().CurrentLanguage = newLanguage;
                 Debug.Log($"[McpServiceGUI] {L.T("Language switched to", "语言已切换为")}: {newLanguage}");
+                
+                // 刷新列表：重新发现工具、资源和提示词
+                RefreshAllLists();
+                
+                // 强制刷新 ProjectSettings 窗口
+                EditorApplication.delayCall += () =>
+                {
+                    // 获取当前活动的 EditorWindow
+                    var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+                    foreach (var window in windows)
+                    {
+                        // 刷新 ProjectSettings 窗口和其他可能的窗口
+                        window.Repaint();
+                    }
+                    
+                    // 重新发现工具以更新描述文本
+                    McpService.RediscoverTools();
+                };
             }
             EditorGUILayout.EndVertical();
 
@@ -184,21 +202,21 @@ namespace UniMcp.Gui
             // 工具标签
             if (selectedTab == 0)
                 GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
-            if (GUILayout.Button("🔧 工具", tabStyle))
+            if (GUILayout.Button(L.T("🔧 Tools", "🔧 工具"), tabStyle))
                 selectedTab = 0;
             GUI.backgroundColor = originalColor;
 
             // 资源标签
             if (selectedTab == 1)
                 GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
-            if (GUILayout.Button("📦 资源", tabStyle))
+            if (GUILayout.Button(L.T("📦 Resources", "📦 资源"), tabStyle))
                 selectedTab = 1;
             GUI.backgroundColor = originalColor;
 
             // 提示词标签
             if (selectedTab == 2)
                 GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
-            if (GUILayout.Button("💬 提示词", tabStyle))
+            if (GUILayout.Button(L.T("💬 Prompts", "💬 提示词"), tabStyle))
                 selectedTab = 2;
             GUI.backgroundColor = originalColor;
 
@@ -649,7 +667,7 @@ namespace UniMcp.Gui
                         originalBackgroundColor = GUI.backgroundColor;
                         GUI.backgroundColor = new Color(0.5f, 0.7f, 0.95f, 0.8f); // 更柔和的蓝色背景
 
-                        if (GUI.Button(debugButtonRect, "🔍", debugButtonStyle))
+                        if (GUI.Button(debugButtonRect, "D", debugButtonStyle))
                         {
                             // 处理调试按钮点击事件
                             HandleMethodDebugClick(methodName, method);
@@ -700,7 +718,7 @@ namespace UniMcp.Gui
                                     }
                                     
                                     // 参数名称
-                                    EditorGUILayout.SelectableLabel(key.Key, keyStyle, GUILayout.Width(130), GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    EditorGUILayout.SelectableLabel(key.Key, keyStyle, GUILayout.Width(100), GUILayout.Height(EditorGUIUtility.singleLineHeight));
                                     GUI.color = originalKeyColor;
 
                                     // 参数描述 - 美化样式
@@ -711,7 +729,7 @@ namespace UniMcp.Gui
                                         normal = { textColor = new Color(0.7f, 0.7f, 0.7f) },
                                         padding = new RectOffset(4, 4, 2, 2)
                                     };
-                                    EditorGUILayout.SelectableLabel(key.Desc, descStyle, GUILayout.Width(150), GUILayout.Height(EditorGUIUtility.singleLineHeight));
+                                    EditorGUILayout.SelectableLabel(key.Desc, descStyle, GUILayout.Width(180), GUILayout.Height(EditorGUIUtility.singleLineHeight));
 
                                     var paramJson = new JsonClass();
 
@@ -1033,26 +1051,27 @@ namespace UniMcp.Gui
         {
             try
             {
-                var exampleCall = new
+                // 生成普通的同步调用格式（不使用异步）
+                var exampleCall = new JsonClass
                 {
-                    func = methodName,
-                    args = GenerateExampleArgs(method)
+                    { "func", new JsonData(methodName) },
+                    { "args", Json.Parse(Json.FromObject(GenerateExampleArgs(method))) }
                 };
 
-                return Json.FromObject(exampleCall);
+                return exampleCall.ToPrettyString();
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"[McpServiceGUI] {L.T("Failed to generate example JSON, using basic template", "生成示例JSON失败，使用基础模板")}: {e.Message}");
 
                 // 如果生成失败，返回基础模板
-                var basicCall = new
+                var basicCall = new JsonClass
                 {
-                    func = methodName,
-                    args = new { }
+                    { "func", new JsonData(methodName) },
+                    { "args", new JsonClass() }
                 };
 
-                return Json.FromObject(basicCall);
+                return basicCall.ToPrettyString();
             }
         }
 
@@ -1063,15 +1082,16 @@ namespace UniMcp.Gui
         /// <returns>示例参数对象</returns>
         private static object GenerateExampleArgs(IToolMethod method)
         {
-            var exampleArgs = new Dictionary<string, object>();
+            var exampleArgs = new JsonClass();
             var keys = method.Keys;
 
             if (keys != null && keys.Length > 0)
             {
                 foreach (var key in keys)
                 {
-                    // 根据参数名和描述生成示例值
-                    object exampleValue = GenerateExampleValue(key.Key, key.Desc, key.Optional);
+                    // 生成全量参数，包括可选参数
+                    // 根据 MethodKey 的真实信息生成示例值
+                    JsonNode exampleValue = GenerateExampleValueFromKey(key);
                     if (exampleValue != null)
                     {
                         exampleArgs[key.Key] = exampleValue;
@@ -1083,115 +1103,192 @@ namespace UniMcp.Gui
         }
 
         /// <summary>
-        /// 根据参数信息生成示例值
+        /// 根据 MethodKey 的真实信息生成示例值
         /// </summary>
-        /// <param name="keyName">参数名</param>
-        /// <param name="description">参数描述</param>
-        /// <param name="isOptional">是否可选</param>
+        /// <param name="key">MethodKey 对象</param>
         /// <returns>示例值</returns>
-        private static object GenerateExampleValue(string keyName, string description, bool isOptional)
+        private static JsonNode GenerateExampleValueFromKey(MethodKey key)
         {
-            // 转换为小写用于模式匹配
-            string lowerKey = keyName.ToLower();
-            string lowerDesc = description?.ToLower() ?? "";
-
-            // 根据参数名和描述推断类型和示例值
-            switch (lowerKey)
+            // 1. 优先使用 DefaultValue（但排除空字符串和无效对象）
+            if (key.DefaultValue != null)
             {
-                case "action":
-                    return "modify"; // 默认操作
-
-                case "from":
-                    return "primitive";
-
-                case "primitive_type":
-                    return "Cube";
-
-                case "name":
-                    return "ExampleObject";
-
-                case "path":
-                    if (lowerDesc.Contains("material"))
-                        return "Assets/Materials/ExampleMaterial.mat";
-                    if (lowerDesc.Contains("prefab"))
-                        return "Assets/Prefabs/ExamplePrefab.prefab";
-                    if (lowerDesc.Contains("script"))
-                        return "Assets/Scripts/ExampleScript.cs";
-                    if (lowerDesc.Contains("texture"))
-                        return "Assets/Textures/ExampleTexture.png";
-                    return "Assets/Example.asset";
-
-                case "target":
-                    return "ExampleTarget";
-
-                case "position":
-                    return new float[] { 0, 0, 0 };
-
-                case "rotation":
-                    return new float[] { 0, 0, 0 };
-
-                case "scale":
-                    return new float[] { 1, 1, 1 };
-
-                case "shader":
-                    return "Standard";
-
-                case "properties":
-                    if (lowerDesc.Contains("color") || lowerKey.Contains("color"))
-                        return new { _Color = new { r = 1.0f, g = 0.0f, b = 0.0f, a = 1.0f } };
-                    return new { };
-
-                case "active":
-                    return true;
-
-                case "tag":
-                    return "Untagged";
-
-                case "layer":
-                    return "Default";
-
-                case "component_type":
-                    return "Rigidbody";
-
-                case "search_type":
-                    return "by_name";
-
-                case "url":
-                    return "https://httpbin.org/get";
-
-                case "timeout":
-                    return 30;
-
-                case "build_index":
-                    return 0;
-
-                case "texture_type":
-                    return "Sprite";
-
-                case "mesh_type":
-                    return "cube";
-
-                default:
-                    // 根据描述内容推断
-                    if (lowerDesc.Contains("bool") || lowerDesc.Contains("是否"))
-                        return !isOptional; // 必需参数默认true，可选参数默认false
-
-                    if (lowerDesc.Contains("array") || lowerDesc.Contains("list") || lowerDesc.Contains("数组"))
-                        return new object[] { };
-
-                    if (lowerDesc.Contains("number") || lowerDesc.Contains("int") || lowerDesc.Contains("数字"))
-                        return 0;
-
-                    if (lowerDesc.Contains("float") || lowerDesc.Contains("浮点"))
-                        return 0.0f;
-
-                    // 如果是可选参数且无法推断类型，返回null（不添加到参数中）
-                    if (isOptional)
-                        return null;
-
-                    // 必需参数默认返回空字符串
-                    return "";
+                // 如果是空字符串，忽略这个默认值
+                if (key.DefaultValue is string str && string.IsNullOrEmpty(str))
+                {
+                    // 跳过，继续尝试其他来源
+                }
+                // 如果是有效的基本类型或数组，使用它
+                else if (IsValidDefaultValue(key.DefaultValue))
+                {
+                    JsonNode converted = ConvertToJsonNode(key.DefaultValue);
+                    if (converted != null)
+                        return converted;
+                }
             }
+
+            // 2. 如果有 EnumValues，使用第一个枚举值
+            if (key.EnumValues != null && key.EnumValues.Count > 0)
+            {
+                return new JsonData(key.EnumValues[0]);
+            }
+
+            // 3. 如果有 Examples，使用第一个示例值
+            if (key.Examples != null && key.Examples.Count > 0)
+            {
+                string example = key.Examples[0];
+                
+                // 检查是否看起来像 JSON（以 { 或 [ 开头）
+                string trimmedExample = example.Trim();
+                if (trimmedExample.StartsWith("{") || trimmedExample.StartsWith("["))
+                {
+                    // 尝试解析为 JSON
+                    try
+                    {
+                        JsonNode parsed = Json.Parse(example);
+                        if (parsed != null)
+                            return parsed;
+                    }
+                    catch
+                    {
+                        // JSON 解析失败，作为字符串返回
+                    }
+                }
+                
+                // 不是 JSON 格式或解析失败，作为字符串返回
+                return new JsonData(example);
+            }
+
+            // 4. 根据类型生成默认值
+            return GenerateDefaultValueByType(key);
+        }
+
+        /// <summary>
+        /// 检查 DefaultValue 是否是有效的值类型
+        /// </summary>
+        private static bool IsValidDefaultValue(object value)
+        {
+            if (value == null)
+                return false;
+
+            // 接受的类型：基本类型、数组、字符串
+            Type type = value.GetType();
+            return type.IsPrimitive || type.IsArray || type == typeof(string) || type == typeof(decimal);
+        }
+
+        /// <summary>
+        /// 将对象转换为 JsonNode
+        /// </summary>
+        private static JsonNode ConvertToJsonNode(object value)
+        {
+            if (value == null)
+                return null;
+
+            // 处理数组类型
+            if (value is Array array)
+            {
+                var jsonArray = new JsonArray();
+                foreach (var item in array)
+                {
+                    if (item is float f)
+                        jsonArray.Add(new JsonData(f));
+                    else if (item is int i)
+                        jsonArray.Add(new JsonData(i));
+                    else if (item is double d)
+                        jsonArray.Add(new JsonData(d));
+                    else if (item is string s)
+                        jsonArray.Add(new JsonData(s));
+                    else if (item is bool b)
+                        jsonArray.Add(new JsonData(b));
+                    else
+                        jsonArray.Add(new JsonData(item.ToString()));
+                }
+                return jsonArray;
+            }
+
+            // 处理基本类型
+            if (value is string str)
+                return new JsonData(str);
+            if (value is int intVal)
+                return new JsonData(intVal);
+            if (value is float floatVal)
+                return new JsonData(floatVal);
+            if (value is double doubleVal)
+                return new JsonData(doubleVal);
+            if (value is bool boolVal)
+                return new JsonData(boolVal);
+
+            // 其他类型尝试序列化
+            try
+            {
+                return Json.Parse(Json.FromObject(value));
+            }
+            catch
+            {
+                return new JsonData(value.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 根据 MethodKey 类型生成默认值
+        /// </summary>
+        private static JsonNode GenerateDefaultValueByType(MethodKey key)
+        {
+            string typeName = key.GetType().Name;
+            string keyType = key.Type?.ToLower() ?? "";
+
+            // 根据 MethodKey 的具体类型生成默认值
+            if (typeName == "MethodBool")
+            {
+                return new JsonData(false);
+            }
+            else if (typeName == "MethodInt")
+            {
+                return new JsonData(0);
+            }
+            else if (typeName == "MethodFloat")
+            {
+                return new JsonData(0.0f);
+            }
+            else if (typeName == "MethodVector")
+            {
+                // Vector 默认为 [0, 0, 0]
+                var arr = new JsonArray();
+                arr.Add(new JsonData(0));
+                arr.Add(new JsonData(0));
+                arr.Add(new JsonData(0));
+                return arr;
+            }
+            else if (typeName == "MethodArr")
+            {
+                return new JsonArray();
+            }
+            else if (typeName == "MethodObj")
+            {
+                return new JsonClass();
+            }
+            else if (keyType == "string")
+            {
+                return new JsonData("");
+            }
+            else if (keyType == "number" || keyType == "integer")
+            {
+                return new JsonData(0);
+            }
+            else if (keyType == "boolean")
+            {
+                return new JsonData(false);
+            }
+            else if (keyType == "array")
+            {
+                return new JsonArray();
+            }
+            else if (keyType == "object")
+            {
+                return new JsonClass();
+            }
+
+            // 默认返回空字符串
+            return new JsonData("");
         }
 
         /// <summary>
@@ -1291,7 +1388,7 @@ namespace UniMcp.Gui
                 normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
                 padding = new RectOffset(8, 0, 4, 0)
             };
-            EditorGUILayout.LabelField("📦 可配置资源", headerTitleStyle, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField(L.T("📦 Configurable Resources", "📦 可配置资源"), headerTitleStyle, GUILayout.ExpandWidth(true));
 
             // 添加资源按钮
             GUIStyle addButtonStyle = new GUIStyle(EditorStyles.miniButton)
@@ -1303,10 +1400,13 @@ namespace UniMcp.Gui
             Color addButtonColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f);
 
-            if (GUILayout.Button("➕ 添加资源", addButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("➕ Add Resource", "➕ 添加资源"), addButtonStyle, GUILayout.Width(110), GUILayout.Height(22)))
             {
                 var settings = McpSettings.Instance;
-                var newResource = new UniMcp.ConfigurableResource("新资源", "资源描述", "https://example.com/resource");
+                var newResource = new UniMcp.ConfigurableResource(
+                    L.T("New Resource", "新资源"), 
+                    L.T("Resource Description", "资源描述"), 
+                    "https://example.com/resource");
                 settings.AddConfigurableResource(newResource);
                 settings.SaveSettings();
             }
@@ -1324,7 +1424,10 @@ namespace UniMcp.Gui
 
             if (resources == null || resources.Count == 0)
             {
-                EditorGUILayout.HelpBox("暂无配置的资源。点击上方\"添加资源\"按钮添加新资源。", MessageType.Info);
+                EditorGUILayout.HelpBox(
+                    L.T("No configured resources. Click the \"Add Resource\" button above to add a new resource.", 
+                        "暂无配置的资源。点击上方\"添加资源\"按钮添加新资源。"), 
+                    MessageType.Info);
             }
             else
             {
@@ -1365,7 +1468,8 @@ namespace UniMcp.Gui
                         McpService.GetLocalSettings().SetResourceEnabled(resource.Name, newResourceEnabled);
                         // 重新发现资源
                         McpService.RediscoverTools();
-                        Debug.Log($"[McpServiceGUI] 资源 '{resource.Name}' 状态已更改为: {(newResourceEnabled ? "启用" : "禁用")}");
+                        string statusText = newResourceEnabled ? L.T("enabled", "启用") : L.T("disabled", "禁用");
+                        Debug.Log($"[McpServiceGUI] {L.T("Resource", "资源")} '{resource.Name}' {L.T("status changed to", "状态已更改为")}: {statusText}");
                     }
 
                     // 根据启用状态设置文字颜色
@@ -1398,9 +1502,13 @@ namespace UniMcp.Gui
                     Color deleteButtonColor = GUI.backgroundColor;
                     GUI.backgroundColor = new Color(1f, 0.5f, 0.5f, 0.8f);
 
-                    if (GUILayout.Button("删除", deleteButtonStyle, GUILayout.Width(50)))
+                    if (GUILayout.Button(L.T("Delete", "删除"), deleteButtonStyle, GUILayout.Width(60)))
                     {
-                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除资源 '{resource.Name}' 吗？", "删除", "取消"))
+                        if (EditorUtility.DisplayDialog(
+                            L.T("Confirm Delete", "确认删除"), 
+                            $"{L.T("Are you sure you want to delete resource", "确定要删除资源")} '{resource.Name}' {L.T("?", "吗？")}", 
+                            L.T("Delete", "删除"), 
+                            L.T("Cancel", "取消")))
                         {
                             settings2.RemoveConfigurableResource(resource.Name);
                             settings2.SaveSettings();
@@ -1421,7 +1529,7 @@ namespace UniMcp.Gui
 
                         // 名称
                         EditorGUI.BeginChangeCheck();
-                        string newName = EditorGUILayout.TextField("名称", resource.Name);
+                        string newName = EditorGUILayout.TextField(L.T("Name", "名称"), resource.Name);
                         if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newName))
                         {
                             resource.SetName(newName);
@@ -1430,7 +1538,7 @@ namespace UniMcp.Gui
 
                         // 描述
                         EditorGUI.BeginChangeCheck();
-                        string newDesc = EditorGUILayout.TextField("描述", resource.Description);
+                        string newDesc = EditorGUILayout.TextField(L.T("Description", "描述"), resource.Description);
                         if (EditorGUI.EndChangeCheck())
                         {
                             resource.SetDescription(newDesc);
@@ -1439,7 +1547,7 @@ namespace UniMcp.Gui
 
                         // 来源类型
                         EditorGUI.BeginChangeCheck();
-                        UniMcp.ResourceSourceType newSourceType = (UniMcp.ResourceSourceType)EditorGUILayout.EnumPopup("来源类型", resource.SourceType);
+                        UniMcp.ResourceSourceType newSourceType = (UniMcp.ResourceSourceType)EditorGUILayout.EnumPopup(L.T("Source Type", "来源类型"), resource.SourceType);
                         if (EditorGUI.EndChangeCheck())
                         {
                             resource.SourceType = newSourceType;
@@ -1460,7 +1568,7 @@ namespace UniMcp.Gui
                         else // UnityObject
                         {
                             EditorGUI.BeginChangeCheck();
-                            Object newObject = EditorGUILayout.ObjectField("Unity对象", resource.UnityObject, typeof(Object), false);
+                            Object newObject = EditorGUILayout.ObjectField(L.T("Unity Object", "Unity对象"), resource.UnityObject, typeof(Object), false);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 resource.UnityObject = newObject;
@@ -1489,7 +1597,7 @@ namespace UniMcp.Gui
 
                         // 文本框（可以手动编辑）
                         EditorGUI.BeginChangeCheck();
-                        string newMimeType = EditorGUILayout.TextField("MIME类型", resource.MimeType);
+                        string newMimeType = EditorGUILayout.TextField(L.T("MIME Type", "MIME类型"), resource.MimeType);
                         if (EditorGUI.EndChangeCheck())
                         {
                             resource.SetMimeType(newMimeType);
@@ -1547,7 +1655,7 @@ namespace UniMcp.Gui
                 normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
                 padding = new RectOffset(8, 0, 4, 0)
             };
-            EditorGUILayout.LabelField("💬 可配置提示词", headerTitleStyle, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField(L.T("💬 Configurable Prompts", "💬 可配置提示词"), headerTitleStyle, GUILayout.ExpandWidth(true));
 
             // 添加提示词按钮
             GUIStyle addButtonStyle = new GUIStyle(EditorStyles.miniButton)
@@ -1559,10 +1667,13 @@ namespace UniMcp.Gui
             Color addButtonColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f);
 
-            if (GUILayout.Button("➕ 添加提示词", addButtonStyle, GUILayout.Width(100), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("➕ Add Prompt", "➕ 添加提示词"), addButtonStyle, GUILayout.Width(110), GUILayout.Height(22)))
             {
                 var settings = McpSettings.Instance;
-                var newPrompt = new UniMcp.ConfigurablePrompt("新提示词", "提示词描述", "提示词内容");
+                var newPrompt = new UniMcp.ConfigurablePrompt(
+                    L.T("New Prompt", "新提示词"), 
+                    L.T("Prompt Description", "提示词描述"), 
+                    L.T("Prompt Content", "提示词内容"));
                 settings.AddConfigurablePrompt(newPrompt);
                 settings.SaveSettings();
             }
@@ -1580,7 +1691,10 @@ namespace UniMcp.Gui
 
             if (prompts == null || prompts.Count == 0)
             {
-                EditorGUILayout.HelpBox("暂无配置的提示词。点击上方\"添加提示词\"按钮添加新提示词。", MessageType.Info);
+                EditorGUILayout.HelpBox(
+                    L.T("No configured prompts. Click the \"Add Prompt\" button above to add a new prompt.", 
+                        "暂无配置的提示词。点击上方\"添加提示词\"按钮添加新提示词。"), 
+                    MessageType.Info);
             }
             else
             {
@@ -1621,7 +1735,8 @@ namespace UniMcp.Gui
                         McpService.GetLocalSettings().SetPromptEnabled(prompt.Name, newPromptEnabled);
                         // 重新发现提示词
                         McpService.RediscoverTools();
-                        Debug.Log($"[McpServiceGUI] 提示词 '{prompt.Name}' 状态已更改为: {(newPromptEnabled ? "启用" : "禁用")}");
+                        string statusText = newPromptEnabled ? L.T("enabled", "启用") : L.T("disabled", "禁用");
+                        Debug.Log($"[McpServiceGUI] {L.T("Prompt", "提示词")} '{prompt.Name}' {L.T("status changed to", "状态已更改为")}: {statusText}");
                     }
 
                     // 根据启用状态设置文字颜色
@@ -1654,9 +1769,13 @@ namespace UniMcp.Gui
                     Color deleteButtonColor = GUI.backgroundColor;
                     GUI.backgroundColor = new Color(1f, 0.5f, 0.5f, 0.8f);
 
-                    if (GUILayout.Button("删除", deleteButtonStyle, GUILayout.Width(50)))
+                    if (GUILayout.Button(L.T("Delete", "删除"), deleteButtonStyle, GUILayout.Width(60)))
                     {
-                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除提示词 '{prompt.Name}' 吗？", "删除", "取消"))
+                        if (EditorUtility.DisplayDialog(
+                            L.T("Confirm Delete", "确认删除"), 
+                            $"{L.T("Are you sure you want to delete prompt", "确定要删除提示词")} '{prompt.Name}' {L.T("?", "吗？")}", 
+                            L.T("Delete", "删除"), 
+                            L.T("Cancel", "取消")))
                         {
                             settings2.RemoveConfigurablePrompt(prompt.Name);
                             settings2.SaveSettings();
@@ -1677,7 +1796,7 @@ namespace UniMcp.Gui
 
                         // 名称
                         EditorGUI.BeginChangeCheck();
-                        string newName = EditorGUILayout.TextField("名称", prompt.Name);
+                        string newName = EditorGUILayout.TextField(L.T("Name", "名称"), prompt.Name);
                         if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newName))
                         {
                             prompt.SetName(newName);
@@ -1686,7 +1805,7 @@ namespace UniMcp.Gui
 
                         // 描述
                         EditorGUI.BeginChangeCheck();
-                        string newDesc = EditorGUILayout.TextField("描述", prompt.Description);
+                        string newDesc = EditorGUILayout.TextField(L.T("Description", "描述"), prompt.Description);
                         if (EditorGUI.EndChangeCheck())
                         {
                             prompt.SetDescription(newDesc);
@@ -1707,8 +1826,11 @@ namespace UniMcp.Gui
                         if (keys != null && keys.Count > 0)
                         {
                             EditorGUILayout.Space(4);
-                            EditorGUILayout.LabelField("参数信息（只读）", EditorStyles.boldLabel);
-                            EditorGUILayout.HelpBox("配置方式的提示词参数信息为只读显示。如需修改参数，请通过代码实现IPrompts接口。", MessageType.Info);
+                            EditorGUILayout.LabelField(L.T("Parameter Information (Read-only)", "参数信息（只读）"), EditorStyles.boldLabel);
+                            EditorGUILayout.HelpBox(
+                                L.T("Parameter information for configuration-based prompts is read-only. To modify parameters, implement the IPrompts interface in code.", 
+                                    "配置方式的提示词参数信息为只读显示。如需修改参数，请通过代码实现IPrompts接口。"), 
+                                MessageType.Info);
                             
                             for (int j = 0; j < keys.Count; j++)
                             {
@@ -1716,18 +1838,18 @@ namespace UniMcp.Gui
                                 if (key == null) continue;
 
                                 EditorGUILayout.BeginVertical("box");
-                                EditorGUILayout.LabelField($"参数 {j + 1}: {key.key}", EditorStyles.miniBoldLabel);
-                                EditorGUILayout.LabelField($"类型: {key.type}, 可选: {key.optional}", EditorStyles.miniLabel);
-                                EditorGUILayout.LabelField($"描述: {key.desc}", EditorStyles.miniLabel);
+                                EditorGUILayout.LabelField($"{L.T("Parameter", "参数")} {j + 1}: {key.key}", EditorStyles.miniBoldLabel);
+                                EditorGUILayout.LabelField($"{L.T("Type", "类型")}: {key.type}, {L.T("Optional", "可选")}: {key.optional}", EditorStyles.miniLabel);
+                                EditorGUILayout.LabelField($"{L.T("Description", "描述")}: {key.desc}", EditorStyles.miniLabel);
                                 
                                 if (key.examples != null && key.examples.Count > 0)
                                 {
-                                    EditorGUILayout.LabelField($"示例: {string.Join(", ", key.examples)}", EditorStyles.miniLabel);
+                                    EditorGUILayout.LabelField($"{L.T("Examples", "示例")}: {string.Join(", ", key.examples)}", EditorStyles.miniLabel);
                                 }
                                 
                                 if (key.enumValues != null && key.enumValues.Count > 0)
                                 {
-                                    EditorGUILayout.LabelField($"枚举值: {string.Join(", ", key.enumValues)}", EditorStyles.miniLabel);
+                                    EditorGUILayout.LabelField($"{L.T("Enum Values", "枚举值")}: {string.Join(", ", key.enumValues)}", EditorStyles.miniLabel);
                                 }
                                 
                                 EditorGUILayout.EndVertical();
@@ -1745,6 +1867,28 @@ namespace UniMcp.Gui
 
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
+        }
+
+        /// <summary>
+        /// 刷新所有列表（工具、资源、提示词）
+        /// </summary>
+        private static void RefreshAllLists()
+        {
+            Debug.Log("[McpServiceGUI] Refreshing all lists (tools, resources, prompts)...");
+            
+            // 清除折叠状态，让界面重新渲染
+            methodFoldouts.Clear();
+            groupFoldouts.Clear();
+            resourceFoldouts.Clear();
+            promptFoldouts.Clear();
+            
+            // 清除工具缓存，让工具实例重新创建（这样描述会重新获取）
+            ToolsCall.ClearRegisteredMethods();
+            
+            // 重新发现工具（这会同时刷新工具、资源和提示词）
+            McpService.RediscoverTools();
+            
+            Debug.Log("[McpServiceGUI] All lists refreshed.");
         }
 
     }

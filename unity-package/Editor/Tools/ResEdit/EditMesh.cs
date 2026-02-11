@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Unity mesh asset operations including generation, modification, optimization, etc.
     /// 对应方法名: asset_mesh
     /// </summary>
-    [ToolName("edit_mesh", "Resource Management")]
+    [ToolName("edit_mesh", "Resource Management", "资源管理")]
     public class EditMesh : StateMethodBase
     {
         public override string Description => L.T("Manage mesh assets including import and modify", "管理网格资源，包括导入和修改");
@@ -33,7 +33,7 @@ namespace UniMcp.Tools
                 
                 // 网格路径
                 new MethodStr("path", L.T("Mesh asset path", "网格资产路径"), false)
-                    .AddExamples("Assets/Meshes/CustomMesh.asset", "Assets/Models/Terrain.asset"),
+                    .AddExample("Assets/Meshes/CustomMesh.asset"),
                 
                 // 网格类型
                 new MethodStr("mesh_type", L.T("Mesh type", "网格类型"))
@@ -44,11 +44,11 @@ namespace UniMcp.Tools
                 
                 // 源路径
                 new MethodStr("source_path", L.T("Source mesh path", "源网格路径"))
-                    .AddExamples("Assets/Meshes/Original.asset", "D:/Models/mesh.obj"),
+                    .AddExample("Assets/Meshes/Original.asset"),
                 
                 // 目标路径
                 new MethodStr("destination", L.T("Target path", "目标路径"))
-                    .AddExamples("Assets/Exports/", "D:/Exports/"),
+                    .AddExample("Assets/Exports/"),
                 
                 // 细分级别
                 new MethodInt("subdivision_level", L.T("Subdivision level", "细分级别"))
@@ -68,7 +68,6 @@ namespace UniMcp.Tools
                 
                 // 强制执行
                 new MethodBool("force", L.T("Force execution", "强制执行"))
-                    .SetDefault(false)
             };
         }
 

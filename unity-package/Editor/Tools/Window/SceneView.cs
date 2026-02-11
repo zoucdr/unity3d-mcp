@@ -12,7 +12,7 @@ namespace UniMcp.Tools
     /// Handles Unity Scene window management and control
     /// 对应方法名: scene_view
     /// </summary>
-    [ToolName("scene_view", "Window Management")]
+    [ToolName("scene_view", "Window Management", "窗口管理")]
     public class SceneView : StateMethodBase
     {
         /// <summary>
@@ -33,19 +33,16 @@ namespace UniMcp.Tools
                 
                 // Screenshot save path
                 new MethodStr("save_path", L.T("Screenshot save path", "截图保存路径"))
-                    .AddExamples("Assets/Screenshots/scene.png", "D:/Screenshots/view.jpg"),
+                    .AddExample("Assets/Screenshots/scene.png"),
                 
                 // Pivot position
-                new MethodVector("pivot_position", L.T("Pivot position [x,y,z]", "枢轴位置 [x,y,z]"))
-                    .SetDefault(new float[] {0, 0, 0}),
+                new MethodVector("pivot_position", L.T("Pivot position [x,y,z]", "枢轴位置 [x,y,z]")),
                 
                 // Camera rotation
-                new MethodVector("rotation", L.T("Camera rotation [x,y,z]", "相机旋转 [x,y,z]"))
-                     .SetDefault(new float[] {0, 0, 0}),
+                new MethodVector("rotation", L.T("Camera rotation [x,y,z]", "相机旋转 [x,y,z]")),
                 
                 // Orthographic mode
-                new MethodBool("orthographic", L.T("Set orthographic mode", "设置正交模式"))
-                    .SetDefault(false),
+                new MethodBool("orthographic", L.T("Set orthographic mode", "设置正交模式")),
                 
                 // Align view direction
                 new MethodStr("align_view", L.T("Align view direction", "对齐视图方向"))

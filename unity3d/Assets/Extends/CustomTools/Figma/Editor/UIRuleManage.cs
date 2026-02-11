@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using UniMcp;
 using UniMcp.Models;
+using UniMcp.Utils;
 using System.IO;
 using UnityEngine.Networking;
 using System.Collections;
@@ -14,13 +16,13 @@ namespace UniMcp.Tools
     /// UI规则管理工具，负责管理UI制作方案和修改记录
     /// 对应方法名: ui_rule_manage
     /// </summary>
-    [ToolName("ui_rule_manage", "UI管理")]
+    [ToolName("ui_rule_manage", "UI Management", "UI管理")]
     public class UIRuleManage : StateMethodBase
     {
         /// <summary>
         /// 工具方法的描述，用于在状态树中引用
         /// </summary>
-        public override string Description => "UI规则管理工具，负责管理UI制作方案和修改记录，支持记录修改、记录重命名、下载精灵等操作";
+        public override string Description => L.T("UI rule management tool for managing UI plans and change logs, supports record modify, record renames, download sprites, etc.", "UI规则管理工具，负责管理UI制作方案和修改记录，支持记录修改、记录重命名、下载精灵等操作");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -30,33 +32,33 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("record_modify", "record_renames", "get_renames", "record_download_sprites", "get_download_sprites")
                     .AddExamples("record_modify", "get_renames"),
                 
                 // UI名称
-                new MethodStr("name", "UI名称", false)
+                new MethodStr("name", L.T("UI name", "UI名称"), false)
                     .AddExamples("MainMenu", "InventoryPanel"),
                 
                 // 修改描述
-                new MethodStr("modify_desc", "修改描述")
-                    .AddExamples("更新按钮样式", "调整布局"),
+                new MethodStr("modify_desc", L.T("Modify description", "修改描述"))
+                    .AddExamples(L.T("Update button style", "更新按钮样式"), L.T("Adjust layout", "调整布局")),
                 
                 // 保存路径
-                new MethodStr("save_path", "保存路径")
+                new MethodStr("save_path", L.T("Save path", "保存路径"))
                     .AddExamples("Assets/UI/Rules/", "Assets/Figma/Rules/"),
                 
                 // 属性数据
-                new MethodObj("properties", "属性数据"),
+                new MethodObj("properties", L.T("Property data", "属性数据")),
                 
                 // 节点名称数据
-                new MethodObj("names_data", "节点名称数据"),
+                new MethodObj("names_data", L.T("Node name data", "节点名称数据")),
                 
                 // 精灵数据
-                new MethodObj("sprites_data", "精灵数据"),
+                new MethodObj("sprites_data", L.T("Sprites data", "精灵数据")),
                 
                 // 自动加载精灵
-                new MethodBool("auto_load_sprites", "自动加载精灵")
+                new MethodBool("auto_load_sprites", L.T("Auto load sprites", "自动加载精灵"))
             };
         }
 
@@ -85,10 +87,10 @@ namespace UniMcp.Tools
         {
             string uiName = args["name"]?.Value;
             string modify_desc = args["modify_desc"]?.Value;
-            if (string.IsNullOrEmpty(modify_desc)) modify_desc = "UI modification";
+            if (string.IsNullOrEmpty(modify_desc)) modify_desc = L.T("UI modification", "UI修改");
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for record_modify.");
+                return Response.Error(L.T("'name' is required for record_modify.", "record_modify 需要 'name' 参数。"));
 
             try
             {
@@ -97,7 +99,7 @@ namespace UniMcp.Tools
 
                 if (figmaObj == null)
                 {
-                    return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
+                    return Response.Error(L.T($"No UIDefineRule found for UI '{uiName}'. Please create one first.", $"未找到 UI '{uiName}' 的 UIDefineRule，请先创建。"));
                 }
 
                 // 确保 modify_records 列表已初始化
@@ -118,9 +120,9 @@ namespace UniMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                McpLogger.Log($"[UIRuleManage] Recorded modify for UI '{uiName}': {modify_desc}");
+                McpLogger.Log($"[UIRuleManage] {L.T($"Recorded modify for UI '{uiName}': {modify_desc}", $"已为 UI '{uiName}' 记录修改: {modify_desc}")}");
 
-                return Response.Success($"Modify record added to UIDefineRule for UI '{uiName}'.",
+                return Response.Success(L.T($"Modify record added to UIDefineRule for UI '{uiName}'.", $"已为 UI '{uiName}' 添加修改记录到 UIDefineRule。"),
                     new
                     {
                         uiName = uiName,
@@ -131,7 +133,7 @@ namespace UniMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to record modify for '{uiName}': {e.Message}");
+                return Response.Error(L.T($"Failed to record modify for '{uiName}': {e.Message}", $"记录 '{uiName}' 的修改失败: {e.Message}"));
             }
         }
 
@@ -146,10 +148,10 @@ namespace UniMcp.Tools
             string namesDataJson = args["names_data"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for record_renames.");
+                return Response.Error(L.T("'name' is required for record_renames.", "record_renames 需要 'name' 参数。"));
 
             if (string.IsNullOrEmpty(namesDataJson))
-                return Response.Error("'names_data' is required for record_renames. Provide Json object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}");
+                return Response.Error(L.T("'names_data' is required for record_renames. Provide Json object: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} or simple {\"node_id1\":\"node_name1\"}", "record_renames 需要 'names_data' 参数。请提供 Json 对象: {\"node_id1\":{\"name\":\"new_name1\",\"originName\":\"orig_name1\"}} 或简单格式 {\"node_id1\":\"node_name1\"}"));
 
             try
             {
@@ -158,7 +160,7 @@ namespace UniMcp.Tools
 
                 if (figmaObj == null)
                 {
-                    return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
+                    return Response.Error(L.T($"No UIDefineRule found for UI '{uiName}'. Please create one first.", $"未找到 UI '{uiName}' 的 UIDefineRule，请先创建。"));
                 }
 
                 // 确保 node_names 列表已初始化
@@ -220,12 +222,12 @@ namespace UniMcp.Tools
                 }
                 catch (Exception jsonEx)
                 {
-                    return Response.Error($"Failed to parse names_data Json: {jsonEx.Message}");
+                    return Response.Error(L.T($"Failed to parse names_data Json: {jsonEx.Message}", $"解析 names_data Json 失败: {jsonEx.Message}"));
                 }
 
                 if (addedCount == 0 && updatedCount == 0)
                 {
-                    return Response.Error("No valid node rename data found in names_data object.");
+                    return Response.Error(L.T("No valid node rename data found in names_data object.", "names_data 中未找到有效的节点重命名数据。"));
                 }
 
                 // 标记资产为脏数据并保存
@@ -233,9 +235,9 @@ namespace UniMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                McpLogger.Log($"[UIRuleManage] Batch recorded node renames for UI '{uiName}': {addedCount} added, {updatedCount} updated");
+                McpLogger.Log($"[UIRuleManage] {L.T($"Batch recorded node renames for UI '{uiName}': {addedCount} added, {updatedCount} updated", $"已为 UI '{uiName}' 批量记录节点重命名: 新增 {addedCount}，更新 {updatedCount}")}");
 
-                return Response.Success($"Batch node renames recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated.",
+                return Response.Success(L.T($"Batch node renames recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated.", $"已为 UI '{uiName}' 批量记录节点重命名: 新增 {addedCount}，更新 {updatedCount}。"),
                     new
                     {
                         uiName = uiName,
@@ -247,7 +249,7 @@ namespace UniMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to record node renames for '{uiName}': {e.Message}");
+                return Response.Error(L.T($"Failed to record node renames for '{uiName}': {e.Message}", $"记录 '{uiName}' 的节点重命名失败: {e.Message}"));
             }
         }
 
@@ -259,7 +261,7 @@ namespace UniMcp.Tools
             string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_renames.");
+                return Response.Error(L.T("'name' is required for get_renames.", "get_renames 需要 'name' 参数。"));
 
             try
             {
@@ -268,7 +270,7 @@ namespace UniMcp.Tools
 
                 if (figmaObj == null)
                 {
-                    return Response.Success($"No UIDefineRule found for UI '{uiName}'.",
+                    return Response.Success(L.T($"No UIDefineRule found for UI '{uiName}'.", $"未找到 UI '{uiName}' 的 UIDefineRule。"),
                         new
                         {
                             uiName = uiName,
@@ -279,7 +281,7 @@ namespace UniMcp.Tools
 
                 var nodeNames = figmaObj.node_names ?? new List<NodeRenameInfo>();
 
-                return Response.Success($"Retrieved {nodeNames.Count} node rename(s) for UI '{uiName}'.",
+                return Response.Success(L.T($"Retrieved {nodeNames.Count} node rename(s) for UI '{uiName}'.", $"已获取 UI '{uiName}' 的 {nodeNames.Count} 个节点重命名。"),
                     new
                     {
                         uiName = uiName,
@@ -290,7 +292,7 @@ namespace UniMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to get node renames for '{uiName}': {e.Message}");
+                return Response.Error(L.T($"Failed to get node renames for '{uiName}': {e.Message}", $"获取 '{uiName}' 的节点重命名失败: {e.Message}"));
             }
         }
 
@@ -304,10 +306,10 @@ namespace UniMcp.Tools
             bool autoLoadSprites = args["auto_load_sprites"].AsBoolDefault(true);
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for record_download_sprites.");
+                return Response.Error(L.T("'name' is required for record_download_sprites.", "record_download_sprites 需要 'name' 参数。"));
 
             if (string.IsNullOrEmpty(spritesDataJson))
-                return Response.Error("'sprites_data' is required for record_download_sprites. Provide Json object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}");
+                return Response.Error(L.T("'sprites_data' is required for record_download_sprites. Provide Json object: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}", "record_download_sprites 需要 'sprites_data' 参数。请提供 Json 对象: {\"node_id1\":\"file_name1\",\"node_id2\":\"file_name2\"}"));
 
             try
             {
@@ -316,7 +318,7 @@ namespace UniMcp.Tools
 
                 if (figmaObj == null)
                 {
-                    return Response.Error($"No UIDefineRule found for UI '{uiName}'. Please create one first.");
+                    return Response.Error(L.T($"No UIDefineRule found for UI '{uiName}'. Please create one first.", $"未找到 UI '{uiName}' 的 UIDefineRule，请先创建。"));
                 }
 
                 // 确保 node_sprites 列表已初始化
@@ -381,12 +383,12 @@ namespace UniMcp.Tools
                 }
                 catch (Exception jsonEx)
                 {
-                    return Response.Error($"Failed to parse sprites_data Json: {jsonEx.Message}");
+                    return Response.Error(L.T($"Failed to parse sprites_data Json: {jsonEx.Message}", $"解析 sprites_data Json 失败: {jsonEx.Message}"));
                 }
 
                 if (addedCount == 0 && updatedCount == 0)
                 {
-                    return Response.Error("No valid downloaded sprite data found in sprites_data object.");
+                    return Response.Error(L.T("No valid downloaded sprite data found in sprites_data object.", "sprites_data 中未找到有效的已下载精灵数据。"));
                 }
 
                 // 标记资产为脏数据并保存
@@ -394,10 +396,11 @@ namespace UniMcp.Tools
                 string assetPath = AssetDatabase.GetAssetPath(figmaObj);
                 AssetDatabase.SaveAssets();
 
-                McpLogger.Log($"[UIRuleManage] Batch recorded downloaded sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded");
+                McpLogger.Log($"[UIRuleManage] {L.T($"Batch recorded downloaded sprites for UI '{uiName}': {addedCount} added, {updatedCount} updated, {loadedSpritesCount} sprites loaded", $"已为 UI '{uiName}' 批量记录已下载精灵: 新增 {addedCount}，更新 {updatedCount}，已加载 {loadedSpritesCount} 个精灵")}");
 
-                return Response.Success($"Batch downloaded sprites recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated" +
-                    (autoLoadSprites ? $", {loadedSpritesCount} sprites loaded" : ""),
+                return Response.Success(L.T($"Batch downloaded sprites recorded for UI '{uiName}': {addedCount} added, {updatedCount} updated" +
+                    (autoLoadSprites ? $", {loadedSpritesCount} sprites loaded" : ""), $"已为 UI '{uiName}' 批量记录已下载精灵: 新增 {addedCount}，更新 {updatedCount}" +
+                    (autoLoadSprites ? $"，已加载 {loadedSpritesCount} 个精灵" : "")),
                     new
                     {
                         uiName = uiName,
@@ -411,7 +414,7 @@ namespace UniMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to record downloaded sprites for '{uiName}': {e.Message}");
+                return Response.Error(L.T($"Failed to record downloaded sprites for '{uiName}': {e.Message}", $"记录 '{uiName}' 的已下载精灵失败: {e.Message}"));
             }
         }
 
@@ -473,7 +476,7 @@ namespace UniMcp.Tools
             string uiName = args["name"]?.Value;
 
             if (string.IsNullOrEmpty(uiName))
-                return Response.Error("'name' is required for get_download_sprites.");
+                return Response.Error(L.T("'name' is required for get_download_sprites.", "get_download_sprites 需要 'name' 参数。"));
 
             try
             {
@@ -482,7 +485,7 @@ namespace UniMcp.Tools
 
                 if (figmaObj == null)
                 {
-                    return Response.Success($"No UIDefineRule found for UI '{uiName}'.",
+                    return Response.Success(L.T($"No UIDefineRule found for UI '{uiName}'.", $"未找到 UI '{uiName}' 的 UIDefineRule。"),
                         new
                         {
                             uiName = uiName,
@@ -493,7 +496,7 @@ namespace UniMcp.Tools
 
                 var nodeSprites = figmaObj.node_sprites ?? new List<NodeSpriteInfo>();
 
-                return Response.Success($"Retrieved {nodeSprites.Count} downloaded sprite(s) for UI '{uiName}'.",
+                return Response.Success(L.T($"Retrieved {nodeSprites.Count} downloaded sprite(s) for UI '{uiName}'.", $"已获取 UI '{uiName}' 的 {nodeSprites.Count} 个已下载精灵。"),
                     new
                     {
                         uiName = uiName,
@@ -504,7 +507,7 @@ namespace UniMcp.Tools
             }
             catch (Exception e)
             {
-                return Response.Error($"Failed to get downloaded sprites for '{uiName}': {e.Message}");
+                return Response.Error(L.T($"Failed to get downloaded sprites for '{uiName}': {e.Message}", $"获取 '{uiName}' 的已下载精灵失败: {e.Message}"));
             }
         }
 
@@ -515,7 +518,7 @@ namespace UniMcp.Tools
         /// </summary>
         private IEnumerator LoadImageAsBase64(string imagePath, Action<string> callback)
         {
-            McpLogger.Log($"[UIRuleManage] 开始加载图片: {imagePath}");
+            McpLogger.Log($"[UIRuleManage] {L.T("Loading image", "开始加载图片")}: {imagePath}");
 
             // 判断是本地路径还是网络路径
             if (IsNetworkPath(imagePath))
@@ -535,7 +538,7 @@ namespace UniMcp.Tools
         /// </summary>
         private IEnumerator LoadNetworkImageAsBase64(string url, Action<string> callback)
         {
-            McpLogger.Log($"[UIRuleManage] 从网络加载图片: {url}");
+            McpLogger.Log($"[UIRuleManage] {L.T("Loading image from network", "从网络加载图片")}: {url}");
 
             using (var request = UnityWebRequest.Get(url))
             {
@@ -552,7 +555,7 @@ namespace UniMcp.Tools
                     if (Time.realtimeSinceStartup - startTime > 30f)
                     {
                         request.Abort();
-                        LogError($"[UIRuleManage] 网络图片下载超时: {url}");
+                        LogError($"[UIRuleManage] {L.T("Network image download timeout", "网络图片下载超时")}: {url}");
                         callback?.Invoke(null);
                         yield break;
                     }
@@ -571,18 +574,18 @@ namespace UniMcp.Tools
                         string contentType = request.GetResponseHeader("Content-Type") ?? "image/png";
                         string dataUri = $"data:{contentType};base64,{base64String}";
 
-                        McpLogger.Log($"[UIRuleManage] 网络图片转换为Base64成功，大小: {imageData.Length} bytes");
+                        McpLogger.Log($"[UIRuleManage] {L.T("Network image converted to Base64 successfully, size", "网络图片转换为Base64成功，大小")}: {imageData.Length} bytes");
                         callback?.Invoke(dataUri);
                     }
                     catch (Exception e)
                     {
-                        LogError($"[UIRuleManage] 网络图片Base64转换失败: {e.Message}");
+                        LogError($"[UIRuleManage] {L.T("Network image Base64 conversion failed", "网络图片Base64转换失败")}: {e.Message}");
                         callback?.Invoke(null);
                     }
                 }
                 else
                 {
-                    LogError($"[UIRuleManage] 网络图片下载失败: {request.error}");
+                    LogError($"[UIRuleManage] {L.T("Network image download failed", "网络图片下载失败")}: {request.error}");
                     callback?.Invoke(null);
                 }
             }
@@ -593,14 +596,14 @@ namespace UniMcp.Tools
         /// </summary>
         private IEnumerator LoadLocalImageAsBase64(string filePath, Action<string> callback)
         {
-            McpLogger.Log($"[UIRuleManage] 从本地加载图片: {filePath}");
+            McpLogger.Log($"[UIRuleManage] {L.T("Loading image from local", "从本地加载图片")}: {filePath}");
 
             // 规范化路径
             string fullPath = GetFullImagePath(filePath);
 
             if (!File.Exists(fullPath))
             {
-                LogError($"[UIRuleManage] 本地图片文件不存在: {fullPath}");
+                LogError($"[UIRuleManage] {L.T("Local image file does not exist", "本地图片文件不存在")}: {fullPath}");
                 callback?.Invoke(null);
                 yield break;
             }
@@ -618,14 +621,14 @@ namespace UniMcp.Tools
 
             if (!string.IsNullOrEmpty(errorMessage))
             {
-                LogError($"[UIRuleManage] 本地图片读取失败: {errorMessage}");
+                LogError($"[UIRuleManage] {L.T("Local image read failed", "本地图片读取失败")}: {errorMessage}");
                 callback?.Invoke(null);
                 yield break;
             }
 
             if (imageData == null || imageData.Length == 0)
             {
-                LogError($"[UIRuleManage] 本地图片数据为空: {fullPath}");
+                LogError($"[UIRuleManage] {L.T("Local image data is empty", "本地图片数据为空")}: {fullPath}");
                 callback?.Invoke(null);
                 yield break;
             }
@@ -638,7 +641,7 @@ namespace UniMcp.Tools
             string base64String = Convert.ToBase64String(imageData);
             string dataUri = $"data:{mimeType};base64,{base64String}";
 
-            McpLogger.Log($"[UIRuleManage] 本地图片转换为Base64成功，大小: {imageData.Length} bytes");
+            McpLogger.Log($"[UIRuleManage] {L.T("Local image converted to Base64 successfully, size", "本地图片转换为Base64成功，大小")}: {imageData.Length} bytes");
             callback?.Invoke(dataUri);
         }
 
@@ -671,7 +674,7 @@ namespace UniMcp.Tools
             if (!initSuccess || !string.IsNullOrEmpty(errorMessage))
             {
                 fileStream?.Dispose();
-                callback?.Invoke(null, errorMessage ?? "Failed to open file");
+                callback?.Invoke(null, errorMessage ?? L.T("Failed to open file", "打开文件失败"));
                 yield break;
             }
 

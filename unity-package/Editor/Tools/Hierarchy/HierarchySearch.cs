@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// Handles GameObject search and find operations in the scene hierarchy.
     /// 对应方法名: hierarchy_search
     /// </summary>
-    [ToolName("hierarchy_search", "Hierarchy Management")]
+    [ToolName("hierarchy_search", "Hierarchy Management", "层级管理")]
     public class HierarchySearch : StateMethodBase
     {
         public override string Description => L.T("Search and find GameObjects in the scene hierarchy", "在场景层级中搜索和查找游戏对象");
@@ -34,7 +34,7 @@ namespace UniMcp.Tools
                 
                 // Search condition
                 new MethodStr("query", L.T("Search condition (can be ID, name, or path, supports wildcard *)", "搜索条件（可以是ID、名称或路径，支持通配符*）"), false)
-                    .AddExamples("Player*", "UI/Canvas"),
+                    .AddExample("Player*"),
                 
                 // Find multiple
                 new MethodBool("select_many", L.T("Whether to find all matching items", "是否查找所有匹配项")),

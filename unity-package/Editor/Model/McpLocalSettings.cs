@@ -34,7 +34,7 @@ namespace UniMcp
         private bool _resourcesCapability = false;
 
         [SerializeField]
-        private string _currentLanguage = ""; // 当前语言设置，空字符串表示使用系统语言
+        private string _currentLanguage = "English";
 
         /// <summary>
         /// MCP服务器端口

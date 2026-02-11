@@ -13,7 +13,7 @@ namespace UniMcp.Tools
     /// Supports Error, Warning, Log, Assert, and Exception message types.
     /// Corresponding method name: console_write
     /// </summary>
-    [ToolName("console_write", "Development Tools")]
+    [ToolName("console_write", "Development Tools", "开发工具")]
     public class ConsoleWrite : StateMethodBase
     {
         public override string Description => L.T("Console writer tool for writing log messages to Unity Editor console", "控制台写入工具，用于向Unity编辑器控制台写入日志消息");
@@ -31,19 +31,19 @@ namespace UniMcp.Tools
                 
                 // Log message content - required
                 new MethodStr("message", L.T("Log message content to write", "要写入的日志消息内容"), false)
-                    .AddExamples("This is a test message", "Operation completed successfully"),
+                    .AddExample("This is a test message"),
                 
                 // Log tag
                 new MethodStr("tag", L.T("Log tag for categorization and filtering", "用于分类和过滤的日志标签"))
-                    .AddExamples("System", "Network"),
+                    .AddExample("System"),
                 
                 // Context object
                 new MethodStr("context", L.T("Context object name, used to locate related GameObject in console", "上下文对象名称，用于在控制台中定位相关游戏对象"))
-                    .AddExamples("Player", "Main Camera"),
+                    .AddExample("Player"),
                 
                 // Assert condition
                 new MethodStr("condition", L.T("Assert condition expression (only for assert type)", "断言条件表达式（仅用于断言类型）"))
-                    .AddExamples("value != null", "count > 0")
+                    .AddExample("value != null")
             };
         }
 

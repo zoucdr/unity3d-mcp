@@ -14,7 +14,7 @@ namespace UniMcp.Tools
     /// 专门的模型管理工具，提供模型的导入、修改、复制、删除等操作
     /// 对应方法名: manage_model
     /// </summary>
-    [ToolName("edit_model", "Resource Management")]
+    [ToolName("edit_model", "Resource Management", "资源管理")]
     public class EditModel : StateMethodBase
     {
         public override string Description => L.T("Manage 3D model assets including import and settings", "管理3D模型资源，包括导入和设置");
@@ -28,24 +28,23 @@ namespace UniMcp.Tools
             {
                 // 操作类型
                 new MethodStr("action", L.T("Action type", "操作类型"), false)
-                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "extract_materials", "optimize", "remap_materials")
-                    .AddExamples("import", "get_info"),
+                    .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "extract_materials", "optimize", "remap_materials"),
                 
                 // 模型路径
                 new MethodStr("path", L.T("Model asset path", "模型资源路径"), false)
-                    .AddExamples("Assets/Models/Character.fbx", "Assets/Models/Building.obj"),
+                    .AddExample("Assets/Models/Character.fbx"),
                 
                 // 源文件路径
                 new MethodStr("source_file", L.T("Source file path", "源文件路径"))
-                    .AddExamples("D:/Models/character.fbx", "C:/Assets/model.obj"),
+                    .AddExample("D:/Models/character.fbx"),
                 
                 // 目标路径
                 new MethodStr("destination", L.T("Target path", "目标路径"))
-                    .AddExamples("Assets/Models/Copy/", "Assets/NewModels/"),
+                    .AddExample("Assets/Models/Copy/"),
                 
                 // 搜索模式
                 new MethodStr("query", L.T("Search pattern", "搜索模式"))
-                    .AddExamples("*.fbx", "*.obj"),
+                    .AddExample("*.fbx"),
                 
                 // 递归搜索
                 new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
@@ -56,7 +55,7 @@ namespace UniMcp.Tools
                 // 缩放因子
                 new MethodFloat("scale_factor", L.T("Scale factor", "缩放因子"))
                     .SetRange(0.01f, 100f)
-                    .AddExample("1.0"),
+                    .AddExample(1.0f),
                 
                 // 使用文件缩放
                 new MethodBool("use_file_scale", L.T("Use file scale", "使用文件缩放")),
@@ -76,27 +75,27 @@ namespace UniMcp.Tools
                 // 次要UV硬角度
                 new MethodFloat("secondary_uv_hard_angle", L.T("Secondary UV hard angle", "次要UV硬角度"))
                     .SetRange(0f, 180f)
-                    .AddExample("88.0"),
+                    .AddExample(88.0f),
                 
                 // 次要UV打包边距
                 new MethodFloat("secondary_uv_pack_margin", L.T("Secondary UV pack margin", "次要UV打包边距"))
                     .SetRange(1f, 64f)
-                    .AddExample("4.0"),
+                    .AddExample(4.0f),
                 
                 // 次要UV角度扭曲
                 new MethodFloat("secondary_uv_angle_distortion", L.T("Secondary UV angle distortion", "次要UV角度扭曲"))
                     .SetRange(1f, 75f)
-                    .AddExample("8.0"),
+                    .AddExample(8.0f),
                 
                 // 次要UV面积扭曲
                 new MethodFloat("secondary_uv_area_distortion", L.T("Secondary UV area distortion", "次要UV面积扭曲"))
                     .SetRange(1f, 75f)
-                    .AddExample("15.0"),
+                    .AddExample(15.0f),
                 
                 // 次要UV边缘扭曲
                 new MethodFloat("secondary_uv_edge_distortion", L.T("Secondary UV edge distortion", "次要UV边缘扭曲"))
                     .SetRange(1f, 75f)
-                    .AddExample("10.0"),
+                    .AddExample(10.0f),
                 
                 // 启用读写
                 new MethodBool("read_write_enabled", L.T("Enable read/write", "启用读写")),

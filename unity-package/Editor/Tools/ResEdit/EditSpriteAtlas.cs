@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// 处理Unity图集(Sprite Atlas)的创建和编辑操作
     /// 对应方法名: edit_sprite_atlas
     /// </summary>
-    [ToolName("edit_sprite_atlas", "Resource Management")]
+    [ToolName("edit_sprite_atlas", "Resource Management", "资源管理")]
     public class EditSpriteAtlas : StateMethodBase
     {
         public override string Description => L.T("Manage sprite atlas assets including create and pack", "管理精灵图集资源，包括创建和打包");
@@ -41,51 +41,41 @@ namespace UniMcp.Tools
                 new MethodArr("folder_paths", L.T("Folder path array", "文件夹路径数组")),
                 
                 // 包含子文件夹
-                new MethodBool("include_subfolders", L.T("Include subfolders", "包含子文件夹"))
-                    .SetDefault(false),
+                new MethodBool("include_subfolders", L.T("Include subfolders", "包含子文件夹")),
                 
                 // 筛选模式
-                new MethodStr("filter_pattern", L.T("Filter pattern", "筛选模式"))
-                    .SetDefault("*.png"),
+                new MethodStr("filter_pattern", L.T("Filter pattern", "筛选模式")),
                 
                 // 图集类型
                 new MethodStr("type", L.T("Atlas type", "图集类型"))
-                    .SetEnumValues("Master", "Variant")
-                    .SetDefault("Master"),
+                    .SetEnumValues("Master", "Variant"),
                 
                 // 主图集路径
                 new MethodStr("master_atlas_path", L.T("Master atlas path", "主图集路径")),
                 
                 // 允许旋转
-                new MethodBool("allow_rotation", L.T("Allow rotation", "允许旋转"))
-                    .SetDefault(false),
+                new MethodBool("allow_rotation", L.T("Allow rotation", "允许旋转")),
                 
                 // 紧凑排列
-                new MethodBool("tight_packing", L.T("Tight packing", "紧凑排列"))
-                    .SetDefault(false),
+                new MethodBool("tight_packing", L.T("Tight packing", "紧凑排列")),
                 
                 // 图像间距
                 new MethodInt("padding", L.T("Image spacing", "图像间距"))
-                    .SetRange(0, 32)
-                    .SetDefault(4),
+                    .SetRange(0, 32),
                 
                 // 可读
-                new MethodBool("readable", L.T("Readable", "可读"))
-                    .SetDefault(false),
+                new MethodBool("readable", L.T("Readable", "可读")),
                 
                 // 生成Mip贴图
-                new MethodBool("generate_mip_maps", L.T("Generate Mip maps", "生成Mip贴图"))
-                    .SetDefault(false),
+                new MethodBool("generate_mip_maps", L.T("Generate Mip maps", "生成Mip贴图")),
                 
                 // 过滤模式
                 new MethodStr("filter_mode", L.T("Filter mode", "过滤模式"))
-                    .SetEnumValues("Point", "Bilinear", "Trilinear")
-                    .SetDefault("Bilinear"),
+                    .SetEnumValues("Point", "Bilinear", "Trilinear"),
                 
                 // 压缩格式
                 new MethodStr("compression", L.T("Compression format", "压缩格式"))
-                    .SetEnumValues("None", "LowQuality", "NormalQuality", "HighQuality")
-                    .SetDefault("NormalQuality"),
+                    .SetEnumValues("None", "LowQuality", "NormalQuality", "HighQuality"),
                 
                 // 平台名称
                 new MethodStr("platform", L.T("Platform name", "平台名称"))
@@ -93,22 +83,18 @@ namespace UniMcp.Tools
                 
                 // 最大纹理尺寸
                 new MethodInt("max_texture_size", L.T("Maximum texture size", "最大纹理尺寸"))
-                    .SetEnumValues("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192")
-                    .SetDefault(2048),
+                    .SetEnumValues("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192"),
                 
                 // 纹理格式
                 new MethodStr("format", L.T("Texture format", "纹理格式"))
-                    .SetEnumValues("Automatic", "RGBA32", "RGB24", "ASTC_4x4", "ASTC_6x6", "ASTC_8x8", "ETC2_RGBA8")
-                    .SetDefault("Automatic"),
+                    .SetEnumValues("Automatic", "RGBA32", "RGB24", "ASTC_4x4", "ASTC_6x6", "ASTC_8x8", "ETC2_RGBA8"),
                 
                 // 压缩质量
                 new MethodInt("compression_quality", L.T("Compression quality", "压缩质量"))
-                    .SetRange(0, 100)
-                    .SetDefault(50),
+                    .SetRange(0, 100),
                 
                 // 覆盖平台设置
                 new MethodBool("override_for_platform", L.T("Override platform settings", "覆盖平台设置"))
-                    .SetDefault(false)
             };
         }
 

@@ -13,7 +13,7 @@ namespace UniMcp.Tools
     /// Handles Unity Tag and Layer management.
     /// 对应方法名: tag_layer
     /// </summary>
-    [ToolName("tag_layer", "System Management")]
+    [ToolName("tag_layer", "System Management", "系统管理")]
     public class TagLayer : StateMethodBase
     {
         public override string Description => L.T("Manage Unity tags and layers", "管理Unity标签和层级");
@@ -28,16 +28,15 @@ namespace UniMcp.Tools
                 // Action type
                 new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("add_tag", "remove_tag", "get_tags", "add_layer", "remove_layer", "get_layers")
-                    .SetDefault("get_tags")
-                    .AddExamples("add_tag", "get_layers"),
+                    .SetDefault("get_tags"),
                 
                 // Tag name
                 new MethodStr("tag_name", L.T("Tag name", "标签名称"))
-                    .AddExamples("Player", "Enemy"),
+                    .AddExample("Player"),
                 
                 // Layer name
                 new MethodStr("layer_name", L.T("Layer name", "层名称"))
-                    .AddExamples("UI", "Ground")
+                    .AddExample("UI")
             };
         }
 

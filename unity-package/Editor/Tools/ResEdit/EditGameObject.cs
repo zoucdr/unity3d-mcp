@@ -19,7 +19,7 @@ namespace UniMcp.Tools
     /// Second tree: Property modification operations
     /// 对应方法名: gameobject_modify
     /// </summary>
-    [ToolName("edit_gameobject", "Resource Management")]
+    [ToolName("edit_gameobject", "Resource Management", "资源管理")]
     public class EditGameObject : DualStateMethodBase
     {
         public override string Description => L.T("Modify GameObject properties using dual state tree", "使用双状态树修改游戏对象属性");
@@ -42,7 +42,6 @@ namespace UniMcp.Tools
         {
             // 层级路径
             new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
-                .AddExamples("Canvas/Panel/Button", "Player/Body/Head")
                 .SetDefault("Canvas/Panel/Button"),
             
             // 实例ID
@@ -56,11 +55,11 @@ namespace UniMcp.Tools
             
             // 对象名称
             new MethodStr("name", L.T("GameObject name", "游戏对象名称"))
-                .AddExamples("Player", "Enemy"),
+                .AddExample("Player"),
             
             // 标签
             new MethodStr("tag", L.T("GameObject tag", "游戏对象标签"))
-                .AddExamples("Player", "Enemy"),
+                .AddExample("Player"),
             
             // 层
             new MethodInt("layer", L.T("GameObject layer", "游戏对象层"))
@@ -73,7 +72,7 @@ namespace UniMcp.Tools
             
             // 父对象路径
             new MethodStr("parent_path", L.T("Parent object scene path", "父对象场景路径"))
-                .AddExamples("Canvas", "Player"),
+                .AddExample("Canvas"),
             
             // 位置坐标
             new MethodVector("position", L.T("Position coordinates [x, y, z]", "位置坐标 [x, y, z]"))
@@ -93,7 +92,7 @@ namespace UniMcp.Tools
             
             // 组件类型
             new MethodStr("component_type", L.T("Component type", "组件类型"))
-                .AddExamples("Rigidbody", "Collider"),
+                .AddExample("Rigidbody"),
             
             // 组件属性
             new MethodObj("component_properties", L.T("Component properties", "组件属性"))

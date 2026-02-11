@@ -19,7 +19,7 @@ namespace UniMcp.Tools
     /// Uses coroutines with EditorUtility.DisplayDialog for interactive user confirmation.
     /// 对应方法名: object_delete
     /// </summary>
-    [ToolName("object_delete", "Resource Management")]
+    [ToolName("object_delete", "Resource Management", "资源管理")]
     public class ObjectDelete : DualStateMethodBase
     {
         public override string Description => L.T("Delete GameObjects or assets", "删除游戏对象或资源");
@@ -40,7 +40,7 @@ namespace UniMcp.Tools
             {
                 // Target path
                 new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
-                    .AddExamples("UI/Canvas/Button"),
+                    .AddExample("UI/Canvas/Button"),
                 
                 // Target instance ID
                 new MethodStr("instance_id", L.T("Object instance ID", "对象实例ID"))

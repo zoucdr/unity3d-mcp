@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// GamePlay游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理
     /// 对应方法名: gameplay
     /// </summary>
-    [ToolName("gameplay", "Gameplay Control")]
+    [ToolName("gameplay", "Gameplay Control", "游戏控制")]
     public class GamePlay : StateMethodBase
     {
         public override string Description => L.T("Control gameplay, simulate input, and process images", "控制游戏玩法，模拟输入和处理图像");
@@ -90,7 +90,7 @@ namespace UniMcp.Tools
                 
                 // Keyboard key code
                 new MethodStr("key_code", L.T("Keyboard key code", "键盘按键代码"))
-                    .AddExamples("Space", "Return", "Escape", "A", "W", "S", "D", "LeftShift", "LeftControl"),
+                    .AddExample("Space"),
                 
                 // Window size
                 new MethodInt("width", L.T("Game window width", "游戏窗口宽度")),
@@ -99,11 +99,11 @@ namespace UniMcp.Tools
                 
                 // Predefined size name
                 new MethodStr("size_name", L.T("Predefined size name", "预定义尺寸名称"))
-                    .AddExamples("Free", "16:9", "16:10", "4:3", "iPhone", "Android"),
+                    .AddExample("Free"),
                 
                 // Screenshot and image processing path
                 new MethodStr("save_path", L.T("Screenshot/image save path", "截图/图片保存路径"))
-                    .AddExamples("D:/game.jpg", "screenshot.png"),
+                    .AddExample("D:/game.jpg"),
                 
                 // Image format
                 new MethodStr("format", L.T("Image format", "图片格式"))
@@ -123,7 +123,7 @@ namespace UniMcp.Tools
                 
                 // Source image path
                 new MethodStr("source_path", L.T("Source image path (for compression)", "源图片路径（用于压缩）"))
-                    .AddExamples("Assets/Textures/image.png", "D:/Images/photo.jpg"),
+                    .AddExample("Assets/Textures/image.png"),
                 
                 // Screenshot region coordinates
                 new MethodInt("region_x", L.T("Screenshot region X coordinate", "截图区域X坐标")),
@@ -150,7 +150,7 @@ namespace UniMcp.Tools
                 
                 // 批量操作基础路径
                 new MethodStr("base_path", L.T("Batch operation base path", "批量操作基础路径"))
-                    .AddExamples("Assets/Screenshots/", "D:/Batch/", "./output/")
+                    .AddExample("Assets/Screenshots/")
             };
         }
 

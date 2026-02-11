@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Unity ScriptableObject asset management operations including create, modify, duplicate, etc.
     /// 对应方法名: manage_scriptableobject
     /// </summary>
-    [ToolName("edit_scriptable_object", "Resource Management")]
+    [ToolName("edit_scriptable_object", "Resource Management", "资源管理")]
     public class EditScriptableObject : StateMethodBase
     {
         public override string Description => L.T("Manage ScriptableObject assets including create and modify", "管理ScriptableObject资源，包括创建和修改");
@@ -29,12 +29,10 @@ namespace UniMcp.Tools
             {
                 // 操作类型
                 new MethodStr("action", L.T("Operation type", "操作类型"), false)
-                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search")
-                    .SetDefault("get_info"),
+                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search"),
                 
                 // 资产路径
-                new MethodStr("path", L.T("ScriptableObject asset path", "ScriptableObject资产路径"), false)
-                    .SetDefault("Assets/Default.asset"),
+                new MethodStr("path", L.T("ScriptableObject asset path", "ScriptableObject资产路径"), false),
                 
                 // 脚本类名
                 new MethodStr("script_class", L.T("ScriptableObject script class name", "ScriptableObject脚本类名")),

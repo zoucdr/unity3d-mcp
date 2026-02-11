@@ -13,7 +13,7 @@ namespace UniMcp.Tools
     /// 处理Unity场景中Terrain地形的编辑操作
     /// 支持创建、修改、导入导出高度图等功能
     /// </summary>
-    [ToolName("edit_terrain", "Resource Management")]
+    [ToolName("edit_terrain", "Resource Management", "资源管理")]
     public class EditTerrain : StateMethodBase
     {
         public override string Description => L.T("Manage terrain assets including create and modify heightmaps", "管理地形资源，包括创建和修改高度图");
@@ -31,18 +31,17 @@ namespace UniMcp.Tools
                 
                  // Hierarchy path
                   new MethodStr("path", L.T("Terrain object hierarchy path", "地形对象层级路径"))
-                      .AddExamples("Terrain"),
+                      .AddExample("Terrain"),
                   // Instance ID
                   new MethodInt("instance_id", L.T("Terrain instance ID", "地形实例ID"))
-                       .AddExample("-12345"),
+                       .AddExample(-12345),
                   // Terrain data path
                   new MethodStr("terrain_data_path", L.T("TerrainData asset path", "TerrainData资源路径"))
-                       .AddExamples("Assets/TerrainData.asset"),
+                       .AddExample("Assets/TerrainData.asset"),
                   // Position
                   new MethodVector("position", L.T("Position coordinates", "位置坐标")),
                   // Size
-                  new MethodVector("terrain_size", L.T("Terrain size [width, height, length]", "地形尺寸 [宽度, 高度, 长度]"))
-                      .AddExample("[1000, 600, 1000]"),
+                  new MethodVector("terrain_size", L.T("Terrain size [width, height, length]", "地形尺寸 [宽度, 高度, 长度]")),
                 
                  // Heightmap resolution
                  new MethodInt("heightmap_resolution", L.T("Heightmap resolution", "高度图分辨率")),
@@ -53,7 +52,7 @@ namespace UniMcp.Tools
                 
                  // Heightmap file
                  new MethodStr("heightmap_file", L.T("Heightmap file path", "高度图文件路径"))
-                      .AddExamples("Assets/Heightmap.png"),
+                      .AddExample("Assets/Heightmap.png"),
                 
                 // Texture layer configuration
                 new MethodObj("texture_layer", L.T("Texture layer configuration", "纹理层配置"))

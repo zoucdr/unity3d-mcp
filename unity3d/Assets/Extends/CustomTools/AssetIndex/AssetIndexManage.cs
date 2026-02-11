@@ -16,6 +16,7 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp;
+using UniMcp.Utils;
 
 namespace UniMcp.Tools
 {
@@ -23,10 +24,10 @@ namespace UniMcp.Tools
     /// 资源索引管理工具，支持添加、删除、查询、定位等操作
     /// 对应方法名: asset_index
     /// </summary>
-    [ToolName("asset_index", "系统工具")]
+    [ToolName("asset_index", "System Tools", "系统工具")]
     public class AssetIndexManage : StateMethodBase
     {
-        public override string Description => "资源索引管理工具，支持添加、删除、查询、定位等操作";
+        public override string Description => L.T("Asset index management tool supporting add, remove, query, locate operations", "资源索引管理工具，支持添加、删除、查询、定位等操作");
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
@@ -35,32 +36,32 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 枚举
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("add", "remove", "update", "search", "categories", "locate", "details", "show", "lost"),
                 
                 // 资源名称
-                new MethodStr("name", "资源名称")
+                new MethodStr("name", L.T("Resource name", "资源名称"))
                     .AddExamples("PlayerController", "MainScene", "PlayerPrefab"),
                 
                 // 资源路径
-                new MethodStr("path", "资源路径")
+                new MethodStr("path", L.T("Resource path", "资源路径"))
                     .AddExamples("Assets/Scripts/Player/PlayerController.cs", "Assets/Scenes/MainScene.unity"),
                 
                 // 分类标签
-                new MethodStr("category", "分类标签，用于组织资源")
-                    .AddExamples("脚本", "场景", "预制体", "配置")
-                    .SetDefault("默认"),
+                new MethodStr("category", L.T("Category tag for organizing resources", "分类标签，用于组织资源"))
+                    .AddExamples(L.T("Script", "脚本"), L.T("Scene", "场景"), L.T("Prefab", "预制体"), L.T("Config", "配置"))
+                    .SetDefault(L.T("Default", "默认")),
                 
                 // 备注信息
-                new MethodStr("note", "备注信息")
-                    .AddExamples("核心脚本", "重要资源", "待优化"),
+                new MethodStr("note", L.T("Note", "备注信息"))
+                    .AddExamples(L.T("Core script", "核心脚本"), L.T("Important asset", "重要资源"), L.T("To optimize", "待优化")),
                 
                 // 搜索正则表达式
-                new MethodStr("pattern", "正则表达式模式（用于search操作，匹配名称、备注、路径）")
+                new MethodStr("pattern", L.T("Regex pattern (for search action, matches name, note, path)", "正则表达式模式（用于search操作，匹配名称、备注、路径）"))
                     .AddExamples("Player.*", "^Assets/Scripts", "Controller|Manager"),
                 
                 // 唯一ID
-                new MethodInt("id", "资源索引唯一ID（用于remove、update、locate操作，推荐使用）")
+                new MethodInt("id", L.T("Asset index unique ID (for remove/update/locate, recommended)", "资源索引唯一ID（用于remove、update、locate操作，推荐使用）"))
                     .AddExample(1)
                     .AddExample(5),
             };
@@ -102,7 +103,7 @@ namespace UniMcp.Tools
                 string guid = AssetDatabase.AssetPathToGUID(path);
                 if (string.IsNullOrEmpty(guid))
                 {
-                    return Response.Error($"无效的资源路径或资源不存在: {path}");
+                    return Response.Error(L.T($"Invalid path or resource does not exist: {path}", $"无效的资源路径或资源不存在: {path}"));
                 }
 
                 // 添加到设置中
@@ -111,13 +112,13 @@ namespace UniMcp.Tools
                 var resultData = BuildSimplifiedAssetData(name, path, category);
                 resultData.Add("total", new JsonData(AssetIndexSetting.instance.GetCount()));
 
-                McpLogger.Log($"[AssetIndexManager] 添加资源索引成功: {name} - {path}");
-                return Response.Success($"已添加: {name}", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Asset index added: {name} - {path}", $"[AssetIndexManager] 添加资源索引成功: {name} - {path}"));
+                return Response.Success(L.T($"Added: {name}", $"已添加: {name}"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 添加资源索引失败: {e.Message}");
-                return Response.Error($"添加资源索引失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to add asset index: {e.Message}", $"[AssetIndexManager] 添加资源索引失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to add asset index: {e.Message}", $"添加资源索引失败: {e.Message}"));
             }
         }
 
@@ -144,12 +145,12 @@ namespace UniMcp.Tools
                             var resultData = new JsonClass();
                             resultData.Add("total", new JsonData(AssetIndexSetting.instance.GetCount()));
 
-                            McpLogger.Log($"[AssetIndexManager] 删除资源索引成功: {asset.name} (ID: {id})");
-                            return Response.Success($"已删除: {asset.name}", resultData);
+                            McpLogger.Log(L.T($"[AssetIndexManager] Asset index removed: {asset.name} (ID: {id})", $"[AssetIndexManager] 删除资源索引成功: {asset.name} (ID: {id})"));
+                            return Response.Success(L.T($"Removed: {asset.name}", $"已删除: {asset.name}"), resultData);
                         }
                     }
 
-                    return Response.Error($"未找到ID: {id}");
+                    return Response.Error(L.T($"ID not found: {id}", $"未找到ID: {id}"));
                 }
                 // 使用路径删除
                 else if (args.ContainsKey("path"))
@@ -159,7 +160,7 @@ namespace UniMcp.Tools
 
                     if (string.IsNullOrEmpty(guid))
                     {
-                        return Response.Error($"无效的资源路径: {path}");
+                        return Response.Error(L.T($"Invalid resource path: {path}", $"无效的资源路径: {path}"));
                     }
 
                     var asset = AssetIndexSetting.instance.GetAssetIndexByGuid(guid);
@@ -170,23 +171,23 @@ namespace UniMcp.Tools
                         var resultData = new JsonClass();
                         resultData.Add("total", new JsonData(AssetIndexSetting.instance.GetCount()));
 
-                        McpLogger.Log($"[AssetIndexManager] 删除资源索引成功: {path}");
-                        return Response.Success($"已删除", resultData);
+                        McpLogger.Log(L.T($"[AssetIndexManager] Asset index removed: {path}", $"[AssetIndexManager] 删除资源索引成功: {path}"));
+                        return Response.Success(L.T("Removed", "已删除"), resultData);
                     }
                     else
                     {
-                        return Response.Error($"未找到路径: {path}");
+                        return Response.Error(L.T($"Path not found: {path}", $"未找到路径: {path}"));
                     }
                 }
                 else
                 {
-                    return Response.Error("删除操作需要提供 'id'（推荐）或 'path' 参数");
+                    return Response.Error(L.T("Remove operation requires 'id' (recommended) or 'path' parameter", "删除操作需要提供 'id'（推荐）或 'path' 参数"));
                 }
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 删除资源索引失败: {e.Message}");
-                return Response.Error($"删除资源索引失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to remove asset index: {e.Message}", $"[AssetIndexManager] 删除资源索引失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to remove asset index: {e.Message}", $"删除资源索引失败: {e.Message}"));
             }
         }
 
@@ -201,7 +202,7 @@ namespace UniMcp.Tools
 
                 if (string.IsNullOrEmpty(pattern))
                 {
-                    return Response.Error("pattern 参数不能为空");
+                    return Response.Error(L.T("pattern parameter cannot be empty", "pattern 参数不能为空"));
                 }
 
                 var allAssets = AssetIndexSetting.instance.AssetIndices;
@@ -216,7 +217,7 @@ namespace UniMcp.Tools
                 }
                 catch (Exception ex)
                 {
-                    return Response.Error($"无效的正则表达式: {ex.Message}");
+                    return Response.Error(L.T($"Invalid regex pattern: {ex.Message}", $"无效的正则表达式: {ex.Message}"));
                 }
 
                 foreach (var asset in allAssets)
@@ -255,13 +256,13 @@ namespace UniMcp.Tools
 
                 var resultData = BuildSimpleListData(results);
 
-                McpLogger.Log($"[AssetIndexManager] 正则搜索 '{pattern}'，找到 {results.Count} 个");
-                return Response.Success($"找到 {results.Count} 个", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Search '{pattern}', found {results.Count}", $"[AssetIndexManager] 正则搜索 '{pattern}'，找到 {results.Count} 个"));
+                return Response.Success(L.T($"Found {results.Count}", $"找到 {results.Count} 个"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 搜索资源索引失败: {e.Message}");
-                return Response.Error($"搜索资源索引失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Search asset index failed: {e.Message}", $"[AssetIndexManager] 搜索资源索引失败: {e.Message}"));
+                return Response.Error(L.T($"Search asset index failed: {e.Message}", $"搜索资源索引失败: {e.Message}"));
             }
         }
 
@@ -284,7 +285,7 @@ namespace UniMcp.Tools
 
                     if (targetAsset == null)
                     {
-                        return Response.Error($"未找到ID: {id}");
+                        return Response.Error(L.T($"ID not found: {id}", $"未找到ID: {id}"));
                     }
                 }
                 // 使用路径
@@ -295,7 +296,7 @@ namespace UniMcp.Tools
 
                     if (string.IsNullOrEmpty(guid))
                     {
-                        return Response.Error($"无效的资源路径: {path}");
+                        return Response.Error(L.T($"Invalid resource path: {path}", $"无效的资源路径: {path}"));
                     }
 
                     targetAsset = AssetIndexSetting.instance.GetAssetIndexByGuid(guid);
@@ -303,12 +304,12 @@ namespace UniMcp.Tools
 
                     if (targetAsset == null)
                     {
-                        return Response.Error($"未找到路径: {path}");
+                        return Response.Error(L.T($"Path not found: {path}", $"未找到路径: {path}"));
                     }
                 }
                 else
                 {
-                    return Response.Error("修改操作需要提供 'id'（推荐）或 'path' 参数来定位要修改的资源索引");
+                    return Response.Error(L.T("Update operation requires 'id' (recommended) or 'path' to locate the asset index", "修改操作需要提供 'id'（推荐）或 'path' 参数来定位要修改的资源索引"));
                 }
 
                 string originalName = targetAsset.name;
@@ -347,7 +348,7 @@ namespace UniMcp.Tools
 
                 if (!hasChanges)
                 {
-                    return Response.Error("未提供任何要修改的字段（name、category、note）");
+                    return Response.Error(L.T("No fields to update (name, category, note)", "未提供任何要修改的字段（name、category、note）"));
                 }
 
                 // 保存更改
@@ -358,13 +359,13 @@ namespace UniMcp.Tools
                 resultData.Add("name", new JsonData(targetAsset.name));
                 resultData.Add("path", new JsonData(targetAsset.GetAssetPath()));
 
-                McpLogger.Log($"[AssetIndexManager] 修改资源索引成功: {originalName} ({identifier})");
-                return Response.Success($"已修改: {targetAsset.name}", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Asset index updated: {originalName} ({identifier})", $"[AssetIndexManager] 修改资源索引成功: {originalName} ({identifier})"));
+                return Response.Success(L.T($"Updated: {targetAsset.name}", $"已修改: {targetAsset.name}"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 修改资源索引失败: {e.Message}");
-                return Response.Error($"修改资源索引失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to update asset index: {e.Message}", $"[AssetIndexManager] 修改资源索引失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to update asset index: {e.Message}", $"修改资源索引失败: {e.Message}"));
             }
         }
 
@@ -394,13 +395,13 @@ namespace UniMcp.Tools
                 resultData.Add("categories", categoriesArray);
                 resultData.Add("total", new JsonData(categories.Count));
 
-                McpLogger.Log($"[AssetIndexManager] 获取分类，共 {categories.Count} 个");
-                return Response.Success($"{categories.Count} 个分类", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Got {categories.Count} categories", $"[AssetIndexManager] 获取分类，共 {categories.Count} 个"));
+                return Response.Success(L.T($"{categories.Count} categories", $"{categories.Count} 个分类"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 获取分类失败: {e.Message}");
-                return Response.Error($"获取分类失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to get categories: {e.Message}", $"[AssetIndexManager] 获取分类失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to get categories: {e.Message}", $"获取分类失败: {e.Message}"));
             }
         }
 
@@ -420,7 +421,7 @@ namespace UniMcp.Tools
                     assetInfo = AssetIndexSetting.instance.GetAssetIndexById(id);
                     if (assetInfo == null)
                     {
-                        return Response.Error($"未找到ID: {id}");
+                        return Response.Error(L.T($"ID not found: {id}", $"未找到ID: {id}"));
                     }
                 }
                 else if (args.ContainsKey("path"))
@@ -429,26 +430,26 @@ namespace UniMcp.Tools
                     assetInfo = AssetIndexSetting.instance.GetAssetIndexByPath(path);
                     if (assetInfo == null)
                     {
-                        return Response.Error($"未找到路径: {path}");
+                        return Response.Error(L.T($"Path not found: {path}", $"未找到路径: {path}"));
                     }
                 }
                 else
                 {
-                    return Response.Error("定位操作需要提供 'id'（推荐）或 'path' 参数");
+                    return Response.Error(L.T("Locate operation requires 'id' (recommended) or 'path' parameter", "定位操作需要提供 'id'（推荐）或 'path' 参数"));
                 }
 
                 // 通过GUID获取资源路径
                 string assetPath = assetInfo.GetAssetPath();
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    return Response.Error($"无法找到资源路径，GUID可能已失效");
+                    return Response.Error(L.T("Cannot find resource path, GUID may be invalid", "无法找到资源路径，GUID可能已失效"));
                 }
 
                 // 加载并选中资源
                 var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
                 if (asset == null)
                 {
-                    return Response.Error($"无法加载资源: {assetPath}");
+                    return Response.Error(L.T($"Cannot load resource: {assetPath}", $"无法加载资源: {assetPath}"));
                 }
 
                 Selection.activeObject = asset;
@@ -458,13 +459,13 @@ namespace UniMcp.Tools
                 resultData.Add("path", new JsonData(assetPath));
                 resultData.Add("name", new JsonData(asset.name));
 
-                McpLogger.Log($"[AssetIndexManager] 定位资源: {asset.name} - {assetPath}");
-                return Response.Success($"已定位: {asset.name}", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Located asset: {asset.name} - {assetPath}", $"[AssetIndexManager] 定位资源: {asset.name} - {assetPath}"));
+                return Response.Success(L.T($"Located: {asset.name}", $"已定位: {asset.name}"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 定位资源失败: {e.Message}");
-                return Response.Error($"定位资源失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to locate asset: {e.Message}", $"[AssetIndexManager] 定位资源失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to locate asset: {e.Message}", $"定位资源失败: {e.Message}"));
             }
         }
 
@@ -477,7 +478,7 @@ namespace UniMcp.Tools
             {
                 if (!args.ContainsKey("id"))
                 {
-                    return Response.Error("details操作需要提供 'id' 参数");
+                    return Response.Error(L.T("details operation requires 'id' parameter", "details操作需要提供 'id' 参数"));
                 }
 
                 int id = ExtractId(args);
@@ -485,7 +486,7 @@ namespace UniMcp.Tools
 
                 if (asset == null)
                 {
-                    return Response.Error($"未找到ID: {id}");
+                    return Response.Error(L.T($"ID not found: {id}", $"未找到ID: {id}"));
                 }
 
                 // 返回完整详细信息
@@ -493,7 +494,7 @@ namespace UniMcp.Tools
                 resultData.Add("id", new JsonData(asset.id));
                 resultData.Add("name", new JsonData(asset.name ?? ""));
                 resultData.Add("path", new JsonData(asset.GetAssetPath() ?? ""));
-                resultData.Add("category", new JsonData(asset.category ?? "默认"));
+                resultData.Add("category", new JsonData(asset.category ?? L.T("Default", "默认")));
                 resultData.Add("note", new JsonData(asset.note ?? ""));
                 resultData.Add("addTime", new JsonData(asset.addTime ?? ""));
 
@@ -510,13 +511,13 @@ namespace UniMcp.Tools
                 }
                 resultData.Add("current_object_name", new JsonData(currentName));
 
-                McpLogger.Log($"[AssetIndexManager] 获取详情: ID {id} - {asset.name}");
-                return Response.Success($"详情: {asset.name}", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Got details: ID {id} - {asset.name}", $"[AssetIndexManager] 获取详情: ID {id} - {asset.name}"));
+                return Response.Success(L.T($"Details: {asset.name}", $"详情: {asset.name}"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 获取详情失败: {e.Message}");
-                return Response.Error($"获取详情失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to get details: {e.Message}", $"[AssetIndexManager] 获取详情失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to get details: {e.Message}", $"获取详情失败: {e.Message}"));
             }
         }
 
@@ -536,7 +537,7 @@ namespace UniMcp.Tools
                     assetInfo = AssetIndexSetting.instance.GetAssetIndexById(id);
                     if (assetInfo == null)
                     {
-                        return Response.Error($"未找到ID: {id}");
+                        return Response.Error(L.T($"ID not found: {id}", $"未找到ID: {id}"));
                     }
                 }
                 else if (args.ContainsKey("path"))
@@ -545,26 +546,26 @@ namespace UniMcp.Tools
                     assetInfo = AssetIndexSetting.instance.GetAssetIndexByPath(path);
                     if (assetInfo == null)
                     {
-                        return Response.Error($"未找到路径: {path}");
+                        return Response.Error(L.T($"Path not found: {path}", $"未找到路径: {path}"));
                     }
                 }
                 else
                 {
-                    return Response.Error("show操作需要提供 'id'（推荐）或 'path' 参数");
+                    return Response.Error(L.T("show operation requires 'id' (recommended) or 'path' parameter", "show操作需要提供 'id'（推荐）或 'path' 参数"));
                 }
 
                 // 通过GUID获取资源路径
                 string assetPath = assetInfo.GetAssetPath();
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    return Response.Error($"无法找到资源路径，GUID可能已失效");
+                    return Response.Error(L.T("Cannot find resource path, GUID may be invalid", "无法找到资源路径，GUID可能已失效"));
                 }
 
                 // 加载资源
                 var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
                 if (asset == null)
                 {
-                    return Response.Error($"无法加载资源: {assetPath}");
+                    return Response.Error(L.T($"Cannot load resource: {assetPath}", $"无法加载资源: {assetPath}"));
                 }
 
                 // 在Project窗口中显示并高亮
@@ -575,13 +576,13 @@ namespace UniMcp.Tools
                 resultData.Add("name", new JsonData(asset.name));
                 resultData.Add("full_path", new JsonData(System.IO.Path.GetFullPath(assetPath)));
 
-                McpLogger.Log($"[AssetIndexManager] 在文件夹中显示: {asset.name} - {assetPath}");
-                return Response.Success($"已在文件夹中显示: {asset.name}", resultData);
+                McpLogger.Log(L.T($"[AssetIndexManager] Shown in folder: {asset.name} - {assetPath}", $"[AssetIndexManager] 在文件夹中显示: {asset.name} - {assetPath}"));
+                return Response.Success(L.T($"Shown in folder: {asset.name}", $"已在文件夹中显示: {asset.name}"), resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 在文件夹中显示失败: {e.Message}");
-                return Response.Error($"在文件夹中显示失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to show in folder: {e.Message}", $"[AssetIndexManager] 在文件夹中显示失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to show in folder: {e.Message}", $"在文件夹中显示失败: {e.Message}"));
             }
         }
 
@@ -626,7 +627,7 @@ namespace UniMcp.Tools
                     assetObj.Add("category", new JsonData(asset.category ?? "默认"));
                     assetObj.Add("note", new JsonData(asset.note ?? ""));
                     assetObj.Add("guid", new JsonData(asset.guid ?? ""));
-                    assetObj.Add("last_known_path", new JsonData(asset.GetAssetPath() ?? "未知"));
+                    assetObj.Add("last_known_path", new JsonData(asset.GetAssetPath() ?? L.T("Unknown", "未知")));
                     lostArray.Add(assetObj);
                 }
 
@@ -635,16 +636,16 @@ namespace UniMcp.Tools
                 resultData.Add("total", new JsonData(allAssets.Count));
 
                 string message = lostAssets.Count > 0
-                    ? $"找到 {lostAssets.Count} 个丢失的资源"
-                    : "所有资源索引都有效";
+                    ? L.T($"Found {lostAssets.Count} lost asset(s)", $"找到 {lostAssets.Count} 个丢失的资源")
+                    : L.T("All asset indices are valid", "所有资源索引都有效");
 
-                McpLogger.Log($"[AssetIndexManager] 检查丢失资源: {lostAssets.Count}/{allAssets.Count}");
+                McpLogger.Log(L.T($"[AssetIndexManager] Checked lost assets: {lostAssets.Count}/{allAssets.Count}", $"[AssetIndexManager] 检查丢失资源: {lostAssets.Count}/{allAssets.Count}"));
                 return Response.Success(message, resultData);
             }
             catch (Exception e)
             {
-                LogError($"[AssetIndexManager] 获取丢失资源列表失败: {e.Message}");
-                return Response.Error($"获取丢失资源列表失败: {e.Message}");
+                LogError(L.T($"[AssetIndexManager] Failed to get lost assets list: {e.Message}", $"[AssetIndexManager] 获取丢失资源列表失败: {e.Message}"));
+                return Response.Error(L.T($"Failed to get lost assets list: {e.Message}", $"获取丢失资源列表失败: {e.Message}"));
             }
         }
 
@@ -655,7 +656,7 @@ namespace UniMcp.Tools
         {
             string action = args["action"]?.Value;
             if (string.IsNullOrEmpty(action)) action = "null";
-            return Response.Error($"未知操作: '{action}'。有效操作: 'add'(添加), 'remove'(删除), 'update'(修改), 'search'(搜索), 'categories'(分类), 'locate'(定位), 'details'(详情), 'show'(在文件夹中显示), 'lost'(丢失列表)");
+            return Response.Error(L.T($"Unknown action: '{action}'. Valid actions: 'add'(add), 'remove'(remove), 'update'(update), 'search'(search), 'categories'(categories), 'locate'(locate), 'details'(details), 'show'(show in folder), 'lost'(lost list)", $"未知操作: '{action}'。有效操作: 'add'(添加), 'remove'(删除), 'update'(修改), 'search'(搜索), 'categories'(分类), 'locate'(定位), 'details'(详情), 'show'(在文件夹中显示), 'lost'(丢失列表)"));
         }
 
         // --- Parameter Extraction Helper Methods ---
@@ -665,7 +666,7 @@ namespace UniMcp.Tools
             string name = args["name"]?.Value;
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentException("name 参数是必需的且不能为空");
+                throw new ArgumentException(L.T("name parameter is required and cannot be empty", "name 参数是必需的且不能为空"));
             }
             return name;
         }
@@ -675,7 +676,7 @@ namespace UniMcp.Tools
             string path = args["path"]?.Value;
             if (string.IsNullOrEmpty(path))
             {
-                throw new ArgumentException("path 参数是必需的且不能为空");
+                throw new ArgumentException(L.T("path parameter is required and cannot be empty", "path 参数是必需的且不能为空"));
             }
             return path;
         }
@@ -706,7 +707,7 @@ namespace UniMcp.Tools
                     return id;
                 }
             }
-            throw new ArgumentException("id 参数必须是有效的整数");
+            throw new ArgumentException(L.T("id parameter must be a valid integer", "id 参数必须是有效的整数"));
         }
 
         // --- Helper Methods ---

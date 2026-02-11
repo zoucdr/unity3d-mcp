@@ -1178,6 +1178,40 @@ namespace UniMcp
                         }
                     }
 
+                    // 添加最小值约束（仅对number和integer类型）
+                    if (key.Minimum != null && (paramType == "number" || paramType == "integer"))
+                    {
+                        if (key.Minimum is int intMin)
+                        {
+                            property.Add("minimum", new JsonData(intMin));
+                        }
+                        else if (key.Minimum is float floatMin)
+                        {
+                            property.Add("minimum", new JsonData(floatMin));
+                        }
+                        else if (key.Minimum is double doubleMin)
+                        {
+                            property.Add("minimum", new JsonData(doubleMin));
+                        }
+                    }
+
+                    // 添加最大值约束（仅对number和integer类型）
+                    if (key.Maximum != null && (paramType == "number" || paramType == "integer"))
+                    {
+                        if (key.Maximum is int intMax)
+                        {
+                            property.Add("maximum", new JsonData(intMax));
+                        }
+                        else if (key.Maximum is float floatMax)
+                        {
+                            property.Add("maximum", new JsonData(floatMax));
+                        }
+                        else if (key.Maximum is double doubleMax)
+                        {
+                            property.Add("maximum", new JsonData(doubleMax));
+                        }
+                    }
+
                     properties.Add(key.Key, property);
 
                     if (!key.Optional)

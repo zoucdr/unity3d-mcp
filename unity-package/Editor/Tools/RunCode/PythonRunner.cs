@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Python script execution including validation and running Python code.
     /// 对应方法名: python_runner
     /// </summary>
-    [ToolName("python_runner", "Development Tools")]
+    [ToolName("python_runner", "Development Tools", "开发工具")]
     public class PythonRunner : StateMethodBase
     {
         public override string Description => L.T("Execute and validate Python scripts", "执行和验证Python脚本");
@@ -54,27 +54,27 @@ namespace UniMcp.Tools
                 
                 // Python code
                 new MethodStr("code", L.T("Python script code content", "Python脚本代码内容"))
-                    .AddExamples("print('Hello World')", "import os; print(os.getcwd())"),
+                    .AddExample("print('Hello World')"),
                 
                 // Description
                 new MethodStr("description", L.T("Script function description", "脚本功能描述"))
-                    .AddExamples("Test script", "Data processing"),
+                    .AddExample("Test script"),
                 
                 // Script path
                 new MethodStr("script_path", L.T("Python script file path", "Python脚本文件路径"))
-                    .AddExamples("Assets/Scripts/test.py", "D:/Scripts/process.py"),
+                    .AddExample("Assets/Scripts/test.py"),
                 
                 // Script name
                 new MethodStr("script_name", L.T("Script name", "脚本名称"))
-                    .AddExamples("script.py", "test.py"),
+                    .AddExample("script.py"),
                 
                 // Python interpreter path
                 new MethodStr("python_path", L.T("Python interpreter path", "Python解释器路径"))
-                    .AddExamples("python", "python3"),
+                    .AddExample("python"),
                 
                 // Working directory
                 new MethodStr("working_directory", L.T("Working directory", "工作目录"))
-                    .AddExamples("Assets/Scripts", "D:/Projects"),
+                    .AddExample("Assets/Scripts"),
                 
                 // Timeout
                 new MethodInt("timeout", L.T("Execution timeout (seconds)", "执行超时时间（秒）"))
@@ -86,7 +86,7 @@ namespace UniMcp.Tools
                 
                 // Packages
                 new MethodStr("packages", L.T("Python packages to install", "要安装的Python包"))
-                    .AddExamples("numpy,pandas", "requests"),
+                    .AddExample("numpy,pandas"),
                 
                 // Requirements file
                 new MethodStr("requirements_file", L.T("requirements.txt file path", "requirements.txt文件路径"))

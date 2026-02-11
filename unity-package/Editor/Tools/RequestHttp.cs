@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// Handles network operations including HTTP requests, file downloads, and API calls.
     /// 对应方法名: request_http
     /// </summary>
-    [ToolName("request_http", "Network Tools")]
+    [ToolName("request_http", "Network Tools", "网络工具")]
     public class RequestHttp : StateMethodBase
     {
         public override string Description => L.T("Send HTTP requests and download/upload files", "发送HTTP请求并下载上传文件");
@@ -34,7 +34,7 @@ namespace UniMcp.Tools
                 
                 // Request URL - required
                 new MethodStr("url", L.T("Request URL address", "请求URL地址"), false)
-                    .AddExamples("https://api.example.com"),
+                    .AddExample("https://api.example.com"),
                 
                 // Request data - JSON format
                 new MethodObj("data", L.T("Request data (POST/PUT use, JSON format)", "请求数据（POST/PUT使用，JSON格式）"))
@@ -54,11 +54,11 @@ namespace UniMcp.Tools
                 
                 // Save path
                 new MethodStr("save_path", L.T("Save path (for download, relative to Assets or absolute path)", "保存路径（用于下载，相对于Assets或绝对路径）"))
-                    .AddExamples("Assets/Downloads/file.zip", "D:/Downloads/data.json"),
+                    .AddExample("Assets/Downloads/file.zip"),
                 
                 // File path
                 new MethodStr("file_path", L.T("File path (for upload)", "文件路径（用于上传）"))
-                    .AddExamples("Assets/Data/upload.json", "D:/Files/image.png"),
+                    .AddExample("Assets/Data/upload.json"),
                 
                 // Timeout
                 new MethodInt("timeout", L.T("Timeout (seconds), default 30 seconds", "超时时间（秒），默认30秒"))
@@ -75,7 +75,7 @@ namespace UniMcp.Tools
                 
                 // User agent
                 new MethodStr("user_agent", L.T("User agent string", "用户代理字符串"))
-                    .AddExamples("Unity-MCP/1.0", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"),
+                    .AddExample("Unity-MCP/1.0"),
                 
                 // Accept certificates
                 new MethodBool("accept_certificates", L.T("Accept all certificates (for testing)", "接受所有证书（用于测试）")),
@@ -104,11 +104,11 @@ namespace UniMcp.Tools
                 
                 // Auth token
                 new MethodStr("auth_token", L.T("Auth token (Bearer Token)", "认证令牌（Bearer Token）"))
-                    .AddExamples("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "abc123def456"),
+                    .AddExample("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
                 
                 // Basic auth
                 new MethodStr("basic_auth", L.T("Basic auth (username:password)", "基本认证（用户名:密码）"))
-                    .AddExamples("admin:password", "user:123456"),
+                    .AddExample("admin:password"),
                 
                 // Retry count
                 new MethodInt("retry_count", L.T("Retry count, default 0", "重试次数，默认0"))

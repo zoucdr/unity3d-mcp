@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// 对应方法名: project_create
     /// 支持: menu, empty, template, copy
     /// </summary>
-    [ToolName("project_create", "Project Management")]
+    [ToolName("project_create", "Project Management", "项目管理")]
     public class ProjectCreate : StateMethodBase
     {
         public override string Description => L.T("Create assets in the Project window", "在项目窗口中创建资源");
@@ -30,7 +30,7 @@ namespace UniMcp.Tools
             {
                 // Asset file name - required
                 new MethodStr("name", L.T("Asset file name", "资源文件名称"), false)
-                    .AddExamples("MyScript", "NewMaterial"),
+                    .AddExample("MyScript"),
                 
                 // Creation source type - enum
                 new MethodStr("source", L.T("Operation type", "操作类型"), false)
@@ -38,28 +38,27 @@ namespace UniMcp.Tools
                 
                 // Target folder path
                 new MethodStr("folder_path", L.T("Target folder path (relative to Assets)", "目标文件夹路径（相对于Assets）"))
-                    .AddExamples("Scripts", "Materials"),
+                    .AddExample("Scripts"),
                 
                 // Menu path
                 new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
-                    .AddExamples("Assets/Create/C# Script", "Assets/Create/Material"),
+                    .AddExample("Assets/Create/C# Script"),
                 
                 // Template file path
                 new MethodStr("template_path", L.T("Template file path", "模板文件路径"))
-                    .AddExamples("Assets/Templates/ScriptTemplate.cs", "Assets/Templates/MaterialTemplate.mat"),
+                    .AddExample("Assets/Templates/ScriptTemplate.cs"),
                 
                 // Copy source path
                 new MethodStr("copy_source", L.T("Asset path to copy", "要复制的资源路径"))
-                    .AddExamples("Assets/Scripts/BaseScript.cs", "Assets/Materials/BaseMaterial.mat"),
+                    .AddExample("Assets/Scripts/BaseScript.cs"),
                 
                 // File extension
                 new MethodStr("extension", L.T("File extension (without .)", "文件扩展名（不带.）"))
-                    .SetEnumValues("cs", "mat", "prefab", "asset", "txt", "json")
-                    .AddExamples("cs", "mat"),
+                    .SetEnumValues("cs", "mat", "prefab", "asset", "txt", "json"),
                 
                 // File content
                 new MethodStr("content", L.T("File content (for empty type)", "文件内容（用于空类型）"))
-                    .AddExamples("// New C# Script", "{\n  \"version\": \"1.0\"\n}"),
+                    .AddExample("// New C# Script"),
                 
                 // Force overwrite
                 new MethodBool("force", L.T("Force overwrite existing file", "强制覆盖现有文件")),

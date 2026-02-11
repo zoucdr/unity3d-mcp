@@ -16,7 +16,7 @@ namespace UniMcp.Tools
     /// Second tree: Component operation execution
     /// 对应方法名: edit_component
     /// </summary>
-    [ToolName("edit_component", "Resource Management")]
+    [ToolName("edit_component", "Resource Management", "资源管理")]
     public class EditComponent : DualStateMethodBase
     {
         public override string Description => L.T("Manage GameObject components including get and set properties", "管理游戏对象组件，包括获取和设置属性");
@@ -34,11 +34,11 @@ namespace UniMcp.Tools
             {
                 // 目标查找参数 - GameObject实例ID
                 new MethodStr("instance_id", L.T("GameObject instance ID for unique identification", "GameObject的实例ID，用于唯一标识对象"), false)
-                    .AddExamples("-2524", "12345", "-1728"),
+                    .AddExample("-2524"),
                 
                 // 目标查找参数 - 层次结构路径
                 new MethodStr("path", L.T("GameObject path in hierarchy", "GameObject在层次结构中的路径"), false)
-                    .AddExamples("Main Camera", "UI/Canvas/Button", "Player/Body/Head"),
+                    .AddExample("UI/Canvas/Button"),
                 
                 // 操作类型 - 枚举
                 new MethodStr("action", L.T("Action type", "操作类型"))
@@ -46,7 +46,7 @@ namespace UniMcp.Tools
                 
                 // 组件类型名称
                 new MethodStr("component_type", L.T("Component type name (inherits from Component)", "组件类型名称（继承自Component的类型名）"), false)
-                    .AddExamples("Transform", "MeshRenderer", "Rigidbody", "BoxCollider", "Camera", "Light", "AudioSource"),
+                    .AddExample("Transform"),
                 
                 // 属性字典 - 用于设置组件属性
                 new MethodObj("properties", L.T("Property dictionary for setting component property values", "属性字典，用于设置组件属性值"))
@@ -62,8 +62,6 @@ namespace UniMcp.Tools
                     .AddStringProperty("tag")
                     .AddArrayProperty("layers", "string")
                     .AddExample("{\"enabled\": true, \"position\": [0, 1, 0]}")
-                    .AddExample("{\"color\": [1.0, 0.0, 0.0, 1.0], \"enabled\": true}")
-                    .AddExample("{\"sharedMaterial\": \"Assets/Materials/RedMaterial.mat\"}")
             };
         }
 

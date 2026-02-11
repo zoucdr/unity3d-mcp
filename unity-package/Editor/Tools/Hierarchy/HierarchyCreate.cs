@@ -18,7 +18,7 @@ namespace UniMcp.Tools
     /// Corresponding method name: hierarchy_create
     /// Supports: menu, primitive, prefab, empty, copy
     /// </summary>
-    [ToolName("hierarchy_create", "Hierarchy Management")]
+    [ToolName("hierarchy_create", "Hierarchy Management", "层级管理")]
     public class HierarchyCreate : StateMethodBase
     {
         public override string Description => L.T("Hierarchy creation tool, supports creating various types of game objects in scene hierarchy", "层级创建工具，支持在场景层级中创建各种类型的游戏对象");
@@ -32,23 +32,23 @@ namespace UniMcp.Tools
             {
                 // GameObject name - required
                 new MethodStr("name", L.T("GameObject name", "游戏对象名称"), false)
-                    .AddExamples("Player", "UI_Button"),
+                    .AddExample("Player"),
                 
                 // Creation source type - enumeration
                 new MethodStr("source", L.T("Template source", "模板来源"), false)
-                    .SetEnumValues("menu", "primitive", "prefab", "empty", "copy"),
+                    .SetEnumValues("primitive","menu", "prefab", "empty", "copy"),
                 
                 // GameObject tag
                 new MethodStr("tag", L.T("GameObject tag", "游戏对象标签"))
-                    .SetEnumValues("Untagged", "Player", "Enemy", "UI", "MainCamera", "EditorOnly"),
+                    .AddExample("Player"),
                 
                 // GameObject layer
                 new MethodStr("layer", L.T("GameObject layer", "游戏对象层"))
-                    .AddExamples("Default", "UI"),
+                    .AddExample("Default"),
                 
                 // Parent object path
                 new MethodStr("parent", L.T("Parent object name or path", "父对象名称或路径"))
-                    .AddExamples("Canvas", "UI/Panel"),
+                    .AddExample("Canvas"),
                 
                 // Parent object ID
                 new MethodStr("parent_id", L.T("Parent object unique ID", "父对象唯一ID"))
@@ -65,19 +65,19 @@ namespace UniMcp.Tools
                 
                 // Primitive type
                 new MethodStr("primitive_type", L.T("Primitive type", "基元类型"))
-                    .SetEnumValues("Cube", "Sphere", "Cylinder", "Capsule", "Plane", "Quad"),
+                    .AddExample("Cube"),
                 
                 // Prefab path
                 new MethodStr("prefab_path", L.T("Prefab path", "预制体路径"))
-                    .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab"),
+                    .AddExample("Assets/Prefabs/Player.prefab"),
                 
                 // Menu path
                 new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
-                    .AddExamples("GameObject/3D Object/Cube", "GameObject/UI/Button"),
+                    .AddExample("GameObject/3D Object/Cube"),
                 
                 // Copy source object
                 new MethodStr("copy_source", L.T("GameObject name to copy", "要复制的游戏对象名称"))
-                    .AddExamples("Player", "Main Camera"),
+                    .AddExample("Player"),
                 
                 // Save as prefab
                 new MethodBool("save_as_prefab", L.T("Whether to save as prefab", "是否保存为预制体")),

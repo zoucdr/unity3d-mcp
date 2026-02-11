@@ -1,4 +1,5 @@
 using System;
+using UniMcp.Utils;
 
 namespace UniMcp
 {
@@ -15,22 +16,40 @@ namespace UniMcp
         public string ToolName { get; }
 
         /// <summary>
-        /// 工具方法的分组名称
+        /// 工具方法的分组名称（根据当前语言返回）
         /// </summary>
-        public string GroupName { get; }
+        public string GroupName 
+        { 
+            get 
+            {
+                // 如果中文组名为空，直接返回英文组名
+                if (string.IsNullOrWhiteSpace(_groupNameChinese))
+                    return _groupNameEnglish;
+                
+                // 否则使用 L.T 进行多语言切换
+                return L.T(_groupNameEnglish, _groupNameChinese);
+            }
+        }
+
+        private readonly string _groupNameEnglish;
+        private readonly string _groupNameChinese;
 
         /// <summary>
         /// 初始化 ToolNameAttribute
         /// </summary>
         /// <param name="toolName">工具方法的名称，通常使用snake_case格式</param>
-        /// <param name="groupName">工具方法的分组名称，如"层级管理"、"资源管理"等，为空则使用默认分组</param>
-        public ToolNameAttribute(string toolName, string groupName = null)
+        /// <param name="groupNameEnglish">工具方法的英文分组名称，如"Hierarchy Management"、"Asset Management"等，为空则使用默认分组</param>
+        /// <param name="groupNameChinese">工具方法的中文分组名称，如"层级管理"、"资源管理"等，为空则忽略多语言切换</param>
+        public ToolNameAttribute(string toolName, string groupNameEnglish = null, string groupNameChinese = null)
         {
             if (string.IsNullOrWhiteSpace(toolName))
                 throw new ArgumentException("Tool name cannot be null or empty", nameof(toolName));
 
             ToolName = toolName;
-            GroupName = string.IsNullOrWhiteSpace(groupName) ? "未分组" : groupName;
+            _groupNameEnglish = string.IsNullOrWhiteSpace(groupNameEnglish) 
+                ? L.T("Uncategorized", "未分组") 
+                : groupNameEnglish;
+            _groupNameChinese = groupNameChinese;
         }
     }
 }

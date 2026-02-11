@@ -6,12 +6,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Networking;
+using UniMcp;
 using UniMcp.Models;
+using UniMcp.Utils;
 using Object = UnityEngine.Object;
 
 namespace UniMcp.Tools
 {
-    [ToolName("figma_manage", "UI管理")]
+    [ToolName("figma_manage", "UI Management", "UI管理")]
     public class FigmaManage : StateMethodBase
     {
         private const string FIGMA_API_BASE = "https://api.figma.com/v1";
@@ -19,7 +21,7 @@ namespace UniMcp.Tools
         /// <summary>
         /// 工具方法的描述，用于在状态树中引用
         /// </summary>
-        public override string Description => "Figma管理工具，用于处理Figma文档获取、图片下载、预览和转换规则获取等操作";
+        public override string Description => L.T("Figma management tool for document fetch, image download, preview and conversion rules", "Figma管理工具，用于处理Figma文档获取、图片下载、预览和转换规则获取等操作");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -29,45 +31,45 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("fetch_document", "download_images", "preview", "get_conversion_rules"),
                 
                 // Figma文件Key
-                new MethodStr("file_key", "Figma文件Key")
+                new MethodStr("file_key", L.T("Figma file key", "Figma文件Key"))
                     .AddExample("abc123def456"),
                 
                 // 节点图片映射
-                new MethodObj("node_imgs", "节点图片映射"),
+                new MethodObj("node_imgs", L.T("Node-image mapping", "节点图片映射")),
                 
                 // 节点ID
-                new MethodStr("node_id", "节点ID")
+                new MethodStr("node_id", L.T("Node ID", "节点ID"))
                     .AddExample("1:4"),
                 
                 // 保存路径
-                new MethodStr("save_path", "保存路径")
+                new MethodStr("save_path", L.T("Save path", "保存路径"))
                     .AddExamples("Assets/UI/Images/", "Assets/Figma/"),
                 
                 // 图片格式
-                new MethodStr("image_format", "图片格式")
+                new MethodStr("image_format", L.T("Image format", "图片格式"))
                     .SetEnumValues("png", "jpg", "svg", "pdf"),
                 
                 // 图片缩放比例
-                new MethodFloat("image_scale", "图片缩放比例")
+                new MethodFloat("image_scale", L.T("Image scale", "图片缩放比例"))
                     .SetRange(0.1f, 4f),
                 
                 // 包含子节点
-                new MethodBool("include_children", "包含子节点"),
+                new MethodBool("include_children", L.T("Include children", "包含子节点")),
                 
                 // 本地JSON路径
-                new MethodStr("local_json_path", "本地JSON文件路径")
+                new MethodStr("local_json_path", L.T("Local JSON file path", "本地JSON文件路径"))
                     .AddExample("Assets/Figma/data.json"),
                 
                 // UI框架类型
-                new MethodStr("ui_framework", "UI框架类型")
+                new MethodStr("ui_framework", L.T("UI framework type", "UI框架类型"))
                     .SetEnumValues("ugui", "uitoolkit", "all"),
                 
                 // 使用预制件
-                new MethodBool("use_component_pfb", "使用现成预制件")
+                new MethodBool("use_component_pfb", L.T("Use ready-made prefabs", "使用现成预制件"))
             };
         }
 
@@ -103,21 +105,21 @@ namespace UniMcp.Tools
             bool useComponentPfb = bool.Parse(ctx["use_component_pfb"]?.ToString() ?? "false");
 
             if (string.IsNullOrEmpty(fileKey))
-                return Response.Error("file_key是必需的参数");
+                return Response.Error(L.T("file_key is required", "file_key是必需的参数"));
 
             // 检查参数：至少提供node_imgs或node_id之一
             if (string.IsNullOrEmpty(nodeImgsParam) && string.IsNullOrEmpty(nodeId))
-                return Response.Error("必须提供node_imgs或node_id之一");
+                return Response.Error(L.T("Must provide either node_imgs or node_id", "必须提供node_imgs或node_id之一"));
 
             if (string.IsNullOrEmpty(token))
-                return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
+                return Response.Error(L.T("Figma access token not configured. Please configure in Project Settings → MCP → Figma", "Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置"));
 
             // 优先处理node_id（智能扫描模式）
             if (!string.IsNullOrEmpty(nodeId))
             {
                 try
                 {
-                    Debug.Log($"[FigmaManage] 启动节点智能扫描: {nodeId}");
+                    Debug.Log($"[FigmaManage] " + L.T("Started node smart scan", "启动节点智能扫描") + $": {nodeId}");
                     var nodeIdList = new List<string> { nodeId };
                     // 使用同一个协程，通过includeChildren=true来获取完整的子节点树
                     // 为长时间运行的网络请求设置更长的超时时间（120秒）
@@ -125,26 +127,26 @@ namespace UniMcp.Tools
                 }
                 catch (Exception ex)
                 {
-                    return Response.Error($"根节点数据拉取失败: {ex.Message}");
+                    return Response.Error(L.T("Failed to fetch root node data", "根节点数据拉取失败") + $": {ex.Message}");
                 }
             }
 
             // 解析节点参数（标准模式）
             if (!ParseNodeParameters(nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("节点参数格式无效，请提供有效的node_imgs");
+                return Response.Error(L.T("Invalid node parameter format, please provide valid node_imgs", "节点参数格式无效，请提供有效的node_imgs"));
             }
 
             try
             {
-                Debug.Log($"[FigmaManage] 启动异步节点数据拉取: {nodeIds.Count}个节点");
+                Debug.Log($"[FigmaManage] " + L.T("Started async node data fetch", "启动异步节点数据拉取") + $": {nodeIds.Count}" + L.T(" nodes", "个节点"));
                 // 使用ctx.AsyncReturn处理异步操作
                 // 为长时间运行的网络请求设置更长的超时时间（120秒）
                 return ctx.AsyncReturn(FetchNodesCoroutine(fileKey, nodeIds, token, includeChildren, null, null, null, useComponentPfb), 120f);
             }
             catch (Exception ex)
             {
-                return Response.Error($"拉取节点数据失败: {ex.Message}");
+                return Response.Error(L.T("Failed to fetch node data", "拉取节点数据失败") + $": {ex.Message}");
             }
         }
 
@@ -173,18 +175,18 @@ namespace UniMcp.Tools
             float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "2");
 
             if (string.IsNullOrEmpty(fileKey))
-                return Response.Error("file_key是下载图片必需的参数");
+                return Response.Error(L.T("file_key is required for downloading images", "file_key是下载图片必需的参数"));
 
             if (string.IsNullOrEmpty(nodeImgsParam))
-                return Response.Error("node_imgs是下载图片必需的参数");
+                return Response.Error(L.T("node_imgs is required for downloading images", "node_imgs是下载图片必需的参数"));
 
             if (string.IsNullOrEmpty(token))
-                return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
+                return Response.Error(L.T("Figma access token not configured. Please configure in Project Settings → MCP → Figma", "Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置"));
 
             // 解析节点参数
             if (!ParseNodeParameters(nodeImgsParam, out List<string> nodeIds, out Dictionary<string, string> nodeNames))
             {
-                return Response.Error("节点参数格式无效，请提供有效的node_imgs参数（格式为{\"节点ID\":\"文件名\"}）。下载图片必须使用node_imgs参数，禁止使用node_id");
+                return Response.Error(L.T("Invalid node parameter format. Provide valid node_imgs (format: {\"node_id\":\"filename\"}). Use node_imgs for download, node_id is not allowed", "节点参数格式无效，请提供有效的node_imgs参数（格式为{\"节点ID\":\"文件名\"}）。下载图片必须使用node_imgs参数，禁止使用node_id"));
             }
 
             // 如果提供了本地JSON文件路径，则使用本地数据
@@ -192,11 +194,11 @@ namespace UniMcp.Tools
             {
                 try
                 {
-                    Debug.Log($"[FigmaManage] 启动本地JSON文件指定节点下载: {localJsonPath}, 节点: {string.Join(", ", nodeIds)}");
+                    Debug.Log($"[FigmaManage] " + L.T("Started local JSON specified node download", "启动本地JSON文件指定节点下载") + $": {localJsonPath}, " + L.T("Nodes", "节点") + $": {string.Join(", ", nodeIds)}");
                 }
                 catch (Exception ex)
                 {
-                    return Response.Error($"日志记录失败: {ex.Message}");
+                    return Response.Error(L.T("Log recording failed", "日志记录失败") + $": {ex.Message}");
                 }
 
                 // 为长时间运行的下载操作设置更长的超时时间（180秒）
@@ -206,11 +208,11 @@ namespace UniMcp.Tools
             {
                 try
                 {
-                    Debug.Log($"[FigmaManage] 启动指定节点下载: {string.Join(", ", nodeIds)}");
+                    Debug.Log($"[FigmaManage] " + L.T("Started specified node download", "启动指定节点下载") + $": {string.Join(", ", nodeIds)}");
                 }
                 catch (Exception ex)
                 {
-                    return Response.Error($"日志记录失败: {ex.Message}");
+                    return Response.Error(L.T("Log recording failed", "日志记录失败") + $": {ex.Message}");
                 }
 
                 // 为直接下载图片设置超时时间（180秒）
@@ -237,33 +239,33 @@ namespace UniMcp.Tools
                 if (uiFramework == "ugui")
                 {
                     result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.UGUI);
-                    return Response.Success("成功获取 UGUI 转换规则", result);
+                    return Response.Success(L.T("Successfully got UGUI conversion rules", "成功获取 UGUI 转换规则"), result);
                 }
                 else if (uiFramework == "uitoolkit")
                 {
                     result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.UIToolkit);
-                    return Response.Success("成功获取 UI Toolkit 转换规则", result);
+                    return Response.Success(L.T("Successfully got UI Toolkit conversion rules", "成功获取 UI Toolkit 转换规则"), result);
                 }
                 else if (uiFramework == "ngui")
                 {
                     result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.NGUI);
-                    return Response.Success("成功获取 NGUI 转换规则", result);
+                    return Response.Success(L.T("Successfully got NGUI conversion rules", "成功获取 NGUI 转换规则"), result);
                 }
                 else if (uiFramework == "fairygui")
                 {
                     result["conversion_prompt"] = figmaSettings.GetPromptForUIType(UIType.FairyGUI);
-                    return Response.Success("成功获取 FairyGUI 转换规则", result);
+                    return Response.Success(L.T("Successfully got FairyGUI conversion rules", "成功获取 FairyGUI 转换规则"), result);
                 }
                 else
                 {
                     result["conversion_prompt"] = figmaSettings.GetCurrentPrompt();
-                    return Response.Success("成功获取 UI 转换规则", result);
+                    return Response.Success(L.T("Successfully got UI conversion rules", "成功获取 UI 转换规则"), result);
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[FigmaManage] 获取转换规则失败: {ex.Message}\n{ex.StackTrace}");
-                return Response.Error($"获取转换规则失败: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Failed to get conversion rules", "获取转换规则失败") + $": {ex.Message}\n{ex.StackTrace}");
+                return Response.Error(L.T("Failed to get conversion rules", "获取转换规则失败") + $": {ex.Message}");
             }
         }
 
@@ -277,21 +279,21 @@ namespace UniMcp.Tools
             float imageScale = float.Parse(ctx["image_scale"]?.ToString() ?? "1");
 
             if (string.IsNullOrEmpty(fileKey))
-                return Response.Error("file_key是必需的参数");
+                return Response.Error(L.T("file_key is required", "file_key是必需的参数"));
 
             // 检查必要参数
             if (string.IsNullOrEmpty(nodeId))
-                return Response.Error("必须提供 node_id 参数");
+                return Response.Error(L.T("Must provide node_id parameter", "必须提供 node_id 参数"));
 
             if (string.IsNullOrEmpty(token))
-                return Response.Error("Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置");
+                return Response.Error(L.T("Figma access token not configured. Please configure in Project Settings → MCP → Figma", "Figma访问令牌未配置，请在Project Settings → MCP → Figma中配置"));
 
             try
             {
                 // 将节点ID中的"-"替换为":"（兼容URL中的格式）
                 nodeId = nodeId.Replace("-", ":");
 
-                Debug.Log($"[FigmaManage] 启动图片预览: 节点{nodeId}");
+                Debug.Log($"[FigmaManage] " + L.T("Started image preview", "启动图片预览") + ": " + L.T("Node", "节点") + $" {nodeId}");
 
                 // 使用异步协程下载图片并转换为base64
                 // 为图片预览设置超时时间（90秒）
@@ -299,8 +301,8 @@ namespace UniMcp.Tools
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[FigmaManage] 预览图片异常: {ex.Message}\n{ex.StackTrace}");
-                return Response.Error($"预览图片失败: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Preview image error", "预览图片异常") + $": {ex.Message}\n{ex.StackTrace}");
+                return Response.Error(L.T("Preview image failed", "预览图片失败") + $": {ex.Message}");
             }
         }
 
@@ -319,7 +321,7 @@ namespace UniMcp.Tools
 
             if (imageLinks == null || imageLinks.Count == 0)
             {
-                yield return Response.Error("获取图片链接失败或没有找到图片");
+                yield return Response.Error(L.T("Failed to get image links or no images found", "获取图片链接失败或没有找到图片"));
                 yield break;
             }
 
@@ -338,11 +340,11 @@ namespace UniMcp.Tools
             // 检查本地JSON文件是否存在
             if (!File.Exists(localJsonPath))
             {
-                yield return Response.Error($"本地JSON文件不存在: {localJsonPath}");
+                yield return Response.Error(L.T("Local JSON file does not exist", "本地JSON文件不存在") + $": {localJsonPath}");
                 yield break;
             }
 
-            Debug.Log($"[FigmaManage] 从本地JSON文件下载指定节点: {string.Join(", ", nodeIds)}");
+            Debug.Log($"[FigmaManage] " + L.T("Download specified nodes from local JSON", "从本地JSON文件下载指定节点") + $": {string.Join(", ", nodeIds)}");
 
             // 如果提供了节点名称映射，直接使用；否则使用节点ID作为文件名
             if (nodeNamesDict != null)
@@ -367,7 +369,7 @@ namespace UniMcp.Tools
             UnityWebRequest apiRequest = UnityWebRequest.Get(apiUrl);
             apiRequest.SetRequestHeader("X-Figma-Token", token);
             apiRequest.timeout = 30;
-            Debug.Log($"[FigmaManage] 预览图片请求URL: {apiUrl}");
+            Debug.Log($"[FigmaManage] " + L.T("Preview image request URL", "预览图片请求URL") + $": {apiUrl}");
 
             var apiOperation = apiRequest.SendWebRequest();
 
@@ -380,8 +382,8 @@ namespace UniMcp.Tools
                 if (currentTime - lastProgressUpdate >= 0.5f) // 每0.5秒更新一次
                 {
                     float progress = apiOperation.progress;
-                    apiCancelled = EditorUtility.DisplayCancelableProgressBar("预览Figma图片",
-                        $"正在获取图片URL: 节点 {nodeId}... {progress:P0}\n\n点击取消可中止操作",
+                    apiCancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Preview Figma image", "预览Figma图片"),
+                        L.T("Getting image URL", "正在获取图片URL") + $": {nodeId}... {progress:P0}\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                         0.1f + progress * 0.2f); // 0.1-0.3的进度范围
                     lastProgressUpdate = currentTime;
                 }
@@ -394,8 +396,8 @@ namespace UniMcp.Tools
                 apiRequest.Abort();
                 apiRequest.Dispose();
                 EditorUtility.ClearProgressBar();
-                Debug.LogWarning("[FigmaManage] 用户取消了预览图片获取URL操作");
-                yield return Response.Error("用户取消了预览图片操作");
+                Debug.LogWarning("[FigmaManage] " + L.T("User cancelled preview image URL fetch", "用户取消了预览图片获取URL操作"));
+                yield return Response.Error(L.T("User cancelled preview image operation", "用户取消了预览图片操作"));
                 yield break;
             }
 
@@ -403,7 +405,7 @@ namespace UniMcp.Tools
             {
                 apiRequest.Dispose();
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error($"获取图片URL失败: {apiRequest.error}");
+                yield return Response.Error(L.T("Failed to get image URL", "获取图片URL失败") + $": {apiRequest.error}");
                 yield break;
             }
 
@@ -413,7 +415,7 @@ namespace UniMcp.Tools
 
             try
             {
-                Debug.Log($"[FigmaManage] 预览图片请求响应: {apiRequest.downloadHandler.text}");
+                Debug.Log($"[FigmaManage] " + L.T("Preview image request response", "预览图片请求响应") + $": {apiRequest.downloadHandler.text}");
                 var response = Json.Parse(apiRequest.downloadHandler.text) as JsonClass;
                 var imagesNode = response["images"] as JsonClass;
                 if (imagesNode != null && imagesNode.ContainsKey(nodeId))
@@ -422,12 +424,12 @@ namespace UniMcp.Tools
                 }
                 else
                 {
-                    parseError = "响应中未找到图片URL";
+                    parseError = L.T("Image URL not found in response", "响应中未找到图片URL");
                 }
             }
             catch (Exception ex)
             {
-                parseError = $"解析响应失败: {ex.Message}";
+                    parseError = L.T("Failed to parse response", "解析响应失败") + $": {ex.Message}";
             }
 
             apiRequest.Dispose();
@@ -435,7 +437,7 @@ namespace UniMcp.Tools
             if (!string.IsNullOrEmpty(parseError) || string.IsNullOrEmpty(imageUrl))
             {
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error(parseError ?? "图片URL为空");
+                yield return Response.Error(parseError ?? L.T("Image URL is empty", "图片URL为空"));
                 yield break;
             }
 
@@ -454,8 +456,8 @@ namespace UniMcp.Tools
                 if (currentTime - lastProgressUpdate >= 0.5f) // 每0.5秒更新一次
                 {
                     float progress = imageOperation.progress;
-                    downloadCancelled = EditorUtility.DisplayCancelableProgressBar("预览Figma图片",
-                        $"正在下载图片: 节点 {nodeId}... {progress:P0}\n\n点击取消可中止操作",
+                    downloadCancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Preview Figma image", "预览Figma图片"),
+                        L.T("Downloading image", "正在下载图片") + $": {nodeId}... {progress:P0}\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                         0.4f + progress * 0.4f); // 0.4-0.8的进度范围
                     lastProgressUpdate = currentTime;
                 }
@@ -468,8 +470,8 @@ namespace UniMcp.Tools
                 imageRequest.Abort();
                 imageRequest.Dispose();
                 EditorUtility.ClearProgressBar();
-                Debug.LogWarning("[FigmaManage] 用户取消了预览图片下载操作");
-                yield return Response.Error("用户取消了预览图片操作");
+                Debug.LogWarning("[FigmaManage] " + L.T("User cancelled preview image download", "用户取消了预览图片下载操作"));
+                yield return Response.Error(L.T("User cancelled preview image operation", "用户取消了预览图片操作"));
                 yield break;
             }
 
@@ -478,12 +480,12 @@ namespace UniMcp.Tools
                 string errorMsg = imageRequest.error;
                 imageRequest.Dispose();
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error($"下载图片失败: {errorMsg}");
+                yield return Response.Error(L.T("Failed to download image", "下载图片失败") + $": {errorMsg}");
                 yield break;
             }
 
             // 第三步：获取图片数据并压缩
-            EditorUtility.DisplayProgressBar("预览Figma图片", "正在处理图片数据...", 0.6f);
+            EditorUtility.DisplayProgressBar(L.T("Preview Figma image", "预览Figma图片"), L.T("Processing image data...", "正在处理图片数据..."), 0.6f);
 
             byte[] imageData = imageRequest.downloadHandler.data;
             imageRequest.Dispose();
@@ -492,19 +494,20 @@ namespace UniMcp.Tools
             if (imageData == null || imageData.Length == 0)
             {
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error("下载的图片数据为空");
+                yield return Response.Error(L.T("Downloaded image data is empty", "下载的图片数据为空"));
                 yield break;
             }
 
             if (imageData.Length > 5 * 1024 * 1024)
             {
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error($"图片过大 ({imageData.Length / (1024 * 1024)}MB)，超过5MB限制");
+                int sizeMb = imageData.Length / (1024 * 1024);
+                yield return Response.Error(L.T($"Image too large ({sizeMb}MB), exceeds 5MB limit", $"图片过大 ({sizeMb}MB)，超过5MB限制"));
                 yield break;
             }
 
             // 第四步：将图片加载为Texture2D并压缩
-            EditorUtility.DisplayProgressBar("预览Figma图片", "正在压缩图片...", 0.7f);
+            EditorUtility.DisplayProgressBar(L.T("Preview Figma image", "预览Figma图片"), L.T("Compressing image...", "正在压缩图片..."), 0.7f);
 
             Texture2D originalTexture = new Texture2D(2, 2);
             bool loadSuccess = false;
@@ -516,7 +519,7 @@ namespace UniMcp.Tools
             }
             catch (Exception ex)
             {
-                loadError = $"加载图片失败: {ex.Message}";
+                loadError = L.T("Failed to load image", "加载图片失败") + $": {ex.Message}";
                 Object.DestroyImmediate(originalTexture);
             }
 
@@ -531,7 +534,7 @@ namespace UniMcp.Tools
             {
                 Object.DestroyImmediate(originalTexture);
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error("加载图片失败");
+                yield return Response.Error(L.T("Failed to load image", "加载图片失败"));
                 yield break;
             }
 
@@ -595,7 +598,7 @@ namespace UniMcp.Tools
             }
             catch (Exception ex)
             {
-                compressionError = $"压缩图片失败: {ex.Message}";
+                compressionError = L.T("Failed to compress image", "压缩图片失败") + $": {ex.Message}";
             }
             finally
             {
@@ -613,12 +616,12 @@ namespace UniMcp.Tools
             if (!string.IsNullOrEmpty(compressionError) || compressedData == null)
             {
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error(compressionError ?? "压缩图片失败");
+                yield return Response.Error(compressionError ?? L.T("Failed to compress image", "压缩图片失败"));
                 yield break;
             }
 
             // 第五步：转换为base64
-            EditorUtility.DisplayProgressBar("预览Figma图片", "正在生成预览...", 0.9f);
+            EditorUtility.DisplayProgressBar(L.T("Preview Figma image", "预览Figma图片"), L.T("Generating preview...", "正在生成预览..."), 0.9f);
 
             string base64String = null;
             string conversionError = null;
@@ -629,7 +632,7 @@ namespace UniMcp.Tools
             }
             catch (Exception ex)
             {
-                conversionError = $"转换base64失败: {ex.Message}";
+                conversionError = L.T("Failed to convert to base64", "转换base64失败") + $": {ex.Message}";
             }
 
             EditorUtility.ClearProgressBar();
@@ -674,14 +677,14 @@ namespace UniMcp.Tools
                 if (GetAutoConvertToSprite() && !string.IsNullOrEmpty(assetPath))
                 {
                     ConvertToSprite(assetPath);
-                    Debug.Log($"[FigmaManage] 预览图已转换为Sprite: {assetPath}");
+                    Debug.Log($"[FigmaManage] " + L.T("Preview image converted to Sprite", "预览图已转换为Sprite") + $": {assetPath}");
                 }
 
-                Debug.Log($"[FigmaManage] 预览图已保存到: {savedFilePath}");
+                Debug.Log($"[FigmaManage] " + L.T("Preview image saved to", "预览图已保存到") + $": {savedFilePath}");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[FigmaManage] 保存预览图失败: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Failed to save preview image", "保存预览图失败") + $": {ex.Message}");
             }
 
             // 返回成功响应
@@ -710,7 +713,7 @@ namespace UniMcp.Tools
                 ["path"] = Path.GetFullPath(savedFilePath),
                 ["format"] = imageFormat
             };
-            yield return Response.Success($"图片预览成功: 节点{nodeId}", result, resources);
+            yield return Response.Success(L.T("Image preview success", "图片预览成功") + $": {nodeId}", result, resources);
         }
 
         /// <summary>
@@ -778,7 +781,7 @@ namespace UniMcp.Tools
                                 {
                                     // 找到相同hash的文件，重定向
                                     remappedPath = existingFile;
-                                    Debug.Log($"[FigmaManage] 检测到相同内容的图片，重定向: {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
+                                    Debug.Log($"[FigmaManage] " + L.T("Same content image detected, redirected", "检测到相同内容的图片，重定向") + $": {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
                                     return true;
                                 }
                             }
@@ -792,7 +795,7 @@ namespace UniMcp.Tools
                                 {
                                     // 找到相同hash的文件，重定向
                                     remappedPath = existingFile;
-                                    Debug.Log($"[FigmaManage] 检测到相同内容的图片（通过文件比对），重定向: {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
+                                    Debug.Log($"[FigmaManage] " + L.T("Same content image detected via file compare, redirected", "检测到相同内容的图片（通过文件比对），重定向") + $": {Path.GetFileName(filePath)} -> {Path.GetFileName(existingFile)}");
                                     return true;
                                 }
                             }
@@ -800,14 +803,14 @@ namespace UniMcp.Tools
                         catch (Exception ex)
                         {
                             // 单个文件处理失败不影响其他文件
-                            Debug.LogWarning($"[FigmaManage] 检查文件失败: {existingFile}, 错误: {ex.Message}");
+                            Debug.LogWarning($"[FigmaManage] " + L.T("Failed to check file", "检查文件失败") + $": {existingFile}, " + L.T("Error", "错误") + $": {ex.Message}");
                             continue;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"[FigmaManage] 扫描公共目录失败: {folder}, 错误: {ex.Message}");
+                    Debug.LogWarning($"[FigmaManage] " + L.T("Failed to scan common folder", "扫描公共目录失败") + $": {folder}, " + L.T("Error", "错误") + $": {ex.Message}");
                     continue;
                 }
             }
@@ -851,7 +854,7 @@ namespace UniMcp.Tools
 
                 if (string.IsNullOrEmpty(imageUrl))
                 {
-                    Debug.LogWarning($"节点 {nodeId} 的图片URL为空，跳过下载");
+                    Debug.LogWarning(L.T("Node {0} image URL is empty, skipping download", "节点 {0} 的图片URL为空，跳过下载").Replace("{0}", nodeId));
                     continue;
                 }
 
@@ -868,8 +871,8 @@ namespace UniMcp.Tools
                     {
                         float progress = operation.progress;
                         float totalProgress = ((float)downloadedCount + progress) / totalCount;
-                        downloadCancelled = EditorUtility.DisplayCancelableProgressBar("下载Figma图片",
-                            $"正在下载节点 {nodeId} {nodeName} ({downloadedCount + 1}/{totalCount}) - {progress:P0}\n\n点击取消可中止操作",
+                        downloadCancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Download Figma images", "下载Figma图片"),
+                            L.T("Downloading node", "正在下载节点") + $" {nodeId} {nodeName} ({downloadedCount + 1}/{totalCount}) - {progress:P0}\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                             totalProgress);
                         lastProgressUpdate = currentTime;
 
@@ -926,7 +929,7 @@ namespace UniMcp.Tools
                         downloadedFiles.Add(remappedRelativePath);
 
                         downloadedCount++;
-                        Debug.Log($"[FigmaManage] 图片已重定向到已存在文件: {remappedPath}");
+                        Debug.Log($"[FigmaManage] " + L.T("Image redirected to existing file", "图片已重定向到已存在文件") + $": {remappedPath}");
                     }
                     else
                     {
@@ -939,12 +942,12 @@ namespace UniMcp.Tools
                         // 记录下载成功的文件相对路径，用于后续转换为Sprite
                         downloadedFiles.Add(relativePath);
 
-                        Debug.Log($"[FigmaManage] 成功下载图片: {filePath}");
+                        Debug.Log($"[FigmaManage] " + L.T("Image downloaded successfully", "成功下载图片") + $": {filePath}");
                     }
                 }
                 else
                 {
-                    Debug.LogError($"下载图片失败 (节点: {nodeId}): url:{imageUrl}: {imageRequest.error}");
+                    Debug.LogError(L.T("Failed to download image (Node: {0})", "下载图片失败 (节点: {0})").Replace("{0}", nodeId) + $": url:{imageUrl}: {imageRequest.error}");
                 }
 
                 imageRequest.Dispose();
@@ -955,7 +958,7 @@ namespace UniMcp.Tools
             // 检查是否被取消
             if (operationCancelled)
             {
-                Debug.LogWarning($"[FigmaManage] 用户取消了图片下载操作，已下载 {downloadedCount}/{totalCount} 个文件");
+                Debug.LogWarning($"[FigmaManage] " + L.T("User cancelled image download, downloaded {0}/{1} files", "用户取消了图片下载操作，已下载 {0}/{1} 个文件").Replace("{0}", downloadedCount.ToString()).Replace("{1}", totalCount.ToString()));
 
                 // 即使被取消，也要处理已下载的文件
                 if (downloadedCount > 0)
@@ -971,7 +974,7 @@ namespace UniMcp.Tools
                         ConvertDownloadedImagesToSprites(downloadedFiles);
                     }
 
-                    yield return Response.Success($"操作被取消，但已成功下载 {downloadedCount} 个文件", new
+                    yield return Response.Success(L.T("Operation cancelled, but successfully downloaded {0} files", "操作被取消，但已成功下载 {0} 个文件").Replace("{0}", downloadedCount.ToString()), new
                     {
                         downloaded_count = downloadedCount,
                         total_count = totalCount,
@@ -983,37 +986,37 @@ namespace UniMcp.Tools
                 }
                 else
                 {
-                    yield return Response.Error("用户取消了图片下载操作，未下载任何文件");
+                    yield return Response.Error(L.T("User cancelled image download, no files downloaded", "用户取消了图片下载操作，未下载任何文件"));
                 }
                 yield break;
             }
 
             // 所有图片下载完成后，统一刷新资源数据库
-            Debug.Log($"[FigmaManage] 图片下载完成，开始统一处理后续操作...");
+            Debug.Log($"[FigmaManage] " + L.T("Image download complete, starting unified post-processing...", "图片下载完成，开始统一处理后续操作..."));
             AssetDatabase.Refresh();
 
             // 统一保存索引信息到文件
             string indexFilePath = null;
             if (downloadedCount > 0)
             {
-                Debug.Log($"[FigmaManage] 保存索引信息到文件");
+                Debug.Log($"[FigmaManage] " + L.T("Saving index info to file", "保存索引信息到文件"));
                 indexFilePath = SaveIndexToFile(fileKey, nodeIndexMapping, savePath, imageScale, rootNodeName);
             }
 
             // 统一转换下载的图片为Sprite格式（根据配置决定）
             if (downloadedCount > 0 && GetAutoConvertToSprite())
             {
-                Debug.Log($"[FigmaManage] 开始批量转换 {downloadedFiles.Count} 个图片为Sprite格式");
+                Debug.Log($"[FigmaManage] " + L.T("Starting batch convert {0} images to Sprite", "开始批量转换 {0} 个图片为Sprite格式").Replace("{0}", downloadedFiles.Count.ToString()));
                 bool conversionCompleted = ConvertDownloadedImagesToSprites(downloadedFiles);
 
                 // 更新消息以反映转换状态
                 string message = GetAutoConvertToSprite()
-                              ? $"图片下载并转换为Sprite完成，成功处理 {downloadedCount}/{totalCount} 个文件"
-                              : $"图片下载完成，成功下载 {downloadedCount}/{totalCount} 个文件";
+                              ? L.T("Image download and Sprite conversion complete, successfully processed {0}/{1} files", "图片下载并转换为Sprite完成，成功处理 {0}/{1} 个文件").Replace("{0}", downloadedCount.ToString()).Replace("{1}", totalCount.ToString())
+                              : L.T("Image download complete, successfully downloaded {0}/{1} files", "图片下载完成，成功下载 {0}/{1} 个文件").Replace("{0}", downloadedCount.ToString()).Replace("{1}", totalCount.ToString());
 
                 if (!conversionCompleted)
                 {
-                    message = $"图片下载完成，但Sprite转换被取消。成功下载 {downloadedCount}/{totalCount} 个文件";
+                    message = L.T("Image download complete, but Sprite conversion cancelled. Successfully downloaded {0}/{1} files", "图片下载完成，但Sprite转换被取消。成功下载 {0}/{1} 个文件").Replace("{0}", downloadedCount.ToString()).Replace("{1}", totalCount.ToString());
                 }
 
                 yield return Response.Success(message, new
@@ -1027,7 +1030,7 @@ namespace UniMcp.Tools
             }
             else
             {
-                string message = $"图片下载完成，成功下载 {downloadedCount}/{totalCount} 个文件";
+                string message = L.T("Image download complete, successfully downloaded {0}/{1} files", "图片下载完成，成功下载 {0}/{1} 个文件").Replace("{0}", downloadedCount.ToString()).Replace("{1}", totalCount.ToString());
                 yield return Response.Success(message, new
                 {
                     downloaded_count = downloadedCount,
@@ -1061,7 +1064,7 @@ namespace UniMcp.Tools
 
             if (imageLinks == null || imageLinks.Count == 0)
             {
-                yield return Response.Error("获取图片链接失败或没有找到图片");
+                yield return Response.Error(L.T("Failed to get image links or no images found", "获取图片链接失败或没有找到图片"));
                 yield break;
             }
 
@@ -1112,18 +1115,18 @@ namespace UniMcp.Tools
                         }
                         else
                         {
-                            errorMessage = $"[FigmaManage] 预览模式: 获取节点 {nodeId} 的图片链接失败，节点不存在或无法导出";
+                            errorMessage = $"[FigmaManage] " + L.T("Preview mode: Failed to get image link for node {0}, node does not exist or cannot be exported", "预览模式: 获取节点 {0} 的图片链接失败，节点不存在或无法导出").Replace("{0}", nodeId);
                         }
                     }
                     catch (Exception ex)
                     {
-                        errorMessage = $"[FigmaManage] 解析图片链接响应失败: {ex.Message}";
+                        errorMessage = $"[FigmaManage] " + L.T("Failed to parse image link response", "解析图片链接响应失败") + $": {ex.Message}";
                     }
 
                     // try-catch块外调用回调和输出日志
                     if (success)
                     {
-                        Debug.Log($"[FigmaManage] 预览模式: 成功获取节点 {nodeId} 的图片链接");
+                        Debug.Log($"[FigmaManage] " + L.T("Preview mode: Successfully got image link for node {0}", "预览模式: 成功获取节点 {0} 的图片链接").Replace("{0}", nodeId));
                         callback?.Invoke(images);
                     }
                     else
@@ -1134,7 +1137,7 @@ namespace UniMcp.Tools
                 }
                 else
                 {
-                    Debug.LogError($"[FigmaManage] 获取图片链接失败: {previewRequest.error}");
+                    Debug.LogError($"[FigmaManage] " + L.T("Failed to get image links", "获取图片链接失败") + $": {previewRequest.error}");
                     callback?.Invoke(null);
                 }
 
@@ -1159,8 +1162,8 @@ namespace UniMcp.Tools
                 float currentTime = Time.realtimeSinceStartup;
                 if (currentTime - lastProgressUpdate >= 0.5f) // 每0.5秒更新一次，提高响应速度
                 {
-                    cancelled = EditorUtility.DisplayCancelableProgressBar("获取Figma图片链接",
-                        $"正在获取图片链接... {operation.progress:P0}\n\n点击取消可中止操作",
+                    cancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Get Figma image links", "获取Figma图片链接"),
+                        L.T("Getting image links...", "正在获取图片链接") + $" {operation.progress:P0}\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                         operation.progress);
                     lastProgressUpdate = currentTime;
                 }
@@ -1172,7 +1175,7 @@ namespace UniMcp.Tools
             {
                 request.Abort();
                 EditorUtility.ClearProgressBar();
-                Debug.LogWarning("[FigmaManage] 用户取消了获取图片链接操作");
+                Debug.LogWarning("[FigmaManage] " + L.T("User cancelled get image links operation", "用户取消了获取图片链接操作"));
                 callback?.Invoke(null);
                 request.Dispose();
                 yield break;
@@ -1204,13 +1207,13 @@ namespace UniMcp.Tools
                 }
                 catch (Exception ex)
                 {
-                    errorMessage = $"[FigmaManage] 解析图片链接响应失败: {ex.Message}";
+                    errorMessage = $"[FigmaManage] " + L.T("Failed to parse image link response", "解析图片链接响应失败") + $": {ex.Message}";
                 }
 
                 // try-catch块外调用回调和输出日志
                 if (success)
                 {
-                    Debug.Log($"[FigmaManage] 成功获取{imageCount}个图片链接");
+                    Debug.Log($"[FigmaManage] " + L.T("Successfully got {0} image links", "成功获取 {0} 个图片链接").Replace("{0}", imageCount.ToString()));
                     callback?.Invoke(images);
                 }
                 else
@@ -1224,7 +1227,7 @@ namespace UniMcp.Tools
             }
             else
             {
-                Debug.LogError($"[FigmaManage] 获取图片链接失败: url:{url}, error:{request.error}");
+                Debug.LogError($"[FigmaManage] " + L.T("Failed to get image links", "获取图片链接失败") + $": url:{url}, error:{request.error}");
                 callback?.Invoke(null);
             }
 
@@ -1264,8 +1267,8 @@ namespace UniMcp.Tools
                 float currentTime = Time.realtimeSinceStartup;
                 if (currentTime - lastProgressUpdate >= 1f) // 每1秒更新一次
                 {
-                    cancelled = EditorUtility.DisplayCancelableProgressBar("拉取Figma节点数据",
-                        $"正在拉取 {nodeIds.Count} 个节点数据... {operation.progress:P0}\n\n点击取消可中止操作",
+                    cancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Fetch Figma node data", "拉取Figma节点数据"),
+                        L.T("Fetching node data", "正在拉取") + $" {nodeIds.Count} " + L.T("nodes...", "个节点数据...") + $" {operation.progress:P0}\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                         operation.progress);
                     lastProgressUpdate = currentTime;
                 }
@@ -1277,7 +1280,7 @@ namespace UniMcp.Tools
             {
                 request.Abort();
                 EditorUtility.ClearProgressBar();
-                yield return Response.Error("用户取消了拉取Figma节点数据操作");
+                yield return Response.Error(L.T("User cancelled Figma node data fetch", "用户取消了拉取Figma节点数据操作"));
                 request.Dispose();
                 yield break;
             }
@@ -1335,10 +1338,10 @@ namespace UniMcp.Tools
 
                         AssetDatabase.Refresh();
 
-                        string scanModeInfo = !string.IsNullOrEmpty(rootNodeIdForScan) ? $"（根节点扫描模式: {rootNodeIdForScan}）" : "";
+                        string scanModeInfo = !string.IsNullOrEmpty(rootNodeIdForScan) ? L.T($" (root node scan mode: {rootNodeIdForScan})", $"（根节点扫描模式: {rootNodeIdForScan}）") : "";
 
-                        Debug.Log($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点");
-                        Debug.Log($"简化数据: {simplifiedPath}");
+                        Debug.Log(L.T("Node data fetch complete", "节点数据拉取完成") + scanModeInfo + L.T(", total ", "，共") + $"{nodeIds.Count}" + L.T(" nodes", "个节点"));
+                        Debug.Log(L.T("Simplified data", "简化数据") + $": {simplifiedPath}");
 
                         var responseData = new JsonClass();
                         responseData["file_key"] = fileKey;
@@ -1349,18 +1352,18 @@ namespace UniMcp.Tools
                         responseData["node_id"] = rootNodeIdForScan;
                         responseData["simplified_data"] = simplifiedNodes;
 
-                        yield return Response.Success($"节点数据拉取完成{scanModeInfo}，共{nodeIds.Count}个节点", responseData);
+                        yield return Response.Success(L.T("Node data fetch complete", "节点数据拉取完成") + scanModeInfo + L.T(", total ", "，共") + $"{nodeIds.Count}" + L.T(" nodes", "个节点"), responseData);
                     }
                 }
                 else
                 {
-                    yield return Response.Error("响应中没有找到nodes数据");
+                    yield return Response.Error(L.T("No nodes data found in response", "响应中没有找到nodes数据"));
                 }
             }
             else
             {
-                Debug.LogError($"获取节点数据失败: {request.error}");
-                yield return Response.Error($"获取节点数据失败: {request.error}");
+                Debug.LogError(L.T("Failed to get node data", "获取节点数据失败") + $": {request.error}");
+                yield return Response.Error(L.T("Failed to get node data", "获取节点数据失败") + $": {request.error}");
             }
 
             request.Dispose();
@@ -1399,13 +1402,13 @@ namespace UniMcp.Tools
                         if (nodeNames != null && nodeNames.Count > 0)
                         {
                             nodeIds = nodeNames.Keys.ToList();
-                            Debug.Log($"[FigmaManage] 解析node_imgs为JSON格式，包含 {nodeNames.Count} 个节点映射:{string.Join(",", nodeNames.Keys.ToList())}");
+                            Debug.Log($"[FigmaManage] " + L.T("Parsed node_imgs as JSON, contains {0} node mappings", "解析node_imgs为JSON格式，包含 {0} 个节点映射").Replace("{0}", nodeNames.Count.ToString()) + $":{string.Join(",", nodeNames.Keys.ToList())}");
                             return true;
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogWarning($"[FigmaManage] node_imgs JSON格式解析失败: {ex.Message}");
+                        Debug.LogWarning($"[FigmaManage] " + L.T("node_imgs JSON parse failed", "node_imgs JSON格式解析失败") + $": {ex.Message}");
                         // 继续尝试解析node_ids
                     }
                 }
@@ -1446,16 +1449,16 @@ namespace UniMcp.Tools
                     // 使用 DeferredAssetDatabase 模式，减少重建UI
                     AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
 
-                    Debug.Log($"[FigmaManage] 成功将图片转换为Sprite: {assetPath}");
+                    Debug.Log($"[FigmaManage] " + L.T("Successfully converted image to Sprite", "成功将图片转换为Sprite") + $": {assetPath}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[FigmaManage] 无法获取纹理导入器: {assetPath}");
+                    Debug.LogWarning($"[FigmaManage] " + L.T("Cannot get texture importer", "无法获取纹理导入器") + $": {assetPath}");
                 }
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[FigmaManage] 转换Sprite失败: {assetPath}, 错误: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Failed to convert Sprite", "转换Sprite失败") + $": {assetPath}, " + L.T("Error", "错误") + $": {ex.Message}");
             }
         }
 
@@ -1466,7 +1469,7 @@ namespace UniMcp.Tools
         {
             try
             {
-                Debug.Log($"[FigmaManage] 开始批量转换 {downloadedFiles.Count} 个图片为Sprite格式");
+                Debug.Log($"[FigmaManage] " + L.T("Starting batch convert {0} images to Sprite", "开始批量转换 {0} 个图片为Sprite格式").Replace("{0}", downloadedFiles.Count.ToString()));
 
                 int convertedCount = 0;
                 int totalCount = downloadedFiles.Count;
@@ -1484,14 +1487,14 @@ namespace UniMcp.Tools
 
                     // 显示可取消的进度条
                     float progress = (float)convertedCount / totalCount;
-                    cancelled = EditorUtility.DisplayCancelableProgressBar("转换图片为Sprite",
-                        $"正在转换 {fileName} ({convertedCount + 1}/{totalCount})\n\n点击取消可中止操作",
+                    cancelled = EditorUtility.DisplayCancelableProgressBar(L.T("Convert images to Sprite", "转换图片为Sprite"),
+                        L.T("Converting", "正在转换") + $" {fileName} ({convertedCount + 1}/{totalCount})\n\n" + L.T("Click Cancel to abort", "点击取消可中止操作"),
                         progress);
 
                     // 检查是否被取消
                     if (cancelled)
                     {
-                        Debug.LogWarning($"[FigmaManage] 用户取消了Sprite转换操作，已转换 {convertedCount}/{totalCount} 个文件");
+                        Debug.LogWarning($"[FigmaManage] " + L.T("User cancelled Sprite conversion, converted {0}/{1} files", "用户取消了Sprite转换操作，已转换 {0}/{1} 个文件").Replace("{0}", convertedCount.ToString()).Replace("{1}", totalCount.ToString()));
                         break;
                     }
 
@@ -1516,19 +1519,19 @@ namespace UniMcp.Tools
 
                 if (cancelled)
                 {
-                    Debug.Log($"[FigmaManage] Sprite转换被取消，已成功转换 {convertedCount} 个图片为Sprite");
+                    Debug.Log($"[FigmaManage] " + L.T("Sprite conversion cancelled, successfully converted {0} images to Sprite", "Sprite转换被取消，已成功转换 {0} 个图片为Sprite").Replace("{0}", convertedCount.ToString()));
                     return false; // 返回false表示被取消
                 }
                 else
                 {
-                    Debug.Log($"[FigmaManage] 批量转换完成，成功转换 {convertedCount} 个图片为Sprite");
+                    Debug.Log($"[FigmaManage] " + L.T("Batch conversion complete, successfully converted {0} images to Sprite", "批量转换完成，成功转换 {0} 个图片为Sprite").Replace("{0}", convertedCount.ToString()));
                     return true; // 返回true表示完成
                 }
             }
             catch (System.Exception ex)
             {
                 EditorUtility.ClearProgressBar();
-                Debug.LogError($"[FigmaManage] 批量转换Sprite失败: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Batch Sprite conversion failed", "批量转换Sprite失败") + $": {ex.Message}");
                 return false;
             }
         }
@@ -1567,12 +1570,12 @@ namespace UniMcp.Tools
                                     existingMapping[key] = mappingNode[key]?.Value;
                                 }
                             }
-                            Debug.Log($"[FigmaManage] 读取到现有索引文件，包含 {existingMapping.Count} 个条目");
+                            Debug.Log($"[FigmaManage] " + L.T("Read existing index file, contains {0} entries", "读取到现有索引文件，包含 {0} 个条目").Replace("{0}", existingMapping.Count.ToString()));
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogWarning($"[FigmaManage] 解析现有索引文件失败，将创建新文件: {ex.Message}");
+                        Debug.LogWarning($"[FigmaManage] " + L.T("Failed to parse existing index file, will create new file", "解析现有索引文件失败，将创建新文件") + $": {ex.Message}");
                     }
                 }
 
@@ -1595,13 +1598,13 @@ namespace UniMcp.Tools
                 string jsonContent = Json.FromObject(indexData);
                 File.WriteAllText(indexFilePath, jsonContent);
 
-                Debug.Log($"[FigmaManage] 索引文件已保存/更新: {indexFilePath}");
-                Debug.Log($"[FigmaManage] 总索引条目: {existingMapping.Count} (新增/更新: {nodeIndexMapping.Count})");
+                Debug.Log($"[FigmaManage] " + L.T("Index file saved/updated", "索引文件已保存/更新") + $": {indexFilePath}");
+                Debug.Log($"[FigmaManage] " + L.T("Total index entries: {0} (new/updated: {1})", "总索引条目: {0} (新增/更新: {1})").Replace("{0}", existingMapping.Count.ToString()).Replace("{1}", nodeIndexMapping.Count.ToString()));
                 return indexFilePath;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[FigmaManage] 保存索引文件失败: {ex.Message}");
+                Debug.LogError($"[FigmaManage] " + L.T("Failed to save index file", "保存索引文件失败") + $": {ex.Message}");
                 return null;
             }
         }

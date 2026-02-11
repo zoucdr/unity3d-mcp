@@ -21,6 +21,8 @@ namespace UniMcp
         public List<string> Examples;
         public List<string> EnumValues;
         public object DefaultValue;
+        public object Minimum;
+        public object Maximum;
 
         public MethodKey(string key, string desc, bool optional = true, string type = "string")
         {
@@ -31,6 +33,8 @@ namespace UniMcp
             Examples = new List<string>();
             EnumValues = new List<string>();
             DefaultValue = null;
+            Minimum = null;
+            Maximum = null;
         }
 
         /// <summary>
@@ -56,6 +60,8 @@ namespace UniMcp
             Examples = new List<string>(examples);
             EnumValues = new List<string>();
             DefaultValue = null;
+            Minimum = null;
+            Maximum = null;
         }
 
         /// <summary>
@@ -181,6 +187,8 @@ namespace UniMcp
         /// </summary>
         public MethodInt SetRange(int min, int max)
         {
+            Minimum = min;
+            Maximum = max;
             string rangeText = L.IsChinese() 
                 ? $"范围: {min} - {max}" 
                 : $"Range: {min} - {max}";
@@ -231,6 +239,8 @@ namespace UniMcp
         /// </summary>
         public MethodFloat SetRange(float min, float max)
         {
+            Minimum = min;
+            Maximum = max;
             string rangeText = L.IsChinese() 
                 ? $"范围: {min:F2} - {max:F2}" 
                 : $"Range: {min:F2} - {max:F2}";

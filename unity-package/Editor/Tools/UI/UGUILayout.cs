@@ -36,7 +36,7 @@ namespace UniMcp.Tools
     /// 
     /// 对应方法名: ugui_layout
     /// </summary>
-    [ToolName("ugui_layout", "UI Management")]
+    [ToolName("ugui_layout", "UI Management", "UI管理")]
     public class UGUILayout : DualStateMethodBase
     {
         public override string Description => L.T("Modify and query RectTransform layout properties", "修改和查询RectTransform布局属性");
@@ -54,7 +54,7 @@ namespace UniMcp.Tools
                 
                 // Object hierarchy path
                 new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
-                    .AddExamples("Canvas/Panel/Button", "UI/MainMenu/StartButton"),
+                    .AddExample("Canvas/Panel/Button"),
                 
                 // Action type
                 new MethodStr("action", L.T("Action type", "操作类型"))

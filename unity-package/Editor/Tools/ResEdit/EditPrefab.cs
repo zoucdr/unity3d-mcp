@@ -14,7 +14,7 @@ namespace UniMcp.Tools
     /// 专门的预制体管理工具，提供预制体的创建、修改、复制、删除等操作
     /// 对应方法名: manage_prefab
     /// </summary>
-    [ToolName("edit_prefab", "Resource Management")]
+    [ToolName("edit_prefab", "Resource Management", "资源管理")]
     public class EditPrefab : StateMethodBase
     {
         public override string Description => L.T("Manage prefab assets including create and modify", "管理预制体资源，包括创建和修改");
@@ -28,69 +28,56 @@ namespace UniMcp.Tools
             {
                 // 操作类型
                 new MethodStr("action", L.T("Operation type", "操作类型"), false)
-                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack")
-                    .SetDefault("get_info"),
+                    .SetEnumValues("create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack"),
                 
                 // 预制体路径
                 new MethodStr("path", L.T("Prefab asset path", "预制体资源路径"), false)
-                    .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab")
-                    .SetDefault("Assets/Prefabs/Player.prefab"),
+                    .AddExample("Assets/Prefabs/Player.prefab"),
                 
                 // 源对象
                 new MethodStr("source_object", L.T("Source GameObject", "源GameObject"))
-                    .AddExamples("Player", "Canvas/Button"),
+                    .AddExample("Player"),
                 
                 // 目标路径
                 new MethodStr("destination", L.T("Destination path", "目标路径"))
-                    .AddExamples("Assets/Prefabs/Copy/", "Assets/NewPrefabs/"),
+                    .AddExample("Assets/Prefabs/Copy/"),
                 
                 // 搜索模式
                 new MethodStr("query", L.T("Search pattern", "搜索模式"))
-                    .AddExample("*.prefab")
-                    .SetDefault("*.prefab"),
+                    .AddExample("*.prefab"),
                 
                 // 递归搜索
-                new MethodBool("recursive", L.T("Recursive search", "递归搜索"))
-                    .SetDefault(false),
+                new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
                 
                 // 强制执行
-                new MethodBool("force", L.T("Force execution", "强制执行"))
-                    .SetDefault(false),
+                new MethodBool("force", L.T("Force execution", "强制执行")),
                 
                 // 预制体变体
-                new MethodBool("prefab_variant", L.T("Create prefab variant", "创建预制体变体"))
-                    .SetDefault(false),
+                new MethodBool("prefab_variant", L.T("Create prefab variant", "创建预制体变体")),
                 
                 // 解包模式
                 new MethodStr("unpack_mode", L.T("Unpack mode", "解包模式"))
-                    .SetEnumValues("Completely", "OutermostRoot")
-                    .SetDefault("Completely"),
+                    .SetEnumValues("Completely", "OutermostRoot"),
                 
                 // 打包模式
                 new MethodStr("pack_mode", L.T("Pack mode", "打包模式"))
-                    .SetEnumValues("Default", "ReuseExisting")
-                    .SetDefault("Default"),
+                    .SetEnumValues("Default", "ReuseExisting"),
                 
                 // 连接到预制体
-                new MethodBool("connect_to_prefab", L.T("Connect to prefab", "连接到预制体"))
-                    .SetDefault(true),
+                new MethodBool("connect_to_prefab", L.T("Connect to prefab", "连接到预制体")),
                 
                 // 应用预制体更改
-                new MethodBool("apply_prefab_changes", L.T("Apply prefab changes", "应用预制体更改"))
-                    .SetDefault(false),
+                new MethodBool("apply_prefab_changes", L.T("Apply prefab changes", "应用预制体更改")),
                 
                 // 还原预制体更改
-                new MethodBool("revert_prefab_changes", L.T("Revert prefab changes", "还原预制体更改"))
-                    .SetDefault(false),
+                new MethodBool("revert_prefab_changes", L.T("Revert prefab changes", "还原预制体更改")),
                 
                 // 断开预制体连接
-                new MethodBool("break_prefab_connection", L.T("Break prefab connection", "断开预制体连接"))
-                    .SetDefault(false),
+                new MethodBool("break_prefab_connection", L.T("Break prefab connection", "断开预制体连接")),
                 
                 // 预制体类型
                 new MethodStr("prefab_type", L.T("Prefab type", "预制体类型"))
-                    .SetEnumValues("Regular", "Variant")
-                    .SetDefault("Regular"),
+                    .SetEnumValues("Regular", "Variant"),
                 
                 // 父预制体
                 new MethodStr("parent_prefab", L.T("Parent prefab path", "父预制体路径"))
@@ -114,7 +101,7 @@ namespace UniMcp.Tools
                 
                 // 父对象
                 new MethodStr("parent", L.T("Parent object name or path", "父对象名称或路径"))
-                    .AddExamples("Player", "Canvas/Panel")
+                    .AddExample("Player")
             };
         }
 

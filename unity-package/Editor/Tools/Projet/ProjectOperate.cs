@@ -15,7 +15,7 @@ namespace UniMcp.Tools
     /// Handles Unity asset management operations including import, modify, move, duplicate, etc.
     /// 对应方法名: manage_asset
     /// </summary>
-    [ToolName("project_operate", "Project Management")]
+    [ToolName("project_operate", "Project Management", "项目管理")]
     public class ProjectOperate : StateMethodBase
     {
         public override string Description => L.T("Manage Unity assets including import, modify, move, duplicate", "管理Unity资源，包括导入、修改、移动和复制");
@@ -29,24 +29,22 @@ namespace UniMcp.Tools
             {
                 // Action type
                 new MethodStr("action", L.T("Action type", "操作类型"), false)
-                    .SetEnumValues("import", "modify", "move", "duplicate", "rename", "get_info", "create_folder", "reload", "select", "ping", "select_depends", "select_usage", "tree")
-                    .AddExamples("get_info", "move"),
+                    .SetEnumValues("import", "modify", "move", "duplicate", "rename", "get_info", "create_folder", "reload", "select", "ping", "select_depends", "select_usage", "tree"),
                 
                 // Asset path
                 new MethodStr("path", L.T("Asset path, Unity standard format", "资源路径，Unity标准格式"), false)
-                    .AddExamples("Assets/Scripts/MyScript.cs", "Assets/Materials/MyMaterial.mat"),
+                    .AddExample("Assets/Scripts/MyScript.cs"),
                 
                 // Asset properties
                 new MethodObj("properties", L.T("Asset properties dictionary for setting various asset properties", "资源属性字典，用于设置各种资源属性"))
                     .AddProperty("importSettings", "object")
                     .AddProperty("labels", "array")
                     .AddProperty("assetBundleName", "string")
-                    .AddExample("{\"labels\": [\"Important\", \"Version1\"]}")
-                    .AddExample("{\"assetBundleName\": \"ui_bundle\"}"),
+                    .AddExample("{\"labels\": [\"Important\", \"Version1\"]}"),
                 
                 // Destination path
                 new MethodStr("destination", L.T("Destination path (for move/copy)", "目标路径（用于移动/复制）"))
-                    .AddExamples("Assets/NewFolder/", "Assets/Backup/MyScript.cs"),
+                    .AddExample("Assets/NewFolder/"),
                 
                 // Force execute
                 new MethodBool("force", L.T("Force execute operation (overwrite existing files, etc.)", "强制执行操作（覆盖现有文件等）")),
@@ -56,15 +54,17 @@ namespace UniMcp.Tools
                     .SetEnumValues("all", "assets", "scripts"),
                 
                 // Save before refresh
-                new MethodBool("save_before_refresh", L.T("Save all assets before refresh, default true", "刷新前保存所有资源，默认为true")),
+                new MethodBool("save_before_refresh", L.T("Save all assets before refresh, default true", "刷新前保存所有资源，默认为true"))
+                    .SetDefault(true),
                 
                 // Include indirect dependencies
-                new MethodBool("include_indirect", L.T("Include indirect dependencies/references, default false", "包含间接依赖/引用，默认为false")),
+                new MethodBool("include_indirect", L.T("Include indirect dependencies/references, default false", "包含间接依赖/引用，默认为false"))
+                    .SetDefault(false),
                 
                 // Max results count
                 new MethodInt("max_results", L.T("Maximum results count, default 100", "最大结果数量，默认100"))
                     .SetRange(1, 1000)
-                    .AddExample("100")
+                    .SetDefault(100)
             };
         }
 

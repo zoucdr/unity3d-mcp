@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -254,6 +254,18 @@ namespace UniMcp.Executer
         {
             EnsureMethodsRegisteredStatic();
             return _registeredMethods?.Keys.ToArray() ?? new string[0];
+        }
+
+        /// <summary>
+        /// 清除已注册的方法缓存，用于语言切换时重新加载
+        /// </summary>
+        public static void ClearRegisteredMethods()
+        {
+            lock (_registrationLock)
+            {
+                McpLogger.Log("[ToolsCall] Clearing registered methods cache for language switch");
+                _registeredMethods = null;
+            }
         }
 
     }
