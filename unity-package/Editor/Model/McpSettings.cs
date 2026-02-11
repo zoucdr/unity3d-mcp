@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEditor;
 using UniMcp.Gui;
@@ -13,6 +14,9 @@ namespace UniMcp
     [FilePath("ProjectSettings/McpSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpSettings : ScriptableSingleton<McpSettings>
     {
+        // 保存主线程的线程ID
+        private static int mainThreadId = -1;
+        
         [SerializeReference]
         public List<IMcpSubSettings> subSettings;
 
@@ -143,12 +147,45 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 保存设置
+        /// 保存设置（线程安全版本）
         /// </summary>
         public void SaveSettings()
         {
-            EditorUtility.SetDirty(this);
-            Save(true);
+            // 检查是否在主线程
+            if (Thread.CurrentThread.ManagedThreadId == mainThreadId)
+            {
+                // 主线程：直接保存
+                EditorUtility.SetDirty(this);
+                Save(true);
+            }
+            else
+            {
+                // 非主线程：调度到主线程执行
+                EditorApplication.delayCall += () =>
+                {
+                    try
+                    {
+                        EditorUtility.SetDirty(this);
+                        Save(true);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[McpSettings] 保存设置失败: {ex.Message}");
+                    }
+                };
+            }
+        }
+        
+        /// <summary>
+        /// 初始化（记录主线程ID）
+        /// </summary>
+        private void OnEnable()
+        {
+            // 记录主线程ID（OnEnable 总是在主线程调用）
+            if (mainThreadId == -1)
+            {
+                mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            }
         }
     }
 

@@ -82,6 +82,30 @@ namespace UniMcp
 
             return McpLocalSettings.Instance.HasToolCountChanged(currentCount);
         }
+        
+        /// <summary>
+        /// 检查 Prompt 数量是否发生变化
+        /// </summary>
+        private bool HasPromptCountChanged()
+        {
+            int currentCount = availablePrompts.Count;
+
+            Log($"[UniMcp] Prompt数量检查 - 当前: {currentCount}");
+
+            return McpLocalSettings.Instance.HasPromptCountChanged(currentCount);
+        }
+        
+        /// <summary>
+        /// 检查 Resource 数量是否发生变化
+        /// </summary>
+        private bool HasResourceCountChanged()
+        {
+            int currentCount = availableResources.Count;
+
+            Log($"[UniMcp] Resource数量检查 - 当前: {currentCount}");
+
+            return McpLocalSettings.Instance.HasResourceCountChanged(currentCount);
+        }
 
         public bool IsRunning => isRunning;
 
@@ -140,6 +164,7 @@ namespace UniMcp
         private readonly Dictionary<string, ResourceCacheData> loadedResources = new(); // 记录已加载的资源内容缓存
         private readonly HashSet<string> subscribedResources = new(); // 记录订阅的资源URI
         private string clientCallbackUrl = null; // 客户端回调地址
+        
         private readonly Dictionary<string, DateTime> resourceLastModified = new(); // 记录资源最后修改时间
         private string serverName = "Unity MCP Server";
         private string serverVersion = "1.0.0";
@@ -406,30 +431,39 @@ namespace UniMcp
                 EnqueueTask(() => McpLogger.Log(message));
             }
         }
+
         private void LogWarning(string message)
         {
-            // 如果已经在主线程，直接输出
+            McpLogger.LogWarning(message);
+        }
+
+        // 线程安全的警告日志输出方法（用于后台线程）
+        private void LogWarningThreadSafe(string message)
+        {
             if (System.Threading.Thread.CurrentThread.ManagedThreadId == 1)
             {
                 McpLogger.LogWarning(message);
             }
             else
             {
-                // 否则通过消息队列发送到主线程
                 EnqueueTask(() => McpLogger.LogWarning(message));
             }
         }
 
         private void LogError(string message)
         {
-            // 如果已经在主线程，直接输出
+            McpLogger.LogError(message);
+        }
+
+        // 线程安全的错误日志输出方法（用于后台线程）
+        private void LogErrorThreadSafe(string message)
+        {
             if (System.Threading.Thread.CurrentThread.ManagedThreadId == 1)
             {
                 McpLogger.LogError(message);
             }
             else
             {
-                // 否则通过消息队列发送到主线程
                 EnqueueTask(() => McpLogger.LogError(message));
             }
         }
@@ -654,9 +688,6 @@ namespace UniMcp
                     }
                 }
 
-                // 注册配置的提示词（从McpSettings）
-                RegisterConfigurablePrompts();
-
                 Log($"[UniMcp] Prompts发现完成，共发现 {availablePrompts.Count} 个Prompts");
 
                 // 列出所有注册的prompts
@@ -669,56 +700,6 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] Prompts发现过程中发生错误: {ex.Message}\n{ex.StackTrace}");
-            }
-        }
-
-        /// <summary>
-        /// 注册配置的提示词（从McpSettings）
-        /// </summary>
-        private void RegisterConfigurablePrompts()
-        {
-            try
-            {
-                var configurablePrompts = McpSettings.Instance.GetConfigurablePrompts();
-                if (configurablePrompts == null || configurablePrompts.Count == 0)
-                {
-                    Log("[UniMcp] 没有配置的提示词");
-                    return;
-                }
-
-                Log($"[UniMcp] 开始注册 {configurablePrompts.Count} 个配置的提示词");
-
-                foreach (var configPrompt in configurablePrompts)
-                {
-                    if (configPrompt == null || string.IsNullOrEmpty(configPrompt.Name))
-                    {
-                        LogWarning("[UniMcp] 跳过无效的配置提示词（名称为空）");
-                        continue;
-                    }
-
-                    // 检查是否已存在同名提示词（配置的提示词优先级较低，如果已存在则跳过）
-                    if (availablePrompts.ContainsKey(configPrompt.Name))
-                    {
-                        Log($"[UniMcp] 跳过配置的提示词 '{configPrompt.Name}'，已存在同名提示词");
-                        continue;
-                    }
-
-                    // 检查提示词是否被禁用
-                    if (!McpLocalSettings.Instance.IsPromptEnabled(configPrompt.Name))
-                    {
-                        Log($"[UniMcp] 跳过配置的提示词 '{configPrompt.Name}'，已被禁用");
-                        continue;
-                    }
-
-                    availablePrompts[configPrompt.Name] = configPrompt;
-                    Log($"[UniMcp] 成功注册配置的Prompt: {configPrompt.Name}");
-                }
-
-                Log($"[UniMcp] 配置的提示词注册完成");
-            }
-            catch (Exception ex)
-            {
-                LogError($"[UniMcp] 注册配置的提示词时发生错误: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -783,9 +764,6 @@ namespace UniMcp
                     }
                 }
 
-                // 注册配置的资源（从McpSettings）
-                RegisterConfigurableResources();
-
                 Log($"[UniMcp] Resources发现完成，共发现 {availableResources.Count} 个Resources");
 
                 // 列出所有注册的resources
@@ -798,66 +776,6 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] Resources发现过程中发生错误: {ex.Message}\n{ex.StackTrace}");
-            }
-        }
-
-        /// <summary>
-        /// 注册配置的资源（从McpSettings）
-        /// </summary>
-        private void RegisterConfigurableResources()
-        {
-            try
-            {
-                var configurableResources = McpSettings.Instance.GetConfigurableResources();
-                if (configurableResources == null || configurableResources.Count == 0)
-                {
-                    Log("[UniMcp] 没有配置的资源");
-                    return;
-                }
-
-                Log($"[UniMcp] 开始注册 {configurableResources.Count} 个配置的资源");
-
-                foreach (var configResource in configurableResources)
-                {
-                    if (configResource == null || string.IsNullOrEmpty(configResource.Name))
-                    {
-                        LogWarning("[UniMcp] 跳过无效的配置资源（名称为空）");
-                        continue;
-                    }
-
-                    // 检查资源是否被禁用
-                    if (!McpLocalSettings.Instance.IsResourceEnabled(configResource.Name))
-                    {
-                        Log($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，已被禁用");
-                        continue;
-                    }
-
-                    // 如果是UnityObject类型，确保URL已计算（必须在主线程中）
-                    configResource.EnsureUrlCalculated();
-
-                    string resourceUrl = configResource.Url;
-                    if (string.IsNullOrEmpty(resourceUrl))
-                    {
-                        LogWarning($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，URL为空");
-                        continue;
-                    }
-
-                    // 检查是否已存在同URL的资源（配置的资源优先级较低，如果已存在则跳过）
-                    if (availableResources.ContainsKey(resourceUrl))
-                    {
-                        Log($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，已存在同URL的资源: {resourceUrl}");
-                        continue;
-                    }
-
-                    availableResources[resourceUrl] = configResource;
-                    Log($"[UniMcp] 成功注册配置的Resource: {configResource.Name} -> {resourceUrl}");
-                }
-
-                Log($"[UniMcp] 配置的资源注册完成");
-            }
-            catch (Exception ex)
-            {
-                LogError($"[UniMcp] 注册配置的资源时发生错误: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -1175,40 +1093,6 @@ namespace UniMcp
                         else
                         {
                             property.Add("default", new JsonData(key.DefaultValue.ToString()));
-                        }
-                    }
-
-                    // 添加最小值约束（仅对number和integer类型）
-                    if (key.Minimum != null && (paramType == "number" || paramType == "integer"))
-                    {
-                        if (key.Minimum is int intMin)
-                        {
-                            property.Add("minimum", new JsonData(intMin));
-                        }
-                        else if (key.Minimum is float floatMin)
-                        {
-                            property.Add("minimum", new JsonData(floatMin));
-                        }
-                        else if (key.Minimum is double doubleMin)
-                        {
-                            property.Add("minimum", new JsonData(doubleMin));
-                        }
-                    }
-
-                    // 添加最大值约束（仅对number和integer类型）
-                    if (key.Maximum != null && (paramType == "number" || paramType == "integer"))
-                    {
-                        if (key.Maximum is int intMax)
-                        {
-                            property.Add("maximum", new JsonData(intMax));
-                        }
-                        else if (key.Maximum is float floatMax)
-                        {
-                            property.Add("maximum", new JsonData(floatMax));
-                        }
-                        else if (key.Maximum is double doubleMax)
-                        {
-                            property.Add("maximum", new JsonData(doubleMax));
                         }
                     }
 
@@ -2300,7 +2184,7 @@ namespace UniMcp
             if (paramsNode != null)
             {
                 Log($"[UniMcp] 初始化参数: {paramsNode}");
-
+                
                 // 尝试从初始化参数中提取客户端信息（包括回调地址）
                 var paramsObj = paramsNode.ToObject();
                 if (paramsObj.ContainsKey("clientInfo"))
@@ -2312,7 +2196,7 @@ namespace UniMcp
                         string clientName = clientInfoObj["name"]?.Value ?? "Unknown";
                         string clientVersion = clientInfoObj["version"]?.Value ?? "Unknown";
                         Log($"[UniMcp] 客户端信息: {clientName} v{clientVersion}");
-
+                        
                         // 提取客户端回调地址（如果提供）
                         if (clientInfoObj.ContainsKey("callbackUrl") || clientInfoObj.ContainsKey("url"))
                         {
@@ -2354,28 +2238,28 @@ namespace UniMcp
 
             // Tools capability
             var toolsCapability = new JsonClass();
-            // 动态检查工具数量是否发生变化
-            bool hasChanged = HasToolCountChanged();
-            toolsCapability.Add("listChanged", new JsonData(hasChanged));
-            Log($"[UniMcp] 初始化响应 - listChanged: {hasChanged}");
-
-            // 如果工具数量发生了变化，更新保存的数量以便下次比较
-            if (hasChanged)
-            {
-                McpLocalSettings.Instance.LastToolCount = availableTools.Count;
-                Log($"[UniMcp] 工具数量已变化，更新保存的数量: {availableTools.Count}");
-            }
+            // 动态检查工具数量是否发生变化（会自动更新 LastToolCount）
+            bool toolsChanged = HasToolCountChanged();
+            toolsCapability.Add("listChanged", new JsonData(toolsChanged));
+            Log($"[UniMcp] 初始化响应 - tools.listChanged: {toolsChanged}");
+            
             capabilities.Add("tools", toolsCapability);
 
             // Prompts capability
             var promptsCapability = new JsonClass();
-            promptsCapability.Add("listChanged", new JsonData(true)); // 暂时总是返回true
+            // 动态检查 Prompt 数量是否发生变化（会自动更新 LastPromptCount）
+            bool promptsChanged = HasPromptCountChanged();
+            promptsCapability.Add("listChanged", new JsonData(promptsChanged));
+            Log($"[UniMcp] 初始化响应 - prompts.listChanged: {promptsChanged}");
             capabilities.Add("prompts", promptsCapability);
 
             // Resources capability  
             var resourcesCapability = new JsonClass();
-            resourcesCapability.Add("listChanged", new JsonData(true)); // 暂时总是返回true
-            resourcesCapability.Add("subscribe", new JsonData(true)); // 支持订阅（通过轮询方式实现）
+            // 动态检查 Resource 数量是否发生变化（会自动更新 LastResourceCount）
+            bool resourcesChanged = HasResourceCountChanged();
+            resourcesCapability.Add("listChanged", new JsonData(resourcesChanged));
+            Log($"[UniMcp] 初始化响应 - resources.listChanged: {resourcesChanged}");
+            resourcesCapability.Add("subscribe", new JsonData(false)); // 不支持订阅
             capabilities.Add("resources", resourcesCapability);
             result.Add("capabilities", capabilities);
 
@@ -2384,56 +2268,9 @@ namespace UniMcp
             serverInfo.Add("version", new JsonData(serverVersion));
             result.Add("serverInfo", serverInfo);
 
-            // 直接在初始化响应中包含启用的工具列表
-            var enabledToolNames = GetEnabledToolNames();
-            var toolsArray = new JsonArray();
-            var toolInfosCopy = toolInfos.Values.ToList();
-            foreach (var toolInfo in toolInfosCopy)
-            {
-                // 只添加启用的工具
-                if (enabledToolNames.Contains(toolInfo.name))
-                {
-                    Log($"[UniMcp] 在初始化响应中添加启用的工具: {toolInfo.name}");
-                    var tool = new JsonClass();
-                    tool.Add("name", new JsonData(toolInfo.name));
-                    tool.Add("description", new JsonData(toolInfo.description));
-                    if (toolInfo.inputSchema != null)
-                    {
-                        tool.Add("inputSchema", toolInfo.inputSchema);
-                    }
-                    toolsArray.Add(tool);
-                }
-                else
-                {
-                    Log($"[UniMcp] 在初始化响应中跳过禁用的工具: {toolInfo.name}");
-                }
-            }
-            result.Add("tools", toolsArray);
-
-            // 在初始化响应中包含资源列表（类似工具列表）
-            var resourcesArray = new JsonArray();
-            var resourcesCopy = availableResources.Values.ToList();
-            foreach (var resource in resourcesCopy)
-            {
-                // 跳过Name为空或空字符串的无效资源
-                if (resource == null || string.IsNullOrEmpty(resource.Name))
-                {
-                    Log($"[UniMcp] 跳过无效资源（Name为空）: {resource?.Url ?? "null"}");
-                    continue;
-                }
-
-                Log($"[UniMcp] 在初始化响应中添加资源: {resource.Url}");
-                var resourceObj = new JsonClass();
-                resourceObj.Add("uri", new JsonData(resource.Url));
-                resourceObj.Add("name", new JsonData(resource.Name));
-                resourceObj.Add("description", new JsonData(resource.Description));
-                resourceObj.Add("mimeType", new JsonData(resource.MimeType));
-                resourcesArray.Add(resourceObj);
-            }
-            result.Add("resources", resourcesArray);
-
             string responseJson = CreateMcpSuccessResponse(id, result);
-            McpLogger.Log($"[UniMcp] 初始化响应包含 {toolsArray.Count} 个启用的工具和 {resourcesArray.Count} 个资源");
+            McpLogger.Log($"[UniMcp] 初始化响应已创建 - 协议版本: 2024-11-05");
+            McpLogger.Log($"[UniMcp] 服务器能力 - tools.listChanged: {toolsChanged}, prompts.listChanged: {promptsChanged}, resources.listChanged: {resourcesChanged}");
             return responseJson;
         }
 
@@ -2507,13 +2344,6 @@ namespace UniMcp
             var promptsCopy = availablePrompts.Values.ToList();
             foreach (var prompt in promptsCopy)
             {
-                // 跳过Name为空或空字符串的无效提示词
-                if (prompt == null || string.IsNullOrEmpty(prompt.Name))
-                {
-                    LogWarning($"[UniMcp] 跳过无效提示词（Name为空）");
-                    continue;
-                }
-
                 Log($"[UniMcp] 添加Prompt到列表: {prompt.Name}");
                 var promptObj = new JsonClass();
                 promptObj.Add("name", new JsonData(prompt.Name));
@@ -2541,6 +2371,7 @@ namespace UniMcp
             result.Add("prompts", prompts);
 
             string responseJson = CreateMcpSuccessResponse(id, result);
+            
             Log($"[UniMcp] prompts/list响应: {responseJson}");
             McpLogger.Log($"[UniMcp] 返回Prompts数量: {prompts.Count}");
             return responseJson;
@@ -2620,13 +2451,6 @@ namespace UniMcp
             var resourcesCopy = availableResources.Values.ToList();
             foreach (var resource in resourcesCopy)
             {
-                // 跳过Name为空或空字符串的无效资源
-                if (resource == null || string.IsNullOrEmpty(resource.Name))
-                {
-                    Log($"[UniMcp] 跳过无效资源（Name为空）: {resource?.Url ?? "null"}");
-                    continue;
-                }
-
                 Log($"[UniMcp] 添加Resource到列表: {resource.Url}");
                 var resourceObj = new JsonClass();
                 resourceObj.Add("uri", new JsonData(resource.Url));
@@ -2640,6 +2464,7 @@ namespace UniMcp
             result.Add("resources", resources);
 
             string responseJson = CreateMcpSuccessResponse(id, result);
+            
             Log($"[UniMcp] resources/list响应: {responseJson}");
             McpLogger.Log($"[UniMcp] 返回Resources数量: {resources.Count}");
             return responseJson;
@@ -2674,7 +2499,7 @@ namespace UniMcp
                 string actualResourceUri = resourceUri; // 实际用于读取的URI
 
                 Log($"[UniMcp] 初始状态 - resourceUri: {resourceUri}, actualResourceUri: {actualResourceUri}");
-
+                
                 // 支持 resource:// 协议，通过资源名称查找
                 if (resourceUri.StartsWith("resource://"))
                 {
@@ -2693,7 +2518,7 @@ namespace UniMcp
                             break;
                         }
                     }
-
+                    
                     if (resource == null)
                     {
                         return CreateMcpErrorResponse(id, -32602, $"Resource not found by name: {resourceName}");
@@ -2717,7 +2542,7 @@ namespace UniMcp
                         // 创建一个临时资源对象
                         resourceMimeType = "application/octet-stream"; // 默认二进制类型
                         actualResourceUri = resourceUri;
-
+                        
                         // 根据文件扩展名推断MIME类型
                         if (resourceUri.StartsWith("file://"))
                         {
@@ -2742,16 +2567,16 @@ namespace UniMcp
                         return CreateMcpErrorResponse(id, -32602, $"Resource not found: {resourceUri}");
                     }
                 }
-
+                
                 // 确保 actualResourceUri 已设置，且是有效的协议
                 if (string.IsNullOrEmpty(actualResourceUri))
                 {
                     return CreateMcpErrorResponse(id, -32602, $"Invalid resource URI: {resourceUri}");
                 }
-
+                
                 // 验证 actualResourceUri 是否支持读取/下载
-                if (!actualResourceUri.StartsWith("file://") &&
-                    !actualResourceUri.StartsWith("http://") &&
+                if (!actualResourceUri.StartsWith("file://") && 
+                    !actualResourceUri.StartsWith("http://") && 
                     !actualResourceUri.StartsWith("https://"))
                 {
                     return CreateMcpErrorResponse(id, -32602, $"Unsupported URI scheme for reading: {actualResourceUri}");
@@ -2770,20 +2595,20 @@ namespace UniMcp
                 bool isTextType = IsTextMimeType(resourceMimeType);
                 Log($"[UniMcp] 准备读取资源，actualResourceUri: {actualResourceUri}, resourceMimeType: {resourceMimeType}, isTextType: {isTextType}, resource: {(resource != null ? resource.Name : "null")}");
                 Log($"[UniMcp] actualResourceUri协议检查: file://={actualResourceUri.StartsWith("file://")}, http://={actualResourceUri.StartsWith("http://")}, https://={actualResourceUri.StartsWith("https://")}");
-
+                
                 // 先检查缓存
                 string textContent = null;
                 byte[] binaryContent = null;
                 bool useCache = false;
                 ResourceCacheData cachedData = null;
-
+                
                 lock (loadedResources)
                 {
                     if (loadedResources.TryGetValue(actualResourceUri, out cachedData))
                     {
                         // 检查缓存是否有效
                         bool cacheValid = false;
-
+                        
                         if (actualResourceUri.StartsWith("file://"))
                         {
                             // 对于文件资源，检查文件修改时间
@@ -2823,7 +2648,7 @@ namespace UniMcp
                                 loadedResources.Remove(actualResourceUri); // 移除过期缓存
                             }
                         }
-
+                        
                         if (cacheValid && cachedData != null)
                         {
                             textContent = cachedData.TextContent;
@@ -2847,7 +2672,7 @@ namespace UniMcp
                         Log($"[UniMcp] 缓存未命中，需要读取/下载资源，URI: {actualResourceUri}");
                     }
                 }
-
+                
                 // 如果缓存未命中或已过期，需要实际读取/下载
                 Log($"[UniMcp] 缓存检查结果 - useCache: {useCache}, textContent: {(textContent != null ? textContent.Length + " chars" : "null")}, binaryContent: {(binaryContent != null ? binaryContent.Length + " bytes" : "null")}");
                 
@@ -2856,172 +2681,171 @@ namespace UniMcp
                     Log($"[UniMcp] 开始实际读取/下载资源，actualResourceUri: {actualResourceUri}");
                     try
                     {
-                        if (actualResourceUri.StartsWith("file://"))
+                    if (actualResourceUri.StartsWith("file://"))
+                    {
+                        // 处理 file:// 协议
+                        string filePath = ParseFilePath(actualResourceUri);
+
+                        Log($"[UniMcp] 尝试读取文件: {filePath}, MIME类型: {(resource != null ? resource.MimeType : resourceMimeType)}, 是否为文本: {isTextType}");
+                        
+                        // 检查文件是否已变更（对于订阅的资源）
+                        bool isSubscribed = false;
+                        lock (subscribedResources)
                         {
-                            // 处理 file:// 协议
-                            string filePath = ParseFilePath(actualResourceUri);
-
-                            Log($"[UniMcp] 尝试读取文件: {filePath}, MIME类型: {(resource != null ? resource.MimeType : resourceMimeType)}, 是否为文本: {isTextType}");
-
-                            // 检查文件是否已变更（对于订阅的资源）
-                            bool isSubscribed = false;
-                            lock (subscribedResources)
+                            isSubscribed = subscribedResources.Contains(actualResourceUri) || subscribedResources.Contains(resourceUri);
+                        }
+                        
+                        if (isSubscribed && System.IO.File.Exists(filePath))
+                        {
+                            var currentWriteTime = System.IO.File.GetLastWriteTime(filePath);
+                            lock (resourceLastModified)
                             {
-                                isSubscribed = subscribedResources.Contains(actualResourceUri) || subscribedResources.Contains(resourceUri);
-                            }
-
-                            if (isSubscribed && System.IO.File.Exists(filePath))
-                            {
-                                var currentWriteTime = System.IO.File.GetLastWriteTime(filePath);
-                                lock (resourceLastModified)
+                                string checkUri = subscribedResources.Contains(actualResourceUri) ? actualResourceUri : resourceUri;
+                                if (resourceLastModified.TryGetValue(checkUri, out var lastWriteTime))
                                 {
-                                    string checkUri = subscribedResources.Contains(actualResourceUri) ? actualResourceUri : resourceUri;
-                                    if (resourceLastModified.TryGetValue(checkUri, out var lastWriteTime))
+                                    if (currentWriteTime > lastWriteTime)
                                     {
-                                        if (currentWriteTime > lastWriteTime)
-                                        {
-                                            Log($"[UniMcp] 检测到文件变更: {filePath}，最后修改时间: {currentWriteTime}");
-                                            resourceLastModified[checkUri] = currentWriteTime;
-
-                                            // 发送变更通知到客户端（如果有回调地址）
-                                            _ = SendResourceChangeNotification(resourceUri);
-                                        }
-                                    }
-                                    else
-                                    {
-                                         checkUri = subscribedResources.Contains(actualResourceUri) ? actualResourceUri : resourceUri;
+                                        Log($"[UniMcp] 检测到文件变更: {filePath}，最后修改时间: {currentWriteTime}");
                                         resourceLastModified[checkUri] = currentWriteTime;
+                                        
+                                        // 发送变更通知到客户端（如果有回调地址）
+                                        _ = SendResourceChangeNotification(resourceUri);
                                     }
-                                }
-                            }
-
-                            if (System.IO.File.Exists(filePath))
-                            {
-                                if (isTextType)
-                                {
-                                    // 读取文本内容
-                                    textContent = System.IO.File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                                    Log($"[UniMcp] 成功读取文本内容，长度: {textContent?.Length ?? 0}");
                                 }
                                 else
                                 {
-                                    // 读取二进制内容
-                                    binaryContent = System.IO.File.ReadAllBytes(filePath);
-                                    Log($"[UniMcp] 成功读取二进制内容，长度: {binaryContent?.Length ?? 0} bytes");
+                                    resourceLastModified[checkUri] = currentWriteTime;
                                 }
+                            }
+                        }
+
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            if (isTextType)
+                            {
+                                // 读取文本内容
+                                textContent = System.IO.File.ReadAllText(filePath, System.Text.Encoding.UTF8);
+                                Log($"[UniMcp] 成功读取文本内容，长度: {textContent?.Length ?? 0}");
                             }
                             else
                             {
-                                LogWarning($"[UniMcp] 文件不存在: {filePath}");
-                                textContent = $"Error: File not found: {filePath}";
-                            }
-                        }
-                        else if (actualResourceUri.StartsWith("http://") || actualResourceUri.StartsWith("https://"))
-                        {
-                            // 处理 HTTP/HTTPS 协议，异步下载资源
-                            // 无论资源是否已注册，都需要实际下载内容
-                            Log($"[UniMcp] ✓ 进入HTTP/HTTPS下载逻辑，actualResourceUri: {actualResourceUri}, MIME类型: {resourceMimeType}, 资源已注册: {resource != null}");
-
-                            try
-                            {
-                                // 直接使用 await 进行异步下载
-                                Log($"[UniMcp] 创建HTTP请求: {actualResourceUri}");
-
-                                var request = (HttpWebRequest)WebRequest.Create(actualResourceUri);
-                                request.Method = "GET";
-                                request.Timeout = 30000; // 30秒超时
-                                request.UserAgent = "Unity-MCP-Server/1.0";
-
-                                using (var response = (HttpWebResponse)await request.GetResponseAsync())
-                                {
-                                    // 获取 Content-Type
-                                    string contentType = response.ContentType;
-                                    if (string.IsNullOrEmpty(contentType))
-                                    {
-                                        contentType = resourceMimeType;
-                                    }
-
-                                    // 移除 Content-Type 中的参数（如 charset=utf-8）
-                                    if (contentType.Contains(";"))
-                                    {
-                                        contentType = contentType.Substring(0, contentType.IndexOf(";")).Trim();
-                                    }
-
-                                    resourceMimeType = contentType;
-                                    Log($"[UniMcp] HTTP响应 Content-Type: {contentType}");
-
-                                    // 更新 content 的 mimeType
-                                    content["mimeType"] = new JsonData(contentType);
-
-                                    // 根据 Content-Type 判断是文本还是二进制
-                                    bool isText = IsTextMimeType(contentType);
-                                    Log($"[UniMcp] MIME类型 {contentType} 是否为文本: {isText}");
-
-                                    // 读取响应内容
-                                    using (var stream = response.GetResponseStream())
-                                    using (var memoryStream = new MemoryStream())
-                                    {
-                                        await stream.CopyToAsync(memoryStream);
-                                        byte[] data = memoryStream.ToArray();
-                                        Log($"[UniMcp] 下载数据大小: {data.Length} bytes");
-
-                                        if (isText)
-                                        {
-                                            // 尝试检测编码
-                                            System.Text.Encoding encoding = System.Text.Encoding.UTF8;
-                                            string charset = response.ContentType;
-                                            if (!string.IsNullOrEmpty(charset) && charset.Contains("charset="))
-                                            {
-                                                try
-                                                {
-                                                    string charsetName = charset.Substring(charset.IndexOf("charset=") + 8).Trim();
-                                                    if (charsetName.Contains(";"))
-                                                        charsetName = charsetName.Substring(0, charsetName.IndexOf(";")).Trim();
-                                                    encoding = System.Text.Encoding.GetEncoding(charsetName);
-                                                }
-                                                catch
-                                                {
-                                                    // 如果编码解析失败，使用UTF-8
-                                                    encoding = System.Text.Encoding.UTF8;
-                                                }
-                                            }
-
-                                            textContent = encoding.GetString(data);
-                                            Log($"[UniMcp] 成功下载文本内容，长度: {textContent?.Length ?? 0}");
-                                        }
-                                        else
-                                        {
-                                            binaryContent = data;
-                                            Log($"[UniMcp] 成功下载二进制内容，大小: {binaryContent?.Length ?? 0} bytes");
-                                        }
-                                    }
-                                }
-                            }
-                            catch (WebException ex)
-                            {
-                                LogError($"[UniMcp] HTTP下载失败: {ex.Message}\n{ex.StackTrace}");
-                                textContent = $"Error: Failed to download resource: {ex.Message}";
-                            }
-                            catch (Exception ex)
-                            {
-                                LogError($"[UniMcp] HTTP下载处理异常: {ex.Message}\n{ex.StackTrace}");
-                                textContent = $"Error: Failed to download resource: {ex.Message}";
+                                // 读取二进制内容
+                                binaryContent = System.IO.File.ReadAllBytes(filePath);
+                                Log($"[UniMcp] 成功读取二进制内容，长度: {binaryContent?.Length ?? 0} bytes");
                             }
                         }
                         else
                         {
-                            // 其他协议暂不支持
-                            LogWarning($"[UniMcp] ⚠ 不支持的URI协议: actualResourceUri={actualResourceUri}, resourceUri={resourceUri}，未进入file://或http:///https://分支");
-                            LogWarning($"[UniMcp] actualResourceUri.StartsWith('file://')={actualResourceUri?.StartsWith("file://")}, StartsWith('http://')={actualResourceUri?.StartsWith("http://")}, StartsWith('https://')={actualResourceUri?.StartsWith("https://")}");
-                            textContent = $"Error: Unsupported URI scheme: {actualResourceUri}";
+                            LogWarningThreadSafe($"[UniMcp] 文件不存在: {filePath}");
+                            textContent = $"Error: File not found: {filePath}";
                         }
+                    }
+                    else if (actualResourceUri.StartsWith("http://") || actualResourceUri.StartsWith("https://"))
+                    {
+                        // 处理 HTTP/HTTPS 协议，异步下载资源
+                        // 无论资源是否已注册，都需要实际下载内容
+                        Log($"[UniMcp] ✓ 进入HTTP/HTTPS下载逻辑，actualResourceUri: {actualResourceUri}, MIME类型: {resourceMimeType}, 资源已注册: {resource != null}");
+                        
+                        try
+                        {
+                            // 直接使用 await 进行异步下载
+                            Log($"[UniMcp] 创建HTTP请求: {actualResourceUri}");
+                            
+                            var request = (HttpWebRequest)WebRequest.Create(actualResourceUri);
+                            request.Method = "GET";
+                            request.Timeout = 30000; // 30秒超时
+                            request.UserAgent = "Unity-MCP-Server/1.0";
+                            
+                            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+                            {
+                                // 获取 Content-Type
+                                string contentType = response.ContentType;
+                                if (string.IsNullOrEmpty(contentType))
+                                {
+                                    contentType = resourceMimeType;
+                                }
+                                
+                                // 移除 Content-Type 中的参数（如 charset=utf-8）
+                                if (contentType.Contains(";"))
+                                {
+                                    contentType = contentType.Substring(0, contentType.IndexOf(";")).Trim();
+                                }
+                                
+                                resourceMimeType = contentType;
+                                Log($"[UniMcp] HTTP响应 Content-Type: {contentType}");
+                                
+                                // 更新 content 的 mimeType
+                                content["mimeType"] = new JsonData(contentType);
+                                
+                                // 根据 Content-Type 判断是文本还是二进制
+                                bool isText = IsTextMimeType(contentType);
+                                Log($"[UniMcp] MIME类型 {contentType} 是否为文本: {isText}");
+                                
+                                // 读取响应内容
+                                using (var stream = response.GetResponseStream())
+                                using (var memoryStream = new MemoryStream())
+                                {
+                                    await stream.CopyToAsync(memoryStream);
+                                    byte[] data = memoryStream.ToArray();
+                                    Log($"[UniMcp] 下载数据大小: {data.Length} bytes");
+                                    
+                                    if (isText)
+                                    {
+                                        // 尝试检测编码
+                                        System.Text.Encoding encoding = System.Text.Encoding.UTF8;
+                                        string charset = response.ContentType;
+                                        if (!string.IsNullOrEmpty(charset) && charset.Contains("charset="))
+                                        {
+                                            try
+                                            {
+                                                string charsetName = charset.Substring(charset.IndexOf("charset=") + 8).Trim();
+                                                if (charsetName.Contains(";"))
+                                                    charsetName = charsetName.Substring(0, charsetName.IndexOf(";")).Trim();
+                                                encoding = System.Text.Encoding.GetEncoding(charsetName);
+                                            }
+                                            catch
+                                            {
+                                                // 如果编码解析失败，使用UTF-8
+                                                encoding = System.Text.Encoding.UTF8;
+                                            }
+                                        }
+                                        
+                                        textContent = encoding.GetString(data);
+                                        Log($"[UniMcp] 成功下载文本内容，长度: {textContent?.Length ?? 0}");
+                                    }
+                                    else
+                                    {
+                                        binaryContent = data;
+                                        Log($"[UniMcp] 成功下载二进制内容，大小: {binaryContent?.Length ?? 0} bytes");
+                                    }
+                                }
+                            }
+                        }
+                        catch (WebException ex)
+                        {
+                            LogErrorThreadSafe($"[UniMcp] HTTP下载失败: {ex.Message}\n{ex.StackTrace}");
+                            textContent = $"Error: Failed to download resource: {ex.Message}";
+                        }
+                        catch (Exception ex)
+                        {
+                            LogErrorThreadSafe($"[UniMcp] HTTP下载处理异常: {ex.Message}\n{ex.StackTrace}");
+                            textContent = $"Error: Failed to download resource: {ex.Message}";
+                        }
+                    }
+                    else
+                    {
+                        // 其他协议暂不支持
+                        LogWarningThreadSafe($"[UniMcp] ⚠ 不支持的URI协议: actualResourceUri={actualResourceUri}, resourceUri={resourceUri}，未进入file://或http:///https://分支");
+                        LogWarningThreadSafe($"[UniMcp] actualResourceUri.StartsWith('file://')={actualResourceUri?.StartsWith("file://")}, StartsWith('http://')={actualResourceUri?.StartsWith("http://")}, StartsWith('https://')={actualResourceUri?.StartsWith("https://")}");
+                        textContent = $"Error: Unsupported URI scheme: {actualResourceUri}";
+                    }
                     }
                     catch (Exception ex)
                     {
-                        LogError($"[UniMcp] 读取资源内容时出错: {ex.Message}\n{ex.StackTrace}");
+                        LogErrorThreadSafe($"[UniMcp] 读取资源内容时出错: {ex.Message}\n{ex.StackTrace}");
                         textContent = $"Error: Failed to read resource content: {ex.Message}";
                     }
-
+                    
                     // 将读取/下载的内容存入缓存
                     if (!string.IsNullOrEmpty(textContent) || (binaryContent != null && binaryContent.Length > 0))
                     {
@@ -3034,7 +2858,7 @@ namespace UniMcp
                                 MimeType = resourceMimeType,
                                 IsFromFile = actualResourceUri.StartsWith("file://")
                             };
-
+                            
                             if (actualResourceUri.StartsWith("file://"))
                             {
                                 string filePath = ParseFilePath(actualResourceUri);
@@ -3052,7 +2876,7 @@ namespace UniMcp
                                 // HTTP资源使用当前时间作为缓存时间
                                 cacheData.LastModified = DateTime.Now;
                             }
-
+                            
                             loadedResources[actualResourceUri] = cacheData;
                             Log($"[UniMcp] ✓ 资源内容已存入缓存，URI: {actualResourceUri}");
                         }
@@ -3062,7 +2886,7 @@ namespace UniMcp
                 // 如果读取失败，返回描述信息作为后备（仅当没有二进制内容时）
                 if (string.IsNullOrEmpty(textContent) && binaryContent == null)
                 {
-                    LogWarning($"[UniMcp] 资源读取失败，textContent 和 binaryContent 都为空，URI: {resourceUri}");
+                    LogWarningThreadSafe($"[UniMcp] 资源读取失败，textContent 和 binaryContent 都为空，URI: {resourceUri}");
                     if (resource != null)
                     {
                         textContent = $"Resource: {resource.Name}\nDescription: {resource.Description}\nMimeType: {resource.MimeType}";
@@ -3079,7 +2903,7 @@ namespace UniMcp
                 // 根据内容类型添加相应的字段
                 // 对于二进制内容（如图片），只返回 blob 字段，不返回 text 字段
                 Log($"[UniMcp] 准备构建响应 - textContent: {(textContent != null ? textContent.Length + " chars" : "null")}, binaryContent: {(binaryContent != null ? binaryContent.Length + " bytes" : "null")}");
-
+                
                 if (binaryContent != null && binaryContent.Length > 0)
                 {
                     // 将二进制内容转换为base64编码
@@ -3097,19 +2921,19 @@ namespace UniMcp
                 {
                     Log($"[UniMcp] ⚠ 警告：响应中没有内容（textContent和binaryContent都为空）");
                 }
-
+                
                 contents.Add(content);
                 result.Add("contents", contents);
-
+                
                 Log($"[UniMcp] 响应构建完成，contents数量: {contents.Count}");
 
                 return CreateMcpSuccessResponse(id, result);
             }
             catch (Exception ex)
             {
-                LogError($"[UniMcp] ========== HandleResourcesRead 异常 ==========");
-                LogError($"[UniMcp] 处理resources/read请求失败: {ex.Message}");
-                LogError($"[UniMcp] 异常堆栈: {ex.StackTrace}");
+                LogErrorThreadSafe($"[UniMcp] ========== HandleResourcesRead 异常 ==========");
+                LogErrorThreadSafe($"[UniMcp] 处理resources/read请求失败: {ex.Message}");
+                LogErrorThreadSafe($"[UniMcp] 异常堆栈: {ex.StackTrace}");
                 return CreateMcpErrorResponse(id, -32603, $"Internal error: {ex.Message}");
             }
             finally
@@ -3258,7 +3082,7 @@ namespace UniMcp
                 return "application/octet-stream";
 
             extension = extension.ToLowerInvariant();
-
+            
             // 常见的MIME类型映射
             switch (extension)
             {
@@ -3311,7 +3135,7 @@ namespace UniMcp
                 case ".bash": return "application/x-bash";
                 case ".zsh": return "application/x-zsh";
                 case ".fish": return "application/x-fish";
-
+                
                 // 图片类型
                 case ".png": return "image/png";
                 case ".jpg": case ".jpeg": return "image/jpeg";
@@ -3321,7 +3145,7 @@ namespace UniMcp
                 case ".svg": return "image/svg+xml";
                 case ".ico": return "image/x-icon";
                 case ".tiff": case ".tif": return "image/tiff";
-
+                
                 // 音频类型
                 case ".mp3": return "audio/mpeg";
                 case ".wav": return "audio/wav";
@@ -3329,7 +3153,7 @@ namespace UniMcp
                 case ".flac": return "audio/flac";
                 case ".aac": return "audio/aac";
                 case ".m4a": return "audio/mp4";
-
+                
                 // 视频类型
                 case ".mp4": return "video/mp4";
                 case ".avi": return "video/x-msvideo";
@@ -3337,7 +3161,7 @@ namespace UniMcp
                 case ".wmv": return "video/x-ms-wmv";
                 case ".flv": return "video/x-flv";
                 case ".webm": return "video/webm";
-
+                
                 // 文档类型
                 case ".pdf": return "application/pdf";
                 case ".doc": return "application/msword";
@@ -3351,7 +3175,7 @@ namespace UniMcp
                 case ".7z": return "application/x-7z-compressed";
                 case ".tar": return "application/x-tar";
                 case ".gz": return "application/gzip";
-
+                
                 default:
                     return "application/octet-stream";
             }
@@ -3366,11 +3190,11 @@ namespace UniMcp
                 return true; // 默认为文本类型
 
             mimeType = mimeType.ToLowerInvariant();
-
+            
             // 文本类型
             if (mimeType.StartsWith("text/"))
                 return true;
-
+            
             // JSON、XML、YAML等文本格式
             if (mimeType == "application/json" ||
                 mimeType == "application/xml" ||
@@ -3499,7 +3323,7 @@ namespace UniMcp
                 var notification = new JsonClass();
                 notification.Add("jsonrpc", new JsonData("2.0"));
                 notification.Add("method", new JsonData("notifications/resource_changed"));
-
+                
                 var notificationParams = new JsonClass();
                 notificationParams.Add("uri", new JsonData(resourceUri));
                 notificationParams.Add("changeType", new JsonData("modified"));

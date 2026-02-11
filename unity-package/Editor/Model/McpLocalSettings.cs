@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEditor;
 
@@ -12,11 +13,20 @@ namespace UniMcp
     [FilePath("UserSettings/McpLocalSettings.asset", FilePathAttribute.Location.ProjectFolder)]
     public class McpLocalSettings : ScriptableSingleton<McpLocalSettings>
     {
+        // 保存主线程的线程ID
+        private static int mainThreadId = -1;
+        
         [SerializeField]
         private int _mcpServerPort = 8000;
 
         [SerializeField]
         private int _lastToolCount = -1; // -1表示首次运行
+        
+        [SerializeField]
+        private int _lastPromptCount = -1; // -1表示首次运行
+        
+        [SerializeField]
+        private int _lastResourceCount = -1; // -1表示首次运行
 
         [SerializeField]
         private bool _mcpOpenState = false;
@@ -124,13 +134,35 @@ namespace UniMcp
         public static McpLocalSettings Instance => instance;
 
         /// <summary>
-        /// 保存设置
+        /// 保存设置（线程安全版本）
         /// </summary>
         public void SaveSettings()
         {
-            EditorUtility.SetDirty(this);
-            Save(true);
-            Debug.Log($"[McpLocalSettings] SaveSettings 调用完成 - 文件路径: UserSettings/McpLocalSettings.asset");
+            // 检查是否在主线程
+            if (Thread.CurrentThread.ManagedThreadId == mainThreadId)
+            {
+                // 主线程：直接保存
+                EditorUtility.SetDirty(this);
+                Save(true);
+                Debug.Log($"[McpLocalSettings] SaveSettings 调用完成 - 文件路径: UserSettings/McpLocalSettings.asset");
+            }
+            else
+            {
+                // 非主线程：调度到主线程执行
+                EditorApplication.delayCall += () =>
+                {
+                    try
+                    {
+                        EditorUtility.SetDirty(this);
+                        Save(true);
+                        Debug.Log($"[McpLocalSettings] SaveSettings 已在主线程完成 - 文件路径: UserSettings/McpLocalSettings.asset");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[McpLocalSettings] 保存设置失败: {ex.Message}");
+                    }
+                };
+            }
         }
 
         /// <summary>
@@ -163,10 +195,63 @@ namespace UniMcp
         /// 检查工具数量是否发生变化
         /// </summary>
         /// <param name="currentCount">当前工具数量</param>
+        /// <param name="updateIfChanged">如果发生变化，是否自动更新 LastToolCount（默认为 true）</param>
         /// <returns>是否发生变化</returns>
-        public bool HasToolCountChanged(int currentCount)
+        public bool HasToolCountChanged(int currentCount, bool updateIfChanged = true)
         {
-            return LastToolCount == -1 || currentCount != LastToolCount;
+            bool hasChanged = LastToolCount == -1 || currentCount != LastToolCount;
+            
+            // 如果发生变化且需要更新，则自动更新 LastToolCount
+            if (hasChanged && updateIfChanged)
+            {
+                LastToolCount = currentCount;
+                SaveSettings();
+                Debug.Log($"[McpLocalSettings] 工具数量已变化，自动更新并保存: {LastToolCount}");
+            }
+            
+            return hasChanged;
+        }
+        
+        /// <summary>
+        /// 检查 Prompt 数量是否发生变化
+        /// </summary>
+        /// <param name="currentCount">当前 Prompt 数量</param>
+        /// <param name="updateIfChanged">如果发生变化，是否自动更新 LastPromptCount（默认为 true）</param>
+        /// <returns>是否发生变化</returns>
+        public bool HasPromptCountChanged(int currentCount, bool updateIfChanged = true)
+        {
+            bool hasChanged = _lastPromptCount == -1 || currentCount != _lastPromptCount;
+            
+            // 如果发生变化且需要更新，则自动更新 LastPromptCount
+            if (hasChanged && updateIfChanged)
+            {
+                _lastPromptCount = currentCount;
+                SaveSettings();
+                Debug.Log($"[McpLocalSettings] Prompt数量已变化，自动更新并保存: {_lastPromptCount}");
+            }
+            
+            return hasChanged;
+        }
+        
+        /// <summary>
+        /// 检查 Resource 数量是否发生变化
+        /// </summary>
+        /// <param name="currentCount">当前 Resource 数量</param>
+        /// <param name="updateIfChanged">如果发生变化，是否自动更新 LastResourceCount（默认为 true）</param>
+        /// <returns>是否发生变化</returns>
+        public bool HasResourceCountChanged(int currentCount, bool updateIfChanged = true)
+        {
+            bool hasChanged = _lastResourceCount == -1 || currentCount != _lastResourceCount;
+            
+            // 如果发生变化且需要更新，则自动更新 LastResourceCount
+            if (hasChanged && updateIfChanged)
+            {
+                _lastResourceCount = currentCount;
+                SaveSettings();
+                Debug.Log($"[McpLocalSettings] Resource数量已变化，自动更新并保存: {_lastResourceCount}");
+            }
+            
+            return hasChanged;
         }
 
         /// <summary>
@@ -175,6 +260,37 @@ namespace UniMcp
         public void ResetToolCountRecord()
         {
             LastToolCount = -1;
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// 重置 Prompt 数量记录（用于测试）
+        /// </summary>
+        public void ResetPromptCountRecord()
+        {
+            _lastPromptCount = -1;
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// 重置 Resource 数量记录（用于测试）
+        /// </summary>
+        public void ResetResourceCountRecord()
+        {
+            _lastResourceCount = -1;
+            SaveSettings();
+        }
+        
+        /// <summary>
+        /// 重置所有计数记录（用于测试）
+        /// </summary>
+        public void ResetAllCountRecords()
+        {
+            LastToolCount = -1;
+            _lastPromptCount = -1;
+            _lastResourceCount = -1;
+            SaveSettings();
+            Debug.Log("[McpLocalSettings] 已重置所有计数记录");
         }
 
         /// <summary>
@@ -308,51 +424,17 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 从EditorPrefs迁移旧设置（向后兼容）
-        /// </summary>
-        private void MigrateFromEditorPrefs()
-        {
-            // 迁移端口设置
-            if (EditorPrefs.HasKey("mcp_server_port") && _mcpServerPort == 8000)
-            {
-                _mcpServerPort = EditorPrefs.GetInt("mcp_server_port", 8000);
-                EditorPrefs.DeleteKey("mcp_server_port");
-                Debug.Log("[UniMcp] 已从EditorPrefs迁移端口设置");
-            }
-
-            // 迁移工具数量设置
-            if (EditorPrefs.HasKey("mcp_tool_count") && _lastToolCount == -1)
-            {
-                _lastToolCount = EditorPrefs.GetInt("mcp_tool_count", -1);
-                EditorPrefs.DeleteKey("mcp_tool_count");
-                Debug.Log("[UniMcp] 已从EditorPrefs迁移工具数量设置");
-            }
-
-            // 迁移开启状态设置
-            if (EditorPrefs.HasKey("mcp_open_state") && !_mcpOpenState)
-            {
-                _mcpOpenState = EditorPrefs.GetBool("mcp_open_state", false);
-                EditorPrefs.DeleteKey("mcp_open_state");
-                Debug.Log("[UniMcp] 已从EditorPrefs迁移开启状态设置");
-            }
-
-            // 迁移语言设置
-            if (EditorPrefs.HasKey("UniMcp.Language") && string.IsNullOrEmpty(_currentLanguage))
-            {
-                _currentLanguage = EditorPrefs.GetString("UniMcp.Language", "");
-                EditorPrefs.DeleteKey("UniMcp.Language");
-                Debug.Log("[UniMcp] 已从EditorPrefs迁移语言设置");
-            }
-        }
-
-        /// <summary>
         /// 初始化默认设置
         /// </summary>
         private void OnEnable()
         {
-            // 首先尝试从EditorPrefs迁移旧设置
-            MigrateFromEditorPrefs();
-
+            // 记录主线程ID（OnEnable 总是在主线程调用）
+            if (mainThreadId == -1)
+            {
+                mainThreadId = Thread.CurrentThread.ManagedThreadId;
+                Debug.Log($"[McpLocalSettings] 记录主线程ID: {mainThreadId}");
+            }
+            
             // 确保设置被正确初始化
             if (_mcpServerPort < 1024 || _mcpServerPort > 65535)
             {
@@ -566,6 +648,8 @@ namespace UniMcp
             return $"MCP本地设置摘要:\n" +
                    $"- 服务器端口: {McpServerPort}\n" +
                    $"- 上次工具数量: {LastToolCount}\n" +
+                   $"- 上次Prompt数量: {_lastPromptCount}\n" +
+                   $"- 上次Resource数量: {_lastResourceCount}\n" +
                    $"- 服务开启状态: {McpOpenState}\n" +
                    $"- Resources功能状态: {ResourcesCapability}\n" +
                    $"- 当前语言: {(string.IsNullOrEmpty(CurrentLanguage) ? "系统默认" : CurrentLanguage)}\n" +

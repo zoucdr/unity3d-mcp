@@ -573,6 +573,9 @@ namespace UniMcp.Gui
             Repaint();
         }
 
+        // HTTP请求记录列表的滚动位置
+        private Vector2 httpRequestRecordsScrollPosition;
+
         /// <summary>
         /// 绘制客户端请求记录
         /// </summary>
@@ -650,7 +653,14 @@ namespace UniMcp.Gui
                     InitializeHttpRequestRecordsList();
                 }
 
-                // 直接绘制ReorderableList，填充剩余空间
+                // 用ScrollView包裹ReorderableList，使其可滚动并填充剩余空间
+                httpRequestRecordsScrollPosition = EditorGUILayout.BeginScrollView(
+                    httpRequestRecordsScrollPosition, 
+                    false,  // 不显示横向滚动条（根据需要可以设置为true）
+                    true,   // 显示纵向滚动条
+                    GUILayout.ExpandHeight(true));  // 扩展以填充剩余空间
+
+                // 直接绘制ReorderableList
                 if (httpRequestRecordsList != null)
                 {
                     try
@@ -668,6 +678,8 @@ namespace UniMcp.Gui
                         }
                     }
                 }
+
+                EditorGUILayout.EndScrollView();
             }
             else
             {
