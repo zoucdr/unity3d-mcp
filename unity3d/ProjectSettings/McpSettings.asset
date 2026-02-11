@@ -15,6 +15,33 @@ MonoBehaviour:
   subSettings:
   - rid: 650270508865552384
   - rid: 650270508865552385
+  configurablePrompts:
+  - _name: kill_the_boss
+    _description: "boss\u6253\u6B7B\u65B9\u5F0F"
+    _promptText: "\u6253\u6B7Bboss,\u73B0\u627E\u4E03\u5BF8"
+    _keys:
+    - key: "\u65B0\u53C2\u6570"
+      desc: "\u53C2\u6570\u63CF\u8FF0"
+      optional: 1
+      type: string
+      examples: []
+      enumValues: []
+      defaultValue: 
+    - key: "\u65B0\u53C2\u6570"
+      desc: "\u53C2\u6570\u63CF\u8FF0"
+      optional: 1
+      type: string
+      examples: []
+      enumValues: []
+      defaultValue: 
+  configurableResources:
+  - _name: responce
+    _description: "responce\u811A\u672C"
+    _url: https://example.com/resource
+    _mimeType: text/plain
+    _unityObject: {fileID: 11500000, guid: 80c09a76b944f8c4691e06c4d76c4be8, type: 3}
+    _sourceType: 1
+    _cachedUrl: file:///D:/unity3d-mcp/unity3d/Packages/io.uframe.unity3d-mcp/Editor/Model/Response.cs
   references:
     version: 2
     RefIds:

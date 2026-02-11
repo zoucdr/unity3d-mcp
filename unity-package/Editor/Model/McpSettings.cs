@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UniMcp.Gui;
+using UniMcp.Executer;
 
 namespace UniMcp
 {
@@ -14,6 +15,84 @@ namespace UniMcp
     {
         [SerializeReference]
         public List<IMcpSubSettings> subSettings;
+
+        [SerializeField]
+        private List<ConfigurablePrompt> configurablePrompts = new List<ConfigurablePrompt>();
+
+        [SerializeField]
+        private List<ConfigurableResource> configurableResources = new List<ConfigurableResource>();
+
+        /// <summary>
+        /// 获取所有可配置的提示词
+        /// </summary>
+        public List<ConfigurablePrompt> GetConfigurablePrompts()
+        {
+            if (configurablePrompts == null)
+                configurablePrompts = new List<ConfigurablePrompt>();
+            return configurablePrompts;
+        }
+
+        /// <summary>
+        /// 获取所有可配置的资源
+        /// </summary>
+        public List<ConfigurableResource> GetConfigurableResources()
+        {
+            if (configurableResources == null)
+                configurableResources = new List<ConfigurableResource>();
+            return configurableResources;
+        }
+
+        /// <summary>
+        /// 添加可配置的提示词
+        /// </summary>
+        public void AddConfigurablePrompt(ConfigurablePrompt prompt)
+        {
+            if (prompt == null) return;
+            if (configurablePrompts == null)
+                configurablePrompts = new List<ConfigurablePrompt>();
+            
+            // 检查是否已存在同名提示词
+            int index = configurablePrompts.FindIndex(p => p.Name == prompt.Name);
+            if (index >= 0)
+                configurablePrompts[index] = prompt;
+            else
+                configurablePrompts.Add(prompt);
+        }
+
+        /// <summary>
+        /// 移除可配置的提示词
+        /// </summary>
+        public void RemoveConfigurablePrompt(string name)
+        {
+            if (configurablePrompts == null) return;
+            configurablePrompts.RemoveAll(p => p.Name == name);
+        }
+
+        /// <summary>
+        /// 添加可配置的资源
+        /// </summary>
+        public void AddConfigurableResource(ConfigurableResource resource)
+        {
+            if (resource == null) return;
+            if (configurableResources == null)
+                configurableResources = new List<ConfigurableResource>();
+            
+            // 检查是否已存在同名资源
+            int index = configurableResources.FindIndex(r => r.Name == resource.Name);
+            if (index >= 0)
+                configurableResources[index] = resource;
+            else
+                configurableResources.Add(resource);
+        }
+
+        /// <summary>
+        /// 移除可配置的资源
+        /// </summary>
+        public void RemoveConfigurableResource(string name)
+        {
+            if (configurableResources == null) return;
+            configurableResources.RemoveAll(r => r.Name == name);
+        }
 
         /// <summary>
         /// 获取MCP设置实例

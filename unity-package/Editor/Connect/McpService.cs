@@ -654,6 +654,9 @@ namespace UniMcp
                     }
                 }
 
+                // 注册配置的提示词（从McpSettings）
+                RegisterConfigurablePrompts();
+
                 Log($"[UniMcp] Prompts发现完成，共发现 {availablePrompts.Count} 个Prompts");
 
                 // 列出所有注册的prompts
@@ -666,6 +669,56 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] Prompts发现过程中发生错误: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 注册配置的提示词（从McpSettings）
+        /// </summary>
+        private void RegisterConfigurablePrompts()
+        {
+            try
+            {
+                var configurablePrompts = McpSettings.Instance.GetConfigurablePrompts();
+                if (configurablePrompts == null || configurablePrompts.Count == 0)
+                {
+                    Log("[UniMcp] 没有配置的提示词");
+                    return;
+                }
+
+                Log($"[UniMcp] 开始注册 {configurablePrompts.Count} 个配置的提示词");
+
+                foreach (var configPrompt in configurablePrompts)
+                {
+                    if (configPrompt == null || string.IsNullOrEmpty(configPrompt.Name))
+                    {
+                        LogWarning("[UniMcp] 跳过无效的配置提示词（名称为空）");
+                        continue;
+                    }
+
+                    // 检查是否已存在同名提示词（配置的提示词优先级较低，如果已存在则跳过）
+                    if (availablePrompts.ContainsKey(configPrompt.Name))
+                    {
+                        Log($"[UniMcp] 跳过配置的提示词 '{configPrompt.Name}'，已存在同名提示词");
+                        continue;
+                    }
+
+                    // 检查提示词是否被禁用
+                    if (!McpLocalSettings.Instance.IsPromptEnabled(configPrompt.Name))
+                    {
+                        Log($"[UniMcp] 跳过配置的提示词 '{configPrompt.Name}'，已被禁用");
+                        continue;
+                    }
+
+                    availablePrompts[configPrompt.Name] = configPrompt;
+                    Log($"[UniMcp] 成功注册配置的Prompt: {configPrompt.Name}");
+                }
+
+                Log($"[UniMcp] 配置的提示词注册完成");
+            }
+            catch (Exception ex)
+            {
+                LogError($"[UniMcp] 注册配置的提示词时发生错误: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -730,6 +783,9 @@ namespace UniMcp
                     }
                 }
 
+                // 注册配置的资源（从McpSettings）
+                RegisterConfigurableResources();
+
                 Log($"[UniMcp] Resources发现完成，共发现 {availableResources.Count} 个Resources");
 
                 // 列出所有注册的resources
@@ -742,6 +798,66 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] Resources发现过程中发生错误: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 注册配置的资源（从McpSettings）
+        /// </summary>
+        private void RegisterConfigurableResources()
+        {
+            try
+            {
+                var configurableResources = McpSettings.Instance.GetConfigurableResources();
+                if (configurableResources == null || configurableResources.Count == 0)
+                {
+                    Log("[UniMcp] 没有配置的资源");
+                    return;
+                }
+
+                Log($"[UniMcp] 开始注册 {configurableResources.Count} 个配置的资源");
+
+                foreach (var configResource in configurableResources)
+                {
+                    if (configResource == null || string.IsNullOrEmpty(configResource.Name))
+                    {
+                        LogWarning("[UniMcp] 跳过无效的配置资源（名称为空）");
+                        continue;
+                    }
+
+                    // 检查资源是否被禁用
+                    if (!McpLocalSettings.Instance.IsResourceEnabled(configResource.Name))
+                    {
+                        Log($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，已被禁用");
+                        continue;
+                    }
+
+                    // 如果是UnityObject类型，确保URL已计算（必须在主线程中）
+                    configResource.EnsureUrlCalculated();
+
+                    string resourceUrl = configResource.Url;
+                    if (string.IsNullOrEmpty(resourceUrl))
+                    {
+                        LogWarning($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，URL为空");
+                        continue;
+                    }
+
+                    // 检查是否已存在同URL的资源（配置的资源优先级较低，如果已存在则跳过）
+                    if (availableResources.ContainsKey(resourceUrl))
+                    {
+                        Log($"[UniMcp] 跳过配置的资源 '{configResource.Name}'，已存在同URL的资源: {resourceUrl}");
+                        continue;
+                    }
+
+                    availableResources[resourceUrl] = configResource;
+                    Log($"[UniMcp] 成功注册配置的Resource: {configResource.Name} -> {resourceUrl}");
+                }
+
+                Log($"[UniMcp] 配置的资源注册完成");
+            }
+            catch (Exception ex)
+            {
+                LogError($"[UniMcp] 注册配置的资源时发生错误: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -2265,6 +2381,13 @@ namespace UniMcp
             var resourcesCopy = availableResources.Values.ToList();
             foreach (var resource in resourcesCopy)
             {
+                // 跳过Name为空或空字符串的无效资源
+                if (resource == null || string.IsNullOrEmpty(resource.Name))
+                {
+                    Log($"[UniMcp] 跳过无效资源（Name为空）: {resource?.Url ?? "null"}");
+                    continue;
+                }
+
                 Log($"[UniMcp] 在初始化响应中添加资源: {resource.Url}");
                 var resourceObj = new JsonClass();
                 resourceObj.Add("uri", new JsonData(resource.Url));
@@ -2350,6 +2473,13 @@ namespace UniMcp
             var promptsCopy = availablePrompts.Values.ToList();
             foreach (var prompt in promptsCopy)
             {
+                // 跳过Name为空或空字符串的无效提示词
+                if (prompt == null || string.IsNullOrEmpty(prompt.Name))
+                {
+                    LogWarning($"[UniMcp] 跳过无效提示词（Name为空）");
+                    continue;
+                }
+
                 Log($"[UniMcp] 添加Prompt到列表: {prompt.Name}");
                 var promptObj = new JsonClass();
                 promptObj.Add("name", new JsonData(prompt.Name));
@@ -2456,6 +2586,13 @@ namespace UniMcp
             var resourcesCopy = availableResources.Values.ToList();
             foreach (var resource in resourcesCopy)
             {
+                // 跳过Name为空或空字符串的无效资源
+                if (resource == null || string.IsNullOrEmpty(resource.Name))
+                {
+                    Log($"[UniMcp] 跳过无效资源（Name为空）: {resource?.Url ?? "null"}");
+                    continue;
+                }
+
                 Log($"[UniMcp] 添加Resource到列表: {resource.Url}");
                 var resourceObj = new JsonClass();
                 resourceObj.Add("uri", new JsonData(resource.Url));

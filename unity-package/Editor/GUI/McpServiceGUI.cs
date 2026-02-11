@@ -7,6 +7,7 @@ using Debug = UnityEngine.Debug;
 using UniMcp.Executer;
 using UniMcp.Tools;
 using UniMcp;
+using Object = UnityEngine.Object;
 
 namespace UniMcp.Gui
 {
@@ -23,6 +24,48 @@ namespace UniMcp.Gui
         private static Dictionary<string, double> methodClickTimes = new Dictionary<string, double>();
         private const double doubleClickTime = 0.3; // 双击判定时间（秒）
         private static int groupIndex = 0; // 分组序号
+
+        // 标签页相关变量
+        private static int selectedTab = 0; // 0=工具, 1=资源, 2=提示词
+        private static Vector2 resourcesScrollPosition;
+        private static Vector2 promptsScrollPosition;
+        private static Dictionary<int, bool> resourceFoldouts = new Dictionary<int, bool>();
+        private static Dictionary<int, bool> promptFoldouts = new Dictionary<int, bool>();
+
+        // MIME类型下拉框相关变量
+        private static Dictionary<int, int> resourceMimeTypeSelections = new Dictionary<int, int>(); // 资源索引 -> 选中的MIME类型索引
+        private static readonly string[] commonMimeTypes = new string[]
+        {
+            "application/octet-stream", // 默认值
+            "text/plain",
+            "text/html",
+            "text/css",
+            "text/csv",
+            "text/markdown",
+            "application/json",
+            "application/xml",
+            "application/yaml",
+            "application/javascript",
+            "application/typescript",
+            "application/pdf",
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/bmp",
+            "image/webp",
+            "image/svg+xml",
+            "image/tiff",
+            "audio/mpeg",
+            "audio/wav",
+            "audio/ogg",
+            "audio/flac",
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "application/zip",
+            "application/gzip",
+            "application/x-tar"
+        };
 
 
         /// <summary>
@@ -99,11 +142,67 @@ namespace UniMcp.Gui
 
             EditorGUILayout.Space(8);
 
-            // 添加工具方法列表 - 让它填充剩余空间
-            DrawMethodsList();
+            // 绘制标签页
+            DrawTabs();
+
+            EditorGUILayout.Space(4);
+
+            // 根据选中的标签页绘制相应内容
+            switch (selectedTab)
+            {
+                case 0:
+                    DrawMethodsList();
+                    break;
+                case 1:
+                    DrawResourcesList();
+                    break;
+                case 2:
+                    DrawPromptsList();
+                    break;
+            }
 
             // 结束主垂直布局
             EditorGUILayout.EndVertical();
+        }
+
+        /// <summary>
+        /// 绘制标签页
+        /// </summary>
+        private static void DrawTabs()
+        {
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+            GUIStyle tabStyle = new GUIStyle(EditorStyles.toolbarButton)
+            {
+                fontSize = 12,
+                fontStyle = FontStyle.Bold,
+                padding = new RectOffset(12, 12, 4, 4)
+            };
+
+            Color originalColor = GUI.backgroundColor;
+
+            // 工具标签
+            if (selectedTab == 0)
+                GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
+            if (GUILayout.Button("🔧 工具", tabStyle))
+                selectedTab = 0;
+            GUI.backgroundColor = originalColor;
+
+            // 资源标签
+            if (selectedTab == 1)
+                GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
+            if (GUILayout.Button("📦 资源", tabStyle))
+                selectedTab = 1;
+            GUI.backgroundColor = originalColor;
+
+            // 提示词标签
+            if (selectedTab == 2)
+                GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f);
+            if (GUILayout.Button("💬 提示词", tabStyle))
+                selectedTab = 2;
+            GUI.backgroundColor = originalColor;
+
+            EditorGUILayout.EndHorizontal();
         }
 
         /// <summary>
@@ -1095,8 +1194,6 @@ namespace UniMcp.Gui
             }
         }
 
-
-
         /// <summary>
         /// 显示工具调试信息
         /// </summary>
@@ -1173,6 +1270,481 @@ namespace UniMcp.Gui
                     resultMessage, 
                     L.T("OK", "确定"));
             }
+        }
+
+        /// <summary>
+        /// 绘制资源列表配置界面
+        /// </summary>
+        private static void DrawResourcesList()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
+
+            // 标题栏
+            Rect headerRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(28));
+            Color headerBgColor = new Color(0.25f, 0.25f, 0.3f, 0.3f);
+            EditorGUI.DrawRect(headerRect, headerBgColor);
+
+            GUIStyle headerTitleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
+                padding = new RectOffset(8, 0, 4, 0)
+            };
+            EditorGUILayout.LabelField("📦 可配置资源", headerTitleStyle, GUILayout.ExpandWidth(true));
+
+            // 添加资源按钮
+            GUIStyle addButtonStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                padding = new RectOffset(10, 10, 4, 4),
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
+            Color addButtonColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f);
+
+            if (GUILayout.Button("➕ 添加资源", addButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
+            {
+                var settings = McpSettings.Instance;
+                var newResource = new UniMcp.ConfigurableResource("新资源", "资源描述", "https://example.com/resource");
+                settings.AddConfigurableResource(newResource);
+                settings.SaveSettings();
+            }
+
+            GUI.backgroundColor = addButtonColor;
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(4);
+
+            // 滚动视图
+            resourcesScrollPosition = EditorGUILayout.BeginScrollView(resourcesScrollPosition, GUILayout.ExpandHeight(true));
+
+            var settings2 = McpSettings.Instance;
+            var resources = settings2.GetConfigurableResources();
+
+            if (resources == null || resources.Count == 0)
+            {
+                EditorGUILayout.HelpBox("暂无配置的资源。点击上方\"添加资源\"按钮添加新资源。", MessageType.Info);
+            }
+            else
+            {
+                for (int i = 0; i < resources.Count; i++)
+                {
+                    var resource = resources[i];
+                    if (resource == null) continue;
+
+                    EditorGUILayout.BeginVertical("box");
+
+                    // 确保折叠状态存在
+                    if (!resourceFoldouts.ContainsKey(i))
+                        resourceFoldouts[i] = false;
+
+                    // 资源标题行
+                    EditorGUILayout.BeginHorizontal();
+
+                    // 获取资源启用状态
+                    bool resourceEnabled = McpService.GetLocalSettings().IsResourceEnabled(resource.Name);
+
+                    // 开关
+                    Color toggleOriginalBg = GUI.backgroundColor;
+                    if (resourceEnabled)
+                    {
+                        GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.5f);
+                    }
+                    else
+                    {
+                        GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f, 0.5f);
+                    }
+                    Rect toggleRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight, GUILayout.Width(22));
+                    bool newResourceEnabled = EditorGUI.Toggle(toggleRect, resourceEnabled);
+                    GUI.backgroundColor = toggleOriginalBg;
+
+                    // 处理资源开关状态变化
+                    if (newResourceEnabled != resourceEnabled)
+                    {
+                        McpService.GetLocalSettings().SetResourceEnabled(resource.Name, newResourceEnabled);
+                        // 重新发现资源
+                        McpService.RediscoverTools();
+                        Debug.Log($"[McpServiceGUI] 资源 '{resource.Name}' 状态已更改为: {(newResourceEnabled ? "启用" : "禁用")}");
+                    }
+
+                    // 根据启用状态设置文字颜色
+                    GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout)
+                    {
+                        fontStyle = FontStyle.Bold,
+                        fontSize = 11
+                    };
+                    if (resourceEnabled)
+                    {
+                        foldoutStyle.normal.textColor = new Color(0.7f, 0.9f, 0.7f);
+                        foldoutStyle.onNormal.textColor = new Color(0.7f, 0.9f, 0.7f);
+                    }
+                    else
+                    {
+                        foldoutStyle.normal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                        foldoutStyle.onNormal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                    }
+                    foldoutStyle.focused.textColor = foldoutStyle.normal.textColor;
+                    foldoutStyle.onFocused.textColor = foldoutStyle.normal.textColor;
+
+                    resourceFoldouts[i] = EditorGUILayout.Foldout(resourceFoldouts[i], $"📦 {resource.Name}", true, foldoutStyle);
+
+                    // 删除按钮
+                    GUIStyle deleteButtonStyle = new GUIStyle(EditorStyles.miniButtonRight)
+                    {
+                        fontSize = 10,
+                        padding = new RectOffset(4, 4, 2, 2)
+                    };
+                    Color deleteButtonColor = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(1f, 0.5f, 0.5f, 0.8f);
+
+                    if (GUILayout.Button("删除", deleteButtonStyle, GUILayout.Width(50)))
+                    {
+                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除资源 '{resource.Name}' 吗？", "删除", "取消"))
+                        {
+                            settings2.RemoveConfigurableResource(resource.Name);
+                            settings2.SaveSettings();
+                            resourceFoldouts.Remove(i);
+                            // 重新发现资源
+                            McpService.RediscoverTools();
+                            break;
+                        }
+                    }
+
+                    GUI.backgroundColor = deleteButtonColor;
+                    EditorGUILayout.EndHorizontal();
+
+                    // 资源详情
+                    if (resourceFoldouts[i])
+                    {
+                        EditorGUI.indentLevel++;
+
+                        // 名称
+                        EditorGUI.BeginChangeCheck();
+                        string newName = EditorGUILayout.TextField("名称", resource.Name);
+                        if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newName))
+                        {
+                            resource.SetName(newName);
+                            settings2.SaveSettings();
+                        }
+
+                        // 描述
+                        EditorGUI.BeginChangeCheck();
+                        string newDesc = EditorGUILayout.TextField("描述", resource.Description);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            resource.SetDescription(newDesc);
+                            settings2.SaveSettings();
+                        }
+
+                        // 来源类型
+                        EditorGUI.BeginChangeCheck();
+                        UniMcp.ResourceSourceType newSourceType = (UniMcp.ResourceSourceType)EditorGUILayout.EnumPopup("来源类型", resource.SourceType);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            resource.SourceType = newSourceType;
+                            settings2.SaveSettings();
+                        }
+
+                        // 根据来源类型显示不同字段
+                        if (resource.SourceType == UniMcp.ResourceSourceType.Url)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            string newUrl = EditorGUILayout.TextField("URL", resource.Url);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                resource.SetUrl(newUrl);
+                                settings2.SaveSettings();
+                            }
+                        }
+                        else // UnityObject
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            Object newObject = EditorGUILayout.ObjectField("Unity对象", resource.UnityObject, typeof(Object), false);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                resource.UnityObject = newObject;
+                                settings2.SaveSettings();
+                            }
+
+                            // 显示转换后的URL
+                            if (resource.UnityObject != null)
+                            {
+                                EditorGUI.BeginDisabledGroup(true);
+                                EditorGUILayout.TextField("URL", resource.Url);
+                                EditorGUI.EndDisabledGroup();
+                            }
+                        }
+
+                        // MIME类型 - 文本框 + 下拉框（同一行）
+                        EditorGUILayout.BeginHorizontal();
+                        
+                        // 确保选择索引存在
+                        if (!resourceMimeTypeSelections.ContainsKey(i))
+                        {
+                            // 查找当前MIME类型在列表中的索引
+                            int currentIndex = Array.IndexOf(commonMimeTypes, resource.MimeType);
+                            resourceMimeTypeSelections[i] = currentIndex >= 0 ? currentIndex : 0;
+                        }
+
+                        // 文本框（可以手动编辑）
+                        EditorGUI.BeginChangeCheck();
+                        string newMimeType = EditorGUILayout.TextField("MIME类型", resource.MimeType);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            resource.SetMimeType(newMimeType);
+                            settings2.SaveSettings();
+                            // 更新下拉框选择（如果新值在列表中）
+                            int foundIndex = Array.IndexOf(commonMimeTypes, newMimeType);
+                            if (foundIndex >= 0)
+                            {
+                                resourceMimeTypeSelections[i] = foundIndex;
+                            }
+                        }
+
+                        // 下拉框选择（在文本框后面）
+                        int selectedIndex = resourceMimeTypeSelections[i];
+                        int newSelectedIndex = EditorGUILayout.Popup(selectedIndex, commonMimeTypes, GUILayout.Width(200));
+                        
+                        if (newSelectedIndex != selectedIndex)
+                        {
+                            resourceMimeTypeSelections[i] = newSelectedIndex;
+                            // 选择后自动填入文本框
+                            resource.SetMimeType(commonMimeTypes[newSelectedIndex]);
+                            settings2.SaveSettings();
+                        }
+
+                        EditorGUILayout.EndHorizontal();
+
+                        EditorGUI.indentLevel--;
+                    }
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.Space(4);
+                }
+            }
+
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndVertical();
+        }
+
+        /// <summary>
+        /// 绘制提示词列表配置界面
+        /// </summary>
+        private static void DrawPromptsList()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
+
+            // 标题栏
+            Rect headerRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(28));
+            Color headerBgColor = new Color(0.25f, 0.25f, 0.3f, 0.3f);
+            EditorGUI.DrawRect(headerRect, headerBgColor);
+
+            GUIStyle headerTitleStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 13,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
+                padding = new RectOffset(8, 0, 4, 0)
+            };
+            EditorGUILayout.LabelField("💬 可配置提示词", headerTitleStyle, GUILayout.ExpandWidth(true));
+
+            // 添加提示词按钮
+            GUIStyle addButtonStyle = new GUIStyle(EditorStyles.miniButton)
+            {
+                padding = new RectOffset(10, 10, 4, 4),
+                fontSize = 11,
+                fontStyle = FontStyle.Bold
+            };
+            Color addButtonColor = GUI.backgroundColor;
+            GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f);
+
+            if (GUILayout.Button("➕ 添加提示词", addButtonStyle, GUILayout.Width(100), GUILayout.Height(22)))
+            {
+                var settings = McpSettings.Instance;
+                var newPrompt = new UniMcp.ConfigurablePrompt("新提示词", "提示词描述", "提示词内容");
+                settings.AddConfigurablePrompt(newPrompt);
+                settings.SaveSettings();
+            }
+
+            GUI.backgroundColor = addButtonColor;
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(4);
+
+            // 滚动视图
+            promptsScrollPosition = EditorGUILayout.BeginScrollView(promptsScrollPosition, GUILayout.ExpandHeight(true));
+
+            var settings2 = McpSettings.Instance;
+            var prompts = settings2.GetConfigurablePrompts();
+
+            if (prompts == null || prompts.Count == 0)
+            {
+                EditorGUILayout.HelpBox("暂无配置的提示词。点击上方\"添加提示词\"按钮添加新提示词。", MessageType.Info);
+            }
+            else
+            {
+                for (int i = 0; i < prompts.Count; i++)
+                {
+                    var prompt = prompts[i];
+                    if (prompt == null) continue;
+
+                    EditorGUILayout.BeginVertical("box");
+
+                    // 确保折叠状态存在
+                    if (!promptFoldouts.ContainsKey(i))
+                        promptFoldouts[i] = false;
+
+                    // 提示词标题行
+                    EditorGUILayout.BeginHorizontal();
+
+                    // 获取提示词启用状态
+                    bool promptEnabled = McpService.GetLocalSettings().IsPromptEnabled(prompt.Name);
+
+                    // 开关
+                    Color toggleOriginalBg = GUI.backgroundColor;
+                    if (promptEnabled)
+                    {
+                        GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.5f);
+                    }
+                    else
+                    {
+                        GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f, 0.5f);
+                    }
+                    Rect toggleRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight, GUILayout.Width(22));
+                    bool newPromptEnabled = EditorGUI.Toggle(toggleRect, promptEnabled);
+                    GUI.backgroundColor = toggleOriginalBg;
+
+                    // 处理提示词开关状态变化
+                    if (newPromptEnabled != promptEnabled)
+                    {
+                        McpService.GetLocalSettings().SetPromptEnabled(prompt.Name, newPromptEnabled);
+                        // 重新发现提示词
+                        McpService.RediscoverTools();
+                        Debug.Log($"[McpServiceGUI] 提示词 '{prompt.Name}' 状态已更改为: {(newPromptEnabled ? "启用" : "禁用")}");
+                    }
+
+                    // 根据启用状态设置文字颜色
+                    GUIStyle foldoutStyle = new GUIStyle(EditorStyles.foldout)
+                    {
+                        fontStyle = FontStyle.Bold,
+                        fontSize = 11
+                    };
+                    if (promptEnabled)
+                    {
+                        foldoutStyle.normal.textColor = new Color(0.7f, 0.9f, 0.7f);
+                        foldoutStyle.onNormal.textColor = new Color(0.7f, 0.9f, 0.7f);
+                    }
+                    else
+                    {
+                        foldoutStyle.normal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                        foldoutStyle.onNormal.textColor = new Color(0.9f, 0.6f, 0.6f);
+                    }
+                    foldoutStyle.focused.textColor = foldoutStyle.normal.textColor;
+                    foldoutStyle.onFocused.textColor = foldoutStyle.normal.textColor;
+
+                    promptFoldouts[i] = EditorGUILayout.Foldout(promptFoldouts[i], $"💬 {prompt.Name}", true, foldoutStyle);
+
+                    // 删除按钮
+                    GUIStyle deleteButtonStyle = new GUIStyle(EditorStyles.miniButtonRight)
+                    {
+                        fontSize = 10,
+                        padding = new RectOffset(4, 4, 2, 2)
+                    };
+                    Color deleteButtonColor = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(1f, 0.5f, 0.5f, 0.8f);
+
+                    if (GUILayout.Button("删除", deleteButtonStyle, GUILayout.Width(50)))
+                    {
+                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除提示词 '{prompt.Name}' 吗？", "删除", "取消"))
+                        {
+                            settings2.RemoveConfigurablePrompt(prompt.Name);
+                            settings2.SaveSettings();
+                            promptFoldouts.Remove(i);
+                            // 重新发现提示词
+                            McpService.RediscoverTools();
+                            break;
+                        }
+                    }
+
+                    GUI.backgroundColor = deleteButtonColor;
+                    EditorGUILayout.EndHorizontal();
+
+                    // 提示词详情
+                    if (promptFoldouts[i])
+                    {
+                        EditorGUI.indentLevel++;
+
+                        // 名称
+                        EditorGUI.BeginChangeCheck();
+                        string newName = EditorGUILayout.TextField("名称", prompt.Name);
+                        if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newName))
+                        {
+                            prompt.SetName(newName);
+                            settings2.SaveSettings();
+                        }
+
+                        // 描述
+                        EditorGUI.BeginChangeCheck();
+                        string newDesc = EditorGUILayout.TextField("描述", prompt.Description);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            prompt.SetDescription(newDesc);
+                            settings2.SaveSettings();
+                        }
+
+                        // 提示词文本
+                        EditorGUI.BeginChangeCheck();
+                        string newPromptText = EditorGUILayout.TextArea(prompt.PromptText, GUILayout.Height(100));
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            prompt.SetPromptText(newPromptText);
+                            settings2.SaveSettings();
+                        }
+
+                        // 参数列表（只读显示，不提供添加/删除功能）
+                        System.Collections.Generic.List<UniMcp.ConfigurableMethodKey> keys = prompt.GetKeys();
+                        if (keys != null && keys.Count > 0)
+                        {
+                            EditorGUILayout.Space(4);
+                            EditorGUILayout.LabelField("参数信息（只读）", EditorStyles.boldLabel);
+                            EditorGUILayout.HelpBox("配置方式的提示词参数信息为只读显示。如需修改参数，请通过代码实现IPrompts接口。", MessageType.Info);
+                            
+                            for (int j = 0; j < keys.Count; j++)
+                            {
+                                var key = keys[j];
+                                if (key == null) continue;
+
+                                EditorGUILayout.BeginVertical("box");
+                                EditorGUILayout.LabelField($"参数 {j + 1}: {key.key}", EditorStyles.miniBoldLabel);
+                                EditorGUILayout.LabelField($"类型: {key.type}, 可选: {key.optional}", EditorStyles.miniLabel);
+                                EditorGUILayout.LabelField($"描述: {key.desc}", EditorStyles.miniLabel);
+                                
+                                if (key.examples != null && key.examples.Count > 0)
+                                {
+                                    EditorGUILayout.LabelField($"示例: {string.Join(", ", key.examples)}", EditorStyles.miniLabel);
+                                }
+                                
+                                if (key.enumValues != null && key.enumValues.Count > 0)
+                                {
+                                    EditorGUILayout.LabelField($"枚举值: {string.Join(", ", key.enumValues)}", EditorStyles.miniLabel);
+                                }
+                                
+                                EditorGUILayout.EndVertical();
+                                EditorGUILayout.Space(2);
+                            }
+                        }
+
+                        EditorGUI.indentLevel--;
+                    }
+
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.Space(4);
+                }
+            }
+
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndVertical();
         }
 
     }
