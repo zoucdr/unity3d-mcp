@@ -1,7 +1,0 @@
-Assets:
-  - Demos
-  - Extends:
-    - CustomPrompts
-    - CustomResources
-    - CustomTools
-  - Scripts
