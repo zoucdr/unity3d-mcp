@@ -8,6 +8,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -15,10 +16,10 @@ namespace UniMcp.Tools
     /// Handles C# script management operations in Unity.
     /// 对应方法名: manage_script
     /// </summary>
-    [ToolName("edit_script", "资源管理")]
+    [ToolName("edit_script", "Resource Management")]
     public class EditScript : StateMethodBase
     {
-        public override string Description => "脚本编辑工具，用于修改和管理脚本资源属性";
+        public override string Description => L.T("Manage C# script files including create and modify", "管理C#脚本文件，包括创建和修改");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -28,38 +29,38 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("create", "read", "modify", "delete", "search", "import")
                     .AddExamples("create", "read"),
                 
                 // 脚本名称
-                new MethodStr("name", "脚本名称", false)
+                new MethodStr("name", L.T("Script name", "脚本名称"), false)
                     .AddExamples("PlayerController", "GameManager"),
                 
                 // 文件夹路径
-                new MethodStr("folder", "脚本所在文件夹", false)
+                new MethodStr("folder", L.T("Script folder", "脚本所在文件夹"), false)
                     .AddExamples("Assets/Scripts/", "Assets/Scripts/Player/"),
                 
                 // 代码内容
-                new MethodArr("lines", "C#代码内容"),
+                new MethodArr("lines", L.T("C# code content", "C#代码内容")),
                 
                 // 脚本类型
-                new MethodStr("script_type", "脚本类型")
+                new MethodStr("script_type", L.T("Script type", "脚本类型"))
                     .SetEnumValues("MonoBehaviour", "ScriptableObject", "Class", "Interface", "Enum")
                     .AddExample("MonoBehaviour")
                     .SetDefault("MonoBehaviour"),
                 
                 // 命名空间
-                new MethodStr("namespace", "命名空间")
+                new MethodStr("namespace", L.T("Namespace", "命名空间"))
                     .AddExamples("MyGame", "MyGame.Player")
                     .SetDefault(""),
                 
                 // 查询字符串
-                new MethodStr("query", "查询字符串")
+                new MethodStr("query", L.T("Query string", "查询字符串"))
                     .AddExamples("Player", "Controller"),
                 
                 // 源文件路径
-                new MethodStr("source_path", "源文件路径")
+                new MethodStr("source_path", L.T("Source file path", "源文件路径"))
                     .AddExamples("D:/Scripts/Player.cs", "C:/Code/GameManager.cs")
             };
         }

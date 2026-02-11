@@ -9,53 +9,49 @@ using UnityEngine;
 using UniMcp.Models; // For Response class
 using UniMcp;
 using UniMcp.Utils;
-
 namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles Unity Game window management and controls.
     /// 对应方法名: game_view
     /// </summary>
-    [ToolName("game_view", "窗口管理")]
+    [ToolName("game_view", "Window Management")]
     public class GameView : StateMethodBase
     {
-        /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
-        /// </summary>
-        public override string Description => "游戏视图管理和控制工具，支持设置分辨率、获取统计信息、设置垂直同步、设置目标帧率、截图等操作";
+        public override string Description => L.T("Manage and control Unity Game view window", "管理和控制Unity游戏视图窗口");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("set_resolution", "get_resolution", "get_stats", "set_vsync", "set_target_framerate", "maximize", "set_aspect_ratio", "screenshot"),
                 
-                // 窗口宽度
-                new MethodInt("width", "窗口宽度")
+                // Window width
+                new MethodInt("width", L.T("Window width", "窗口宽度"))
                     .SetRange(320, 3840),
                 
-                // 窗口高度
-                new MethodInt("height", "窗口高度")
+                // Window height
+                new MethodInt("height", L.T("Window height", "窗口高度"))
                     .SetRange(240, 2160),
                 
-                // 垂直同步
-                new MethodInt("vsync_count", "垂直同步")
+                // Vertical sync
+                new MethodInt("vsync_count", L.T("Vertical sync count", "垂直同步计数"))
                     .SetEnumValues("0", "1", "2"),
                 
-                // 目标帧率
-                new MethodInt("target_framerate", "目标帧率（-1=无限制）"),
+                // Target framerate
+                new MethodInt("target_framerate", L.T("Target framerate (-1=unlimited)", "目标帧率（-1=无限制）")),
                 
-                // 宽高比
-                new MethodStr("aspect_ratio", "宽高比")
+                // Aspect ratio
+                new MethodStr("aspect_ratio", L.T("Aspect ratio", "宽高比"))
                     .SetEnumValues("16:9", "16:10", "4:3", "Free"),
                 
-                // 截图保存路径
-                new MethodStr("save_path", "截图保存路径")
+                // Screenshot save path
+                new MethodStr("save_path", L.T("Screenshot save path", "截图保存路径"))
                     .AddExamples("Assets/Screenshots/game.png", "D:/Screenshots/capture.jpg")
             };
         }

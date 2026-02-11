@@ -14,10 +14,10 @@ namespace UniMcp.Tools
     /// Handles CRUD operations for shader files within the Unity project.
     /// 对应方法名: manage_shader
     /// </summary>
-    [ToolName("edit_shader", "资源管理")]
+    [ToolName("edit_shader", "Resource Management")]
     public class EditShader : StateMethodBase
     {
-        public override string Description => "着色器编辑工具，用于修改和管理着色器资源属性";
+        public override string Description => L.T("Manage shader assets including create and modify", "管理着色器资源，包括创建和修改");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -27,18 +27,16 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("create", "read", "update", "delete"),
                 
                 // Shader名称
-                new MethodStr("name", "Shader名称", false),
+                new MethodStr("name", L.T("Shader file name", "Shader文件名"), false),
                 
                 // 资产路径
-                new MethodStr("path", "资产路径")
-                    .AddExamples("Assets/Shaders/", "Assets/Materials/Shaders/"),
-                
+                new MethodStr("path", L.T("Project relative path", "工程相对路径")),
                 // Shader代码
-                new MethodArr("lines", "Shader代码内容")
+                new MethodArr("lines", L.T("Shader code content", "Shader代码内容"))
             };
         }
 

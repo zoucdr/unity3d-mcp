@@ -83,16 +83,13 @@ namespace UniMcp.Executer
             McpLogger.Log($"[ToolsCall] Executing method: {methodName}->{args}");
             try
             {
-                // ȷ��������ע��
                 EnsureMethodsRegistered();
-                // ���Ҷ�Ӧ�Ĺ��߷���
                 if (!_registeredMethods.TryGetValue(methodName, out IToolMethod method))
                 {
                     callback(Response.Error($"ToolsCall Unknown method: '{methodName}'. Available methods: {string.Join(", ", _registeredMethods.Keys)}"));
                     return;
                 }
 
-                // ���ù��ߵ�ExecuteMethod����
                 var state = new StateTreeContext(args, new System.Collections.Generic.Dictionary<string, object>());
                 method.ExecuteMethod(state);
                 state.RegistComplete(callback);

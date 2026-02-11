@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-// Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -17,113 +16,112 @@ namespace UniMcp.Tools
     /// Handles network operations including HTTP requests, file downloads, and API calls.
     /// 对应方法名: request_http
     /// </summary>
-    [ToolName("request_http", "网络工具")]
+    [ToolName("request_http", "Network Tools")]
     public class RequestHttp : StateMethodBase
     {
-        public override string Description => "HTTP请求工具，用于处理网络操作，包括HTTP请求、文件下载、上传和API调用等功能";
+        public override string Description => L.T("Send HTTP requests and download/upload files", "发送HTTP请求并下载上传文件");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // HTTP操作类型 - 枚举
-                new MethodStr("action", "HTTP操作类型", false)
+                // HTTP operation type - enum
+                new MethodStr("action", L.T("HTTP operation type", "HTTP操作类型"), false)
                     .SetEnumValues("get", "post", "put", "delete", "download", "upload", "ping", "batch_download"),
                 
-                // 请求URL - 必需
-                new MethodStr("url", "请求URL地址", false)
-                    .AddExamples("https://api.example.com/data", "http://localhost:3000/api/users"),
+                // Request URL - required
+                new MethodStr("url", L.T("Request URL address", "请求URL地址"), false)
+                    .AddExamples("https://api.example.com"),
                 
-                // 请求数据 - JSON格式
-                new MethodObj("data", "请求数据（POST/PUT使用，JSON格式）")
+                // Request data - JSON format
+                new MethodObj("data", L.T("Request data (POST/PUT use, JSON format)", "请求数据（POST/PUT使用，JSON格式）"))
                     .AddProperty("name", "string")
                     .AddProperty("value", "string")
                     .AddProperty("id", "number")
                     .AddExample("{\"name\": \"test\", \"value\": \"data\"}")
                     .AddExample("{\"id\": 1, \"status\": \"active\"}"),
                 
-                // 请求头 - 对象
-                new MethodObj("headers", "请求头字典")
+                // Request headers - object
+                new MethodObj("headers", L.T("Request headers dictionary", "请求头字典"))
                     .AddProperty("Content-Type", "string")
                     .AddProperty("Authorization", "string")
                     .AddProperty("Accept", "string")
                     .AddExample("{\"Content-Type\": \"application/json\"}")
                     .AddExample("{\"Authorization\": \"Bearer token123\"}"),
                 
-                // 保存路径
-                new MethodStr("save_path", "保存路径（下载时使用，相对于Assets或绝对路径）")
+                // Save path
+                new MethodStr("save_path", L.T("Save path (for download, relative to Assets or absolute path)", "保存路径（用于下载，相对于Assets或绝对路径）"))
                     .AddExamples("Assets/Downloads/file.zip", "D:/Downloads/data.json"),
                 
-                // 文件路径
-                new MethodStr("file_path", "文件路径（上传时使用）")
+                // File path
+                new MethodStr("file_path", L.T("File path (for upload)", "文件路径（用于上传）"))
                     .AddExamples("Assets/Data/upload.json", "D:/Files/image.png"),
                 
-                // 超时时间
-                new MethodInt("timeout", "超时时间（秒），默认30秒")
+                // Timeout
+                new MethodInt("timeout", L.T("Timeout (seconds), default 30 seconds", "超时时间（秒），默认30秒"))
                     .SetRange(1, 300)
                     .AddExample("30"),
                 
-                // HTTP方法
-                new MethodStr("method", "HTTP方法")
+                // HTTP method
+                new MethodStr("method", L.T("HTTP method", "HTTP方法"))
                     .SetEnumValues("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"),
                 
-                // 内容类型
-                new MethodStr("content_type", "内容类型，默认application/json")
+                // Content type
+                new MethodStr("content_type", L.T("Content type, default application/json", "内容类型，默认application/json"))
                     .SetEnumValues("application/json", "application/xml", "text/plain", "multipart/form-data", "application/x-www-form-urlencoded"),
                 
-                // 用户代理
-                new MethodStr("user_agent", "用户代理字符串")
+                // User agent
+                new MethodStr("user_agent", L.T("User agent string", "用户代理字符串"))
                     .AddExamples("Unity-MCP/1.0", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"),
                 
-                // 接受证书
-                new MethodBool("accept_certificates", "是否接受所有证书（测试用）"),
+                // Accept certificates
+                new MethodBool("accept_certificates", L.T("Accept all certificates (for testing)", "接受所有证书（用于测试）")),
                 
-                // 跟随重定向
-                new MethodBool("follow_redirects", "是否跟随重定向"),
+                // Follow redirects
+                new MethodBool("follow_redirects", L.T("Follow redirects", "跟随重定向")),
                 
-                // 文本编码
-                new MethodStr("encoding", "文本编码，默认UTF-8")
+                // Text encoding
+                new MethodStr("encoding", L.T("Text encoding, default UTF-8", "文本编码，默认UTF-8"))
                     .SetEnumValues("UTF-8", "ASCII", "Unicode", "UTF-32"),
                 
-                // 表单数据
-                new MethodObj("form_data", "表单数据（键值对）")
+                // Form data
+                new MethodObj("form_data", L.T("Form data (key-value pairs)", "表单数据（键值对）"))
                     .AddProperty("key1", "string")
                     .AddProperty("key2", "string")
                     .AddExample("{\"username\": \"admin\", \"password\": \"123456\"}")
                     .AddExample("{\"field1\": \"value1\", \"field2\": \"value2\"}"),
                 
-                // 查询参数
-                new MethodObj("query_params", "查询参数（键值对）")
+                // Query parameters
+                new MethodObj("query_params", L.T("Query parameters (key-value pairs)", "查询参数（键值对）"))
                     .AddProperty("page", "number")
                     .AddProperty("limit", "number")
                     .AddProperty("search", "string")
                     .AddExample("{\"page\": 1, \"limit\": 10}")
                     .AddExample("{\"search\": \"keyword\", \"sort\": \"name\"}"),
                 
-                // 认证令牌
-                new MethodStr("auth_token", "认证令牌（Bearer Token）")
+                // Auth token
+                new MethodStr("auth_token", L.T("Auth token (Bearer Token)", "认证令牌（Bearer Token）"))
                     .AddExamples("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", "abc123def456"),
                 
-                // 基础认证
-                new MethodStr("basic_auth", "基础认证（用户名:密码）")
+                // Basic auth
+                new MethodStr("basic_auth", L.T("Basic auth (username:password)", "基本认证（用户名:密码）"))
                     .AddExamples("admin:password", "user:123456"),
                 
-                // 重试次数
-                new MethodInt("retry_count", "重试次数，默认0")
+                // Retry count
+                new MethodInt("retry_count", L.T("Retry count, default 0", "重试次数，默认0"))
                     .SetRange(0, 10)
                     .AddExample("0"),
                 
-                // 重试延迟
-                new MethodFloat("retry_delay", "重试延迟（秒），默认1秒")
+                // Retry delay
+                new MethodFloat("retry_delay", L.T("Retry delay (seconds), default 1 second", "重试延迟（秒），默认1秒"))
                     .SetRange(0.1f, 60.0f),
                 
-                // URL数组
-                new MethodArr("urls", "URL数组（批量下载使用）")
+                // URL array
+                new MethodArr("urls", L.T("URL array (for batch download)", "URL数组（用于批量下载）"))
                     .SetItemType("string")
-                    .AddExample("[\"http://example.com/file1.zip\", \"http://example.com/file2.zip\"]")
                     .AddExample("[\"https://api.example.com/data1\", \"https://api.example.com/data2\"]")
             };
         }

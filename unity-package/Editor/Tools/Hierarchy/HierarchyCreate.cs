@@ -15,75 +15,75 @@ namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles GameObject creation operations in the scene hierarchy.
-    /// 对应方法名: hierarchy_create
-    /// 支持: menu, primitive, prefab, empty, copy
+    /// Corresponding method name: hierarchy_create
+    /// Supports: menu, primitive, prefab, empty, copy
     /// </summary>
-    [ToolName("hierarchy_create", "层级管理")]
+    [ToolName("hierarchy_create", "Hierarchy Management")]
     public class HierarchyCreate : StateMethodBase
     {
-        public override string Description => "层级创建工具，支持在场景层级中创建各种类型的游戏对象";
+        public override string Description => L.T("Hierarchy creation tool, supports creating various types of game objects in scene hierarchy", "层级创建工具，支持在场景层级中创建各种类型的游戏对象");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // GameObject名称 - 必需
-                new MethodStr("name", "GameObject名称", false)
+                // GameObject name - required
+                new MethodStr("name", L.T("GameObject name", "游戏对象名称"), false)
                     .AddExamples("Player", "UI_Button"),
                 
-                // 创建来源类型 - 枚举
-                new MethodStr("source", "模板来源", false)
+                // Creation source type - enumeration
+                new MethodStr("source", L.T("Template source", "模板来源"), false)
                     .SetEnumValues("menu", "primitive", "prefab", "empty", "copy"),
                 
-                // GameObject标签
-                new MethodStr("tag", "GameObject标签")
+                // GameObject tag
+                new MethodStr("tag", L.T("GameObject tag", "游戏对象标签"))
                     .SetEnumValues("Untagged", "Player", "Enemy", "UI", "MainCamera", "EditorOnly"),
                 
-                // GameObject层级
-                new MethodStr("layer", "GameObject所在层")
+                // GameObject layer
+                new MethodStr("layer", L.T("GameObject layer", "游戏对象层"))
                     .AddExamples("Default", "UI"),
                 
-                // 父对象路径
-                new MethodStr("parent", "父对象名称或路径")
+                // Parent object path
+                new MethodStr("parent", L.T("Parent object name or path", "父对象名称或路径"))
                     .AddExamples("Canvas", "UI/Panel"),
                 
-                // 父对象ID
-                new MethodStr("parent_id", "父对象唯一ID")
+                // Parent object ID
+                new MethodStr("parent_id", L.T("Parent object unique ID", "父对象唯一ID"))
                     .AddExample("-1234"),
                 
-                // 位置坐标
-                new MethodVector("position", "位置坐标 [x, y, z]"),
+                // Position coordinates
+                new MethodVector("position", L.T("Position coordinates [x, y, z]", "位置坐标 [x, y, z]")),
                 
-                // 旋转角度
-                new MethodVector("rotation", "旋转角度 [x, y, z]"),
+                // Rotation angles
+                new MethodVector("rotation", L.T("Rotation angles [x, y, z]", "旋转角度 [x, y, z]")),
                 
-                // 缩放比例
-                new MethodVector("scale", "缩放比例 [x, y, z]"),
+                // Scale values
+                new MethodVector("scale", L.T("Scale values [x, y, z]", "缩放值 [x, y, z]")),
                 
-                // 基元类型
-                new MethodStr("primitive_type", "基元类型")
+                // Primitive type
+                new MethodStr("primitive_type", L.T("Primitive type", "基元类型"))
                     .SetEnumValues("Cube", "Sphere", "Cylinder", "Capsule", "Plane", "Quad"),
                 
-                // 预制体路径
-                new MethodStr("prefab_path", "预制体路径")
+                // Prefab path
+                new MethodStr("prefab_path", L.T("Prefab path", "预制体路径"))
                     .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab"),
                 
-                // 菜单路径
-                new MethodStr("menu_path", "菜单路径")
+                // Menu path
+                new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
                     .AddExamples("GameObject/3D Object/Cube", "GameObject/UI/Button"),
                 
-                // 复制源对象
-                new MethodStr("copy_source", "要复制的GameObject名称")
+                // Copy source object
+                new MethodStr("copy_source", L.T("GameObject name to copy", "要复制的游戏对象名称"))
                     .AddExamples("Player", "Main Camera"),
                 
-                // 保存为预制体
-                new MethodBool("save_as_prefab", "是否保存为预制体"),
+                // Save as prefab
+                new MethodBool("save_as_prefab", L.T("Whether to save as prefab", "是否保存为预制体")),
                 
-                // 设置激活状态
-                new MethodBool("set_active", "设置激活状态")
+                // Set active state
+                new MethodBool("set_active", L.T("Set active state", "设置激活状态"))
             };
         }
 

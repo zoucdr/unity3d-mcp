@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -13,10 +14,10 @@ namespace UniMcp.Tools
     /// 专门的预制体管理工具，提供预制体的创建、修改、复制、删除等操作
     /// 对应方法名: manage_prefab
     /// </summary>
-    [ToolName("edit_prefab", "资源管理")]
+    [ToolName("edit_prefab", "Resource Management")]
     public class EditPrefab : StateMethodBase
     {
-        public override string Description => "预制体编辑工具，用于修改和管理预制体资源属性";
+        public override string Description => L.T("Manage prefab assets including create and modify", "管理预制体资源，包括创建和修改");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -26,93 +27,93 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("create", "modify", "duplicate", "get_info", "search", "instantiate", "unpack", "pack")
                     .SetDefault("get_info"),
                 
                 // 预制体路径
-                new MethodStr("path", "预制体资源路径", false)
+                new MethodStr("path", L.T("Prefab asset path", "预制体资源路径"), false)
                     .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/Button.prefab")
                     .SetDefault("Assets/Prefabs/Player.prefab"),
                 
                 // 源对象
-                new MethodStr("source_object", "源GameObject")
+                new MethodStr("source_object", L.T("Source GameObject", "源GameObject"))
                     .AddExamples("Player", "Canvas/Button"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径")
+                new MethodStr("destination", L.T("Destination path", "目标路径"))
                     .AddExamples("Assets/Prefabs/Copy/", "Assets/NewPrefabs/"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式")
+                new MethodStr("query", L.T("Search pattern", "搜索模式"))
                     .AddExample("*.prefab")
                     .SetDefault("*.prefab"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索")
+                new MethodBool("recursive", L.T("Recursive search", "递归搜索"))
                     .SetDefault(false),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行")
+                new MethodBool("force", L.T("Force execution", "强制执行"))
                     .SetDefault(false),
                 
                 // 预制体变体
-                new MethodBool("prefab_variant", "创建预制体变体")
+                new MethodBool("prefab_variant", L.T("Create prefab variant", "创建预制体变体"))
                     .SetDefault(false),
                 
                 // 解包模式
-                new MethodStr("unpack_mode", "解包模式")
+                new MethodStr("unpack_mode", L.T("Unpack mode", "解包模式"))
                     .SetEnumValues("Completely", "OutermostRoot")
                     .SetDefault("Completely"),
                 
                 // 打包模式
-                new MethodStr("pack_mode", "打包模式")
+                new MethodStr("pack_mode", L.T("Pack mode", "打包模式"))
                     .SetEnumValues("Default", "ReuseExisting")
                     .SetDefault("Default"),
                 
                 // 连接到预制体
-                new MethodBool("connect_to_prefab", "连接到预制体")
+                new MethodBool("connect_to_prefab", L.T("Connect to prefab", "连接到预制体"))
                     .SetDefault(true),
                 
                 // 应用预制体更改
-                new MethodBool("apply_prefab_changes", "应用预制体更改")
+                new MethodBool("apply_prefab_changes", L.T("Apply prefab changes", "应用预制体更改"))
                     .SetDefault(false),
                 
                 // 还原预制体更改
-                new MethodBool("revert_prefab_changes", "还原预制体更改")
+                new MethodBool("revert_prefab_changes", L.T("Revert prefab changes", "还原预制体更改"))
                     .SetDefault(false),
                 
                 // 断开预制体连接
-                new MethodBool("break_prefab_connection", "断开预制体连接")
+                new MethodBool("break_prefab_connection", L.T("Break prefab connection", "断开预制体连接"))
                     .SetDefault(false),
                 
                 // 预制体类型
-                new MethodStr("prefab_type", "预制体类型")
+                new MethodStr("prefab_type", L.T("Prefab type", "预制体类型"))
                     .SetEnumValues("Regular", "Variant")
                     .SetDefault("Regular"),
                 
                 // 父预制体
-                new MethodStr("parent_prefab", "父预制体路径")
+                new MethodStr("parent_prefab", L.T("Parent prefab path", "父预制体路径"))
                     .AddExample("Assets/Prefabs/BasePlayer.prefab"),
                 
                 // 场景路径
-                new MethodStr("scene_path", "场景路径")
+                new MethodStr("scene_path", L.T("Scene path", "场景路径"))
                     .AddExample("Assets/Scenes/MainScene.unity"),
                 
                 // 位置坐标
-                new MethodVector("position", "位置坐标 [x, y, z]")
+                new MethodVector("position", L.T("Position coordinates [x, y, z]", "位置坐标 [x, y, z]"))
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 旋转角度
-                new MethodVector("rotation", "旋转角度 [x, y, z]")
+                new MethodVector("rotation", L.T("Rotation angles [x, y, z]", "旋转角度 [x, y, z]"))
                     .SetDefault(new float[] {0, 0, 0}),
                 
                 // 缩放比例
-                new MethodVector("scale", "缩放比例 [x, y, z]")
+                new MethodVector("scale", L.T("Scale ratio [x, y, z]", "缩放比例 [x, y, z]"))
                     .SetDefault(new float[] {1, 1, 1}),
                 
                 // 父对象
-                new MethodStr("parent", "父对象名称或路径")
+                new MethodStr("parent", L.T("Parent object name or path", "父对象名称或路径"))
                     .AddExamples("Player", "Canvas/Panel")
             };
         }

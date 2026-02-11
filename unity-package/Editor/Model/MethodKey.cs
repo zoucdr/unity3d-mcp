@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UniMcp;
 
 namespace UniMcp
 {
@@ -33,15 +34,15 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 验证类型是否有效
+        /// Validate if type is valid
         /// </summary>
         public static string ValidateType(string type)
         {
             if (string.IsNullOrEmpty(type))
-                throw new System.ArgumentException("类型不能为空");
+                throw new System.ArgumentException("Type cannot be empty");
 
             if (!ValidTypes.Contains(type))
-                throw new System.ArgumentException($"不支持的类型: {type}。支持的类型: {string.Join(", ", ValidTypes)}");
+                throw new System.ArgumentException($"Unsupported type: {type}. Supported types: {string.Join(", ", ValidTypes)}");
 
             return type;
         }
@@ -58,7 +59,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加示例值
+        /// Add example value
         /// </summary>
         public MethodKey AddExample(string example)
         {
@@ -67,7 +68,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加多个示例值
+        /// Add multiple example values
         /// </summary>
         public MethodKey AddExamples(params string[] examples)
         {
@@ -76,7 +77,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置枚举值
+        /// Set enumeration values
         /// </summary>
         public MethodKey SetEnumValues(params string[] values)
         {
@@ -86,7 +87,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认值
+        /// Set default value
         /// </summary>
         public MethodKey SetDefault(object defaultValue)
         {
@@ -95,7 +96,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置参数类型
+        /// Set parameter type
         /// </summary>
         public MethodKey SetType(string type)
         {
@@ -105,7 +106,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 字符串类型参数
+    /// String type parameter
     /// </summary>
     public class MethodStr : MethodKey
     {
@@ -120,7 +121,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置为枚举字符串
+        /// Set as enumeration string
         /// </summary>
         public new MethodStr SetEnumValues(params string[] values)
         {
@@ -129,7 +130,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认字符串值
+        /// Set default string value
         /// </summary>
         public MethodStr SetDefault(string defaultValue)
         {
@@ -139,7 +140,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 整数类型参数
+    /// Integer type parameter
     /// </summary>
     public class MethodInt : MethodKey
     {
@@ -158,7 +159,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认整数值
+        /// Set default integer value
         /// </summary>
         public MethodInt SetDefault(int defaultValue)
         {
@@ -167,7 +168,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加整数示例
+        /// Add integer example
         /// </summary>
         public MethodInt AddExample(int example)
         {
@@ -176,17 +177,20 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置数值范围
+        /// Set numeric range
         /// </summary>
         public MethodInt SetRange(int min, int max)
         {
-            Examples.Add($"范围: {min} - {max}");
+            string rangeText = L.IsChinese() 
+                ? $"范围: {min} - {max}" 
+                : $"Range: {min} - {max}";
+            Examples.Add(rangeText);
             return this;
         }
     }
 
     /// <summary>
-    /// 浮点数类型参数
+    /// Float type parameter
     /// </summary>
     public class MethodFloat : MethodKey
     {
@@ -205,7 +209,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认浮点值
+        /// Set default float value
         /// </summary>
         public MethodFloat SetDefault(float defaultValue)
         {
@@ -214,7 +218,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加浮点示例
+        /// Add float example
         /// </summary>
         public MethodFloat AddExample(float example)
         {
@@ -223,17 +227,20 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置数值范围
+        /// Set numeric range
         /// </summary>
         public MethodFloat SetRange(float min, float max)
         {
-            Examples.Add($"范围: {min:F2} - {max:F2}");
+            string rangeText = L.IsChinese() 
+                ? $"范围: {min:F2} - {max:F2}" 
+                : $"Range: {min:F2} - {max:F2}";
+            Examples.Add(rangeText);
             return this;
         }
     }
 
     /// <summary>
-    /// 布尔类型参数
+    /// Boolean type parameter
     /// </summary>
     public class MethodBool : MethodKey
     {
@@ -245,7 +252,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认布尔值
+        /// Set default boolean value
         /// </summary>
         public MethodBool SetDefault(bool defaultValue)
         {
@@ -255,7 +262,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 数组类型参数
+    /// Array type parameter
     /// </summary>
     public class MethodArr : MethodKey
     {
@@ -268,7 +275,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置数组项类型
+        /// Set array item type
         /// </summary>
         public MethodArr SetItemType(string itemType)
         {
@@ -277,7 +284,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加数组示例
+        /// Add array example
         /// </summary>
         public MethodArr AddExample(params string[] items)
         {
@@ -286,7 +293,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认数组值
+        /// Set default array value
         /// </summary>
         public MethodArr SetDefault(params string[] defaultValues)
         {
@@ -296,7 +303,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 对象类型参数
+    /// Object type parameter
     /// </summary>
     public class MethodObj : MethodKey
     {
@@ -311,7 +318,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加对象属性
+        /// Add object property
         /// </summary>
         public MethodObj AddProperty(string propName, string propType)
         {
@@ -320,7 +327,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加字符串类型属性
+        /// Add string type property
         /// </summary>
         public MethodObj AddStringProperty(string propName)
         {
@@ -329,7 +336,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加数字类型属性
+        /// Add number type property
         /// </summary>
         public MethodObj AddNumberProperty(string propName)
         {
@@ -338,18 +345,18 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加数组类型属性
+        /// Add array type property
         /// </summary>
         public MethodObj AddArrayProperty(string propName, string itemType = "string")
         {
             Properties[propName] = "array";
-            // 存储数组元素类型信息，用于MCP schema生成
+            // Store array element type information for MCP schema generation
             ArrayItemTypes[propName] = ValidateType(itemType);
             return this;
         }
 
         /// <summary>
-        /// 添加布尔类型属性
+        /// Add boolean type property
         /// </summary>
         public MethodObj AddBooleanProperty(string propName)
         {
@@ -358,7 +365,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加对象类型属性
+        /// Add object type property
         /// </summary>
         public MethodObj AddObjectProperty(string propName)
         {
@@ -368,7 +375,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 向量类型参数（Unity专用）- 数组形式
+    /// Vector type parameter (Unity specific) - Array form
     /// </summary>
     public class MethodVector : MethodKey
     {
@@ -393,7 +400,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认向量值
+        /// Set default vector value
         /// </summary>
         public MethodVector SetDefault(params float[] values)
         {
@@ -402,7 +409,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 添加向量示例
+        /// Add vector example
         /// </summary>
         public MethodVector AddExample(params float[] values)
         {
@@ -413,7 +420,7 @@ namespace UniMcp
     }
 
     /// <summary>
-    /// 颜色类型参数（Unity专用）
+    /// Color type parameter (Unity specific)
     /// </summary>
     public class MethodColor : MethodKey
     {
@@ -428,7 +435,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认颜色值
+        /// Set default color value
         /// </summary>
         public MethodColor SetDefault(float r, float g, float b, float a = 1.0f)
         {
@@ -437,7 +444,7 @@ namespace UniMcp
         }
 
         /// <summary>
-        /// 设置默认颜色名称
+        /// Set default color name
         /// </summary>
         public MethodColor SetDefault(string colorName)
         {

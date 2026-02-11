@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models; // For Response class
 using UniMcp.Tools; // 添加这个引用
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -14,10 +15,10 @@ namespace UniMcp.Tools
     /// Handles Unity ScriptableObject asset management operations including create, modify, duplicate, etc.
     /// 对应方法名: manage_scriptableobject
     /// </summary>
-    [ToolName("edit_scriptable_object", "资源管理")]
+    [ToolName("edit_scriptable_object", "Resource Management")]
     public class EditScriptableObject : StateMethodBase
     {
-        public override string Description => "ScriptableObject编辑工具，用于修改和管理ScriptableObject资源属性";
+        public override string Description => L.T("Manage ScriptableObject assets including create and modify", "管理ScriptableObject资源，包括创建和修改");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -27,31 +28,31 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("create", "modify", "duplicate", "get_info", "search")
                     .SetDefault("get_info"),
                 
                 // 资产路径
-                new MethodStr("path", "ScriptableObject资产路径", false)
+                new MethodStr("path", L.T("ScriptableObject asset path", "ScriptableObject资产路径"), false)
                     .SetDefault("Assets/Default.asset"),
                 
                 // 脚本类名
-                new MethodStr("script_class", "ScriptableObject脚本类名"),
+                new MethodStr("script_class", L.T("ScriptableObject script class name", "ScriptableObject脚本类名")),
                 
                 // 属性
-                new MethodObj("properties", "资产属性"),
+                new MethodObj("properties", L.T("Asset properties", "资产属性")),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径"),
+                new MethodStr("destination", L.T("Destination path", "目标路径")),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式"),
+                new MethodStr("query", L.T("Search pattern", "搜索模式")),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索"),
+                new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行")
+                new MethodBool("force", L.T("Force execution", "强制执行"))
             };
         }
 

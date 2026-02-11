@@ -14,42 +14,42 @@ namespace UniMcp.Tools
     /// Handles Unity Editor state management and controls.
     /// 对应方法名: base_editor
     /// </summary>
-    [ToolName("base_editor", "系统管理")]
+    [ToolName("base_editor", "System Management")]
     public class BaseEditor : StateMethodBase
     {
-        public override string Description => "Unity编辑器状态管理工具，用于获取编辑器状态、窗口信息、选择对象和执行菜单命令等功能";
+        public override string Description => L.T("Manage Unity Editor state and controls", "管理Unity编辑器状态和控制");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("get_state", "get_windows", "get_selection", "execute_menu", "get_menu_items")
                     .AddExamples("get_state", "execute_menu"),
                 
-                // 等待完成
-                new MethodBool("wait_for_completion", "是否等待操作完成")
+                // Wait for completion
+                new MethodBool("wait_for_completion", L.T("Whether to wait for operation completion", "是否等待操作完成"))
                     .SetDefault(true),
                 
-                // 菜单路径
-                new MethodStr("menu_path", "菜单路径（执行菜单时使用）")
+                // Menu path
+                new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
                     .AddExamples("File/New Scene", "GameObject/Create Empty"),
                 
-                // 根菜单路径
-                new MethodStr("root_path", "根菜单路径（获取菜单项时使用）")
+                // Root menu path
+                new MethodStr("root_path", L.T("Root menu path (used when getting menu items)", "根菜单路径（获取菜单项时使用）"))
                     .AddExamples("File", "GameObject")
                     .SetDefault(""),
                 
-                // 包含子菜单
-                new MethodBool("include_submenus", "包含子菜单（获取菜单项时使用）")
+                // Include submenus
+                new MethodBool("include_submenus", L.T("Include submenus (used when getting menu items)", "包含子菜单（获取菜单项时使用）"))
                     .SetDefault(true),
                 
-                // 验证存在
-                new MethodBool("verify_exists", "验证菜单项是否存在（获取菜单项时使用）")
+                // Verify exists
+                new MethodBool("verify_exists", L.T("Verify if menu item exists (used when getting menu items)", "验证菜单项是否存在（获取菜单项时使用）"))
                     .SetDefault(false)
             };
         }

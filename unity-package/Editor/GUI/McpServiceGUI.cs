@@ -6,6 +6,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using UniMcp.Executer;
 using UniMcp.Tools;
+using UniMcp;
 
 namespace UniMcp.Gui
 {
@@ -49,12 +50,31 @@ namespace UniMcp.Gui
 
             // 日志级别下拉菜单 - 美化样式
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField("日志级别", EditorStyles.miniLabel, GUILayout.Width(60));
+            EditorGUILayout.LabelField(L.T("Log Level", "日志级别"), EditorStyles.miniLabel, GUILayout.Width(60));
             var currentLogLevel = McpLogger.GetLogLevel();
             var newLogLevel = (McpLogger.LogLevel)EditorGUILayout.EnumPopup(currentLogLevel, GUILayout.Width(100));
             if (newLogLevel != currentLogLevel)
             {
                 McpLogger.SetLogLevel(newLogLevel);
+            }
+            EditorGUILayout.EndVertical();
+
+            // 语言切换下拉菜单 - 美化样式
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField(L.T("Language", "语言"), EditorStyles.miniLabel, GUILayout.Width(60));
+            var currentLanguage = McpService.GetLocalSettings().CurrentLanguage;
+            if (string.IsNullOrEmpty(currentLanguage))
+            {
+                currentLanguage = "中文"; // 默认语言
+            }
+            string[] languages = new string[] { "中文", "English" };
+            int currentIndex = currentLanguage == "English" ? 1 : 0;
+            int newIndex = EditorGUILayout.Popup(currentIndex, languages, GUILayout.Width(80));
+            if (newIndex != currentIndex)
+            {
+                string newLanguage = languages[newIndex];
+                McpService.GetLocalSettings().CurrentLanguage = newLanguage;
+                Debug.Log($"[McpServiceGUI] {L.T("Language switched to", "语言已切换为")}: {newLanguage}");
             }
             EditorGUILayout.EndVertical();
 
@@ -67,7 +87,7 @@ namespace UniMcp.Gui
             Color originalBgColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.4f, 0.7f, 1f, 0.8f); // 淡蓝色
             
-            if (GUILayout.Button("📊 状态窗口", statusButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("📊 Status Window", "📊 状态窗口"), statusButtonStyle, GUILayout.Width(110), GUILayout.Height(22)))
             {
                 McpServiceStatusWindow.ShowWindow();
             }
@@ -135,7 +155,7 @@ namespace UniMcp.Gui
                 normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
                 padding = new RectOffset(8, 0, 4, 0)
             };
-            EditorGUILayout.LabelField("🔧 可用工具方法", headerTitleStyle, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField(L.T("🔧 Available Tools", "🔧 可用工具方法"), headerTitleStyle, GUILayout.ExpandWidth(true));
 
             // 工具信息按钮 - 美化样式
             GUIStyle toolInfoButtonStyle = new GUIStyle(EditorStyles.miniButton)
@@ -149,8 +169,8 @@ namespace UniMcp.Gui
             int totalToolCount = McpService.GetToolCount();
             int enabledToolCount = McpService.GetEnabledToolCount();
             string toolButtonText = enabledToolCount == totalToolCount ?
-                $"✅ 工具({enabledToolCount})" :
-                $"⚠️ 工具({enabledToolCount}/{totalToolCount})";
+                $"✅ {L.T("Tools", "工具")}({enabledToolCount})" :
+                $"⚠️ {L.T("Tools", "工具")}({enabledToolCount}/{totalToolCount})";
             
             // 根据启用状态设置按钮颜色
             if (enabledToolCount == totalToolCount)
@@ -183,7 +203,7 @@ namespace UniMcp.Gui
             Color titleOriginalColor = GUI.backgroundColor;
             GUI.backgroundColor = new Color(0.5f, 0.7f, 1f, 0.8f); // 更柔和的蓝色
 
-            if (GUILayout.Button("🐛 调试窗口", titleDebugButtonStyle, GUILayout.Width(90), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("🐛 Debug Window", "🐛 调试窗口"), titleDebugButtonStyle, GUILayout.Width(110), GUILayout.Height(22)))
             {
                 // 打开调试窗口（不预填充内容）
                 McpDebugWindow.ShowWindow();
@@ -307,7 +327,8 @@ namespace UniMcp.Gui
                     var toolNames = methods.Select(m => m.methodName).ToList();
                     McpService.GetLocalSettings().SetToolsEnabled(toolNames, newGroupToggleState);
 
-                    Debug.Log($"[McpServiceGUI] 工具组 '{groupName}' 所有工具已{(newGroupToggleState ? "启用" : "禁用")}");
+                    string statusText = newGroupToggleState ? L.T("enabled", "启用") : L.T("disabled", "禁用");
+                    Debug.Log($"[McpServiceGUI] {L.T("Tool group", "工具组")} '{groupName}' {L.T("all tools", "所有工具")}{statusText}");
                 }
 
                 groupIndex++;
@@ -498,7 +519,8 @@ namespace UniMcp.Gui
 
                             // 如果工具状态发生变化，可以选择性地重新发现工具或更新工具列表
                             // 这里我们只是记录变化，实际的过滤会在McpService中进行
-                            Debug.Log($"[McpServiceGUI] 工具 '{methodName}' 状态已更改为: {(newToolEnabled ? "启用" : "禁用")}");
+                            string statusText = newToolEnabled ? L.T("enabled", "启用") : L.T("disabled", "禁用");
+                            Debug.Log($"[McpServiceGUI] {L.T("Tool", "工具")} '{methodName}' {L.T("status changed to", "状态已更改为")}: {statusText}");
                         }
 
                         // 绘制问号按钮 - 美化样式
@@ -543,7 +565,7 @@ namespace UniMcp.Gui
                             EditorGUILayout.Space(4);
 
                             // === 参数Keys信息部分 ===
-                            EditorGUILayout.LabelField("📋 参数信息", EditorStyles.boldLabel);
+                            EditorGUILayout.LabelField(L.T("📋 Parameters", "📋 参数信息"), EditorStyles.boldLabel);
                             EditorGUILayout.Space(2);
                             
                             Rect paramsBoxRect = EditorGUILayout.BeginVertical("box");
@@ -644,14 +666,14 @@ namespace UniMcp.Gui
                                     fontSize = 10,
                                     fontStyle = FontStyle.Italic
                                 };
-                                EditorGUILayout.LabelField("📭 无参数", noParamsStyle);
+                                EditorGUILayout.LabelField(L.T("📭 No Parameters", "📭 无参数"), noParamsStyle);
                             }
 
                             EditorGUILayout.EndVertical();
                             EditorGUILayout.Space(6);
 
                             // === 状态树结构部分 ===
-                            EditorGUILayout.LabelField("📄 预览信息", EditorStyles.boldLabel);
+                            EditorGUILayout.LabelField(L.T("📄 Preview", "📄 预览信息"), EditorStyles.boldLabel);
                             EditorGUILayout.Space(2);
                             
                             Rect previewBoxRect = EditorGUILayout.BeginVertical("box");
@@ -718,7 +740,7 @@ namespace UniMcp.Gui
             }
 
             // 如果没有ToolNameAttribute，返回默认分组
-            return "未分组";
+            return L.T("Ungrouped", "未分组");
         }
 
         /// <summary>
@@ -827,7 +849,7 @@ namespace UniMcp.Gui
                 }
             }
 
-            Debug.LogWarning($"无法在Project窗口中找到脚本: {scriptName}");
+            Debug.LogWarning($"[McpServiceGUI] {L.T("Unable to find script in Project window", "无法在Project窗口中找到脚本")}: {scriptName}");
         }
 
         /// <summary>
@@ -874,7 +896,7 @@ namespace UniMcp.Gui
                 }
             }
 
-            Debug.LogWarning($"无法打开脚本: {scriptName}");
+            Debug.LogWarning($"[McpServiceGUI] {L.T("Unable to open script", "无法打开脚本")}: {scriptName}");
         }
 
         /// <summary>
@@ -894,8 +916,11 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                Debug.LogError($"[UnityMcpEditorWindow] 生成调试示例时发生错误: {e}");
-                EditorUtility.DisplayDialog("错误", $"无法生成调试示例: {e.Message}", "确定");
+                Debug.LogError($"[McpServiceGUI] {L.T("Error generating debug example", "生成调试示例时发生错误")}: {e}");
+                EditorUtility.DisplayDialog(
+                    L.T("Error", "错误"), 
+                    $"{L.T("Unable to generate debug example", "无法生成调试示例")}: {e.Message}", 
+                    L.T("OK", "确定"));
             }
         }
 
@@ -919,7 +944,7 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"生成示例JSON失败，使用基础模板: {e.Message}");
+                Debug.LogWarning($"[McpServiceGUI] {L.T("Failed to generate example JSON, using basic template", "生成示例JSON失败，使用基础模板")}: {e.Message}");
 
                 // 如果生成失败，返回基础模板
                 var basicCall = new
@@ -1085,13 +1110,13 @@ namespace UniMcp.Gui
                 McpService.GetLocalSettings().IsToolEnabled(toolName)).ToList();
             int enabledToolCount = enabledToolNames.Count;
 
-            string message = $"MCP工具调试信息:\n\n";
-            message += $"已注册工具总数: {totalToolCount}\n";
-            message += $"已启用工具数量: {enabledToolCount}\n\n";
+            string message = $"{L.T("MCP Tool Debug Information", "MCP工具调试信息")}:\n\n";
+            message += $"{L.T("Total registered tools", "已注册工具总数")}: {totalToolCount}\n";
+            message += $"{L.T("Enabled tools count", "已启用工具数量")}: {enabledToolCount}\n\n";
 
             if (enabledToolCount > 0)
             {
-                message += "已启用的工具:\n";
+                message += $"{L.T("Enabled tools", "已启用的工具")}:\n";
                 foreach (var toolName in enabledToolNames)
                 {
                     message += $"• {toolName}\n";
@@ -1099,23 +1124,27 @@ namespace UniMcp.Gui
             }
             else
             {
-                message += "⚠️ 没有启用任何工具！\n\n";
-                message += "可能的原因:\n";
-                message += "1. 所有工具都被手动禁用了\n";
-                message += "2. 工具配置设置有问题\n";
-                message += "3. 需要重新发现工具\n";
+                message += $"⚠️ {L.T("No tools enabled!", "没有启用任何工具！")}\n\n";
+                message += $"{L.T("Possible reasons", "可能的原因")}:\n";
+                message += $"1. {L.T("All tools have been manually disabled", "所有工具都被手动禁用了")}\n";
+                message += $"2. {L.T("Tool configuration has issues", "工具配置设置有问题")}\n";
+                message += $"3. {L.T("Need to rediscover tools", "需要重新发现工具")}\n";
             }
 
             if (totalToolCount > enabledToolCount)
             {
-                message += $"\n💡 提示: 还有 {totalToolCount - enabledToolCount} 个工具被禁用";
+                message += $"\n💡 {L.T("Tip", "提示")}: {L.T("There are", "还有")} {totalToolCount - enabledToolCount} {L.T("tools disabled", "个工具被禁用")}";
             }
 
-            message += "\n\n点击'重新发现'按钮重新扫描工具。";
+            message += $"\n\n{L.T("Click 'Rediscover' button to rescan tools.", "点击'重新发现'按钮重新扫描工具。")}";
 
-            if (EditorUtility.DisplayDialog("MCP工具调试", message, "重新发现", "关闭"))
+            if (EditorUtility.DisplayDialog(
+                L.T("MCP Tool Debug", "MCP工具调试"), 
+                message, 
+                L.T("Rediscover", "重新发现"), 
+                L.T("Close", "关闭")))
             {
-                Debug.Log("[McpServiceGUI] 开始重新发现工具...");
+                Debug.Log($"[McpServiceGUI] {L.T("Starting tool rediscovery...", "开始重新发现工具...")}");
                 McpService.RediscoverTools();
 
                 // 重新获取工具信息
@@ -1126,20 +1155,23 @@ namespace UniMcp.Gui
                     McpService.GetLocalSettings().IsToolEnabled(toolName)).ToList();
                 int newEnabledToolCount = newEnabledToolNames.Count;
 
-                string resultMessage = $"重新发现完成!\n\n";
-                resultMessage += $"发现工具总数: {newTotalToolCount}\n";
-                resultMessage += $"启用工具数量: {newEnabledToolCount}\n\n";
+                string resultMessage = $"{L.T("Rediscovery completed!", "重新发现完成!")}\n\n";
+                resultMessage += $"{L.T("Total tools found", "发现工具总数")}: {newTotalToolCount}\n";
+                resultMessage += $"{L.T("Enabled tools count", "启用工具数量")}: {newEnabledToolCount}\n\n";
 
                 if (newEnabledToolCount > 0)
                 {
-                    resultMessage += "启用的工具:\n";
+                    resultMessage += $"{L.T("Enabled tools", "启用的工具")}:\n";
                     foreach (var toolName in newEnabledToolNames)
                     {
                         resultMessage += $"• {toolName}\n";
                     }
                 }
 
-                EditorUtility.DisplayDialog("工具重新发现结果", resultMessage, "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Tool Rediscovery Result", "工具重新发现结果"), 
+                    resultMessage, 
+                    L.T("OK", "确定"));
             }
         }
 

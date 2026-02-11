@@ -4,50 +4,46 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp;
-
 namespace UniMcp.Tools.Storage
 {
     /// <summary>
     /// Handles EditorPrefs and PlayerPrefs operations for storing and retrieving preferences.
     /// 对应方法名: prefers
     /// </summary>
-    [ToolName("prefers", "调试工具")]
+    [ToolName("prefers", "Storage Management")]
     public class Prefers : StateMethodBase
     {
-        /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
-        /// </summary>
-        public override string Description => "偏好设置管理工具，用于处理EditorPrefs和PlayerPrefs的存储、检索、删除等操作";
+        public override string Description => L.T("Manage EditorPrefs and PlayerPrefs storage", "管理编辑器偏好和玩家偏好存储");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("set", "get", "delete", "has", "delete_all", "get_all"),
                 
-                // 偏好设置类型
-                new MethodStr("pref_type", "偏好设置类型")
+                // Preference type
+                new MethodStr("pref_type", L.T("Preference type", "偏好设置类型"))
                     .SetEnumValues("editor", "player"),
                 
-                // 键名
-                new MethodStr("key", "键名")
+                // Key name
+                new MethodStr("key", L.T("Key name", "键名"))
                     .AddExamples("MyKey", "Settings.Volume"),
                 
-                // 值
-                new MethodStr("value", "值")
+                // Value
+                new MethodStr("value", L.T("Value", "值"))
                     .AddExamples("Hello", "100"),
                 
-                // 值类型
-                new MethodStr("value_type", "值类型")
+                // Value type
+                new MethodStr("value_type", L.T("Value type", "值类型"))
                     .SetEnumValues("string", "int", "float", "bool"),
                 
-                // 默认值
-                new MethodStr("default_value", "默认值")
+                // Default value
+                new MethodStr("default_value", L.T("Default value", "默认值"))
                     .AddExample("DefaultValue")
             };
         }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UniMcp;
 using UniMcp.Models;
 
 namespace UniMcp.Tools
@@ -12,10 +13,10 @@ namespace UniMcp.Tools
     /// 专门的音频管理工具，提供音频的导入、修改、复制、删除等操作
     /// 对应方法名: edit_audio
     /// </summary>
-    [ToolName("edit_audio", "资源管理")]
+    [ToolName("edit_audio", "Resource Management")]
     public class EditAudio : StateMethodBase
     {
-        public override string Description => "音频编辑工具，用于修改和管理音频资源属性";
+        public override string Description => L.T("Manage audio files including import, modify, copy, delete", "管理音频文件，包括导入、修改、复制和删除");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -25,98 +26,98 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "convert_format", "extract_metadata"),
                 
                 // 音频路径
-                new MethodStr("path", "音频资源路径", false)
+                new MethodStr("path", L.T("Audio asset path", "音频资源路径"), false)
                     .AddExamples("Assets/Audio/music.wav", "Assets/Sounds/effect.mp3"),
                 
                 // 源文件路径
-                new MethodStr("source_file", "源文件路径")
+                new MethodStr("source_file", L.T("Source file path", "源文件路径"))
                     .AddExamples("D:/Audio/music.wav", "C:/Sounds/effect.mp3"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径")
+                new MethodStr("destination", L.T("Target path", "目标路径"))
                     .AddExamples("Assets/Audio/Copy/", "Assets/NewSounds/"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式")
+                new MethodStr("query", L.T("Search pattern", "搜索模式"))
                     .AddExamples("*.wav", "*.mp3"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索"),
+                new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行"),
+                new MethodBool("force", L.T("Force execution", "强制执行")),
                 
                 // 导入设置
-                new MethodObj("import_settings", "导入设置"),
+                new MethodObj("import_settings", L.T("Import settings", "导入设置")),
                 
                 // 目标格式
-                new MethodStr("target_format", "目标格式")
+                new MethodStr("target_format", L.T("Target format", "目标格式"))
                     .SetEnumValues("wav", "mp3", "ogg")
                     .AddExample("wav"),
                 
                 // 强制单声道
-                new MethodBool("force_to_mono", "强制单声道"),
+                new MethodBool("force_to_mono", L.T("Force to mono", "强制单声道")),
                 
                 // 加载类型
-                new MethodStr("load_type", "加载类型")
+                new MethodStr("load_type", L.T("Load type", "加载类型"))
                     .SetEnumValues("DecompressOnLoad", "CompressedInMemory", "Streaming")
                     .AddExample("CompressedInMemory"),
                 
                 // 压缩格式
-                new MethodStr("compression_format", "压缩格式")
+                new MethodStr("compression_format", L.T("Compression format", "压缩格式"))
                     .SetEnumValues("PCM", "Vorbis", "MP3", "ADPCM")
                     .AddExample("Vorbis"),
                 
                 // 质量
-                new MethodFloat("quality", "质量")
+                new MethodFloat("quality", L.T("Quality", "质量"))
                     .SetRange(0f, 1f),
 
                 // 采样率设置
-                new MethodStr("sample_rate_setting", "采样率设置")
+                new MethodStr("sample_rate_setting", L.T("Sample rate setting", "采样率设置"))
                     .SetEnumValues("PreserveSampleRate", "OptimizeSampleRate")
                     .AddExample("OptimizeSampleRate"),
                 
                 // 采样率
-                new MethodInt("sample_rate", "采样率")
+                new MethodInt("sample_rate", L.T("Sample rate", "采样率"))
                     .SetRange(8000, 192000),
                 
                 // 预加载音频数据
-                new MethodBool("preload_audio_data", "预加载音频数据"),
+                new MethodBool("preload_audio_data", L.T("Preload audio data", "预加载音频数据")),
                 
                 // 后台加载
-                new MethodBool("load_in_background", "后台加载"),
+                new MethodBool("load_in_background", L.T("Load in background", "后台加载")),
                 
                 // 环绕声渲染
-                new MethodBool("ambisonic_rendering", "环绕声渲染"),
+                new MethodBool("ambisonic_rendering", L.T("Ambisonic rendering", "环绕声渲染")),
                 
                 // DSP缓冲区大小
-                new MethodStr("dsp_buffer_size", "DSP缓冲区大小")
+                new MethodStr("dsp_buffer_size", L.T("DSP buffer size", "DSP缓冲区大小"))
                     .SetEnumValues("Default", "GoodLatency", "BestLatency", "BestPerformance")
                     .AddExample("GoodLatency"),
                 
                 // 静音时虚拟化
-                new MethodBool("virtualize_when_silent", "静音时虚拟化"),
+                new MethodBool("virtualize_when_silent", L.T("Virtualize when silent", "静音时虚拟化")),
                 
                 // 空间化
-                new MethodBool("spatialize", "空间化"),
+                new MethodBool("spatialize", L.T("Spatialize", "空间化")),
                 
                 // 空间化
-                new MethodBool("spatialize_post_effects", "空间化"),
+                new MethodBool("spatialize_post_effects", L.T("Spatialize post effects", "空间化")),
                 
                 // 用户数据
-                new MethodStr("user_data", "用户数据")
+                new MethodStr("user_data", L.T("User data", "用户数据"))
                     .AddExample("CustomData"),
                 
                 // 资源包名称
-                new MethodStr("asset_bundle_name", "资源包名称")
+                new MethodStr("asset_bundle_name", L.T("Asset bundle name", "资源包名称"))
                     .AddExample("audio_bundle"),
                 
                 // 资源包变体
-                new MethodStr("asset_bundle_variant", "资源包变体")
+                new MethodStr("asset_bundle_variant", L.T("Asset bundle variant", "资源包变体"))
                     .AddExample("hd")
             };
         }

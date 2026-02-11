@@ -12,48 +12,48 @@ namespace UniMcp.Tools
     /// Handles Project window search operations for finding assets and objects.
     /// 对应方法名: project_search
     /// </summary>
-    [ToolName("project_search", "项目管理")]
+    [ToolName("project_search", "Project Management")]
     public class ProjectSearch : StateMethodBase
     {
-        public override string Description => "项目资源搜索工具，支持按类型和关键词搜索项目中的资源文件";
+        public override string Description => L.T("Search for assets and objects in the Project window", "在项目窗口中搜索资源和对象");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 搜索类型
-                new MethodStr("search_target", "搜索类型")
+                // Search type
+                new MethodStr("search_target", L.T("Search type", "搜索类型"))
                     .SetEnumValues("asset", "folder", "script", "texture", "material", "prefab", "scene", "audio", "model")
                     .AddExamples("script", "material"),
                 
-                // 搜索关键词
-                new MethodStr("query", "搜索关键词")
+                // Search keywords
+                new MethodStr("query", L.T("Search keywords", "搜索关键词"))
                     .AddExamples("Player", "UI_*"),
                 
-                // 搜索路径
-                new MethodStr("directory", "搜索路径（相对于Assets）")
+                // Search path
+                new MethodStr("directory", L.T("Search path (relative to Assets)", "搜索路径（相对于Assets）"))
                     .AddExamples("Scripts", "Materials"),
                 
-                // 文件扩展名过滤
-                new MethodStr("file_extension", "文件扩展名过滤")
+                // File extension filter
+                new MethodStr("file_extension", L.T("File extension filter", "文件扩展名过滤器"))
                     .SetEnumValues("cs", "mat", "prefab", "unity", "png", "jpg", "fbx", "wav", "mp3")
                     .AddExamples("cs", "mat"),
                 
-                // 递归搜索
-                new MethodBool("recursive", "是否递归搜索子文件夹"),
+                // Recursive search
+                new MethodBool("recursive", L.T("Recursively search subfolders", "递归搜索子文件夹")),
                 
-                // 区分大小写
-                new MethodBool("case_sensitive", "是否区分大小写"),
+                // Case sensitive
+                new MethodBool("case_sensitive", L.T("Case sensitive search", "区分大小写搜索")),
                 
-                // 最大结果数
-                new MethodInt("max_results", "最大返回结果数")
+                // Max results
+                new MethodInt("max_results", L.T("Maximum number of results", "最大结果数量"))
                     .SetRange(1, 1000),
                 
-                // 包含meta文件
-                new MethodBool("include_meta", "是否包含.meta文件")
+                // Include meta files
+                new MethodBool("include_meta", L.T("Include .meta files", "包含.meta文件"))
             };
         }
 

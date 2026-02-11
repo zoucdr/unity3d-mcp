@@ -6,28 +6,28 @@ using UniMcp.Models;
 namespace UniMcp
 {
     /// <summary>
-    /// 工具方法接口，所有具体工具类都应实现此接口
+    /// Tool method interface, all specific tool classes should implement this interface
     /// </summary>
     public interface IToolMethod
     {
         /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
+        /// Tool method description, used for reference in state tree
         /// </summary>
         string Description { get; }
         /// <summary>
-        /// 工具方法的键值，用于在状态树中引用
+        /// Tool method keys, used for reference in state tree
         /// </summary>
         MethodKey[] Keys { get; }
         /// <summary>
-        /// 执行工具方法（同步版本，保持向后兼容）
+        /// Execute tool method (synchronous version, maintains backward compatibility)
         /// </summary>
-        /// <param name="args">参数对象</param>
-        /// <returns>执行结果</returns>
+        /// <param name="args">Parameter object</param>
+        /// <returns>Execution result</returns>
         void ExecuteMethod(StateTreeContext args);
         /// <summary>
-        /// 预览方法
+        /// Preview method
         /// </summary>
-        /// <returns>预览结果</returns>
+        /// <returns>Preview result</returns>
         string Preview();
     }
 }

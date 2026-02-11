@@ -14,38 +14,38 @@ namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles GameObject prefab applying and connection operations.
-    /// 对应方法名: hierarchy_apply
+    /// Corresponding method name: hierarchy_apply
     /// </summary>
-    [ToolName("hierarchy_apply", "层级管理")]
+    [ToolName("hierarchy_apply", "Hierarchy Management")]
     public class HierarchyApply : StateMethodBase
     {
-        public override string Description => "层级应用工具，用于处理游戏对象预制体的应用和连接操作";
+        public override string Description => L.T("Hierarchy apply tool, handles prefab apply and connection operations for game objects", "层级应用工具，处理游戏对象的预制体应用和连接操作");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型 - 固定为apply
-                new MethodStr("action", "操作类型", false)
+                // Action type - fixed as apply
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("apply"),
                 
-                // 目标对象标识符
-                new MethodStr("target_object", "目标GameObject层级路径（用于应用操作）", false)
+                // Target object identifier
+                new MethodStr("target_object", L.T("Target GameObject hierarchy path (for apply operation)", "目标游戏对象层级路径（用于应用操作）"), false)
                     .AddExamples("Player", "UI/Canvas/Button"),
                 
-                // 预制体路径
-                new MethodStr("prefab_path", "预制体路径")
+                // Prefab path
+                new MethodStr("prefab_path", L.T("Prefab path", "预制体路径"))
                     .AddExamples("Assets/Prefabs/Player.prefab", "Assets/UI/ButtonPrefab.prefab"),
                 
-                // 应用类型
-                new MethodStr("apply_type", "链接类型")
+                // Apply type
+                new MethodStr("apply_type", L.T("Connection type", "连接类型"))
                     .SetEnumValues("connect_to_prefab", "apply_prefab_changes", "break_prefab_connection"),
                 
-                // 强制应用
-                new MethodBool("force_apply", "是否强制创建链接（覆盖现有连接）")
+                // Force apply
+                new MethodBool("force_apply", L.T("Whether to force create connection (override existing connection)", "是否强制创建连接（覆盖现有连接）"))
             };
         }
 

@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -15,10 +16,10 @@ namespace UniMcp.Tools
     /// Second tree: Component operation execution
     /// 对应方法名: edit_component
     /// </summary>
-    [ToolName("edit_component", "资源管理")]
+    [ToolName("edit_component", "Resource Management")]
     public class EditComponent : DualStateMethodBase
     {
-        public override string Description => "组件编辑工具，用于修改和管理游戏对象组件属性";
+        public override string Description => L.T("Manage GameObject components including get and set properties", "管理游戏对象组件，包括获取和设置属性");
 
         /// <summary>
         /// 目标查找
@@ -32,23 +33,23 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 目标查找参数 - GameObject实例ID
-                new MethodStr("instance_id", "GameObject的实例ID，用于唯一标识对象", false)
+                new MethodStr("instance_id", L.T("GameObject instance ID for unique identification", "GameObject的实例ID，用于唯一标识对象"), false)
                     .AddExamples("-2524", "12345", "-1728"),
                 
                 // 目标查找参数 - 层次结构路径
-                new MethodStr("path", "GameObject在层次结构中的路径", false)
+                new MethodStr("path", L.T("GameObject path in hierarchy", "GameObject在层次结构中的路径"), false)
                     .AddExamples("Main Camera", "UI/Canvas/Button", "Player/Body/Head"),
                 
                 // 操作类型 - 枚举
-                new MethodStr("action", "操作类型")
+                new MethodStr("action", L.T("Action type", "操作类型"))
                     .SetEnumValues("get_component_propertys", "set_component_propertys"),
                 
                 // 组件类型名称
-                new MethodStr("component_type", "组件类型名称（继承自Component的类型名）", false)
+                new MethodStr("component_type", L.T("Component type name (inherits from Component)", "组件类型名称（继承自Component的类型名）"), false)
                     .AddExamples("Transform", "MeshRenderer", "Rigidbody", "BoxCollider", "Camera", "Light", "AudioSource"),
                 
                 // 属性字典 - 用于设置组件属性
-                new MethodObj("properties", "属性字典，用于设置组件属性值")
+                new MethodObj("properties", L.T("Property dictionary for setting component property values", "属性字典，用于设置组件属性值"))
                     .AddBooleanProperty("enabled")
                     .AddArrayProperty("position", "number")
                     .AddArrayProperty("rotation", "number")

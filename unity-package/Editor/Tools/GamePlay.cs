@@ -16,10 +16,10 @@ namespace UniMcp.Tools
     /// GamePlay游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理
     /// 对应方法名: gameplay
     /// </summary>
-    [ToolName("gameplay", "游戏控制")]
+    [ToolName("gameplay", "Gameplay Control")]
     public class GamePlay : StateMethodBase
     {
-        public override string Description => "游戏窗口管理工具，支持输入模拟、窗口操作、截图和图像处理等功能";
+        public override string Description => L.T("Control gameplay, simulate input, and process images", "控制游戏玩法，模拟输入和处理图像");
 
         // Game窗口相关的反射类型和方法
         private static Type gameViewType;
@@ -62,94 +62,94 @@ namespace UniMcp.Tools
         }
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型", false)
+                // Action type - enum
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("play", "pause", "stop", "screenshot", "simulate_click", "simulate_drag", "set_size", "get_info", "compress_image"),
                 
-                // 输入模拟坐标 - 整数类型
-                new MethodInt("x", "输入模拟的X坐标"),
+                // Input simulation coordinates - integer type
+                new MethodInt("x", L.T("Input simulation X coordinate", "输入模拟X坐标")),
 
-                new MethodInt("y", "输入模拟的Y坐标"),
+                new MethodInt("y", L.T("Input simulation Y coordinate", "输入模拟Y坐标")),
                 
-                // 拖拽操作相关
-                new MethodFloat("duration", "拖拽操作持续时间（秒）"),
+                // Drag operation related
+                new MethodFloat("duration", L.T("Drag operation duration (seconds)", "拖动操作持续时间（秒）")),
 
-                new MethodInt("target_x", "拖拽操作目标X坐标"),
+                new MethodInt("target_x", L.T("Drag operation target X coordinate", "拖动操作目标X坐标")),
 
-                new MethodInt("target_y", "拖拽操作目标Y坐标"),
+                new MethodInt("target_y", L.T("Drag operation target Y coordinate", "拖动操作目标Y坐标")),
                 
-                // 鼠标按钮
-                new MethodInt("button", "鼠标按钮")
+                // Mouse button
+                new MethodInt("button", L.T("Mouse button", "鼠标按钮"))
                     .SetEnumValues("0", "1", "2"),
                 
-                // 键盘按键代码
-                new MethodStr("key_code", "键盘按键代码")
+                // Keyboard key code
+                new MethodStr("key_code", L.T("Keyboard key code", "键盘按键代码"))
                     .AddExamples("Space", "Return", "Escape", "A", "W", "S", "D", "LeftShift", "LeftControl"),
                 
-                // 窗口尺寸
-                new MethodInt("width", "游戏窗口宽度"),
+                // Window size
+                new MethodInt("width", L.T("Game window width", "游戏窗口宽度")),
 
-                new MethodInt("height", "游戏窗口高度"),
+                new MethodInt("height", L.T("Game window height", "游戏窗口高度")),
                 
-                // 预定义尺寸名称
-                new MethodStr("size_name", "预定义尺寸名称")
+                // Predefined size name
+                new MethodStr("size_name", L.T("Predefined size name", "预定义尺寸名称"))
                     .AddExamples("Free", "16:9", "16:10", "4:3", "iPhone", "Android"),
                 
-                // 截图和图像处理路径
-                new MethodStr("save_path", "截图/图像保存路径")
-                    .AddExamples("Assets/Screenshots/screenshot.png", "D:/Screenshots/game.jpg", "screenshot.png"),
+                // Screenshot and image processing path
+                new MethodStr("save_path", L.T("Screenshot/image save path", "截图/图片保存路径"))
+                    .AddExamples("D:/game.jpg", "screenshot.png"),
                 
-                // 图像格式
-                new MethodStr("format", "图像格式")
+                // Image format
+                new MethodStr("format", L.T("Image format", "图片格式"))
                     .SetEnumValues("PNG", "JPG"),
                 
-                // 图像质量
-                new MethodInt("quality", "图像质量（JPG格式时1-100）")
+                // Image quality
+                new MethodInt("quality", L.T("Image quality (1-100 for JPG format)", "图片质量（JPG格式1-100）"))
                     .SetRange(1, 100),
                 
-                // 图像缩放
-                new MethodFloat("scale", "图像缩放因子")
+                // Image scaling
+                new MethodFloat("scale", L.T("Image scale factor", "图片缩放因子"))
                     .SetRange(0.1f, 5.0f),
                 
-                // 压缩比例
-                new MethodFloat("compress_ratio", "压缩比例（0.1-1.0）")
+                // Compression ratio
+                new MethodFloat("compress_ratio", L.T("Compression ratio (0.1-1.0)", "压缩比例（0.1-1.0）"))
                     .SetRange(0.1f, 1.0f),
                 
-                // 源图像路径
-                new MethodStr("source_path", "源图像路径（用于压缩）")
+                // Source image path
+                new MethodStr("source_path", L.T("Source image path (for compression)", "源图片路径（用于压缩）"))
                     .AddExamples("Assets/Textures/image.png", "D:/Images/photo.jpg"),
                 
-                // 截图区域坐标
-                new MethodInt("region_x", "截图区域X坐标"),
+                // Screenshot region coordinates
+                new MethodInt("region_x", L.T("Screenshot region X coordinate", "截图区域X坐标")),
 
-                new MethodInt("region_y", "截图区域Y坐标"),
+                new MethodInt("region_y", L.T("Screenshot region Y coordinate", "截图区域Y坐标")),
 
-                new MethodInt("region_width", "截图区域宽度"),
+                new MethodInt("region_width", L.T("Screenshot region width", "截图区域宽度")),
 
-                new MethodInt("region_height", "截图区域高度"),
+                new MethodInt("region_height", L.T("Screenshot region height", "截图区域高度")),
                 
-                // 延迟和时间控制
-                new MethodFloat("delay", "动作执行前延迟（秒）"),
+                // Delay and time control
+                new MethodFloat("delay", L.T("Delay before action execution (seconds)", "执行动作前的延迟（秒）")),
                 
-                // 滚轮增量
-                new MethodFloat("delta", "滚轮滚动增量")
+                // Scroll delta
+                new MethodFloat("delta", L.T("Scroll wheel delta", "滚轮滚动量"))
                     .SetRange(-10.0f, 10.0f),
                 
-                // 批量操作参数
-                new MethodInt("count", "批量操作次数")
+                // Batch operation parameters
+                new MethodInt("count", L.T("Batch operation count", "批量操作次数"))
                     .SetRange(1, 100),
 
-                new MethodFloat("interval", "批量操作间隔时间")
+                new MethodFloat("interval", L.T("Batch operation interval time", "批量操作间隔时间"))
                     .SetRange(0.1f, 5.0f),
                 
                 // 批量操作基础路径
-                new MethodStr("base_path", "批量操作基础路径")
+                new MethodStr("base_path", L.T("Batch operation base path", "批量操作基础路径"))
                     .AddExamples("Assets/Screenshots/", "D:/Batch/", "./output/")
             };
         }

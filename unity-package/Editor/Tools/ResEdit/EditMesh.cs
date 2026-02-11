@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models; // For Response class
 using UniMcp.Tools; // 添加这个引用
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -14,10 +15,10 @@ namespace UniMcp.Tools
     /// Handles Unity mesh asset operations including generation, modification, optimization, etc.
     /// 对应方法名: asset_mesh
     /// </summary>
-    [ToolName("edit_mesh", "资源管理")]
+    [ToolName("edit_mesh", "Resource Management")]
     public class EditMesh : StateMethodBase
     {
-        public override string Description => "网格编辑工具，用于修改和管理网格资源属性";
+        public override string Description => L.T("Manage mesh assets including import and modify", "管理网格资源，包括导入和修改");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -27,46 +28,46 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("create", "modify", "optimize", "generate_primitive", "subdivide", "smooth", "export", "import"),
                 
                 // 网格路径
-                new MethodStr("path", "网格资产路径", false)
+                new MethodStr("path", L.T("Mesh asset path", "网格资产路径"), false)
                     .AddExamples("Assets/Meshes/CustomMesh.asset", "Assets/Models/Terrain.asset"),
                 
                 // 网格类型
-                new MethodStr("mesh_type", "网格类型")
+                new MethodStr("mesh_type", L.T("Mesh type", "网格类型"))
                     .SetEnumValues("cube", "sphere", "cylinder", "plane", "custom"),
                 
                 // 网格属性
-                new MethodObj("properties", "网格属性"),
+                new MethodObj("properties", L.T("Mesh properties", "网格属性")),
                 
                 // 源路径
-                new MethodStr("source_path", "源网格路径")
+                new MethodStr("source_path", L.T("Source mesh path", "源网格路径"))
                     .AddExamples("Assets/Meshes/Original.asset", "D:/Models/mesh.obj"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径")
+                new MethodStr("destination", L.T("Target path", "目标路径"))
                     .AddExamples("Assets/Exports/", "D:/Exports/"),
                 
                 // 细分级别
-                new MethodInt("subdivision_level", "细分级别")
+                new MethodInt("subdivision_level", L.T("Subdivision level", "细分级别"))
                     .SetRange(0, 5),
                 
                 // 平滑因子
-                new MethodFloat("smooth_factor", "平滑因子")
+                new MethodFloat("smooth_factor", L.T("Smooth factor", "平滑因子"))
                     .SetRange(0f, 1f),
                 
                 // 优化级别
-                new MethodStr("optimization_level", "优化级别")
+                new MethodStr("optimization_level", L.T("Optimization level", "优化级别"))
                     .SetEnumValues("low", "medium", "high"),
                 
                 // 导出格式
-                new MethodStr("export_format", "导出格式")
+                new MethodStr("export_format", L.T("Export format", "导出格式"))
                     .SetEnumValues("obj", "fbx", "stl", "ply"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行")
+                new MethodBool("force", L.T("Force execution", "强制执行"))
                     .SetDefault(false)
             };
         }

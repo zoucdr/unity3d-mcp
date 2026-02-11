@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +15,10 @@ namespace UniMcp.Tools
     /// Handles Unity Package Manager operations including adding, removing, listing, and searching packages.
     /// 对应方法名: manage_package
     /// </summary>
-    [ToolName("manage_package", "系统管理")]
+    [ToolName("manage_package", "System Management")]
     public class Package : StateMethodBase
     {
-        public override string Description => "Unity包管理器工具，支持添加、删除、列表和搜索包等操作";
+        public override string Description => L.T("Manage Unity Package Manager packages", "管理Unity包管理器包");
 
         // Results storage for async operations
         private object operationResult;
@@ -142,69 +142,69 @@ namespace UniMcp.Tools
         }
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("add", "remove", "list", "search", "refresh", "resolve", "status", "restore_auto_refresh")
                     .AddExamples("add", "list"),
                 
-                // 包来源类型
-                new MethodStr("source", "包来源类型")
+                // Package source type
+                new MethodStr("source", L.T("Package source type", "包来源类型"))
                     .SetEnumValues("registry", "github", "disk")
                     .AddExamples("registry", "github"),
                 
-                // 包名称
-                new MethodStr("package_name", "包名称")
+                // Package name
+                new MethodStr("package_name", L.T("Package name", "包名称"))
                     .AddExamples("com.unity.textmeshpro", "com.unity.cinemachine"),
                 
-                // 包完整标识符
-                new MethodStr("package_identifier", "包完整标识符")
+                // Package identifier
+                new MethodStr("package_identifier", L.T("Package identifier", "包标识符"))
                     .AddExamples("com.unity.textmeshpro@3.0.6", "com.unity.cinemachine@2.8.9"),
                 
-                // 包版本
-                new MethodStr("version", "包版本")
+                // Package version
+                new MethodStr("version", L.T("Package version", "包版本"))
                     .AddExamples("3.0.6", "2.8.9"),
                 
-                // GitHub仓库URL
-                new MethodStr("repository_url", "GitHub仓库URL")
+                // GitHub repository URL
+                new MethodStr("repository_url", L.T("GitHub repository URL", "GitHub仓库URL"))
                     .AddExamples("https://github.com/Unity-Technologies/UnityCsReference.git", "https://github.com/user/repo.git"),
                 
-                // GitHub分支
-                new MethodStr("branch", "GitHub分支名")
+                // GitHub branch
+                new MethodStr("branch", L.T("GitHub branch", "GitHub分支"))
                     .AddExamples("main", "develop")
                     .SetDefault("main"),
                 
-                // 包路径
-                new MethodStr("path", "包路径")
+                // Package path
+                new MethodStr("path", L.T("Package path", "包路径"))
                     .AddExamples("Packages/MyPackage", "D:/LocalPackages/MyPackage"),
                 
-                // 搜索关键词
-                new MethodStr("search_keywords", "搜索关键词")
+                // Search keywords
+                new MethodStr("search_keywords", L.T("Search keywords", "搜索关键词"))
                     .AddExamples("unity", "cinemachine")
                     .SetDefault(""),
                 
-                // 包含依赖信息
-                new MethodBool("include_dependencies", "包含依赖信息")
+                // Include dependencies
+                new MethodBool("include_dependencies", L.T("Include dependency information", "包含依赖信息"))
                     .SetDefault(false),
                 
-                // 包范围过滤
-                new MethodStr("scope", "包范围过滤")
+                // Package scope filter
+                new MethodStr("scope", L.T("Package scope filter", "包范围过滤器"))
                     .AddExamples("com.unity", "com.mycompany")
                     .SetDefault(""),
                 
-                // 操作超时
-                new MethodInt("timeout", "操作超时（秒）")
+                // Operation timeout
+                new MethodInt("timeout", L.T("Operation timeout (seconds)", "操作超时时间（秒）"))
                     .SetRange(10, 300)
                     .AddExample("60")
                     .SetDefault(60),
                 
-                // 禁用自动刷新
-                new MethodBool("disable_auto_refresh", "禁用自动程序集刷新")
+                // Disable auto refresh
+                new MethodBool("disable_auto_refresh", L.T("Disable automatic assembly refresh", "禁用自动程序集刷新"))
                     .SetDefault(false)
             };
         }

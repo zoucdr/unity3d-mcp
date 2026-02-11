@@ -9,17 +9,16 @@ using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
-
 namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles Python script execution including validation and running Python code.
     /// 对应方法名: python_runner
     /// </summary>
-    [ToolName("python_runner", "开发工具")]
+    [ToolName("python_runner", "Development Tools")]
     public class PythonRunner : StateMethodBase
     {
-        public override string Description => "Python脚本执行工具，支持验证和运行Python代码，处理脚本输出和错误信息";
+        public override string Description => L.T("Execute and validate Python scripts", "执行和验证Python脚本");
 
         // Python execution tracking
         private class PythonOperation
@@ -43,62 +42,62 @@ namespace UniMcp.Tools
         private object executionResult;
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("execute", "validate", "install_package", "create"),
                 
-                // Python代码
-                new MethodStr("code", "Python脚本代码内容")
+                // Python code
+                new MethodStr("code", L.T("Python script code content", "Python脚本代码内容"))
                     .AddExamples("print('Hello World')", "import os; print(os.getcwd())"),
                 
-                // 功能描述
-                new MethodStr("description", "脚本功能描述")
-                    .AddExamples("测试脚本", "数据处理"),
+                // Description
+                new MethodStr("description", L.T("Script function description", "脚本功能描述"))
+                    .AddExamples("Test script", "Data processing"),
                 
-                // 脚本路径
-                new MethodStr("script_path", "Python脚本文件路径")
+                // Script path
+                new MethodStr("script_path", L.T("Python script file path", "Python脚本文件路径"))
                     .AddExamples("Assets/Scripts/test.py", "D:/Scripts/process.py"),
                 
-                // 脚本名称
-                new MethodStr("script_name", "脚本名称")
+                // Script name
+                new MethodStr("script_name", L.T("Script name", "脚本名称"))
                     .AddExamples("script.py", "test.py"),
                 
-                // Python解释器路径
-                new MethodStr("python_path", "Python解释器路径")
+                // Python interpreter path
+                new MethodStr("python_path", L.T("Python interpreter path", "Python解释器路径"))
                     .AddExamples("python", "python3"),
                 
-                // 工作目录
-                new MethodStr("working_directory", "工作目录")
+                // Working directory
+                new MethodStr("working_directory", L.T("Working directory", "工作目录"))
                     .AddExamples("Assets/Scripts", "D:/Projects"),
                 
-                // 执行超时
-                new MethodInt("timeout", "执行超时（秒）")
+                // Timeout
+                new MethodInt("timeout", L.T("Execution timeout (seconds)", "执行超时时间（秒）"))
                     .SetRange(1, 3600)
                     .AddExample("300"),
                 
-                // 清理文件
-                new MethodBool("cleanup", "执行后清理临时文件"),
+                // Cleanup
+                new MethodBool("cleanup", L.T("Clean up temporary files after execution", "执行后清理临时文件")),
                 
-                // 安装包列表
-                new MethodStr("packages", "要安装的Python包")
+                // Packages
+                new MethodStr("packages", L.T("Python packages to install", "要安装的Python包"))
                     .AddExamples("numpy,pandas", "requests"),
                 
-                // 需求文件
-                new MethodStr("requirements_file", "requirements.txt文件路径")
+                // Requirements file
+                new MethodStr("requirements_file", L.T("requirements.txt file path", "requirements.txt文件路径"))
                     .AddExample("Assets/Scripts/requirements.txt"),
                 
-                // 虚拟环境
-                new MethodStr("virtual_env", "虚拟环境路径")
+                // Virtual environment
+                new MethodStr("virtual_env", L.T("Virtual environment path", "虚拟环境路径"))
                     .AddExample("D:/venv/myproject"),
                 
-                // 刷新项目
-                new MethodBool("refresh_project", "执行后刷新Unity项目")
+                // Refresh project
+                new MethodBool("refresh_project", L.T("Refresh Unity project after execution", "执行后刷新Unity项目"))
             };
         }
 

@@ -5,51 +5,46 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp;
-
 namespace UniMcp.Tools.Storage
 {
     /// <summary>
     /// Handles asset and folder location operations, including opening folders and revealing files.
     /// 对应方法名: source_location
     /// </summary>
-    [ToolName("source_location", "调试工具")]
+    [ToolName("source_location", "Storage Management")]
     public class SourceLocation : StateMethodBase
     {
-        /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
-        /// </summary>
-        public override string Description => "资源和文件夹位置操作工具，支持在资源管理器中显示文件、打开文件夹、定位资源、选择资源和获取资源路径等功能";
+        public override string Description => L.T("Locate and reveal assets and folders in the system", "定位并显示系统中的资源和文件夹");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("reveal_in_finder", "open_folder", "ping_asset", "select_asset", "get_asset_path")
-                    .AddExamples("reveal_in_finder", "ping_asset"),
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
+                    .SetEnumValues("reveal_in_finder", "open_folder", "ping_asset", "select_asset", "get_asset_path"),
                 
-                // 资源路径
-                new MethodStr("asset_path", "资源路径")
-                    .AddExamples("Assets/Scripts/Player.cs", "Assets/Textures/icon.png"),
+                // Asset path
+                new MethodStr("asset_path", L.T("Asset path", "资源路径"))
+                    .AddExamples("Assets/Demo.prefab"),
                 
-                // 文件夹路径
-                new MethodStr("folder_path", "文件夹路径")
-                    .AddExamples("Assets/Scripts/", "D:/Projects/MyGame/"),
+                // Folder path
+                new MethodStr("folder_path", L.T("Folder path", "文件夹路径"))
+                    .AddExamples("Assets", "D:/MyGame"),
                 
-                // 实例ID
-                new MethodInt("instance_id", "实例ID")
+                // Instance ID
+                new MethodInt("instance_id", L.T("Instance ID", "实例ID"))
                     .AddExample("12345"),
                 
-                // 资源GUID
-                new MethodStr("guid", "资源GUID")
+                // Asset GUID
+                new MethodStr("guid", L.T("Asset GUID", "资源GUID"))
                     .AddExample("abc123def456ghi789"),
                 
-                // 对象名称
-                new MethodStr("object_name", "对象名称")
+                // Object name
+                new MethodStr("object_name", L.T("Object name", "对象名称"))
                     .AddExamples("Player", "MainCamera")
             };
         }

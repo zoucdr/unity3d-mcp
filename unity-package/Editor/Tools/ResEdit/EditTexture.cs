@@ -4,6 +4,7 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
+using UniMcp;
 using UniMcp.Models; // For Response class
 
 namespace UniMcp.Tools
@@ -12,10 +13,10 @@ namespace UniMcp.Tools
     /// Handles texture import settings and modification operations.
     /// 对应方法名: manage_texture
     /// </summary>
-    [ToolName("edit_texture", "资源管理")]
+    [ToolName("edit_texture", "Resource Management")]
     public class EditTexture : StateMethodBase
     {
-        public override string Description => "纹理编辑工具，用于修改和管理纹理导入设置和属性";
+        public override string Description => L.T("Manage texture assets including import and settings", "管理纹理资源，包括导入和设置");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -25,85 +26,85 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("set_type", "set_sprite_settings", "get_settings")
                     .SetDefault("get_settings"),
                 
                 // 纹理路径
-                new MethodStr("texture_path", "纹理资源路径", false)
+                new MethodStr("texture_path", L.T("Texture asset path", "纹理资源路径"), false)
                     .AddExamples("Assets/Textures/player.png", "Assets/UI/icon.jpg")
                     .SetDefault("Assets/Textures/player.png"),
                 
                 // 纹理类型
-                new MethodStr("texture_type", "纹理类型")
+                new MethodStr("texture_type", L.T("Texture type", "纹理类型"))
                     .SetEnumValues("Default", "NormalMap", "EditorGUIAndLegacy", "Sprite", "Cursor", "Cookie", "Lightmap", "HDR")
                     .AddExamples("Sprite", "Default")
                     .SetDefault("Default"),
                 
                 // Sprite模式
-                new MethodStr("sprite_mode", "Sprite模式")
+                new MethodStr("sprite_mode", L.T("Sprite mode", "Sprite模式"))
                     .SetEnumValues("Single", "Multiple", "Polygon")
                     .AddExample("Single")
                     .SetDefault("Single"),
                 
                 // 每单位像素数
-                new MethodFloat("pixels_per_unit", "每单位像素数")
+                new MethodFloat("pixels_per_unit", L.T("Pixels per unit", "每单位像素数"))
                     .SetRange(0.01f, 2048f)
                     .AddExample("100.0")
                     .SetDefault(100f),
                 
                 // Sprite轴心
-                new MethodStr("sprite_pivot", "Sprite轴心")
+                new MethodStr("sprite_pivot", L.T("Sprite pivot", "Sprite轴心"))
                     .SetEnumValues("Center", "TopLeft", "TopCenter", "TopRight", "MiddleLeft", "MiddleCenter", "MiddleRight", "BottomLeft", "BottomCenter", "BottomRight", "Custom")
                     .AddExample("Center")
                     .SetDefault("Center"),
                 
                 // 生成物理形状
-                new MethodBool("generate_physics_shape", "生成物理形状")
+                new MethodBool("generate_physics_shape", L.T("Generate physics shape", "生成物理形状"))
                     .SetDefault(true),
                 
                 // 网格类型
-                new MethodStr("mesh_type", "网格类型")
+                new MethodStr("mesh_type", L.T("Mesh type", "网格类型"))
                     .SetEnumValues("FullRect", "Tight")
                     .AddExample("FullRect")
                     .SetDefault("FullRect"),
                 
                 // 边缘挤出
-                new MethodInt("extrude_edges", "边缘挤出")
+                new MethodInt("extrude_edges", L.T("Extrude edges", "边缘挤出"))
                     .SetRange(0, 32)
                     .AddExample("1")
                     .SetDefault(1),
                 
                 // 压缩格式
-                new MethodStr("compression", "压缩格式")
+                new MethodStr("compression", L.T("Compression format", "压缩格式"))
                     .SetEnumValues("Uncompressed", "LowQuality", "NormalQuality", "HighQuality")
                     .SetDefault("NormalQuality"),
                 
                 // 最大纹理尺寸
-                new MethodInt("max_texture_size", "最大纹理尺寸")
+                new MethodInt("max_texture_size", L.T("Max texture size", "最大纹理尺寸"))
                     .SetEnumValues("32", "64", "128", "256", "512", "1024", "2048", "4096", "8192")
                     .SetDefault(2048),
                 
                 // 过滤模式
-                new MethodStr("filter_mode", "过滤模式")
+                new MethodStr("filter_mode", L.T("Filter mode", "过滤模式"))
                     .SetEnumValues("Point", "Bilinear", "Trilinear")
                     .SetDefault("Bilinear"),
                 
                 // 包装模式
-                new MethodStr("wrap_mode", "包装模式")
+                new MethodStr("wrap_mode", L.T("Wrap mode", "包装模式"))
                     .SetEnumValues("Repeat", "Clamp", "Mirror", "MirrorOnce")
                     .SetDefault("Repeat"),
                 
                 // 可读写
-                new MethodBool("readable", "可读写")
+                new MethodBool("readable", L.T("Readable", "可读写"))
                     .SetDefault(false),
                 
                 // 生成Mip贴图
-                new MethodBool("generate_mip_maps", "生成Mip贴图")
+                new MethodBool("generate_mip_maps", L.T("Generate mip maps", "生成Mip贴图"))
                     .SetDefault(true),
                 
                 // sRGB纹理
-                new MethodBool("srgb_texture", "sRGB纹理")
+                new MethodBool("srgb_texture", L.T("sRGB texture", "sRGB纹理"))
                     .SetDefault(true)
             };
         }

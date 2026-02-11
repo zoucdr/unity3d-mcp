@@ -13,10 +13,10 @@ namespace UniMcp.Tools
     /// 专门的动画片段管理工具，提供动画片段的创建、修改、复制、删除等操作
     /// 对应方法名: manage_anim_clip
     /// </summary>
-    [ToolName("edit_anim_clip", "资源管理")]
+    [ToolName("edit_anim_clip", "Resource Management")]
     public class EditAnimClip : StateMethodBase
     {
-        public override string Description => "动画剪辑编辑工具，用于修改和管理动画剪辑资源属性";
+        public override string Description => L.T("Manage animation clips including create, modify, copy, delete", "管理动画片段，包括创建、修改、复制和删除");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -25,81 +25,81 @@ namespace UniMcp.Tools
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("create", "modify", "duplicate", "delete", "get_info", "search", "set_curve", "set_events"),
-                
-                // 动画路径
-                new MethodStr("path", "动画片段资源路径", false),
-                
-                // 源路径
-                new MethodStr("source_path", "源动画片段路径"),
-                
-                // 目标路径
-                new MethodStr("destination", "目标路径"),
-                
-                // 搜索模式
-                new MethodStr("query", "搜索模式"),
-                
-                // 递归搜索
-                new MethodBool("recursive", "递归搜索"),
-                
-                // 强制执行
-                new MethodBool("force", "强制执行"),
-                
-                // 动画长度
-                new MethodFloat("length", "动画长度（秒）")
-                    .SetRange(0.1f, 3600f),
-                
-                // 帧率
-                new MethodFloat("frame_rate", "帧率")
-                    .SetRange(1f, 120f),
-                
-                // 循环播放
-                new MethodBool("loop_time", "循环播放"),
-                
-                // 循环姿势
-                new MethodBool("loop_pose", "循环姿势"),
-                
-                // 循环偏移
-                new MethodFloat("cycle_offset", "循环偏移")
-                    .SetRange(0f, 1f),
-                
-                // 根旋转Y轴偏移
-                new MethodFloat("root_rotation_offset_y", "根旋转Y轴偏移"),
-                
-                // 根高度Y轴偏移
-                new MethodFloat("root_height_offset_y", "根高度Y轴偏移"),
-                
-                // 启用根高度Y轴偏移
-                new MethodBool("root_height_offset_y_active", "启用根高度Y轴偏移"),
-                
-                // 锁定根高度Y轴
-                new MethodBool("lock_root_height_y", "锁定根高度Y轴"),
-                
-                // 锁定根旋转Y轴
-                new MethodBool("lock_root_rotation_y", "锁定根旋转Y轴"),
-                
-                // 锁定根旋转偏移Y轴
-                new MethodBool("lock_root_rotation_offset_y", "锁定根旋转偏移Y轴"),
-                
-                // 保持原始方向Y轴
-                new MethodBool("keep_original_orientation_y", "保持原始方向Y轴"),
-                
-                // 从地面计算高度
-                new MethodBool("height_from_ground", "从地面计算高度"),
-                
-                // 镜像
-                new MethodBool("mirror", "镜像"),
-                
-                // 身体方向
-                new MethodFloat("body_orientation", "身体方向"),
-                
-                // 动画曲线数据
-                new MethodObj("curves", "动画曲线数据"),
-                
-                // 动画事件数据
-                new MethodArr("events", "动画事件数据")
+            // 操作类型
+            new MethodStr("action", L.T("Operation type", "操作类型"), false)
+                .SetEnumValues("create", "modify", "duplicate", "delete", "get_info", "search", "set_curve", "set_events"),
+            
+            // 动画路径
+            new MethodStr("path", L.T("Animation clip asset path", "动画片段资产路径"), false),
+            
+            // 源路径
+            new MethodStr("source_path", L.T("Source animation clip path", "源动画片段路径")),
+            
+            // 目标路径
+            new MethodStr("destination", L.T("Destination path", "目标路径")),
+            
+            // 搜索模式
+            new MethodStr("query", L.T("Search pattern", "搜索模式")),
+            
+            // 递归搜索
+            new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
+            
+            // 强制执行
+            new MethodBool("force", L.T("Force execution", "强制执行")),
+            
+            // 动画长度
+            new MethodFloat("length", L.T("Animation length (seconds)", "动画长度（秒）"))
+                .SetRange(0.1f, 3600f),
+            
+            // 帧率
+            new MethodFloat("frame_rate", L.T("Frame rate", "帧率"))
+                .SetRange(1f, 120f),
+            
+            // 循环播放
+            new MethodBool("loop_time", L.T("Loop playback", "循环播放")),
+            
+            // 循环姿势
+            new MethodBool("loop_pose", L.T("Loop pose", "循环姿势")),
+            
+            // 循环偏移
+            new MethodFloat("cycle_offset", L.T("Cycle offset", "循环偏移"))
+                .SetRange(0f, 1f),
+            
+            // 根旋转Y轴偏移
+            new MethodFloat("root_rotation_offset_y", L.T("Root rotation Y offset", "根旋转Y轴偏移")),
+            
+            // 根高度Y轴偏移
+            new MethodFloat("root_height_offset_y", L.T("Root height Y offset", "根高度Y轴偏移")),
+            
+            // 启用根高度Y轴偏移
+            new MethodBool("root_height_offset_y_active", L.T("Enable root height Y offset", "启用根高度Y轴偏移")),
+            
+            // 锁定根高度Y轴
+            new MethodBool("lock_root_height_y", L.T("Lock root height Y", "锁定根高度Y轴")),
+            
+            // 锁定根旋转Y轴
+            new MethodBool("lock_root_rotation_y", L.T("Lock root rotation Y", "锁定根旋转Y轴")),
+            
+            // 锁定根旋转偏移Y轴
+            new MethodBool("lock_root_rotation_offset_y", L.T("Lock root rotation offset Y", "锁定根旋转偏移Y轴")),
+            
+            // 保持原始方向Y轴
+            new MethodBool("keep_original_orientation_y", L.T("Keep original orientation Y", "保持原始方向Y轴")),
+            
+            // 从地面计算高度
+            new MethodBool("height_from_ground", L.T("Calculate height from ground", "从地面计算高度")),
+            
+            // 镜像
+            new MethodBool("mirror", L.T("Mirror", "镜像")),
+            
+            // 身体方向
+            new MethodFloat("body_orientation", L.T("Body orientation", "身体方向")),
+            
+            // 动画曲线数据
+            new MethodObj("curves", L.T("Animation curve data", "动画曲线数据")),
+            
+            // 动画事件数据
+            new MethodArr("events", L.T("Animation event data", "动画事件数据"))
             };
         }
 

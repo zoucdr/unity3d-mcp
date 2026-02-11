@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -13,10 +14,10 @@ namespace UniMcp.Tools
     /// 专门的粒子系统编辑工具，提供粒子系统的创建、修改、控制等操作
     /// 对应方法名: edit_particle_system
     /// </summary>
-    [ToolName("edit_particle_system", "资源管理")]
+    [ToolName("edit_particle_system", "Resource Management")]
     public class EditParticleSystem : DualStateMethodBase
     {
-        public override string Description => "粒子系统编辑工具，用于修改和管理粒子系统资源属性";
+        public override string Description => L.T("Manage particle system assets including create and modify", "管理粒子系统资源，包括创建和修改");
 
         private IObjectSelector objectSelector;
 

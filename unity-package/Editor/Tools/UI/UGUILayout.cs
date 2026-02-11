@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,7 +6,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models; // For Response class
-
 namespace UniMcp.Tools
 {
     /// <summary>
@@ -37,57 +36,54 @@ namespace UniMcp.Tools
     /// 
     /// 对应方法名: ugui_layout
     /// </summary>
-    [ToolName("ugui_layout", "UI管理")]
+    [ToolName("ugui_layout", "UI Management")]
     public class UGUILayout : DualStateMethodBase
     {
-        /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
-        /// </summary>
-        public override string Description => "UGUI布局管理工具，用于处理RectTransform的修改操作，支持执行布局修改、获取布局属性、设置锚点预设等功能";
+        public override string Description => L.T("Modify and query RectTransform layout properties", "修改和查询RectTransform布局属性");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 实例ID
-                new MethodInt("instance_id", "对象实例ID")
+                // Instance ID
+                new MethodInt("instance_id", L.T("Object instance ID", "对象实例ID"))
                     .AddExample("-12000"),
                 
-                // 对象层级路径
-                new MethodStr("path", "对象层级路径", false)
+                // Object hierarchy path
+                new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
                     .AddExamples("Canvas/Panel/Button", "UI/MainMenu/StartButton"),
                 
-                // 操作类型
-                new MethodStr("action", "操作类型")
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"))
                     .SetEnumValues("do_layout", "get_layout", "tattoo"),
                 
-                // 锚点位置
-                new MethodVector("anchored_pos", "锚点位置 [x, y]"),
+                // Anchored position
+                new MethodVector("anchored_pos", L.T("Anchored position [x, y]", "锚点位置 [x, y]")),
                 
-                // 尺寸增量
-                new MethodVector("size_delta", "尺寸增量 [width, height]"),
+                // Size delta
+                new MethodVector("size_delta", L.T("Size delta [width, height]", "尺寸增量 [宽, 高]")),
                 
-                // 最小锚点
-                new MethodVector("anchor_min", "最小锚点 [x, y]"),
+                // Anchor min
+                new MethodVector("anchor_min", L.T("Anchor min [x, y]", "锚点最小值 [x, y]")),
                 
-                // 最大锚点
-                new MethodVector("anchor_max", "最大锚点 [x, y]"),
+                // Anchor max
+                new MethodVector("anchor_max", L.T("Anchor max [x, y]", "锚点最大值 [x, y]")),
                 
-                // 锚点预设
-                new MethodStr("tattoo_preset", "锚点预设")
+                // Anchor preset
+                new MethodStr("tattoo_preset", L.T("Anchor preset", "锚点预设"))
                     .SetEnumValues("top_left", "top_center", "top_right", "middle_left", "middle_center", "middle_right", "bottom_left", "bottom_center", "bottom_right", "stretch_horizontal", "stretch_vertical", "stretch"),
                 
-                // 基于自身位置
-                new MethodBool("tattoo_self", "位置基于自身"),
+                // Based on self position
+                new MethodBool("tattoo_self", L.T("Position based on self", "基于自身位置")),
                 
-                // 轴心点
-                new MethodVector("pivot", "轴心点 [x, y]"),
+                // Pivot
+                new MethodVector("pivot", L.T("Pivot [x, y]", "轴心点 [x, y]")),
                 
-                // 同级索引
-                new MethodInt("sibling_index", "同级索引"),
+                // Sibling index
+                new MethodInt("sibling_index", L.T("Sibling index", "兄弟索引")),
             };
         }
 

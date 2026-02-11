@@ -16,10 +16,10 @@ namespace UniMcp.Tools
     /// Handles Unity scene management operations.
     /// 对应方法名: manage_scene
     /// </summary>
-    [ToolName("edit_scene", "资源管理")]
+    [ToolName("edit_scene", "Resource Management")]
     public class EditScene : StateMethodBase
     {
-        public override string Description => "场景编辑工具，用于修改和管理场景资源属性";
+        public override string Description => L.T("Manage scene assets including create and load", "管理场景资源，包括创建和加载");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -29,20 +29,20 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("load", "save", "create", "get_hierarchy")
                     .AddExamples("load", "save"),
                 
                 // 场景名称
-                new MethodStr("name", "场景名称")
+                new MethodStr("name", L.T("Scene name", "场景名称"))
                     .AddExamples("MainScene", "Level1"),
                 
                 // 场景路径
-                new MethodStr("path", "场景资产路径")
+                new MethodStr("path", L.T("Scene asset path", "场景资产路径"))
                     .AddExamples("Assets/Scenes/MainScene.unity", "Assets/Levels/Level1.unity"),
                 
                 // 构建索引
-                new MethodInt("build_index", "构建索引")
+                new MethodInt("build_index", L.T("Build index", "构建索引"))
                     .SetRange(0, 100)
                     .AddExample("0")
             };

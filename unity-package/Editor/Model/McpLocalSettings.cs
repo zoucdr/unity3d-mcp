@@ -27,6 +27,9 @@ namespace UniMcp
         [SerializeField]
         private bool _resourcesCapability = false;
 
+        [SerializeField]
+        private string _currentLanguage = ""; // 当前语言设置，空字符串表示使用系统语言
+
         /// <summary>
         /// MCP服务器端口
         /// </summary>
@@ -88,6 +91,22 @@ namespace UniMcp
                 if (_resourcesCapability != value)
                 {
                     _resourcesCapability = value;
+                    SaveSettings();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 当前语言设置
+        /// </summary>
+        public string CurrentLanguage
+        {
+            get => _currentLanguage;
+            set
+            {
+                if (_currentLanguage != value)
+                {
+                    _currentLanguage = value;
                     SaveSettings();
                 }
             }
@@ -310,6 +329,14 @@ namespace UniMcp
                 EditorPrefs.DeleteKey("mcp_open_state");
                 Debug.Log("[UniMcp] 已从EditorPrefs迁移开启状态设置");
             }
+
+            // 迁移语言设置
+            if (EditorPrefs.HasKey("UniMcp.Language") && string.IsNullOrEmpty(_currentLanguage))
+            {
+                _currentLanguage = EditorPrefs.GetString("UniMcp.Language", "");
+                EditorPrefs.DeleteKey("UniMcp.Language");
+                Debug.Log("[UniMcp] 已从EditorPrefs迁移语言设置");
+            }
         }
 
         /// <summary>
@@ -339,6 +366,7 @@ namespace UniMcp
                    $"- 上次工具数量: {LastToolCount}\n" +
                    $"- 服务开启状态: {McpOpenState}\n" +
                    $"- Resources功能状态: {ResourcesCapability}\n" +
+                   $"- 当前语言: {(string.IsNullOrEmpty(CurrentLanguage) ? "系统默认" : CurrentLanguage)}\n" +
                    $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}\n" +
                    $"- 禁用工具列表: {disabledToolsList}";
         }

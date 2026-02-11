@@ -14,40 +14,40 @@ namespace UniMcp.Tools
     /// <summary>
     /// Handles reading and clearing Unity Editor console log entries.
     /// Uses reflection to access internal LogEntry methods/properties.
-    /// 对应方法名: console_reader
+    /// Corresponding method name: console_reader
     /// </summary>
-    [ToolName("console_read", "开发工具")]
+    [ToolName("console_read", "Development Tools")]
     public class ConsoleRead : StateMethodBase
     {
-        public override string Description => "控制台读取工具，用于读取和清除Unity Editor控制台的日志条目";
+        public override string Description => L.T("Console reader tool for reading and clearing Unity Editor console log entries", "控制台读取工具，用于读取和清除Unity编辑器控制台日志条目");
 
-        // 注意：实际的控制台操作功能已移至 ConsoleController
+        // Note: Actual console operation functionality has been moved to ConsoleController
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型",false)
+                // Action type - enumeration
+                new MethodStr("action", L.T("Action type", "操作类型"),false)
                     .SetEnumValues("get", "get_full", "clear"),
                 
-                // 消息类型列表
-                new MethodStr("types", "消息类型列表，默认全部类型")
+                // Message type list
+                new MethodStr("types", L.T("Message type list, defaults to all types", "消息类型列表，默认为所有类型"))
                     .AddExamples("error,warning", "log"),
                 
-                // 最大返回消息数
-                new MethodInt("count", "最大返回消息数，不设置则获取全部")
+                // Maximum number of messages to return
+                new MethodInt("count", L.T("Maximum number of messages to return, returns all if not set", "返回的最大消息数量，未设置则返回全部"))
                     .SetRange(1, 1000),
                 
-                // 文本过滤器
-                new MethodStr("filterText", "文本过滤器，过滤包含指定文本的日志")
+                // Text filter
+                new MethodStr("filterText", L.T("Text filter, filters logs containing specified text", "文本过滤器，过滤包含指定文本的日志"))
                     .AddExamples("Error", "NullReference"),
                 
-                // 输出格式
-                new MethodStr("format", "输出格式，默认detailed")
+                // Output format
+                new MethodStr("format", L.T("Output format, defaults to detailed", "输出格式，默认为详细"))
                     .SetEnumValues("plain", "detailed", "json")
             };
         }

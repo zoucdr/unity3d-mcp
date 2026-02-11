@@ -6,50 +6,49 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp.Utils;
-
 namespace UniMcp.Tools
 {
     /// <summary>
-    /// 处理Unity Scene窗口管理和控制
+    /// Handles Unity Scene window management and control
     /// 对应方法名: scene_view
     /// </summary>
-    [ToolName("scene_view", "窗口管理")]
+    [ToolName("scene_view", "Window Management")]
     public class SceneView : StateMethodBase
     {
         /// <summary>
         /// 工具方法的描述，用于在状态树中引用
         /// </summary>
-        public override string Description => "场景视图管理和控制工具，支持获取信息、聚焦、最大化、截图、设置轴心等操作";
+        public override string Description => L.T("Manage and control Unity Scene view window", "管理和控制Unity场景视图窗口");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("get_info", "focus", "maximize", "screenshot", "set_pivot", "set_rotation", "set_2d_mode", "align_with_view", "frame_selected"),
                 
-                // 截图保存路径
-                new MethodStr("save_path", "截图保存路径")
+                // Screenshot save path
+                new MethodStr("save_path", L.T("Screenshot save path", "截图保存路径"))
                     .AddExamples("Assets/Screenshots/scene.png", "D:/Screenshots/view.jpg"),
                 
-                // 轴心位置
-                new MethodVector("pivot_position", "轴心位置 [x,y,z]")
+                // Pivot position
+                new MethodVector("pivot_position", L.T("Pivot position [x,y,z]", "枢轴位置 [x,y,z]"))
                     .SetDefault(new float[] {0, 0, 0}),
                 
-                // 相机旋转
-                new MethodVector("rotation", "相机旋转 [x,y,z]")
+                // Camera rotation
+                new MethodVector("rotation", L.T("Camera rotation [x,y,z]", "相机旋转 [x,y,z]"))
                      .SetDefault(new float[] {0, 0, 0}),
                 
-                // 正交模式
-                new MethodBool("orthographic", "设置正交模式")
+                // Orthographic mode
+                new MethodBool("orthographic", L.T("Set orthographic mode", "设置正交模式"))
                     .SetDefault(false),
                 
-                // 对齐视图方向
-                new MethodStr("align_view", "对齐视图方向")
+                // Align view direction
+                new MethodStr("align_view", L.T("Align view direction", "对齐视图方向"))
                     .SetEnumValues("top", "bottom", "left", "right", "front", "back")
             };
         }

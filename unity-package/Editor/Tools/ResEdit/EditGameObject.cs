@@ -19,10 +19,10 @@ namespace UniMcp.Tools
     /// Second tree: Property modification operations
     /// 对应方法名: gameobject_modify
     /// </summary>
-    [ToolName("edit_gameobject", "资源管理")]
+    [ToolName("edit_gameobject", "Resource Management")]
     public class EditGameObject : DualStateMethodBase
     {
-        public override string Description => "游戏对象编辑工具，用于修改和管理游戏对象属性";
+        public override string Description => L.T("Modify GameObject properties using dual state tree", "使用双状态树修改游戏对象属性");
 
         private HierarchyCreate hierarchyCreate;
         private IObjectSelector objectSelector;
@@ -36,69 +36,69 @@ namespace UniMcp.Tools
         /// <summary>
         /// 创建当前方法支持的参数键列表
         /// </summary>
-        protected override MethodKey[] CreateKeys()
+    protected override MethodKey[] CreateKeys()
+    {
+        return new MethodKey[]
         {
-            return new MethodKey[]
-            {
-                // 层级路径
-                new MethodStr("path", "对象层级路径", false)
-                    .AddExamples("Canvas/Panel/Button", "Player/Body/Head")
-                    .SetDefault("Canvas/Panel/Button"),
-                
-                // 实例ID
-                new MethodInt("instance_id", "对象实例ID")
-                    .AddExample("12345"),
-                
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
-                    .SetEnumValues("create", "modify", "get_components", "add_component", "remove_component", "set_parent")
-                    .SetDefault("modify"),
-                
-                // 对象名称
-                new MethodStr("name", "GameObject名称")
-                    .AddExamples("Player", "Enemy"),
-                
-                // 标签
-                new MethodStr("tag", "GameObject标签")
-                    .AddExamples("Player", "Enemy"),
-                
-                // 层
-                new MethodInt("layer", "GameObject层")
-                    .SetRange(0, 31)
-                    .AddExample("0"),
-                
-                // 父对象ID
-                new MethodInt("parent_id", "父对象实例ID")
-                    .AddExample("54321"),
-                
-                // 父对象路径
-                new MethodStr("parent_path", "父对象场景路径")
-                    .AddExamples("Canvas", "Player"),
-                
-                // 位置坐标
-                new MethodVector("position", "位置坐标 [x, y, z]")
-                    .SetDefault(new float[] {0, 0, 0}),
-                
-                // 旋转角度
-                new MethodVector("rotation", "旋转角度 [x, y, z]")
-                    .SetDefault(new float[] {0, 0, 0}),
-                
-                // 缩放比例
-                new MethodVector("scale", "缩放比例 [x, y, z]")
-                    .SetDefault(new float[] {1, 1, 1}),
-                
-                // 激活状态
-                new MethodBool("active", "激活状态")
-                    .SetDefault(true),
-                
-                // 组件类型
-                new MethodStr("component_type", "组件类型")
-                    .AddExamples("Rigidbody", "Collider"),
-                
-                // 组件属性
-                new MethodObj("component_properties", "组件属性")
-            };
-        }
+            // 层级路径
+            new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
+                .AddExamples("Canvas/Panel/Button", "Player/Body/Head")
+                .SetDefault("Canvas/Panel/Button"),
+            
+            // 实例ID
+            new MethodInt("instance_id", L.T("Object instance ID", "对象实例ID"))
+                .AddExample("12345"),
+            
+            // 操作类型
+            new MethodStr("action", L.T("Operation type", "操作类型"), false)
+                .SetEnumValues("create", "modify", "get_components", "add_component", "remove_component", "set_parent")
+                .SetDefault("modify"),
+            
+            // 对象名称
+            new MethodStr("name", L.T("GameObject name", "游戏对象名称"))
+                .AddExamples("Player", "Enemy"),
+            
+            // 标签
+            new MethodStr("tag", L.T("GameObject tag", "游戏对象标签"))
+                .AddExamples("Player", "Enemy"),
+            
+            // 层
+            new MethodInt("layer", L.T("GameObject layer", "游戏对象层"))
+                .SetRange(0, 31)
+                .AddExample("0"),
+            
+            // 父对象ID
+            new MethodInt("parent_id", L.T("Parent object instance ID", "父对象实例ID"))
+                .AddExample("54321"),
+            
+            // 父对象路径
+            new MethodStr("parent_path", L.T("Parent object scene path", "父对象场景路径"))
+                .AddExamples("Canvas", "Player"),
+            
+            // 位置坐标
+            new MethodVector("position", L.T("Position coordinates [x, y, z]", "位置坐标 [x, y, z]"))
+                .SetDefault(new float[] {0, 0, 0}),
+            
+            // 旋转角度
+            new MethodVector("rotation", L.T("Rotation angles [x, y, z]", "旋转角度 [x, y, z]"))
+                .SetDefault(new float[] {0, 0, 0}),
+            
+            // 缩放比例
+            new MethodVector("scale", L.T("Scale ratio [x, y, z]", "缩放比例 [x, y, z]"))
+                .SetDefault(new float[] {1, 1, 1}),
+            
+            // 激活状态
+            new MethodBool("active", L.T("Active state", "激活状态"))
+                .SetDefault(true),
+            
+            // 组件类型
+            new MethodStr("component_type", L.T("Component type", "组件类型"))
+                .AddExamples("Rigidbody", "Collider"),
+            
+            // 组件属性
+            new MethodObj("component_properties", L.T("Component properties", "组件属性"))
+        };
+    }
 
         /// <summary>
         /// 创建目标定位状态树（使用GameObjectDynamicSelector）

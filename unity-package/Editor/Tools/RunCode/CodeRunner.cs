@@ -20,10 +20,10 @@ namespace UniMcp.Tools
     /// Handles C# code execution including compilation and running arbitrary C# methods.
     /// 对应方法名: code_runner
     /// </summary>
-    [ToolName("code_runner", "开发工具")]
+    [ToolName("code_runner", "Development Tools")]
     public class CodeRunner : StateMethodBase
     {
-        public override string Description => "C#代码执行工具，支持编译和运行任意C#方法，处理代码执行结果和错误信息";
+        public override string Description => L.T("Compile and execute C# code in the Unity editor", "在Unity编辑器中编译和执行C#代码");
 
         // Code execution tracking
         private class CodeOperation
@@ -54,67 +54,67 @@ namespace UniMcp.Tools
         private object executionResult;
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Operation type
+                new MethodStr("action", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("execute", "validate")
                     .AddExamples("execute", "validate")
                     .SetDefault("execute"),
                 
-                // C#代码内容
-                new MethodStr("code", "要执行的C#代码内容")
+                // C# code content
+                new MethodStr("code", L.T("C# code content to execute", "要执行的C#代码内容"))
                     .AddExamples("Debug.Log(\"Hello World!\");", "var result = 1 + 2; Debug.Log(result);")
                     .SetDefault(""),
                 
-                // 代码功能描述
-                new MethodStr("description", "代码功能描述")
-                    .AddExamples("测试代码执行", "计算数学表达式")
+                // Code function description
+                new MethodStr("description", L.T("Code function description", "代码功能描述"))
+                    .AddExamples("Test code execution", "Calculate math expression")
                     .SetDefault(""),
                 
-                // 类名
-                new MethodStr("class_name", "类名，默认是CodeClass")
+                // Class name
+                new MethodStr("class_name", L.T("Class name, default is CodeClass", "类名，默认为CodeClass"))
                     .AddExamples("CodeClass", "TestRunner")
                     .SetDefault("CodeClass"),
                 
-                // 入口方法名
-                new MethodStr("entry_method", "入口方法名，默认是Execute")
+                // Entry method name
+                new MethodStr("entry_method", L.T("Entry method name, default is Execute", "入口方法名称，默认为Execute"))
                     .AddExamples("Execute", "Run")
                     .SetDefault("Execute"),
                 
-                // 命名空间
-                new MethodStr("namespace", "命名空间，默认是CodeNamespace")
+                // Namespace
+                new MethodStr("namespace", L.T("Namespace, default is CodeNamespace", "命名空间，默认为CodeNamespace"))
                     .AddExamples("CodeNamespace", "TestNamespace")
                     .SetDefault("CodeNamespace"),
                 
-                // 引用语句列表
-                new MethodArr("includes", "引用using语句列表，JSON数组格式")
+                // Using statements list
+                new MethodArr("includes", L.T("Using statement list, JSON array format", "using语句列表，JSON数组格式"))
                     .SetItemType("string")
                     .AddExample("[\"System\", \"UnityEngine\"]")
                     .AddExample("[\"System.Collections.Generic\", \"UnityEditor\"]"),
                 
-                // 方法参数
-                new MethodArr("parameters", "方法参数，JSON数组格式")
+                // Method parameters
+                new MethodArr("parameters", L.T("Method parameters, JSON array format", "方法参数，JSON数组格式"))
                     .SetItemType("object")
                     .AddExample("[{\"name\": \"value\", \"type\": \"int\", \"value\": 42}]")
                     .AddExample("[{\"name\": \"message\", \"type\": \"string\", \"value\": \"test\"}]"),
                 
-                // 执行超时
-                new MethodInt("timeout", "执行超时（秒），默认30秒")
+                // Execution timeout
+                new MethodInt("timeout", L.T("Execution timeout (seconds), default 30 seconds", "执行超时时间（秒），默认30秒"))
                     .SetRange(1, 300)
                     .AddExample("30")
                     .SetDefault(30),
                 
-                // 清理临时文件
-                new MethodBool("cleanup", "执行后是否清理临时文件，默认true")
+                // Clean up temporary files
+                new MethodBool("cleanup", L.T("Clean up temporary files after execution, default true", "执行后清理临时文件，默认为true"))
                     .SetDefault(true),
                 
-                // 返回输出
-                new MethodBool("return_output", "是否捕获并返回控制台输出，默认true")
+                // Return output
+                new MethodBool("return_output", L.T("Capture and return console output, default true", "捕获并返回控制台输出，默认为true"))
                     .SetDefault(true)
             };
         }

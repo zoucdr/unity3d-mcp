@@ -11,38 +11,38 @@ namespace UniMcp.Tools
     /// <summary>
     /// Handles writing different types of log messages to Unity Editor console.
     /// Supports Error, Warning, Log, Assert, and Exception message types.
-    /// 对应方法名: console_write
+    /// Corresponding method name: console_write
     /// </summary>
-    [ToolName("console_write", "开发工具")]
+    [ToolName("console_write", "Development Tools")]
     public class ConsoleWrite : StateMethodBase
     {
-        public override string Description => "控制台写入工具，用于向Unity Editor控制台输出不同类型的日志消息";
+        public override string Description => L.T("Console writer tool for writing log messages to Unity Editor console", "控制台写入工具，用于向Unity编辑器控制台写入日志消息");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型 - 枚举
-                new MethodStr("action", "操作类型", false)
+                // Action type - enumeration
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("error", "warning", "log", "assert", "exception"),
                 
-                // 日志消息内容 - 必需
-                new MethodStr("message", "要写入的日志消息内容", false)
+                // Log message content - required
+                new MethodStr("message", L.T("Log message content to write", "要写入的日志消息内容"), false)
                     .AddExamples("This is a test message", "Operation completed successfully"),
                 
-                // 日志标签
-                new MethodStr("tag", "日志标签，用于分类和过滤")
+                // Log tag
+                new MethodStr("tag", L.T("Log tag for categorization and filtering", "用于分类和过滤的日志标签"))
                     .AddExamples("System", "Network"),
                 
-                // 上下文对象
-                new MethodStr("context", "上下文对象名称，用于在控制台中定位相关GameObject")
+                // Context object
+                new MethodStr("context", L.T("Context object name, used to locate related GameObject in console", "上下文对象名称，用于在控制台中定位相关游戏对象"))
                     .AddExamples("Player", "Main Camera"),
                 
-                // 断言条件
-                new MethodStr("condition", "断言条件表达式（仅用于assert类型）")
+                // Assert condition
+                new MethodStr("condition", L.T("Assert condition expression (only for assert type)", "断言条件表达式（仅用于断言类型）"))
                     .AddExamples("value != null", "count > 0")
             };
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+using UniMcp;
 
 namespace UniMcp.Tools
 {
@@ -12,10 +13,10 @@ namespace UniMcp.Tools
     /// 处理Unity场景中Terrain地形的编辑操作
     /// 支持创建、修改、导入导出高度图等功能
     /// </summary>
-    [ToolName("edit_terrain", "资源管理")]
+    [ToolName("edit_terrain", "Resource Management")]
     public class EditTerrain : StateMethodBase
     {
-        public override string Description => "地形编辑工具，用于修改和管理地形资源属性";
+        public override string Description => L.T("Manage terrain assets including create and modify heightmaps", "管理地形资源，包括创建和修改高度图");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -24,38 +25,38 @@ namespace UniMcp.Tools
         {
             return new MethodKey[]
             {
-                // // 操作类型
-                 new MethodStr("action", "操作类型", false)
+                // Action type
+                 new MethodStr("action", L.T("Action type", "操作类型"), false)
                      .SetEnumValues("create", "modify", "set_height", "paint_texture", "add_layer", "remove_layer", "set_size", "export_heightmap", "import_heightmap", "get_info"),
                 
-                 // // 层级路径
-                  new MethodStr("path", "Terrain对象层级路径")
+                 // Hierarchy path
+                  new MethodStr("path", L.T("Terrain object hierarchy path", "地形对象层级路径"))
                       .AddExamples("Terrain"),
-                  // 实例ID
-                  new MethodInt("instance_id", "Terrain实例ID")
+                  // Instance ID
+                  new MethodInt("instance_id", L.T("Terrain instance ID", "地形实例ID"))
                        .AddExample("-12345"),
-                  // 地形数据路径
-                  new MethodStr("terrain_data_path", "TerrainData资源路径")
+                  // Terrain data path
+                  new MethodStr("terrain_data_path", L.T("TerrainData asset path", "TerrainData资源路径"))
                        .AddExamples("Assets/TerrainData.asset"),
-                  // 位置
-                  new MethodVector("position", "Terrain位置 [x, y, z]"),
-                  // 尺寸
-                  new MethodVector("terrain_size", "Terrain尺寸 [width, height, length]")
+                  // Position
+                  new MethodVector("position", L.T("Position coordinates", "位置坐标")),
+                  // Size
+                  new MethodVector("terrain_size", L.T("Terrain size [width, height, length]", "地形尺寸 [宽度, 高度, 长度]"))
                       .AddExample("[1000, 600, 1000]"),
                 
-                 // 高度图分辨率
-                 new MethodInt("heightmap_resolution", "高度图分辨率"),
+                 // Heightmap resolution
+                 new MethodInt("heightmap_resolution", L.T("Heightmap resolution", "高度图分辨率")),
 
-                // 高度图数据
-                 new MethodArr("heightmap_data", "高度图数据数组")
+                // Heightmap data
+                 new MethodArr("heightmap_data", L.T("Heightmap data array", "高度图数据数组"))
                       .SetItemType("number"),
                 
-                 // 高度图文件
-                 new MethodStr("heightmap_file", "高度图文件路径")
+                 // Heightmap file
+                 new MethodStr("heightmap_file", L.T("Heightmap file path", "高度图文件路径"))
                       .AddExamples("Assets/Heightmap.png"),
                 
-                // // 纹理层配置
-                new MethodObj("texture_layer", "纹理层配置")
+                // Texture layer configuration
+                new MethodObj("texture_layer", L.T("Texture layer configuration", "纹理层配置"))
                     .AddStringProperty("texture")
                     .AddArrayProperty("tile_size", "number")
                     .AddArrayProperty("tile_offset", "number")
@@ -64,11 +65,11 @@ namespace UniMcp.Tools
                     .AddNumberProperty("smoothness"),
                 
                 // 层索引
-                new MethodInt("layer_index", "纹理层索引")
+                new MethodInt("layer_index", L.T("Texture layer index", "纹理层索引"))
                     .SetRange(0, 16),
                 
                 // 属性
-                new MethodObj("properties", "Terrain属性")
+                new MethodObj("properties", L.T("Terrain properties", "Terrain属性"))
                     .AddStringProperty("material_template")
                     .AddBooleanProperty("cast_shadows")
                     .AddBooleanProperty("draw_heightmap")
@@ -83,11 +84,11 @@ namespace UniMcp.Tools
                     .AddNumberProperty("detail_scatter_per_res"),
                 
                 // 导出格式
-                new MethodStr("export_format", "导出格式")
+                new MethodStr("export_format", L.T("Export format", "导出格式"))
                     .SetEnumValues("raw", "png"),
                 
                 // 强制执行
-                new MethodBool("force", "强制执行"),
+                new MethodBool("force", L.T("Force execution", "强制执行")),
             };
         }
 

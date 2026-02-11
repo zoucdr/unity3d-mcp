@@ -15,54 +15,54 @@ namespace UniMcp.Tools
     /// Handles Unity asset management operations including import, modify, move, duplicate, etc.
     /// 对应方法名: manage_asset
     /// </summary>
-    [ToolName("project_operate", "项目管理")]
+    [ToolName("project_operate", "Project Management")]
     public class ProjectOperate : StateMethodBase
     {
-        public override string Description => "项目资源操作工具，支持导入、修改、移动、复制、重命名等资源管理操作";
+        public override string Description => L.T("Manage Unity assets including import, modify, move, duplicate", "管理Unity资源，包括导入、修改、移动和复制");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("import", "modify", "move", "duplicate", "rename", "get_info", "create_folder", "reload", "select", "ping", "select_depends", "select_usage", "tree")
                     .AddExamples("get_info", "move"),
                 
-                // 资产路径
-                new MethodStr("path", "资产路径，Unity标准格式", false)
+                // Asset path
+                new MethodStr("path", L.T("Asset path, Unity standard format", "资源路径，Unity标准格式"), false)
                     .AddExamples("Assets/Scripts/MyScript.cs", "Assets/Materials/MyMaterial.mat"),
                 
-                // 资产属性
-                new MethodObj("properties", "资产属性字典，用于设置资产的各种属性")
+                // Asset properties
+                new MethodObj("properties", L.T("Asset properties dictionary for setting various asset properties", "资源属性字典，用于设置各种资源属性"))
                     .AddProperty("importSettings", "object")
                     .AddProperty("labels", "array")
                     .AddProperty("assetBundleName", "string")
                     .AddExample("{\"labels\": [\"Important\", \"Version1\"]}")
                     .AddExample("{\"assetBundleName\": \"ui_bundle\"}"),
                 
-                // 目标路径
-                new MethodStr("destination", "目标路径（移动/复制时使用）")
+                // Destination path
+                new MethodStr("destination", L.T("Destination path (for move/copy)", "目标路径（用于移动/复制）"))
                     .AddExamples("Assets/NewFolder/", "Assets/Backup/MyScript.cs"),
                 
-                // 强制执行
-                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）"),
+                // Force execute
+                new MethodBool("force", L.T("Force execute operation (overwrite existing files, etc.)", "强制执行操作（覆盖现有文件等）")),
                 
-                // 刷新类型
-                new MethodStr("refresh_type", "刷新类型，默认all")
+                // Refresh type
+                new MethodStr("refresh_type", L.T("Refresh type, default all", "刷新类型，默认为all"))
                     .SetEnumValues("all", "assets", "scripts"),
                 
-                // 刷新前保存
-                new MethodBool("save_before_refresh", "刷新前是否保存所有资产，默认true"),
+                // Save before refresh
+                new MethodBool("save_before_refresh", L.T("Save all assets before refresh, default true", "刷新前保存所有资源，默认为true")),
                 
-                // 包含间接依赖
-                new MethodBool("include_indirect", "是否包含间接依赖/引用，默认false"),
+                // Include indirect dependencies
+                new MethodBool("include_indirect", L.T("Include indirect dependencies/references, default false", "包含间接依赖/引用，默认为false")),
                 
-                // 最大结果数量
-                new MethodInt("max_results", "最大结果数量，默认100")
+                // Max results count
+                new MethodInt("max_results", L.T("Maximum results count, default 100", "最大结果数量，默认100"))
                     .SetRange(1, 1000)
                     .AddExample("100")
             };

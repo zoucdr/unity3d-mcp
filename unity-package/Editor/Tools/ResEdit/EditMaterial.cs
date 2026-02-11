@@ -5,6 +5,8 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
+using UniMcp;
+using UniMcp;
 using UniMcp.Models;
 
 namespace UniMcp.Tools
@@ -13,10 +15,10 @@ namespace UniMcp.Tools
     /// 专门的材质管理工具，提供材质的创建、修改、复制、删除等操作
     /// 对应方法名: manage_material
     /// </summary>
-    [ToolName("edit_material", "资源管理")]
+    [ToolName("edit_material", "Resource Management")]
     public class EditMaterial : StateMethodBase
     {
-        public override string Description => "材质编辑工具，用于修改和管理材质资源属性";
+        public override string Description => L.T("Manage material assets including create and modify properties", "管理材质资源，包括创建和修改属性");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -26,22 +28,22 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型 - 枚举字符串
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("create", "set_properties", "duplicate", "delete", "get_info", "search", "copy_properties", "change_shader", "enable_keyword", "disable_keyword")
                     .SetDefault("get_info"),
                 
                 // 材质路径 - 必需参数
-                new MethodStr("path", "材质资源路径，Unity标准格式", false)
+                new MethodStr("path", L.T("Material asset path, Unity standard format", "材质资源路径，Unity标准格式"), false)
                     .AddExamples("Assets/Materials/MyMaterial.mat", "Assets/Materials/UI/ButtonMaterial.mat")
                     .SetDefault("Assets/Materials/NewMaterial.mat"),
                 
                 // 着色器名称 - 可选参数
-                new MethodStr("shader_name", "着色器名称或路径")
+                new MethodStr("shader_name", L.T("Shader name or path", "着色器名称或路径"))
                     .AddExamples("Standard", "Universal Render Pipeline/Lit", "Unlit/Color", "Assets/Shaders/CustomShader.shader")
                     .SetDefault("Standard"),
                 
                 // 材质属性 - 对象类型
-                new MethodObj("properties", "材质属性字典，包含颜色、纹理、浮点数等属性")
+                new MethodObj("properties", L.T("Material properties dictionary, including color, texture, float, etc.", "材质属性字典，包含颜色、纹理、浮点数等属性"))
                     .AddProperty("_Color", "array")
                     .AddProperty("_MainTex", "string")
                     .AddProperty("_Metallic", "number")
@@ -50,28 +52,28 @@ namespace UniMcp.Tools
                     .AddExample("{\"_MainTex\": \"Assets/Textures/Diffuse.png\", \"_BumpMap\": \"Assets/Textures/Normal.png\"}"),
                 
                 // 源路径 - 用于复制操作
-                new MethodStr("source_path", "源材质路径（复制属性时使用）")
+                new MethodStr("source_path", L.T("Source material path (used when copying properties)", "源材质路径（复制属性时使用）"))
                     .AddExamples("Assets/Materials/SourceMaterial.mat", "Assets/Materials/Templates/BaseMaterial.mat"),
                 
                 // 目标路径 - 用于复制/移动操作
-                new MethodStr("destination", "目标路径（复制/移动时使用）")
+                new MethodStr("destination", L.T("Target path (used when copying/moving)", "目标路径（复制/移动时使用）"))
                     .AddExamples("Assets/Materials/CopiedMaterial.mat", "Assets/Materials/Backup/MaterialCopy.mat"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式，支持通配符")
+                new MethodStr("query", L.T("Search pattern, supports wildcards", "搜索模式，支持通配符"))
                     .AddExamples("*.mat", "*UI*", "Button*", "Material_*")
                     .SetDefault("*.mat"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "是否递归搜索子文件夹")
+                new MethodBool("recursive", L.T("Whether to recursively search subfolders", "是否递归搜索子文件夹"))
                     .SetDefault(true),
                 
                 // 强制执行
-                new MethodBool("force", "是否强制执行操作（覆盖现有文件等）")
+                new MethodBool("force", L.T("Whether to force operation (overwrite existing files, etc.)", "是否强制执行操作（覆盖现有文件等）"))
                     .SetDefault(false),
                 
                 // 渲染队列
-                new MethodInt("render_queue", "渲染队列值，控制渲染顺序")
+                new MethodInt("render_queue", L.T("Render queue value, controls render order", "渲染队列值，控制渲染顺序"))
                     .SetRange(1000, 5000)
                     .AddExample(2000) // Geometry
                     .AddExample(2450) // AlphaTest
@@ -79,15 +81,15 @@ namespace UniMcp.Tools
                     .SetDefault(2000),
                 
                 // GPU实例化
-                new MethodBool("enable_instancing", "是否启用GPU实例化")
+                new MethodBool("enable_instancing", L.T("Whether to enable GPU instancing", "是否启用GPU实例化"))
                     .SetDefault(false),
                 
                 // 双面全局光照
-                new MethodBool("double_sided_global_illumination", "是否启用双面全局光照")
+                new MethodBool("double_sided_global_illumination", L.T("Whether to enable double-sided global illumination", "是否启用双面全局光照"))
                     .SetDefault(false),
                 
                 // 关键字 - 用于启用/禁用着色器关键字
-                new MethodStr("keyword", "着色器关键字名称")
+                new MethodStr("keyword", L.T("Shader keyword name", "着色器关键字名称"))
                     .AddExamples("_NORMALMAP", "_EMISSION", "_METALLICGLOSSMAP", "_ALPHATEST_ON")
             };
         }

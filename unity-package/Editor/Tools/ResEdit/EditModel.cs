@@ -5,6 +5,7 @@ using System.Linq;
 // Migrated from Newtonsoft.Json to SimpleJson
 using UnityEditor;
 using UnityEngine;
+using UniMcp;
 using UniMcp.Models;
 
 namespace UniMcp.Tools
@@ -13,10 +14,10 @@ namespace UniMcp.Tools
     /// 专门的模型管理工具，提供模型的导入、修改、复制、删除等操作
     /// 对应方法名: manage_model
     /// </summary>
-    [ToolName("edit_model", "资源管理")]
+    [ToolName("edit_model", "Resource Management")]
     public class EditModel : StateMethodBase
     {
-        public override string Description => "模型编辑工具，用于修改和管理模型资源属性";
+        public override string Description => L.T("Manage 3D model assets including import and settings", "管理3D模型资源，包括导入和设置");
 
         /// <summary>
         /// 创建当前方法支持的参数键列表
@@ -26,137 +27,137 @@ namespace UniMcp.Tools
             return new MethodKey[]
             {
                 // 操作类型
-                new MethodStr("action", "操作类型", false)
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("import", "modify", "duplicate", "delete", "get_info", "search", "set_import_settings", "extract_materials", "optimize", "remap_materials")
                     .AddExamples("import", "get_info"),
                 
                 // 模型路径
-                new MethodStr("path", "模型资源路径", false)
+                new MethodStr("path", L.T("Model asset path", "模型资源路径"), false)
                     .AddExamples("Assets/Models/Character.fbx", "Assets/Models/Building.obj"),
                 
                 // 源文件路径
-                new MethodStr("source_file", "源文件路径")
+                new MethodStr("source_file", L.T("Source file path", "源文件路径"))
                     .AddExamples("D:/Models/character.fbx", "C:/Assets/model.obj"),
                 
                 // 目标路径
-                new MethodStr("destination", "目标路径")
+                new MethodStr("destination", L.T("Target path", "目标路径"))
                     .AddExamples("Assets/Models/Copy/", "Assets/NewModels/"),
                 
                 // 搜索模式
-                new MethodStr("query", "搜索模式")
+                new MethodStr("query", L.T("Search pattern", "搜索模式"))
                     .AddExamples("*.fbx", "*.obj"),
                 
                 // 递归搜索
-                new MethodBool("recursive", "递归搜索"),
+                new MethodBool("recursive", L.T("Recursive search", "递归搜索")),
                 
                 // 导入设置
-                new MethodObj("import_settings", "导入设置"),
+                new MethodObj("import_settings", L.T("Import settings", "导入设置")),
                 
                 // 缩放因子
-                new MethodFloat("scale_factor", "缩放因子")
+                new MethodFloat("scale_factor", L.T("Scale factor", "缩放因子"))
                     .SetRange(0.01f, 100f)
                     .AddExample("1.0"),
                 
                 // 使用文件缩放
-                new MethodBool("use_file_scale", "使用文件缩放"),
+                new MethodBool("use_file_scale", L.T("Use file scale", "使用文件缩放")),
                 
                 // 导入混合形状
-                new MethodBool("import_blend_shapes", "导入混合形状"),
+                new MethodBool("import_blend_shapes", L.T("Import blend shapes", "导入混合形状")),
                 
                 // 导入相机
-                new MethodBool("import_cameras", "导入相机"),
+                new MethodBool("import_cameras", L.T("Import cameras", "导入相机")),
                 
                 // 保持层级
-                new MethodBool("preserve_hierarchy", "保持层级"),
+                new MethodBool("preserve_hierarchy", L.T("Preserve hierarchy", "保持层级")),
                 
                 // 优化网格
-                new MethodBool("optimize_mesh", "优化网格"),
+                new MethodBool("optimize_mesh", L.T("Optimize mesh", "优化网格")),
                 
                 // 次要UV硬角度
-                new MethodFloat("secondary_uv_hard_angle", "次要UV硬角度")
+                new MethodFloat("secondary_uv_hard_angle", L.T("Secondary UV hard angle", "次要UV硬角度"))
                     .SetRange(0f, 180f)
                     .AddExample("88.0"),
                 
                 // 次要UV打包边距
-                new MethodFloat("secondary_uv_pack_margin", "次要UV打包边距")
+                new MethodFloat("secondary_uv_pack_margin", L.T("Secondary UV pack margin", "次要UV打包边距"))
                     .SetRange(1f, 64f)
                     .AddExample("4.0"),
                 
                 // 次要UV角度扭曲
-                new MethodFloat("secondary_uv_angle_distortion", "次要UV角度扭曲")
+                new MethodFloat("secondary_uv_angle_distortion", L.T("Secondary UV angle distortion", "次要UV角度扭曲"))
                     .SetRange(1f, 75f)
                     .AddExample("8.0"),
                 
                 // 次要UV面积扭曲
-                new MethodFloat("secondary_uv_area_distortion", "次要UV面积扭曲")
+                new MethodFloat("secondary_uv_area_distortion", L.T("Secondary UV area distortion", "次要UV面积扭曲"))
                     .SetRange(1f, 75f)
                     .AddExample("15.0"),
                 
                 // 次要UV边缘扭曲
-                new MethodFloat("secondary_uv_edge_distortion", "次要UV边缘扭曲")
+                new MethodFloat("secondary_uv_edge_distortion", L.T("Secondary UV edge distortion", "次要UV边缘扭曲"))
                     .SetRange(1f, 75f)
                     .AddExample("10.0"),
                 
                 // 启用读写
-                new MethodBool("read_write_enabled", "启用读写"),
+                new MethodBool("read_write_enabled", L.T("Enable read/write", "启用读写")),
                 
                 // 导入材质
-                new MethodBool("import_materials", "导入材质"),
+                new MethodBool("import_materials", L.T("Import materials", "导入材质")),
                 
                 // 材质搜索模式
-                new MethodStr("material_search", "材质搜索模式")
+                new MethodStr("material_search", L.T("Material search mode", "材质搜索模式"))
                     .SetEnumValues("Local", "RecursiveUp", "Everywhere")
                     .AddExample("Local"),
                 
                 // 提取材质
-                new MethodBool("extract_materials", "提取材质"),
+                new MethodBool("extract_materials", L.T("Extract materials", "提取材质")),
                 
                 // 网格压缩
-                new MethodStr("mesh_compression", "网格压缩")
+                new MethodStr("mesh_compression", L.T("Mesh compression", "网格压缩"))
                     .SetEnumValues("Off", "Low", "Medium", "High")
                     .AddExample("Off"),
                 
                 // 添加碰撞器
-                new MethodBool("add_collider", "添加碰撞器"),
+                new MethodBool("add_collider", L.T("Add collider", "添加碰撞器")),
                 
                 // 焊接顶点
-                new MethodBool("weld_vertices", "焊接顶点"),
+                new MethodBool("weld_vertices", L.T("Weld vertices", "焊接顶点")),
                 
                 // 传统混合形状法线
-                new MethodBool("legacy_blend_shape_normals", "传统混合形状法线"),
+                new MethodBool("legacy_blend_shape_normals", L.T("Legacy blend shape normals", "传统混合形状法线")),
                 
                 // 切线模式
-                new MethodStr("tangents", "切线模式")
+                new MethodStr("tangents", L.T("Tangent mode", "切线模式"))
                     .SetEnumValues("Default", "None", "Calculate", "Import")
                     .AddExample("Default"),
                 
                 // 平滑度来源
-                new MethodStr("smoothness_source", "平滑度来源")
+                new MethodStr("smoothness_source", L.T("Smoothness source", "平滑度来源"))
                     .SetEnumValues("None", "DiffuseAlpha", "SpecularAlpha")
                     .AddExample("None"),
                 
                 // 平滑度
-                new MethodFloat("smoothness", "平滑度")
+                new MethodFloat("smoothness", L.T("Smoothness", "平滑度"))
                     .SetRange(0f, 1f)
                     .AddExample("0.5"),
                 
                 // 法线导入模式
-                new MethodStr("normal_import_mode", "法线导入模式")
+                new MethodStr("normal_import_mode", L.T("Normal import mode", "法线导入模式"))
                     .SetEnumValues("Default", "None", "Calculate", "Import")
                     .AddExample("Default"),
                 
                 // 法线贴图模式
-                new MethodStr("normal_map_mode", "法线贴图模式")
+                new MethodStr("normal_map_mode", L.T("Normal map mode", "法线贴图模式"))
                     .SetEnumValues("Default", "OpenGL", "DirectX")
                     .AddExample("Default"),
                 
                 // 高度贴图模式
-                new MethodStr("height_map_mode", "高度贴图模式")
+                new MethodStr("height_map_mode", L.T("Height map mode", "高度贴图模式"))
                     .SetEnumValues("Default", "OpenGL", "DirectX")
                     .AddExample("Default"),
                 
                 // 材质重定向映射
-                new MethodObj("material_remaps", "材质重定向映射")
+                new MethodObj("material_remaps", L.T("Material remaps", "材质重定向映射"))
             };
         }
 

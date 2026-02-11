@@ -7,40 +7,36 @@ using UnityEditorInternal; // Required for tag management
 using UnityEngine;
 using UniMcp.Models; // For Response class
 using UniMcp;
-
 namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles Unity Tag and Layer management.
     /// 对应方法名: tag_layer
     /// </summary>
-    [ToolName("tag_layer", "系统管理")]
+    [ToolName("tag_layer", "System Management")]
     public class TagLayer : StateMethodBase
     {
-        /// <summary>
-        /// 工具方法的描述，用于在状态树中引用
-        /// </summary>
-        public override string Description => "标签和图层管理工具，用于处理Unity项目中的标签和图层操作，支持添加、删除和获取标签，添加、删除和获取图层等功能";
+        public override string Description => L.T("Manage Unity tags and layers", "管理Unity标签和层级");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 操作类型
-                new MethodStr("action", "操作类型", false)
+                // Action type
+                new MethodStr("action", L.T("Action type", "操作类型"), false)
                     .SetEnumValues("add_tag", "remove_tag", "get_tags", "add_layer", "remove_layer", "get_layers")
                     .SetDefault("get_tags")
                     .AddExamples("add_tag", "get_layers"),
                 
-                // 标签名称
-                new MethodStr("tag_name", "标签名称")
+                // Tag name
+                new MethodStr("tag_name", L.T("Tag name", "标签名称"))
                     .AddExamples("Player", "Enemy"),
                 
-                // 层名称
-                new MethodStr("layer_name", "层名称")
+                // Layer name
+                new MethodStr("layer_name", L.T("Layer name", "层名称"))
                     .AddExamples("UI", "Ground")
             };
         }

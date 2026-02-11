@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +19,10 @@ namespace UniMcp.Tools
     /// Uses coroutines with EditorUtility.DisplayDialog for interactive user confirmation.
     /// 对应方法名: object_delete
     /// </summary>
-    [ToolName("object_delete", "资源管理")]
+    [ToolName("object_delete", "Resource Management")]
     public class ObjectDelete : DualStateMethodBase
     {
-        public override string Description => "对象删除工具，用于处理Unity对象（GameObject、资源等）的删除操作，支持交互式确认";
+        public override string Description => L.T("Delete GameObjects or assets", "删除游戏对象或资源");
         
         private IObjectSelector objectSelector;
 
@@ -32,22 +32,22 @@ namespace UniMcp.Tools
         }
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 目标查找参数 - 层次结构路径
-                new MethodStr("path", "对象层次结构路径", false)
-                    .AddExamples("Main Camera", "UI/Canvas/Button"),
+                // Target path
+                new MethodStr("path", L.T("Object hierarchy path", "对象层级路径"), false)
+                    .AddExamples("UI/Canvas/Button"),
                 
-                // 目标查找参数 - 实例ID
-                new MethodStr("instance_id", "对象实例ID")
+                // Target instance ID
+                new MethodStr("instance_id", L.T("Object instance ID", "对象实例ID"))
                     .AddExample("-2524"),
                 
-                // 确认对话框控制
-                new MethodBool("confirm", "强制确认对话框：true=总是确认，false/未设置=智能确认（≤3个自动，>3个对话框）")
+                // Confirmation dialog control
+                new MethodBool("confirm", L.T("Force confirmation dialog: true=always confirm, false/unset=smart confirm (≤3 auto, >3 dialog)", "强制确认对话框：true=总是确认，false/未设置=智能确认（≤3自动，>3对话框）"))
             };
         }
 

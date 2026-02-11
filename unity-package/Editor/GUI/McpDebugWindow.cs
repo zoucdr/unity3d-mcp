@@ -11,25 +11,25 @@ using System.Runtime.Remoting.Messaging;
 namespace UniMcp.Gui
 {
     /// <summary>
-    /// MCP调试客户端窗口 - 用于测试和调试MCP函数调用
+    /// MCP debug client window - for testing and debugging MCP function calls
     /// </summary>
     public class McpDebugWindow : EditorWindow
     {
         [MenuItem("Window/MCP/Debug")]
         public static void ShowWindow()
         {
-            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");
+            McpDebugWindow window = GetWindow<McpDebugWindow>(L.T("Unity MCP Debug Client", "Unity MCP 调试客户端"));
             window.minSize = new Vector2(500, 300);
             window.Show();
         }
 
         /// <summary>
-        /// 打开调试窗口并预填充指定的JSON内容
+        /// Open debug window and pre-fill with specified JSON content
         /// </summary>
-        /// <param name="jsonContent">要预填充的JSON内容</param>
+        /// <param name="jsonContent">JSON content to pre-fill</param>
         public static void ShowWindowWithContent(string jsonContent)
         {
-            McpDebugWindow window = GetWindow<McpDebugWindow>("MCP Debug Window");
+            McpDebugWindow window = GetWindow<McpDebugWindow>(L.T("Unity MCP Debug Client", "Unity MCP 调试客户端"));
             window.minSize = new Vector2(500, 300);
             window.SetInputJson(jsonContent);
             window.Show();
@@ -37,16 +37,16 @@ namespace UniMcp.Gui
         }
 
         /// <summary>
-        /// 设置输入框的JSON内容
+        /// Set input box JSON content
         /// </summary>
-        /// <param name="jsonContent">JSON内容</param>
+        /// <param name="jsonContent">JSON content</param>
         public void SetInputJson(string jsonContent)
         {
             if (!string.IsNullOrEmpty(jsonContent))
             {
                 inputJson = jsonContent;
-                ClearResults(); // 清空之前的结果
-                Repaint(); // 刷新界面
+                ClearResults(); // Clear previous results
+                Repaint(); // Refresh interface
             }
         }
 
@@ -191,7 +191,7 @@ namespace UniMcp.Gui
                         headerLabelStyle.normal.textColor = Color.white;
                         headerLabelStyle.alignment = TextAnchor.MiddleLeft;
                         headerLabelStyle.padding = new RectOffset(10, 0, 0, 0);
-                        EditorGUI.LabelField(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), "暂无分组", headerLabelStyle);
+                        EditorGUI.LabelField(new Rect(rect.x + 5, rect.y, rect.width - 10, rect.height), L.T("No Groups", "暂无分组"), headerLabelStyle);
                     }
                     else
                     {
@@ -251,7 +251,13 @@ namespace UniMcp.Gui
                     if (list.index >= 0 && list.index < records.Count)
                     {
                         int actualIndex = records.Count - 1 - list.index;
-                        if (EditorUtility.DisplayDialog("确认删除", $"确定要删除这条执行记录吗？\n函数: {records[actualIndex].name}", "删除", "取消"))
+                        if (EditorUtility.DisplayDialog(
+                            L.T("Confirm Delete", "确认删除"),
+                            L.IsChinese()
+                                ? $"确定要删除这条执行记录吗？\n函数: {records[actualIndex].name}"
+                                : $"Are you sure you want to delete this record?\nFunction: {records[actualIndex].name}",
+                            L.T("Delete", "删除"),
+                            L.T("Cancel", "取消")))
                         {
                             records.RemoveAt(actualIndex);
                             McpExecuteRecordObject.instance.saveRecords();
@@ -350,11 +356,11 @@ namespace UniMcp.Gui
             int clientCount = McpService.Instance.ConnectedClientCount;
             string portText = McpService.Instance.IsRunning ? $" on port {McpService.mcpPort}" : "";
 
-            string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} 请求记录{portText})";
+            string fullStatusText = $"<color=#{ColorUtility.ToHtmlStringRGB(statusColor)}>●</color> <b>{statusText}</b> ({clientCount} {L.T("request records", "请求记录")}{portText})";
 
             // Draw a single button that covers the whole area and acts as the status display
             // 移除背景，只显示文字，避免遮挡标题
-            if (GUI.Button(rect, new GUIContent(fullStatusText, "点击查看请求记录详情"), statusButtonStyle))
+            if (GUI.Button(rect, new GUIContent(fullStatusText, L.T("Click to view request record details", "点击查看请求记录详情")), statusButtonStyle))
             {
                 McpServiceStatusWindow.ShowWindow();
             }
@@ -401,7 +407,7 @@ namespace UniMcp.Gui
             buttonStyle.active.textColor = Color.white;
 
             GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
-            if (GUILayout.Button("刷新", buttonStyle, GUILayout.Width(50), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("Refresh", "刷新"), buttonStyle, GUILayout.Width(50), GUILayout.Height(22)))
             {
                 recordList = null;
                 InitializeRecordList();
@@ -409,13 +415,19 @@ namespace UniMcp.Gui
             }
 
             GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
-            if (GUILayout.Button("清空当前分组", buttonStyle, GUILayout.Width(100), GUILayout.Height(22)))
+            if (GUILayout.Button(L.T("Clear Current Group", "清空当前分组"), buttonStyle, GUILayout.Width(100), GUILayout.Height(22)))
             {
-                string confirmMessage = $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。";
+                string confirmMessage = L.IsChinese() 
+                    ? $"确定要清空当前分组 '{GetCurrentGroupDisplayName()}' 的所有记录吗？\n此操作不会影响其他分组。"
+                    : $"Are you sure you want to clear all records in the current group '{GetCurrentGroupDisplayName()}'?\nThis will not affect other groups.";
 
-                if (EditorUtility.DisplayDialog("确认清空", confirmMessage, "确定", "取消"))
+                if (EditorUtility.DisplayDialog(
+                    L.T("Confirm", "确认"), 
+                    confirmMessage, 
+                    L.T("Confirm", "确定"), 
+                    L.T("Cancel", "取消")))
                 {
-                    // 仅清空当前分组，禁止清空全部
+                    // Only clear current group, prohibit clearing all
                     McpExecuteRecordObject.instance.ClearCurrentGroupRecords();
                     McpExecuteRecordObject.instance.saveRecords();
                     selectedRecordIndex = -1;
@@ -425,7 +437,7 @@ namespace UniMcp.Gui
             }
 
             GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
-            if (GUILayout.Button(showGroupManager ? "隐藏" : "管理", buttonStyle, GUILayout.Width(60), GUILayout.Height(22)))
+            if (GUILayout.Button(showGroupManager ? L.T("Hide", "隐藏") : L.T("Manage", "管理"), buttonStyle, GUILayout.Width(60), GUILayout.Height(22)))
             {
                 showGroupManager = !showGroupManager;
             }
@@ -742,7 +754,7 @@ namespace UniMcp.Gui
             labelStyle.fontSize = 11;
             labelStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
             labelStyle.fontStyle = FontStyle.Bold;
-            GUILayout.Label("MCP调用 (JSON格式):", labelStyle);
+            GUILayout.Label(L.T("MCP Call (JSON format):", "MCP调用 (JSON格式):"), labelStyle);
 
             float inputHeight = CalculateInputHeight();
             float textAreaWidth = availableWidth; // 减去边距和滚动条宽度
@@ -804,27 +816,27 @@ namespace UniMcp.Gui
 
             GUI.enabled = !isExecuting;
             GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
-            if (GUILayout.Button("执行", buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
+            if (GUILayout.Button(L.T("Execute", "执行"), buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteCall();
             }
 
             GUI.enabled = !isExecuting && clipboardAvailable;
             GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
-            if (GUILayout.Button("执行剪贴板", buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
+            if (GUILayout.Button(L.T("Execute Clipboard", "执行剪贴板"), buttonStyle, GUILayout.Height(30), GUILayout.Width(100)))
             {
                 ExecuteClipboard();
             }
             GUI.enabled = true;
 
             GUI.backgroundColor = new Color(0.5f, 0.5f, 0.7f);
-            if (GUILayout.Button("格式化JSON", buttonStyle, GUILayout.Height(30), GUILayout.Width(120)))
+            if (GUILayout.Button(L.T("Format JSON", "格式化JSON"), buttonStyle, GUILayout.Height(30), GUILayout.Width(120)))
             {
                 FormatJson();
             }
 
             GUI.backgroundColor = new Color(0.7f, 0.4f, 0.4f);
-            if (GUILayout.Button("清空", buttonStyle, GUILayout.Height(30), GUILayout.Width(60)))
+            if (GUILayout.Button(L.T("Clear", "清空"), buttonStyle, GUILayout.Height(30), GUILayout.Width(60)))
             {
                 inputJson = "{}";
                 ClearResults();
@@ -839,29 +851,32 @@ namespace UniMcp.Gui
                 executingStyle.fontStyle = FontStyle.Bold;
                 if (totalExecutionCount > 1)
                 {
-                    GUILayout.Label($"执行中... ({currentExecutionIndex}/{totalExecutionCount})", executingStyle, GUILayout.Width(150));
+                    string executingText = L.IsChinese() 
+                        ? $"执行中... ({currentExecutionIndex}/{totalExecutionCount})" 
+                        : $"Executing... ({currentExecutionIndex}/{totalExecutionCount})";
+                    GUILayout.Label(executingText, executingStyle, GUILayout.Width(150));
                 }
                 else
                 {
-                    GUILayout.Label("执行中...", executingStyle, GUILayout.Width(100));
+                    GUILayout.Label(L.T("Executing...", "执行中..."), executingStyle, GUILayout.Width(100));
                 }
             }
 
             GUILayout.EndHorizontal();
 
-            // 第二行按钮（剪贴板操作）
+            // Second row of buttons (clipboard operations)
             GUILayout.BeginHorizontal();
 
-            // 剪贴板操作按钮 - 根据剪贴板内容动态启用/禁用
+            // Clipboard operation buttons - dynamically enabled/disabled based on clipboard content
             GUI.enabled = clipboardAvailable;
             GUI.backgroundColor = new Color(0.4f, 0.6f, 0.8f);
-            if (GUILayout.Button("粘贴到输入框", buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
+            if (GUILayout.Button(L.T("Paste to Input", "粘贴到输入框"), buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PasteFromClipboard();
             }
 
             GUI.backgroundColor = new Color(0.4f, 0.5f, 0.7f);
-            if (GUILayout.Button("预览剪贴板", buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
+            if (GUILayout.Button(L.T("Preview Clipboard", "预览剪贴板"), buttonStyle, GUILayout.Height(25), GUILayout.Width(100)))
             {
                 PreviewClipboard();
             }
@@ -884,7 +899,7 @@ namespace UniMcp.Gui
             labelStyle.fontSize = 11;
             labelStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
             labelStyle.fontStyle = FontStyle.Bold;
-            EditorGUILayout.LabelField("执行结果", labelStyle);
+            EditorGUILayout.LabelField(L.T("Execution Result", "执行结果"), labelStyle);
 
             float textAreaWidth = availableWidth - 40; // 减去边距和滚动条宽度
 
@@ -976,7 +991,10 @@ namespace UniMcp.Gui
             }
             catch (System.Exception e)
             {
-                EditorUtility.DisplayDialog("JSON格式错误", $"无法解析JSON: {e.Message}", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("JSON Format Error", "JSON格式错误"),
+                    L.IsChinese() ? $"无法解析JSON: {e.Message}" : $"Cannot parse JSON: {e.Message}",
+                    L.T("OK", "确定"));
             }
         }
 
@@ -987,7 +1005,10 @@ namespace UniMcp.Gui
         {
             if (string.IsNullOrEmpty(resultText))
             {
-                EditorUtility.DisplayDialog("提示", "没有可格式化的结果", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Tip", "提示"),
+                    L.T("No result to format", "没有可格式化的结果"),
+                    L.T("OK", "确定"));
                 return;
             }
 
@@ -1046,8 +1067,11 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[McpDebugWindow] 格式化结果时发生错误: {e.Message}");
-                EditorUtility.DisplayDialog("格式化失败", $"无法格式化结果: {e.Message}", "确定");
+                Debug.LogWarning($"[McpDebugWindow] {L.T("Error formatting result", "格式化结果时发生错误")}: {e.Message}");
+                EditorUtility.DisplayDialog(
+                    L.T("Format Failed", "格式化失败"),
+                    L.IsChinese() ? $"无法格式化结果: {e.Message}" : $"Cannot format result: {e.Message}",
+                    L.T("OK", "确定"));
             }
         }
 
@@ -1331,13 +1355,16 @@ namespace UniMcp.Gui
         {
             if (string.IsNullOrWhiteSpace(inputJson))
             {
-                EditorUtility.DisplayDialog("错误", "请输入JSON内容", "确定");
+                EditorUtility.DisplayDialog(
+                    L.T("Error", "错误"),
+                    L.T("Please enter JSON content", "请输入JSON内容"),
+                    L.T("OK", "确定"));
                 return;
             }
 
             isExecuting = true;
             showResult = true;
-            resultText = "正在执行...";
+            resultText = L.T("Executing...", "正在执行...");
 
             try
             {
@@ -1347,7 +1374,7 @@ namespace UniMcp.Gui
                 // 如果结果为null，表示异步执行
                 if (result == null)
                 {
-                    resultText = "异步执行中...";
+                    resultText = L.T("Executing asynchronously...", "异步执行中...");
                     // 刷新界面显示异步状态
                     Repaint();
                     // 注意：isExecuting保持为true，等待异步回调完成
@@ -1362,7 +1389,9 @@ namespace UniMcp.Gui
             }
             catch (Exception e)
             {
-                string errorResult = $"执行错误:\n{e.Message}\n\n堆栈跟踪:\n{e.StackTrace}";
+                string errorPrefix = L.T("Execution Error", "执行错误");
+                string stackTraceLabel = L.T("Stack Trace", "堆栈跟踪");
+                string errorResult = $"{errorPrefix}:\n{e.Message}\n\n{stackTraceLabel}:\n{e.StackTrace}";
                 resultText = errorResult;
                 isExecuting = false;
 
@@ -1411,7 +1440,7 @@ namespace UniMcp.Gui
         {
             JsonNode inputObj = Json.Parse(jsonString);
             if (inputObj == null)
-                return Response.Error("无法解析JSON输入");
+                return Response.Error(L.T("Cannot parse JSON input", "无法解析JSON输入"));
 
             // 检查是否为批量调用
             if (inputObj is JsonArray jArray)
@@ -1461,7 +1490,9 @@ namespace UniMcp.Gui
             }
             else
             {
-                throw new ArgumentException("输入的JSON必须包含 'id' 字段（异步调用）、'func' 字段（单个调用）或 'funcs' 字段（批量调用）");
+                throw new ArgumentException(L.T(
+                    "Input JSON must contain 'id' field (async call), 'func' field (single call) or 'funcs' field (batch call)",
+                    "输入的JSON必须包含 'id' 字段（异步调用）、'func' 字段（单个调用）或 'funcs' 字段（批量调用）"));
             }
         }
 

@@ -10,44 +10,43 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UniMcp.Models; // For Response class
-
 namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles GameObject search and find operations in the scene hierarchy.
     /// 对应方法名: hierarchy_search
     /// </summary>
-    [ToolName("hierarchy_search", "层级管理")]
+    [ToolName("hierarchy_search", "Hierarchy Management")]
     public class HierarchySearch : StateMethodBase
     {
-        public override string Description => "层级搜索工具，支持在场景层级中搜索和查找游戏对象";
+        public override string Description => L.T("Search and find GameObjects in the scene hierarchy", "在场景层级中搜索和查找游戏对象");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 搜索方法 - 枚举
-                new MethodStr("search_type", "搜索方法", false)
+                // Search method - enum
+                new MethodStr("search_type", L.T("Search method", "搜索方法"), false)
                     .SetEnumValues("by_name", "by_id", "by_tag", "by_layer", "by_component", "by_query"),
                 
-                // 搜索条件
-                new MethodStr("query", "搜索条件（可以是ID、名称或路径，支持通配符*）", false)
+                // Search condition
+                new MethodStr("query", L.T("Search condition (can be ID, name, or path, supports wildcard *)", "搜索条件（可以是ID、名称或路径，支持通配符*）"), false)
                     .AddExamples("Player*", "UI/Canvas"),
                 
-                // 查找多个
-                new MethodBool("select_many", "是否查找所有匹配项"),
+                // Find multiple
+                new MethodBool("select_many", L.T("Whether to find all matching items", "是否查找所有匹配项")),
                 
-                // 包含层次结构
-                new MethodBool("include_hierarchy", "是否包含所有子对象的完整层次结构数据"),
+                // Include hierarchy
+                new MethodBool("include_hierarchy", L.T("Whether to include complete hierarchy structure data for all child objects", "是否包含所有子对象的完整层级结构数据")),
                 
-                // 包含非激活对象
-                new MethodBool("include_inactive", "是否搜索非激活对象"),
+                // Include inactive objects
+                new MethodBool("include_inactive", L.T("Whether to search inactive objects", "是否搜索非激活对象")),
                 
-                // 使用正则表达式
-                new MethodBool("use_regex", "是否使用正则表达式")
+                // Use regular expression
+                new MethodBool("use_regex", L.T("Whether to use regular expressions", "是否使用正则表达式"))
             };
         }
 

@@ -16,59 +16,59 @@ namespace UniMcp.Tools
     /// 对应方法名: project_create
     /// 支持: menu, empty, template, copy
     /// </summary>
-    [ToolName("project_create", "项目管理")]
+    [ToolName("project_create", "Project Management")]
     public class ProjectCreate : StateMethodBase
     {
-        public override string Description => "项目资源创建工具，支持在项目窗口中创建各种类型的资源文件";
+        public override string Description => L.T("Create assets in the Project window", "在项目窗口中创建资源");
 
         /// <summary>
-        /// 创建当前方法支持的参数键列表
+        /// Create the list of parameter keys supported by this method
         /// </summary>
         protected override MethodKey[] CreateKeys()
         {
             return new MethodKey[]
             {
-                // 资源文件名称 - 必需
-                new MethodStr("name", "资源文件名称", false)
+                // Asset file name - required
+                new MethodStr("name", L.T("Asset file name", "资源文件名称"), false)
                     .AddExamples("MyScript", "NewMaterial"),
                 
-                // 创建来源类型 - 枚举
-                new MethodStr("source", "操作类型", false)
+                // Creation source type - enum
+                new MethodStr("source", L.T("Operation type", "操作类型"), false)
                     .SetEnumValues("menu", "empty", "template", "copy"),
                 
-                // 目标文件夹路径
-                new MethodStr("folder_path", "目标文件夹路径（相对于Assets）")
+                // Target folder path
+                new MethodStr("folder_path", L.T("Target folder path (relative to Assets)", "目标文件夹路径（相对于Assets）"))
                     .AddExamples("Scripts", "Materials"),
                 
-                // 菜单路径
-                new MethodStr("menu_path", "菜单路径")
+                // Menu path
+                new MethodStr("menu_path", L.T("Menu path", "菜单路径"))
                     .AddExamples("Assets/Create/C# Script", "Assets/Create/Material"),
                 
-                // 模板文件路径
-                new MethodStr("template_path", "模板文件路径")
+                // Template file path
+                new MethodStr("template_path", L.T("Template file path", "模板文件路径"))
                     .AddExamples("Assets/Templates/ScriptTemplate.cs", "Assets/Templates/MaterialTemplate.mat"),
                 
-                // 复制源路径
-                new MethodStr("copy_source", "要复制的资源路径")
+                // Copy source path
+                new MethodStr("copy_source", L.T("Asset path to copy", "要复制的资源路径"))
                     .AddExamples("Assets/Scripts/BaseScript.cs", "Assets/Materials/BaseMaterial.mat"),
                 
-                // 文件扩展名
-                new MethodStr("extension", "文件扩展名（不含.）")
+                // File extension
+                new MethodStr("extension", L.T("File extension (without .)", "文件扩展名（不带.）"))
                     .SetEnumValues("cs", "mat", "prefab", "asset", "txt", "json")
                     .AddExamples("cs", "mat"),
                 
-                // 文件内容
-                new MethodStr("content", "文件内容（用于empty类型）")
+                // File content
+                new MethodStr("content", L.T("File content (for empty type)", "文件内容（用于空类型）"))
                     .AddExamples("// New C# Script", "{\n  \"version\": \"1.0\"\n}"),
                 
-                // 强制覆盖
-                new MethodBool("force", "是否强制覆盖已存在的文件"),
+                // Force overwrite
+                new MethodBool("force", L.T("Force overwrite existing file", "强制覆盖现有文件")),
                 
-                // 创建后打开
-                new MethodBool("open_after_create", "创建后是否打开文件"),
+                // Open after create
+                new MethodBool("open_after_create", L.T("Open file after creation", "创建后打开文件")),
                 
-                // 创建后选中
-                new MethodBool("select_after_create", "创建后是否选中文件")
+                // Select after create
+                new MethodBool("select_after_create", L.T("Select file after creation", "创建后选中文件"))
             };
         }
 
