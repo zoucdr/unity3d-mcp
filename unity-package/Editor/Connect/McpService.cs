@@ -28,6 +28,16 @@ namespace UniMcp
         public bool IsFromFile { get; set; } // 是否为文件资源
     }
 
+    /// <summary>
+    /// 响应缓存数据结构 - 只缓存 result 部分
+    /// </summary>
+    public class ResponseCacheData
+    {
+        public JsonNode ResultData { get; set; }  // 缓存 result JsonNode 对象
+        public DateTime CacheTime { get; set; }
+        public int RequestCount { get; set; }
+    }
+
     [InitializeOnLoad]
     public partial class McpService
     {
@@ -172,6 +182,11 @@ namespace UniMcp
         // MCP工具实例缓存
         private readonly Dictionary<string, McpTool> mcpToolInstanceCache = new();
         private readonly ToolsCall methodsCall = new();
+
+        // 响应缓存系统
+        private readonly Dictionary<string, ResponseCacheData> responseCache = new();
+        private readonly object responseCacheLock = new();
+        private readonly TimeSpan responseCacheExpiry = TimeSpan.FromSeconds(5); // 5秒缓存过期时间
 
         // 消息队列处理
         private readonly Queue<Action> messageQueue = new();
@@ -541,6 +556,13 @@ namespace UniMcp
             // 清空现有工具
             availableTools.Clear();
             toolInfos.Clear();
+            
+            // 清除工具列表缓存
+            lock (responseCacheLock)
+            {
+                responseCache.Remove("tools/list");
+                McpLogger.Log("[UniMcp] 已清除 tools/list 缓存");
+            }
 
             try
             {
@@ -592,6 +614,19 @@ namespace UniMcp
                         // 获取工具名称
                         string toolName = GetToolName(toolType);
                         Log($"[UniMcp] 工具名称: {toolName}");
+                        
+                        // 验证工具是否有效
+                        if (string.IsNullOrEmpty(toolName))
+                        {
+                            LogWarning($"[UniMcp] 工具名称为空，跳过: {toolType.Name}");
+                            continue;
+                        }
+                        
+                        // 验证工具描述（可选，但建议有）
+                        if (string.IsNullOrEmpty(toolInstance.Description))
+                        {
+                            LogWarning($"[UniMcp] 工具 {toolName} 缺少描述，但仍然注册");
+                        }
 
                         // 注册工具
                         availableTools[toolName] = toolInstance;
@@ -635,6 +670,13 @@ namespace UniMcp
             Log("[UniMcp] 开始发现Prompts...");
             // 清空现有prompts
             availablePrompts.Clear();
+            
+            // 清除提示词列表缓存
+            lock (responseCacheLock)
+            {
+                responseCache.Remove("prompts/list");
+                McpLogger.Log("[UniMcp] 已清除 prompts/list 缓存");
+            }
 
             try
             {
@@ -676,6 +718,24 @@ namespace UniMcp
                             LogWarning($"[UniMcp] 无法将 {promptType.Name} 转换为IPrompts");
                             continue;
                         }
+                        
+                        // 验证Prompt是否有效
+                        if (string.IsNullOrEmpty(promptInstance.Name))
+                        {
+                            LogWarning($"[UniMcp] Prompt名称为空，跳过: {promptType.Name}");
+                            continue;
+                        }
+                        
+                        if (string.IsNullOrEmpty(promptInstance.Description))
+                        {
+                            LogWarning($"[UniMcp] Prompt {promptInstance.Name} 缺少描述");
+                        }
+                        
+                        if (string.IsNullOrEmpty(promptInstance.PromptText))
+                        {
+                            LogWarning($"[UniMcp] Prompt {promptInstance.Name} 缺少提示词文本，跳过");
+                            continue;
+                        }
 
                         // 注册prompt
                         availablePrompts[promptInstance.Name] = promptInstance;
@@ -711,6 +771,13 @@ namespace UniMcp
             Log("[UniMcp] 开始发现Resources...");
             // 清空现有resources
             availableResources.Clear();
+            
+            // 清除资源列表缓存
+            lock (responseCacheLock)
+            {
+                responseCache.Remove("resources/list");
+                McpLogger.Log("[UniMcp] 已清除 resources/list 缓存");
+            }
 
             try
             {
@@ -751,6 +818,23 @@ namespace UniMcp
                         {
                             LogWarning($"[UniMcp] 无法将 {resourceType.Name} 转换为IRes");
                             continue;
+                        }
+                        
+                        // 验证Resource是否有效
+                        if (string.IsNullOrEmpty(resourceInstance.Url))
+                        {
+                            LogWarning($"[UniMcp] Resource的URL为空，跳过: {resourceType.Name}");
+                            continue;
+                        }
+                        
+                        if (string.IsNullOrEmpty(resourceInstance.Name))
+                        {
+                            LogWarning($"[UniMcp] Resource {resourceInstance.Url} 缺少名称");
+                        }
+                        
+                        if (string.IsNullOrEmpty(resourceInstance.MimeType))
+                        {
+                            LogWarning($"[UniMcp] Resource {resourceInstance.Url} 缺少MimeType，使用默认值");
                         }
 
                         // 注册resource
@@ -796,7 +880,7 @@ namespace UniMcp
                 var toolInfo = new ToolInfo
                 {
                     name = toolName,
-                    description = "Unity异步调用工具，支持异步函数调用和结果获取",
+                    description = L.T("Unity asynchronous call tool, supports asynchronous function calls and result retrieval", "Unity异步调用工具，支持异步函数调用和结果获取"),
                     inputSchema = new JsonClass
                     {
                         { "type", new JsonData("object") },
@@ -804,19 +888,19 @@ namespace UniMcp
                             {
                                 { "id", new JsonClass {
                                     { "type", new JsonData("string") },
-                                    { "description", new JsonData("异步调用的唯一标识符") }
+                                    { "description", new JsonData(L.T("Unique identifier for asynchronous call", "异步调用的唯一标识符")) }
                                 }},
                                 { "type", new JsonClass {
                                     { "type", new JsonData("string") },
-                                    { "description", new JsonData("操作类型: 'in' 开始调用, 'out' 获取结果") }
+                                    { "description", new JsonData(L.T("Operation type: 'in' to start call, 'out' to get result", "操作类型: 'in' 开始调用, 'out' 获取结果")) }
                                 }},
                                 { "func", new JsonClass {
                                     { "type", new JsonData("string") },
-                                    { "description", new JsonData("要调用的函数名称（仅在type='in'时需要）") }
+                                    { "description", new JsonData(L.T("Function name to call (required when type='in')", "要调用的函数名称（仅在type='in'时需要）")) }
                                 }},
                                 { "args", new JsonClass {
                                     { "type", new JsonData("object") },
-                                    { "description", new JsonData("函数参数（仅在type='in'时需要）") }
+                                    { "description", new JsonData(L.T("Function parameters (required when type='in')", "函数参数（仅在type='in'时需要）")) }
                                 }},
                             }
                         },
@@ -853,23 +937,23 @@ namespace UniMcp
                 var toolInfo = new ToolInfo
                 {
                     name = toolName,
-                    description = "Unity批量调用工具，支持顺序执行多个函数调用",
+                    description = L.T("Unity batch call tool, supports sequential execution of multiple function calls", "Unity批量调用工具，支持顺序执行多个函数调用"),
                     inputSchema = new JsonClass {
                         { "type", new JsonData("object") },
                         { "properties", new JsonClass {
                             { "args", new JsonClass {
                                 { "type", new JsonData("array") },
-                                { "description", new JsonData("批量函数调用列表") },
+                                { "description", new JsonData(L.T("Batch function call list", "批量函数调用列表")) },
                                 { "items", new JsonClass {
                                     { "type", new JsonData("object") },
                                     { "properties", new JsonClass {
                                         { "func", new JsonClass {
                                             { "type", new JsonData("string") },
-                                            { "description", new JsonData("要调用的函数名称") }
+                                            { "description", new JsonData(L.T("Function name to call", "要调用的函数名称")) }
                                         }},
                                         { "args", new JsonClass {
                                             { "type", new JsonData("object") },
-                                            { "description", new JsonData("函数参数") }
+                                            { "description", new JsonData(L.T("Function parameters", "函数参数")) }
                                         }},
                                     }},
                                     { "required", new JsonArray {
@@ -1131,6 +1215,9 @@ namespace UniMcp
         {
             Log("[UniMcp] 正在强制停止服务...");
 
+            // 清除所有响应缓存
+            ClearResponseCache();
+
             // 首先取消所有异步操作
             try
             {
@@ -1305,6 +1392,9 @@ namespace UniMcp
         public void Start()
         {
             McpLogger.Log($"[UniMcp] <color=green>正在启动Unity MCP HTTP服务器...</color>");
+
+            // 清除所有响应缓存（启动时清空）
+            ClearResponseCache();
 
             // 确保先停止现有服务
             Stop();
@@ -2120,13 +2210,13 @@ namespace UniMcp
                             result = await HandleResourcesRead(id, paramsNode);
                             break;
 
-                        case "resources/subscribe":
-                            result = HandleResourcesSubscribe(id, paramsNode);
-                            break;
+                        // case "resources/subscribe":
+                        //     result = HandleResourcesSubscribe(id, paramsNode);
+                        //     break;
 
-                        case "resources/unsubscribe":
-                            result = HandleResourcesUnsubscribe(id, paramsNode);
-                            break;
+                        // case "resources/unsubscribe":
+                        //     result = HandleResourcesUnsubscribe(id, paramsNode);
+                        //     break;
 
                         default:
                             result = CreateMcpErrorResponse(id, -32601, $"Method not found: {method}");
@@ -2275,10 +2365,99 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 检查响应缓存是否有效
+        /// </summary>
+        private bool TryGetCachedResult(string cacheKey, out JsonNode cachedResult)
+        {
+            cachedResult = null;
+            
+            lock (responseCacheLock)
+            {
+                if (responseCache.TryGetValue(cacheKey, out var cacheData))
+                {
+                    var cacheAge = DateTime.Now - cacheData.CacheTime;
+                    
+                    if (cacheAge < responseCacheExpiry)
+                    {
+                        cacheData.RequestCount++;
+                        cachedResult = cacheData.ResultData;
+                        
+                        McpLogger.Log($"[UniMcp] ✓ 使用缓存结果 (命中: {cacheData.RequestCount}次, 缓存时长: {cacheAge.TotalMilliseconds:F0}ms) - {cacheKey}");
+                        return true;
+                    }
+                    else
+                    {
+                        // 缓存过期，移除
+                        responseCache.Remove(cacheKey);
+                        McpLogger.Log($"[UniMcp] 缓存已过期，重新生成 (过期时长: {(cacheAge - responseCacheExpiry).TotalMilliseconds:F0}ms) - {cacheKey}");
+                    }
+                }
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// 存储结果到缓存
+        /// </summary>
+        private void CacheResult(string cacheKey, JsonNode result)
+        {
+            lock (responseCacheLock)
+            {
+                responseCache[cacheKey] = new ResponseCacheData
+                {
+                    ResultData = result,
+                    CacheTime = DateTime.Now,
+                    RequestCount = 0
+                };
+                
+                // 清理过期缓存（防止内存泄漏）
+                var expiredKeys = responseCache
+                    .Where(kvp => DateTime.Now - kvp.Value.CacheTime > responseCacheExpiry)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+                    
+                foreach (var key in expiredKeys)
+                {
+                    responseCache.Remove(key);
+                }
+                
+                if (expiredKeys.Count > 0)
+                {
+                    McpLogger.Log($"[UniMcp] 清理了 {expiredKeys.Count} 个过期缓存");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 清除所有响应缓存
+        /// </summary>
+        private void ClearResponseCache()
+        {
+            lock (responseCacheLock)
+            {
+                int count = responseCache.Count;
+                responseCache.Clear();
+                if (count > 0)
+                {
+                    McpLogger.Log($"[UniMcp] 已清除所有响应缓存 (共 {count} 个)");
+                }
+            }
+        }
+
+        /// <summary>
         /// 处理tools/list请求
         /// </summary>
         private string HandleToolsList(string id)
         {
+            // 尝试从缓存获取 result
+            string cacheKey = "tools/list";
+            if (TryGetCachedResult(cacheKey, out JsonNode cachedResult))
+            {
+                // 使用缓存的 result 创建新的响应
+                return CreateMcpSuccessResponse(id, cachedResult);
+            }
+
             Log($"[UniMcp] 处理tools/list请求，当前工具数量: {toolInfos.Count}");
 
             // 如果工具列表为空，尝试重新发现工具
@@ -2303,10 +2482,25 @@ namespace UniMcp
                     Log($"[UniMcp] 添加启用的工具到列表: {toolInfo.name}");
                     var tool = new JsonClass();
                     tool.Add("name", new JsonData(toolInfo.name));
-                    tool.Add("description", new JsonData(toolInfo.description));
-                    if (toolInfo.inputSchema != null)
+                    
+                    // 从availableTools重新获取当前语言的描述和inputSchema
+                    string description = toolInfo.description;
+                    JsonNode inputSchema = toolInfo.inputSchema;
+                    
+                    if (availableTools.TryGetValue(toolInfo.name, out var toolInstance))
                     {
-                        tool.Add("inputSchema", toolInfo.inputSchema);
+                        // 重新获取当前语言的描述
+                        description = !string.IsNullOrEmpty(toolInstance.Description) ? toolInstance.Description : description;
+                        
+                        // 重新构建inputSchema以获取当前语言的参数描述
+                        inputSchema = RebuildInputSchema(toolInstance);
+                    }
+                    
+                    tool.Add("description", new JsonData(description));
+                    
+                    if (inputSchema != null)
+                    {
+                        tool.Add("inputSchema", inputSchema);
                     }
                     tools.Add(tool);
                 }
@@ -2319,6 +2513,9 @@ namespace UniMcp
             var result = new JsonClass();
             result.Add("tools", tools);
 
+            // 存储 result 到缓存（而不是完整响应）
+            CacheResult("tools/list", result);
+
             string responseJson = CreateMcpSuccessResponse(id, result);
             Log($"[UniMcp] tools/list响应: {responseJson}");
             McpLogger.Log($"[UniMcp] 返回启用的工具数量: {tools.Count}");
@@ -2326,10 +2523,206 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 重新构建inputSchema以获取当前语言的参数描述
+        /// </summary>
+        private JsonNode RebuildInputSchema(IToolMethod toolInstance)
+        {
+            if (toolInstance.Keys == null || toolInstance.Keys.Length == 0)
+                return null;
+
+            var properties = new JsonClass();
+            var required = new JsonArray();
+
+            foreach (var key in toolInstance.Keys)
+            {
+                var property = new JsonClass();
+
+                // 设置参数类型，默认为string
+                string paramType = !string.IsNullOrEmpty(key.Type) ? key.Type : "string";
+                property.Add("type", new JsonData(paramType));
+
+                // 设置描述（使用当前语言）
+                property.Add("description", new JsonData(key.Desc));
+
+                // 为所有数组类型添加items定义（通用处理）
+                if (paramType == "array" && !(key is MethodVector) && !(key is MethodArr))
+                {
+                    var items = new JsonClass();
+                    items.Add("type", new JsonData("string"));
+                    property.Add("items", items);
+                }
+
+                // 处理数组类型的特殊属性
+                if (key is MethodArr methodArr)
+                {
+                    var items = new JsonClass();
+                    items.Add("type", new JsonData(methodArr.ItemType));
+                    property.Add("items", items);
+                }
+
+                // 处理对象类型的特殊属性
+                if (key is MethodObj methodObj && methodObj.Properties.Count > 0)
+                {
+                    var objProperties = new JsonClass();
+                    foreach (var prop in methodObj.Properties)
+                    {
+                        var propDef = new JsonClass();
+                        propDef.Add("type", new JsonData(prop.Value));
+
+                        if (prop.Value == "array")
+                        {
+                            var items = new JsonClass();
+                            string itemType = "string";
+
+                            if (methodObj.ArrayItemTypes.ContainsKey(prop.Key))
+                            {
+                                itemType = methodObj.ArrayItemTypes[prop.Key];
+                            }
+                            else if (prop.Key == "position" || prop.Key == "rotation" || prop.Key == "scale" ||
+                                     prop.Key == "color" || prop.Key.Contains("vector") || prop.Key.Contains("Vector"))
+                            {
+                                itemType = "number";
+                            }
+
+                            items.Add("type", new JsonData(itemType));
+                            propDef.Add("items", items);
+                        }
+
+                        objProperties.Add(prop.Key, propDef);
+                    }
+                    property.Add("properties", objProperties);
+                }
+
+                // 处理向量类型的特殊属性
+                if (key is MethodVector methodVector)
+                {
+                    property["type"] = new JsonData("array");
+                    var items = new JsonClass();
+                    items.Add("type", new JsonData("number"));
+                    property.Add("items", items);
+                    property.Add("minItems", new JsonData(methodVector.Dimension));
+                    property.Add("maxItems", new JsonData(methodVector.Dimension));
+                    property.Add("format", new JsonData($"vector{methodVector.Dimension}"));
+                    property["description"] = new JsonData($"{key.Desc} [x, y, z]");
+                }
+
+                // 添加示例值
+                if (key.Examples != null && key.Examples.Count > 0)
+                {
+                    var examplesArray = new JsonArray();
+                    foreach (var example in key.Examples)
+                    {
+                        if (key is MethodVector && example is string vectorStr && vectorStr.StartsWith("[") && vectorStr.EndsWith("]"))
+                        {
+                            try
+                            {
+                                var vectorJson = Json.Parse(vectorStr);
+                                examplesArray.Add(vectorJson);
+                            }
+                            catch
+                            {
+                                examplesArray.Add(new JsonData(example));
+                            }
+                        }
+                        else
+                        {
+                            examplesArray.Add(new JsonData(example));
+                        }
+                    }
+                    property.Add("examples", examplesArray);
+                }
+
+                // 添加枚举值
+                if (key.EnumValues != null && key.EnumValues.Count > 0)
+                {
+                    var enumArray = new JsonArray();
+                    foreach (var enumValue in key.EnumValues)
+                    {
+                        enumArray.Add(new JsonData(enumValue));
+                    }
+                    property.Add("enum", enumArray);
+                }
+
+                // 添加默认值
+                if (key.DefaultValue != null)
+                {
+                    if (key.DefaultValue is string strValue)
+                    {
+                        property.Add("default", new JsonData(strValue));
+                    }
+                    else if (key.DefaultValue is int intValue)
+                    {
+                        property.Add("default", new JsonData(intValue));
+                    }
+                    else if (key.DefaultValue is bool boolValue)
+                    {
+                        property.Add("default", new JsonData(boolValue));
+                    }
+                    else if (key.DefaultValue is float floatValue)
+                    {
+                        property.Add("default", new JsonData(floatValue));
+                    }
+                    else if (key.DefaultValue is double doubleValue)
+                    {
+                        property.Add("default", new JsonData((float)doubleValue));
+                    }
+                    else if (key.DefaultValue is string[] strArrayValue)
+                    {
+                        var defaultArray = new JsonArray();
+                        foreach (var item in strArrayValue)
+                        {
+                            defaultArray.Add(new JsonData(item));
+                        }
+                        property.Add("default", defaultArray);
+                    }
+                    else if (key.DefaultValue is float[] floatArrayValue)
+                    {
+                        var defaultArray = new JsonArray();
+                        foreach (var item in floatArrayValue)
+                        {
+                            defaultArray.Add(new JsonData(item));
+                        }
+                        property.Add("default", defaultArray);
+                    }
+                    else
+                    {
+                        property.Add("default", new JsonData(key.DefaultValue.ToString()));
+                    }
+                }
+
+                properties.Add(key.Key, property);
+
+                // 添加必填参数
+                if (!key.Optional)
+                {
+                    required.Add(new JsonData(key.Key));
+                }
+            }
+
+            var inputSchema = new JsonClass();
+            inputSchema.Add("type", new JsonData("object"));
+            inputSchema.Add("properties", properties);
+            if (required.Count > 0)
+            {
+                inputSchema.Add("required", required);
+            }
+
+            return inputSchema;
+        }
+
+        /// <summary>
         /// 处理prompts/list请求
         /// </summary>
         private string HandlePromptsList(string id)
         {
+            // 尝试从缓存获取 result
+            string cacheKey = "prompts/list";
+            if (TryGetCachedResult(cacheKey, out JsonNode cachedResult))
+            {
+                // 使用缓存的 result 创建新的响应
+                return CreateMcpSuccessResponse(id, cachedResult);
+            }
+
             Log($"[UniMcp] 处理prompts/list请求，当前Prompts数量: {availablePrompts.Count}");
 
             // 如果prompts列表为空，尝试重新发现
@@ -2347,6 +2740,8 @@ namespace UniMcp
                 Log($"[UniMcp] 添加Prompt到列表: {prompt.Name}");
                 var promptObj = new JsonClass();
                 promptObj.Add("name", new JsonData(prompt.Name));
+                
+                // 获取当前语言的描述（IPrompts可能实现了L.T，直接调用Description会返回当前语言）
                 promptObj.Add("description", new JsonData(prompt.Description));
 
                 // 添加参数信息
@@ -2357,7 +2752,7 @@ namespace UniMcp
                     {
                         var arg = new JsonClass();
                         arg.Add("name", new JsonData(key.Key));
-                        arg.Add("description", new JsonData(key.Desc));
+                        arg.Add("description", new JsonData(key.Desc)); // key.Desc 也应该使用L.T
                         arg.Add("required", new JsonData(!key.Optional));
                         arguments.Add(arg);
                     }
@@ -2370,8 +2765,10 @@ namespace UniMcp
             var result = new JsonClass();
             result.Add("prompts", prompts);
 
+            // 存储 result 到缓存
+            CacheResult("prompts/list", result);
+
             string responseJson = CreateMcpSuccessResponse(id, result);
-            
             Log($"[UniMcp] prompts/list响应: {responseJson}");
             McpLogger.Log($"[UniMcp] 返回Prompts数量: {prompts.Count}");
             return responseJson;
@@ -2437,6 +2834,14 @@ namespace UniMcp
         /// </summary>
         private string HandleResourcesList(string id)
         {
+            // 尝试从缓存获取 result
+            string cacheKey = "resources/list";
+            if (TryGetCachedResult(cacheKey, out JsonNode cachedResult))
+            {
+                // 使用缓存的 result 创建新的响应
+                return CreateMcpSuccessResponse(id, cachedResult);
+            }
+
             Log($"[UniMcp] 处理resources/list请求，当前Resources数量: {availableResources.Count}");
 
             // 如果resources列表为空，尝试重新发现
@@ -2455,6 +2860,8 @@ namespace UniMcp
                 var resourceObj = new JsonClass();
                 resourceObj.Add("uri", new JsonData(resource.Url));
                 resourceObj.Add("name", new JsonData(resource.Name));
+                
+                // 获取当前语言的描述（IRes可能实现了L.T，直接调用Description会返回当前语言）
                 resourceObj.Add("description", new JsonData(resource.Description));
                 resourceObj.Add("mimeType", new JsonData(resource.MimeType));
                 resources.Add(resourceObj);
@@ -2463,8 +2870,10 @@ namespace UniMcp
             var result = new JsonClass();
             result.Add("resources", resources);
 
+            // 存储 result 到缓存
+            CacheResult("resources/list", result);
+
             string responseJson = CreateMcpSuccessResponse(id, result);
-            
             Log($"[UniMcp] resources/list响应: {responseJson}");
             McpLogger.Log($"[UniMcp] 返回Resources数量: {resources.Count}");
             return responseJson;
