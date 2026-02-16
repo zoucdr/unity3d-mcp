@@ -60,6 +60,7 @@ namespace UniMcp
         private HttpListener listener;
         private bool isRunning = false;
         private readonly object lockObj = new();
+        private readonly int mainThreadId;
 
         // 添加取消令牌源，用于优雅地取消异步操作
         private CancellationTokenSource cancellationTokenSource;
@@ -433,10 +434,15 @@ namespace UniMcp
         }
 
         // 统一的日志输出方法
+        private bool IsMainThread()
+        {
+            return System.Threading.Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        }
+
         private void Log(string message)
         {
             // 如果已经在主线程，直接输出
-            if (System.Threading.Thread.CurrentThread.ManagedThreadId == 1)
+            if (IsMainThread())
             {
                 McpLogger.Log(message);
             }
@@ -449,13 +455,20 @@ namespace UniMcp
 
         private void LogWarning(string message)
         {
-            McpLogger.LogWarning(message);
+            if (IsMainThread())
+            {
+                McpLogger.LogWarning(message);
+            }
+            else
+            {
+                EnqueueTask(() => McpLogger.LogWarning(message));
+            }
         }
 
         // 线程安全的警告日志输出方法（用于后台线程）
         private void LogWarningThreadSafe(string message)
         {
-            if (System.Threading.Thread.CurrentThread.ManagedThreadId == 1)
+            if (IsMainThread())
             {
                 McpLogger.LogWarning(message);
             }
@@ -467,13 +480,7 @@ namespace UniMcp
 
         private void LogError(string message)
         {
-            McpLogger.LogError(message);
-        }
-
-        // 线程安全的错误日志输出方法（用于后台线程）
-        private void LogErrorThreadSafe(string message)
-        {
-            if (System.Threading.Thread.CurrentThread.ManagedThreadId == 1)
+            if (IsMainThread())
             {
                 McpLogger.LogError(message);
             }
@@ -481,6 +488,31 @@ namespace UniMcp
             {
                 EnqueueTask(() => McpLogger.LogError(message));
             }
+        }
+
+        // 线程安全的错误日志输出方法（用于后台线程）
+        private void LogErrorThreadSafe(string message)
+        {
+            if (IsMainThread())
+            {
+                McpLogger.LogError(message);
+            }
+            else
+            {
+                EnqueueTask(() => McpLogger.LogError(message));
+            }
+        }
+
+        // 线程安全记录HTTP请求，避免后台线程直接访问 ScriptableSingleton
+        private void AddHttpRequestRecordThreadSafe(string id, string endPoint, DateTime requestTime, string requestContent, string httpMethod)
+        {
+            EnqueueTask(() => McpExecuteRecordObject.instance.AddHttpRequestRecord(id, endPoint, requestTime, requestContent, httpMethod));
+        }
+
+        // 线程安全更新HTTP请求记录，避免后台线程直接访问 ScriptableSingleton
+        private void UpdateHttpRequestRecordThreadSafe(string id, string responseContent, bool success, int statusCode, DateTime responseTime)
+        {
+            EnqueueTask(() => McpExecuteRecordObject.instance.UpdateHttpRequestRecord(id, responseContent, success, statusCode, responseTime));
         }
 
         public static bool FolderExists(string path)
@@ -505,6 +537,8 @@ namespace UniMcp
         // 私有构造函数，防止外部创建实例
         private McpService()
         {
+            mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
             // 初始化工具发现
             DiscoverTools();
             DiscoverPrompts();
@@ -700,7 +734,8 @@ namespace UniMcp
                     })
                     .Where(type => !type.IsAbstract &&
                                    !type.IsInterface &&
-                                   typeof(IPrompts).IsAssignableFrom(type))
+                                   typeof(IPrompts).IsAssignableFrom(type) &&
+                                   type != typeof(ConfigurablePrompt))
                     .ToList();
 
                 Log($"[UniMcp] 找到 {promptTypes.Count} 个实现IPrompts接口的类型");
@@ -801,7 +836,8 @@ namespace UniMcp
                     })
                     .Where(type => !type.IsAbstract &&
                                    !type.IsInterface &&
-                                   typeof(IRes).IsAssignableFrom(type))
+                                   typeof(IRes).IsAssignableFrom(type) &&
+                                   type != typeof(ConfigurableResource))
                     .ToList();
 
                 Log($"[UniMcp] 找到 {resourceTypes.Count} 个实现IRes接口的类型");
@@ -1969,7 +2005,7 @@ namespace UniMcp
                 }
 
                 // 记录请求信息到McpExecuteRecordObject
-                McpExecuteRecordObject.instance.AddHttpRequestRecord(
+                AddHttpRequestRecordThreadSafe(
                     clientId,
                     clientEndpoint,
                     DateTime.Now,
@@ -2015,7 +2051,7 @@ namespace UniMcp
                 Log($"[UniMcp] MCP响应已发送 to {clientEndpoint}");
 
                 // 更新请求记录的完成时间
-                McpExecuteRecordObject.instance.UpdateHttpRequestRecord(
+                UpdateHttpRequestRecordThreadSafe(
                     clientId,
                     responseJson,
                     true,
@@ -2089,7 +2125,7 @@ namespace UniMcp
                 }
 
                 // 更新请求记录的完成时间（即使出错也要记录）
-                McpExecuteRecordObject.instance.UpdateHttpRequestRecord(
+                UpdateHttpRequestRecordThreadSafe(
                     clientId,
                     ex.Message,
                     false,
