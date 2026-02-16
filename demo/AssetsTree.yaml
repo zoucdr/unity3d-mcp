@@ -1,7 +1,12 @@
 Assets:
-  - Demos
   - Extends:
     - CustomPrompts
     - CustomResources
-    - CustomTools
+    - CustomTools:
+      - AssetIndex
+      - Figma:
+        - Editor
+      - WebPage
+  - Resources:
+    - UniMcp
   - Scripts

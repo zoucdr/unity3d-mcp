@@ -38,6 +38,52 @@ namespace UniMcp
         public int RequestCount { get; set; }
     }
 
+    /// <summary>
+    /// HTTP 请求上下文信息
+    /// </summary>
+    public class HttpRequestContext
+    {
+        public HttpListenerRequest Request { get; set; }
+        public HttpListenerResponse Response { get; set; }
+        public string Path { get; set; }
+        public string Method { get; set; }
+        public string Body { get; set; }
+        public Dictionary<string, string> QueryParams { get; set; }
+        public Dictionary<string, string> PathParams { get; set; }
+        
+        public HttpRequestContext()
+        {
+            QueryParams = new Dictionary<string, string>();
+            PathParams = new Dictionary<string, string>();
+        }
+    }
+
+    /// <summary>
+    /// HTTP 路由处理器委托
+    /// </summary>
+    /// <param name="context">HTTP 请求上下文</param>
+    /// <returns>响应内容（字符串或 null，null 表示不处理）</returns>
+    public delegate Task<string> HttpRouteHandler(HttpRequestContext context);
+
+    /// <summary>
+    /// HTTP 路由注册项
+    /// </summary>
+    public class HttpRoute
+    {
+        public string Path { get; set; }              // 路径模式（支持通配符 * 和参数 {name}）
+        public string Method { get; set; }            // HTTP 方法（GET/POST/PUT/DELETE 等，或 * 表示所有）
+        public HttpRouteHandler Handler { get; set; } // 处理器
+        public int Priority { get; set; }             // 优先级（越大越优先）
+        
+        public HttpRoute(string path, string method, HttpRouteHandler handler, int priority = 0)
+        {
+            Path = path;
+            Method = method;
+            Handler = handler;
+            Priority = priority;
+        }
+    }
+
     [InitializeOnLoad]
     public partial class McpService
     {
@@ -202,6 +248,10 @@ namespace UniMcp
                 return McpExecuteRecordObject.instance.GetHttpRequestRecords().Count;
             }
         }
+
+        // 自定义 HTTP 路由注册
+        private readonly List<HttpRoute> customRoutes = new List<HttpRoute>();
+        private readonly object routesLock = new object();
 
         [InitializeOnLoadMethod]
         static void AutoInit()
@@ -1451,39 +1501,42 @@ namespace UniMcp
 
             try
             {
-                // 创建HttpListener监听MCP端口
-                listener = new HttpListener();
-
-                // 尝试不同的监听地址配置
-                string[] prefixes = {
-                    $"http://127.0.0.1:{mcpPort}/",
-                    $"http://localhost:{mcpPort}/"
+                // 尝试不同的监听地址配置，优先同时支持 127.0.0.1 与 localhost
+                string prefix127 = $"http://127.0.0.1:{mcpPort}/";
+                string prefixLocalhost = $"http://localhost:{mcpPort}/";
+                string[][] prefixStrategies = {
+                    new[] { prefix127, prefixLocalhost }, // 同时支持两种 host
+                    new[] { prefix127 },                  // 回退到单 host
+                    new[] { prefixLocalhost }             // 回退到单 host
                 };
 
                 bool listenerStarted = false;
                 string successPrefix = "";
 
-                // 首先尝试基本配置
-                foreach (string prefix in prefixes)
+                foreach (var strategy in prefixStrategies)
                 {
                     try
                     {
+                        listener?.Close();
                         listener = new HttpListener();
-                        listener.Prefixes.Add(prefix);
+                        foreach (var prefix in strategy)
+                        {
+                            listener.Prefixes.Add(prefix);
+                        }
 
                         // 配置HttpListener以提高稳定性
                         listener.IgnoreWriteExceptions = true; // 忽略写入异常，提高稳定性
 
                         listener.Start();
                         listenerStarted = true;
-                        successPrefix = prefix;
-                        Log($"[UniMcp] 成功在 {prefix} 启动监听器");
+                        successPrefix = string.Join(", ", strategy);
+                        Log($"[UniMcp] 成功启动监听器，前缀: {successPrefix}");
                         McpLogger.Log($"[UniMcp] HttpListener配置 - IgnoreWriteExceptions: {listener.IgnoreWriteExceptions}");
                         break;
                     }
                     catch (Exception ex)
                     {
-                        Log($"[UniMcp] 无法在 {prefix} 启动监听器: {ex.Message}");
+                        Log($"[UniMcp] 无法在前缀 [{string.Join(", ", strategy)}] 启动监听器: {ex.Message}");
                         listener?.Close();
                         listener = null;
                     }
@@ -1544,6 +1597,7 @@ namespace UniMcp
                 DiscoverResources();
 
                 McpLogger.Log($"[UniMcp] <color=green>MCP服务器成功启动!</color> 监听地址: {successPrefix}");
+                McpLogger.Log($"[UniMcp] 可访问示例: http://127.0.0.1:{mcpPort}/ , http://localhost:{mcpPort}/ , http://localhost:{mcpPort}/mcp");
                 McpLogger.Log($"[UniMcp] 可用工具数量: {availableTools.Count}");
 
                 // 打印所有可用工具的名称
@@ -1881,7 +1935,69 @@ namespace UniMcp
                     return;
                 }
 
-                // 处理GET请求 - 返回服务器状态信息
+                // 尝试匹配自定义路由（在 MCP 处理之前）
+                string requestPath = request.Url.AbsolutePath;
+                string requestBody = "";
+
+                // 先读取请求体（如果有）
+                if (request.HasEntityBody)
+                {
+                    try
+                    {
+                        using (StreamReader reader = new StreamReader(request.InputStream, request.ContentEncoding))
+                        {
+                            requestBody = await reader.ReadToEndAsync();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"[UniMcp] 读取请求体时出错: {ex.Message}");
+                    }
+                }
+
+                // 解析查询参数
+                var queryParams = new Dictionary<string, string>();
+                foreach (string key in request.QueryString.AllKeys)
+                {
+                    if (key != null)
+                    {
+                        queryParams[key] = request.QueryString[key];
+                    }
+                }
+
+                // 构建请求上下文
+                var routeContext = new HttpRequestContext
+                {
+                    Request = request,
+                    Response = response,
+                    Path = requestPath,
+                    Method = request.HttpMethod,
+                    Body = requestBody,
+                    QueryParams = queryParams
+                };
+
+                // 尝试匹配自定义路由
+                string customRouteResult = await TryMatchCustomRoute(routeContext);
+                if (customRouteResult != null)
+                {
+                    // 自定义路由已处理
+                    try
+                    {
+                        response.StatusCode = 200;
+                        byte[] resultBytes = Encoding.UTF8.GetBytes(customRouteResult);
+                        await response.OutputStream.WriteAsync(resultBytes, 0, resultBytes.Length);
+                        response.Close();
+                        Log($"[UniMcp] 自定义路由处理完成 from {clientEndpoint}");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"[UniMcp] 发送自定义路由响应失败: {ex.Message}");
+                        try { response.Close(); } catch { }
+                    }
+                    return;
+                }
+
+                // 处理GET请求 - 返回服务器状态信息（如果不是自定义路由）
                 if (request.HttpMethod == "GET")
                 {
                     try
@@ -1940,7 +2056,7 @@ namespace UniMcp
                     return;
                 }
 
-                // 只接受 POST 和 GET 请求
+                // 只接受 POST 和 GET 请求（用于 MCP 协议）
                 if (request.HttpMethod != "POST")
                 {
                     response.StatusCode = 405; // Method Not Allowed
@@ -1954,43 +2070,16 @@ namespace UniMcp
                     return;
                 }
 
-                // 读取请求体
-                string requestBody = "";
-                try
+                // requestBody 已在上面读取过，直接使用
+                Log($"[UniMcp] 接收到MCP请求 from {clientEndpoint}: {requestBody}");
+
+                // 验证请求体不为空
+                if (string.IsNullOrWhiteSpace(requestBody))
                 {
-                    using (StreamReader reader = new StreamReader(request.InputStream, request.ContentEncoding))
-                    {
-                        requestBody = await reader.ReadToEndAsync();
-                    }
-
-                    Log($"[UniMcp] 接收到MCP请求 from {clientEndpoint}: {requestBody}");
-
-                    // 验证请求体不为空
-                    if (string.IsNullOrWhiteSpace(requestBody))
-                    {
-                        McpLogger.LogWarning($"[UniMcp] 收到空的请求体 from {clientEndpoint}");
-
-                        // 发送错误响应
-                        string errorResponse = CreateMcpErrorResponse(null, -32600, "Empty request body");
-                        byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
-
-                        try
-                        {
-                            response.StatusCode = 400;
-                        }
-                        catch (InvalidOperationException) { }
-
-                        await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
-                        response.Close();
-                        return;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogError($"[UniMcp] 读取请求体时出错 from {clientEndpoint}: {ex.Message}");
+                    McpLogger.LogWarning($"[UniMcp] 收到空的请求体 from {clientEndpoint}");
 
                     // 发送错误响应
-                    string errorResponse = CreateMcpErrorResponse(null, -32700, "Failed to read request body");
+                    string errorResponse = CreateMcpErrorResponse(null, -32600, "Empty request body");
                     byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
 
                     try
@@ -4289,6 +4378,221 @@ namespace UniMcp
                 return finalJson;
             }
         }
+
+        #region HTTP 路由注册 API
+
+        /// <summary>
+        /// 注册自定义 HTTP 路由处理器
+        /// </summary>
+        /// <param name="path">路径模式，支持通配符 * 和参数 {name}，如 "/api/test"、"/user/{id}"、"/files/*"</param>
+        /// <param name="method">HTTP 方法（GET/POST/PUT/DELETE/PATCH 等，或 "*" 表示所有方法）</param>
+        /// <param name="handler">处理器委托</param>
+        /// <param name="priority">优先级（默认 0，值越大越优先匹配）</param>
+        public void RegistHttpRequest(string path, string method, HttpRouteHandler handler, int priority = 0)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                LogError("[UniMcp] 路由注册失败：路径不能为空");
+                return;
+            }
+
+            if (handler == null)
+            {
+                LogError("[UniMcp] 路由注册失败：处理器不能为空");
+                return;
+            }
+
+            lock (routesLock)
+            {
+                // 规范化路径（确保以 / 开头）
+                if (!path.StartsWith("/"))
+                {
+                    path = "/" + path;
+                }
+
+                // 规范化方法（转大写）
+                method = string.IsNullOrEmpty(method) ? "*" : method.ToUpperInvariant();
+
+                var route = new HttpRoute(path, method, handler, priority);
+                customRoutes.Add(route);
+
+                // 按优先级降序排序（优先级高的先匹配）
+                customRoutes.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+
+                Log($"[UniMcp] 已注册自定义路由: {method} {path} (优先级: {priority})");
+            }
+        }
+
+        /// <summary>
+        /// 注销指定路径和方法的 HTTP 路由
+        /// </summary>
+        /// <param name="path">路径模式</param>
+        /// <param name="method">HTTP 方法（为 null 或 "*" 时注销该路径的所有方法）</param>
+        /// <returns>注销的路由数量</returns>
+        public int UnregistHttpRequest(string path, string method = null)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                LogError("[UniMcp] 路由注销失败：路径不能为空");
+                return 0;
+            }
+
+            lock (routesLock)
+            {
+                // 规范化路径
+                if (!path.StartsWith("/"))
+                {
+                    path = "/" + path;
+                }
+
+                int removedCount;
+                if (string.IsNullOrEmpty(method) || method == "*")
+                {
+                    // 移除该路径的所有方法
+                    removedCount = customRoutes.RemoveAll(r => r.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    // 移除特定路径和方法
+                    method = method.ToUpperInvariant();
+                    removedCount = customRoutes.RemoveAll(r => 
+                        r.Path.Equals(path, StringComparison.OrdinalIgnoreCase) && 
+                        r.Method.Equals(method, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (removedCount > 0)
+                {
+                    Log($"[UniMcp] 已注销 {removedCount} 个自定义路由: {path} {method ?? "*"}");
+                }
+
+                return removedCount;
+            }
+        }
+
+        /// <summary>
+        /// 获取所有已注册的自定义路由信息
+        /// </summary>
+        public List<string> GetRegisteredRoutes()
+        {
+            lock (routesLock)
+            {
+                return customRoutes.Select(r => $"{r.Method} {r.Path} (优先级: {r.Priority})").ToList();
+            }
+        }
+
+        /// <summary>
+        /// 清空所有自定义路由
+        /// </summary>
+        public void ClearCustomRoutes()
+        {
+            lock (routesLock)
+            {
+                int count = customRoutes.Count;
+                customRoutes.Clear();
+                Log($"[UniMcp] 已清空所有自定义路由 (共 {count} 个)");
+            }
+        }
+
+        /// <summary>
+        /// 匹配并执行自定义路由
+        /// </summary>
+        private async Task<string> TryMatchCustomRoute(HttpRequestContext context)
+        {
+            HttpRoute[] routesCopy;
+            lock (routesLock)
+            {
+                if (customRoutes.Count == 0) return null;
+                routesCopy = customRoutes.ToArray();
+            }
+
+            foreach (var route in routesCopy)
+            {
+                // 检查方法匹配
+                if (route.Method != "*" && !route.Method.Equals(context.Method, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // 检查路径匹配
+                if (IsPathMatch(route.Path, context.Path, out var pathParams))
+                {
+                    context.PathParams = pathParams;
+                    
+                    try
+                    {
+                        Log($"[UniMcp] 匹配到自定义路由: {route.Method} {route.Path}");
+                        var result = await route.Handler(context);
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"[UniMcp] 自定义路由处理器异常: {ex.Message}\n{ex.StackTrace}");
+                        return null;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 检查路径是否匹配路由模式，支持通配符 * 和参数 {name}
+        /// </summary>
+        private bool IsPathMatch(string pattern, string path, out Dictionary<string, string> pathParams)
+        {
+            pathParams = new Dictionary<string, string>();
+
+            // 精确匹配
+            if (pattern.Equals(path, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // 通配符匹配（如 /api/*）
+            if (pattern.EndsWith("/*"))
+            {
+                string prefix = pattern.Substring(0, pattern.Length - 2);
+                if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            // 参数匹配（如 /user/{id}）
+            if (pattern.Contains("{") && pattern.Contains("}"))
+            {
+                var patternParts = pattern.Split('/');
+                var pathParts = path.Split('/');
+
+                if (patternParts.Length != pathParts.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < patternParts.Length; i++)
+                {
+                    var patternPart = patternParts[i];
+                    var pathPart = pathParts[i];
+
+                    if (patternPart.StartsWith("{") && patternPart.EndsWith("}"))
+                    {
+                        // 提取参数名
+                        string paramName = patternPart.Substring(1, patternPart.Length - 2);
+                        pathParams[paramName] = pathPart;
+                    }
+                    else if (!patternPart.Equals(pathPart, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
 
     }
 
