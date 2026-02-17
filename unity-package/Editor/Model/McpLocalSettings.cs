@@ -46,6 +46,9 @@ namespace UniMcp
         [SerializeField]
         private string _currentLanguage = "English";
 
+        [SerializeField]
+        private bool _enableDescriptions = true;
+
         /// <summary>
         /// MCP服务器端口
         /// </summary>
@@ -124,6 +127,24 @@ namespace UniMcp
                 {
                     _currentLanguage = value;
                     SaveSettings();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 是否启用描述信息（工具、资源、提示词的描述及参数说明）
+        /// 关闭后将减少上下文占用，但需通过其他方式（如Skill/规则文件）提供使用指导
+        /// </summary>
+        public bool EnableDescriptions
+        {
+            get => _enableDescriptions;
+            set
+            {
+                if (_enableDescriptions != value)
+                {
+                    _enableDescriptions = value;
+                    SaveSettings();
+                    Debug.Log($"[McpLocalSettings] 描述信息已{(value ? "启用" : "禁用")}");
                 }
             }
         }
@@ -653,6 +674,7 @@ namespace UniMcp
                    $"- 服务开启状态: {McpOpenState}\n" +
                    $"- Resources功能状态: {ResourcesCapability}\n" +
                    $"- 当前语言: {(string.IsNullOrEmpty(CurrentLanguage) ? "系统默认" : CurrentLanguage)}\n" +
+                   $"- 描述信息启用: {EnableDescriptions}\n" +
                    $"- 禁用工具数量: {(_disabledTools?.Count ?? 0)}\n" +
                    $"- 禁用工具列表: {disabledToolsList}\n" +
                    $"- 禁用资源数量: {(_disabledResources?.Count ?? 0)}\n" +

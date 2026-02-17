@@ -358,6 +358,18 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 清除 tools/list 缓存
+        /// 当描述开关状态改变时需要调用此方法
+        /// </summary>
+        public static void ClearToolsListCache()
+        {
+            Instance.responseCache?.Remove("tools/list");
+            Instance.responseCache?.Remove("prompts/list");
+            Instance.responseCache?.Remove("resources/list");
+            McpLogger.Log("[UniMcp] 已清除 tools/prompts/resources list 缓存");
+        }
+
+        /// <summary>
         /// 获取当前注册的工具数量（所有工具）
         /// </summary>
         public static int GetToolCount()
@@ -2599,6 +2611,10 @@ namespace UniMcp
 
             var tools = new JsonArray();
             var toolInfosCopy = toolInfos.Values.ToList();
+            
+            // 检查是否启用描述信息
+            bool enableDescriptions = McpLocalSettings.Instance.EnableDescriptions;
+            
             foreach (var toolInfo in toolInfosCopy)
             {
                 // 只添加启用的工具
@@ -2608,25 +2624,52 @@ namespace UniMcp
                     var tool = new JsonClass();
                     tool.Add("name", new JsonData(toolInfo.name));
                     
-                    // 从availableTools重新获取当前语言的描述和inputSchema
-                    string description = toolInfo.description;
-                    JsonNode inputSchema = toolInfo.inputSchema;
-                    
-                    if (availableTools.TryGetValue(toolInfo.name, out var toolInstance))
+                    if (enableDescriptions)
                     {
-                        // 重新获取当前语言的描述
-                        description = !string.IsNullOrEmpty(toolInstance.Description) ? toolInstance.Description : description;
+                        // 启用描述：返回完整描述和参数信息
+                        // 从availableTools重新获取当前语言的描述和inputSchema
+                        string description = toolInfo.description;
+                        JsonNode inputSchema = toolInfo.inputSchema;
                         
-                        // 重新构建inputSchema以获取当前语言的参数描述
-                        inputSchema = RebuildInputSchema(toolInstance);
+                        if (availableTools.TryGetValue(toolInfo.name, out var toolInstance))
+                        {
+                            // 重新获取当前语言的描述
+                            description = !string.IsNullOrEmpty(toolInstance.Description) ? toolInstance.Description : description;
+                            
+                            // 重新构建inputSchema以获取当前语言的参数描述
+                            inputSchema = RebuildInputSchema(toolInstance, true);
+                        }
+                        
+                        tool.Add("description", new JsonData(description));
+                        
+                        if (inputSchema != null)
+                        {
+                            tool.Add("inputSchema", inputSchema);
+                        }
                     }
-                    
-                    tool.Add("description", new JsonData(description));
-                    
-                    if (inputSchema != null)
+                    else
                     {
-                        tool.Add("inputSchema", inputSchema);
+                        // 禁用描述：不返回 description 字段，减少 token 占用
+                        // MCP 客户端应通过 Skill/规则文件获取使用指导
+                        
+                        // 仍然需要提供 inputSchema 结构，但不包含描述信息
+                        if (availableTools.TryGetValue(toolInfo.name, out var toolInstance))
+                        {
+                            JsonNode minimalSchema = RebuildInputSchema(toolInstance, false);
+                            if (minimalSchema != null)
+                            {
+                                tool.Add("inputSchema", minimalSchema);
+                            }
+                        }
+                        else if (toolInfo.inputSchema != null)
+                        {
+                            // 对于 async_call 和 batch_call 等没有 IToolMethod 实例的工具
+                            // 需要手动处理其 inputSchema 中的描述
+                            JsonNode minimalSchema = RemoveDescriptionsFromSchema(toolInfo.inputSchema);
+                            tool.Add("inputSchema", minimalSchema);
+                        }
                     }
+                    
                     tools.Add(tool);
                 }
                 else
@@ -2650,7 +2693,9 @@ namespace UniMcp
         /// <summary>
         /// 重新构建inputSchema以获取当前语言的参数描述
         /// </summary>
-        private JsonNode RebuildInputSchema(IToolMethod toolInstance)
+        /// <param name="toolInstance">工具实例</param>
+        /// <param name="enableDescriptions">是否包含描述信息（默认true）</param>
+        private JsonNode RebuildInputSchema(IToolMethod toolInstance, bool enableDescriptions = true)
         {
             if (toolInstance.Keys == null || toolInstance.Keys.Length == 0)
                 return null;
@@ -2666,8 +2711,12 @@ namespace UniMcp
                 string paramType = !string.IsNullOrEmpty(key.Type) ? key.Type : "string";
                 property.Add("type", new JsonData(paramType));
 
-                // 设置描述（使用当前语言）
-                property.Add("description", new JsonData(key.Desc));
+                // 设置描述（使用当前语言）- 根据 enableDescriptions 决定是否包含
+                if (enableDescriptions)
+                {
+                    property.Add("description", new JsonData(key.Desc));
+                }
+                // 禁用描述时不添加 description 字段，节省 token
 
                 // 为所有数组类型添加items定义（通用处理）
                 if (paramType == "array" && !(key is MethodVector) && !(key is MethodArr))
@@ -2728,11 +2777,16 @@ namespace UniMcp
                     property.Add("minItems", new JsonData(methodVector.Dimension));
                     property.Add("maxItems", new JsonData(methodVector.Dimension));
                     property.Add("format", new JsonData($"vector{methodVector.Dimension}"));
-                    property["description"] = new JsonData($"{key.Desc} [x, y, z]");
+                    
+                    // 根据 enableDescriptions 决定是否包含详细描述
+                    if (enableDescriptions)
+                    {
+                        property["description"] = new JsonData($"{key.Desc} [x, y, z]");
+                    }
                 }
 
-                // 添加示例值
-                if (key.Examples != null && key.Examples.Count > 0)
+                // 添加示例值 - 根据 enableDescriptions 决定是否包含
+                if (enableDescriptions && key.Examples != null && key.Examples.Count > 0)
                 {
                     var examplesArray = new JsonArray();
                     foreach (var example in key.Examples)
@@ -2768,8 +2822,8 @@ namespace UniMcp
                     property.Add("enum", enumArray);
                 }
 
-                // 添加默认值
-                if (key.DefaultValue != null)
+                // 添加默认值 - 根据 enableDescriptions 决定是否包含
+                if (enableDescriptions && key.DefaultValue != null)
                 {
                     if (key.DefaultValue is string strValue)
                     {
@@ -2836,6 +2890,56 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 递归移除 JSON Schema 中的所有 description 字段
+        /// 用于处理预构建的 inputSchema（如 async_call 和 batch_call）
+        /// </summary>
+        private JsonNode RemoveDescriptionsFromSchema(JsonNode schema)
+        {
+            if (schema == null)
+                return null;
+
+            // 深拷贝以避免修改原始数据
+            var schemaCopy = Json.Parse(schema.ToString());
+            
+            RemoveDescriptionsRecursive(schemaCopy);
+            
+            return schemaCopy;
+        }
+
+        /// <summary>
+        /// 递归移除描述字段的辅助方法
+        /// </summary>
+        private void RemoveDescriptionsRecursive(JsonNode node)
+        {
+            if (node == null)
+                return;
+
+            if (node is JsonClass jsonClass)
+            {
+                // 如果存在 description 字段，直接移除
+                if (jsonClass.ContainsKey("description"))
+                {
+                    jsonClass.Remove("description");
+                }
+
+                // 递归处理所有子节点
+                var keys = jsonClass.Keys.ToList();
+                foreach (var key in keys)
+                {
+                    RemoveDescriptionsRecursive(jsonClass[key]);
+                }
+            }
+            else if (node is JsonArray jsonArray)
+            {
+                // 递归处理数组中的所有元素
+                for (int i = 0; i < jsonArray.Count; i++)
+                {
+                    RemoveDescriptionsRecursive(jsonArray[i]);
+                }
+            }
+        }
+
+        /// <summary>
         /// 处理prompts/list请求
         /// </summary>
         private string HandlePromptsList(string id)
@@ -2860,28 +2964,62 @@ namespace UniMcp
 
             var prompts = new JsonArray();
             var promptsCopy = availablePrompts.Values.ToList();
+            
+            // 检查是否启用描述信息
+            bool enableDescriptions = McpLocalSettings.Instance.EnableDescriptions;
+            
             foreach (var prompt in promptsCopy)
             {
+                // 只添加启用的提示词
+                if (!McpLocalSettings.Instance.IsPromptEnabled(prompt.Name))
+                {
+                    Log($"[UniMcp] 跳过禁用的提示词: {prompt.Name}");
+                    continue;
+                }
+                
                 Log($"[UniMcp] 添加Prompt到列表: {prompt.Name}");
                 var promptObj = new JsonClass();
                 promptObj.Add("name", new JsonData(prompt.Name));
                 
-                // 获取当前语言的描述（IPrompts可能实现了L.T，直接调用Description会返回当前语言）
-                promptObj.Add("description", new JsonData(prompt.Description));
-
-                // 添加参数信息
-                if (prompt.Keys != null && prompt.Keys.Length > 0)
+                if (enableDescriptions)
                 {
-                    var arguments = new JsonArray();
-                    foreach (var key in prompt.Keys)
+                    // 启用描述：返回完整描述和参数信息
+                    // 获取当前语言的描述（IPrompts可能实现了L.T，直接调用Description会返回当前语言）
+                    promptObj.Add("description", new JsonData(prompt.Description));
+
+                    // 添加参数信息
+                    if (prompt.Keys != null && prompt.Keys.Length > 0)
                     {
-                        var arg = new JsonClass();
-                        arg.Add("name", new JsonData(key.Key));
-                        arg.Add("description", new JsonData(key.Desc)); // key.Desc 也应该使用L.T
-                        arg.Add("required", new JsonData(!key.Optional));
-                        arguments.Add(arg);
+                        var arguments = new JsonArray();
+                        foreach (var key in prompt.Keys)
+                        {
+                            var arg = new JsonClass();
+                            arg.Add("name", new JsonData(key.Key));
+                            arg.Add("description", new JsonData(key.Desc)); // key.Desc 也应该使用L.T
+                            arg.Add("required", new JsonData(!key.Optional));
+                            arguments.Add(arg);
+                        }
+                        promptObj.Add("arguments", arguments);
                     }
-                    promptObj.Add("arguments", arguments);
+                }
+                else
+                {
+                    // 禁用描述：不返回 description 字段，节省 token
+                    
+                    // 仅提供参数名称和必填标记，不包含描述
+                    if (prompt.Keys != null && prompt.Keys.Length > 0)
+                    {
+                        var arguments = new JsonArray();
+                        foreach (var key in prompt.Keys)
+                        {
+                            var arg = new JsonClass();
+                            arg.Add("name", new JsonData(key.Key));
+                            // 不添加 description 字段
+                            arg.Add("required", new JsonData(!key.Optional));
+                            arguments.Add(arg);
+                        }
+                        promptObj.Add("arguments", arguments);
+                    }
                 }
 
                 prompts.Add(promptObj);
@@ -2927,7 +3065,15 @@ namespace UniMcp
                 }
 
                 var result = new JsonClass();
-                result.Add("description", new JsonData(prompt.Description));
+                
+                // 检查是否启用描述信息
+                bool enableDescriptions = McpLocalSettings.Instance.EnableDescriptions;
+                
+                if (enableDescriptions)
+                {
+                    result.Add("description", new JsonData(prompt.Description));
+                }
+                // 禁用描述时不添加 description 字段，节省 token
 
                 // 构建消息数组
                 var messages = new JsonArray();
@@ -2979,15 +3125,32 @@ namespace UniMcp
 
             var resources = new JsonArray();
             var resourcesCopy = availableResources.Values.ToList();
+            
+            // 检查是否启用描述信息
+            bool enableDescriptions = McpLocalSettings.Instance.EnableDescriptions;
+            
             foreach (var resource in resourcesCopy)
             {
+                // 只添加启用的资源
+                if (!McpLocalSettings.Instance.IsResourceEnabled(resource.Name))
+                {
+                    Log($"[UniMcp] 跳过禁用的资源: {resource.Name}");
+                    continue;
+                }
+                
                 Log($"[UniMcp] 添加Resource到列表: {resource.Url}");
                 var resourceObj = new JsonClass();
                 resourceObj.Add("uri", new JsonData(resource.Url));
                 resourceObj.Add("name", new JsonData(resource.Name));
                 
-                // 获取当前语言的描述（IRes可能实现了L.T，直接调用Description会返回当前语言）
-                resourceObj.Add("description", new JsonData(resource.Description));
+                if (enableDescriptions)
+                {
+                    // 启用描述：返回完整描述信息
+                    // 获取当前语言的描述（IRes可能实现了L.T，直接调用Description会返回当前语言）
+                    resourceObj.Add("description", new JsonData(resource.Description));
+                }
+                // 禁用描述时不添加 description 字段，节省 token
+                
                 resourceObj.Add("mimeType", new JsonData(resource.MimeType));
                 resources.Add(resourceObj);
             }

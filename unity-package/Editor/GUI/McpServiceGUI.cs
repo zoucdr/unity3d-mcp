@@ -139,6 +139,49 @@ namespace UniMcp.Gui
             }
             EditorGUILayout.EndVertical();
 
+            // 描述开关 - 美化样式
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField(L.T("Descriptions", "描述信息"), EditorStyles.miniLabel, GUILayout.Width(70));
+            var localSettings = McpService.GetLocalSettings();
+            bool enableDescriptions = localSettings.EnableDescriptions;
+            
+            // 根据状态设置不同颜色
+            Color descToggleOriginalBg = GUI.backgroundColor;
+            if (enableDescriptions)
+            {
+                GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f); // 绿色 - 启用
+            }
+            else
+            {
+                GUI.backgroundColor = new Color(0.9f, 0.6f, 0.3f, 0.8f); // 橙色 - 禁用
+            }
+            
+            bool newEnableDescriptions = EditorGUILayout.Toggle(enableDescriptions, GUILayout.Width(20));
+            GUI.backgroundColor = descToggleOriginalBg;
+            
+            if (newEnableDescriptions != enableDescriptions)
+            {
+                localSettings.EnableDescriptions = newEnableDescriptions;
+                
+                // 清除相关缓存，让下次请求返回新格式
+                McpService.ClearToolsListCache();
+                
+                string statusText = newEnableDescriptions ? 
+                    L.T("Descriptions enabled. Tools/Resources/Prompts will include full descriptions and parameter details.", 
+                        "描述已启用。工具/资源/提示词将包含完整描述和参数说明。") :
+                    L.T("Descriptions disabled. Only essential info will be sent. Use Skills/Rules for guidance.", 
+                        "描述已禁用。仅发送必要信息。请通过Skill/规则文件获取使用指导。");
+                
+                Debug.Log($"[McpServiceGUI] {statusText}");
+                
+                // 显示提示对话框
+                EditorUtility.DisplayDialog(
+                    L.T("Description Toggle", "描述开关"), 
+                    statusText, 
+                    L.T("OK", "确定"));
+            }
+            EditorGUILayout.EndVertical();
+
             // 状态窗口按钮 - 美化按钮样式
             GUIStyle statusButtonStyle = new GUIStyle(EditorStyles.miniButton)
             {
