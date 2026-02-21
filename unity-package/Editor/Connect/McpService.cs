@@ -400,9 +400,10 @@ namespace UniMcp
         public static List<string> GetEnabledToolNames()
         {
             var allToolNames = Instance.availableTools.Keys.ToList();
-            // 额外添加 batch_call 和 async_call
+            // 额外添加 batch_call、async_call、sync_call
             allToolNames.Add("batch_call");
             allToolNames.Add("async_call");
+            allToolNames.Add("sync_call");
             return McpLocalSettings.Instance.FilterEnabledTools(allToolNames);
         }
 
@@ -662,9 +663,10 @@ namespace UniMcp
 
             try
             {
-                // 手动添加 async_call 和 batch_call 工具
+                // 手动添加 async_call、batch_call、sync_call 工具
                 AddAsyncMcpTool();
                 AddBatchMcpTool();
+                AddSyncMcpTool();
 
                 // 获取所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -1073,6 +1075,52 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] 添加BatchCall工具失败: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 添加 SyncCall 工具到可用工具列表
+        /// </summary>
+        private void AddSyncMcpTool()
+        {
+            try
+            {
+                string toolName = "sync_call";
+                Log($"[UniMcp] 手动添加SyncCall工具: {toolName}");
+
+                mcpToolInstanceCache[toolName] = new SyncCall();
+
+                var toolInfo = new ToolInfo
+                {
+                    name = toolName,
+                    description = L.T("Unity synchronous call tool, executes a single function and returns the result immediately", "Unity同步调用工具，执行单个函数并立即返回结果"),
+                    inputSchema = new JsonClass
+                    {
+                        { "type", new JsonData("object") },
+                        { "properties", new JsonClass
+                            {
+                                { "func", new JsonClass {
+                                    { "type", new JsonData("string") },
+                                    { "description", new JsonData(L.T("Function name to call", "要调用的函数名称")) }
+                                }},
+                                { "args", new JsonClass {
+                                    { "type", new JsonData("object") },
+                                    { "description", new JsonData(L.T("Function parameters", "函数参数")) }
+                                }},
+                            }
+                        },
+                        { "required", new JsonArray {
+                            new JsonData("func")
+                        }}
+                    }
+                };
+                toolInfos[toolName] = toolInfo;
+
+                Log($"[UniMcp] 成功添加SyncCall工具: {toolName}");
+            }
+            catch (Exception ex)
+            {
+                LogError($"[UniMcp] 添加SyncCall工具失败: {ex.Message}\n{ex.StackTrace}");
             }
         }
 

@@ -32,6 +32,7 @@
                     <li><a href="#examples">示例用法</a></li>
                     <li><a href="#scenarios">应用场景</a></li>
                     <li><a href="#resources-prompts">Resources & Prompts</a></li>
+                    <li><a href="#agent-skills">Agent 技能</a></li>
                     <li><a href="#quickstart">快速开始</a></li>
                     <li><a href="https://github.com/zoucdr/unity3d-mcp" target="_blank" class="github-link">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -428,7 +429,7 @@
 {
   <span class="key">"mcpServers"</span>: {
     <span class="key">"unity3d-mcp"</span>: {
-      <span class="key">"url"</span>: <span class="string">"http://localhost:8000"</span>
+      <span class="key">"url"</span>: <span class="string">"http://127.0.0.1:8000"</span>
     }
   }
 }
@@ -598,6 +599,41 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agent Skills Section -->
+    <section id="agent-skills" class="agent-skills">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Agent 技能模块</h2>
+                <p class="section-subtitle">按需加载技能说明，与 MCP 结合节省 Token</p>
+            </div>
+            <div class="skills-content">
+                <div class="skills-intro">
+                    <p>MCP 协议会向 AI 提供完整的工具列表与参数 Schema，在工具数量较多时<strong>占用大量 Token</strong>。为降低上下文消耗，项目增加了 <strong>Skill 模块</strong>（<code>.cursor/skills</code>），与 MCP 配合使用，实现「按需加载、用时再读」。</p>
+                </div>
+                <div class="skills-mechanism">
+                    <h3>实现方式</h3>
+                    <ul>
+                        <li><strong>技能即文档</strong>：每个技能对应一个 <code>SKILL.md</code> 文件，包含名称、描述、参数说明和调用示例。</li>
+                        <li><strong>与 MCP 一一对应</strong>：技能描述的是「如何通过 MCP 调用某工具」（如 <code>async_call</code> / <code>batch_call</code> + <code>func</code> 与 <code>args</code>），不重复实现逻辑。</li>
+                        <li><strong>按需加载</strong>：Agent 根据用户任务或规则，仅在需要时读取对应技能的 SKILL 文件，而不是一次性加载全部工具 Schema。</li>
+                    </ul>
+                </div>
+                <div class="skills-integration">
+                    <h3>与 MCP 系统的结合</h3>
+                    <ul>
+                        <li>MCP 仍负责实际的工具发现与调用；Skill 负责「何时用、怎么传参」的说明。</li>
+                        <li>可在 Cursor Rules 或 Agent 配置中引用技能路径，使 Agent 在相关场景下优先查阅对应 SKILL，再通过 MCP 发起调用。</li>
+                        <li>这样既保留 MCP 的完整能力，又避免把 40+ 工具的完整描述常驻上下文，<strong>显著节省 Token</strong>。</li>
+                    </ul>
+                </div>
+                <div class="skills-usage">
+                    <h3>使用建议</h3>
+                    <p>技能文件位于 <code>demo/.cursor/skills</code>，按功能分子目录（如 <code>unity-async-call</code>、<code>unity-hierarchy-create</code> 等）。无需在文档中列举全部技能清单；只需在项目或规则中说明「通过 <code>.cursor/skills</code> 按需加载对应 SKILL.md」，即可让 Agent 在需要时自行读取，实现与 MCP 的轻量结合。</p>
                 </div>
             </div>
         </div>

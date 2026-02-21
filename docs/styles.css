@@ -914,6 +914,80 @@ code, pre {
     border: 2px solid rgba(99, 102, 241, 0.3);
 }
 
+/* Agent Skills Section */
+.agent-skills {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+}
+
+.skills-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.skills-intro {
+    margin-bottom: 2.5rem;
+}
+
+.skills-intro p {
+    color: var(--text-secondary);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+}
+
+.skills-mechanism,
+.skills-integration,
+.skills-usage {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.skills-mechanism h3,
+.skills-integration h3,
+.skills-usage h3 {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.skills-mechanism ul,
+.skills-integration ul {
+    list-style: none;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.skills-mechanism li,
+.skills-integration li {
+    margin-bottom: 0.75rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.skills-mechanism li::before,
+.skills-integration li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+}
+
+.skills-usage p {
+    color: var(--text-secondary);
+    line-height: 1.75;
+}
+
+.skills-content code {
+    background: var(--code-bg);
+    padding: 0.2em 0.5em;
+    border-radius: 0.35rem;
+    font-size: 0.9em;
+    color: var(--secondary-color);
+}
+
 /* Tools Section */
 .tools {
     padding: 6rem 0;
