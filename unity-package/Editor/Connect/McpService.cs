@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1561,13 +1562,16 @@ namespace UniMcp
 
             try
             {
-                // 尝试不同的监听地址配置，优先同时支持 127.0.0.1 与 localhost
+                // 尝试不同的监听地址配置：本机 + 非本机（局域网等）访问
                 string prefix127 = $"http://127.0.0.1:{mcpPort}/";
                 string prefixLocalhost = $"http://localhost:{mcpPort}/";
+                // Windows 用 +，macOS/Linux 用 *，监听所有网卡以支持非本机访问
+                string prefixAll = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"http://+:{mcpPort}/" : $"http://*:{mcpPort}/";
                 string[][] prefixStrategies = {
-                    new[] { prefix127, prefixLocalhost }, // 同时支持两种 host
-                    new[] { prefix127 },                  // 回退到单 host
-                    new[] { prefixLocalhost }             // 回退到单 host
+                    new[] { prefix127, prefixLocalhost, prefixAll }, // 本机 + 局域网
+                    new[] { prefix127, prefixLocalhost },            // 仅本机
+                    new[] { prefix127 },
+                    new[] { prefixLocalhost }
                 };
 
                 bool listenerStarted = false;
@@ -1657,7 +1661,9 @@ namespace UniMcp
                 DiscoverResources();
 
                 McpLogger.Log($"[UniMcp] <color=green>MCP服务器成功启动!</color> 监听地址: {successPrefix}");
-                McpLogger.Log($"[UniMcp] 可访问示例: http://127.0.0.1:{mcpPort}/ , http://localhost:{mcpPort}/ , http://localhost:{mcpPort}/mcp");
+                McpLogger.Log($"[UniMcp] 本机访问: http://127.0.0.1:{mcpPort}/ 或 http://localhost:{mcpPort}/mcp");
+                if (successPrefix.Contains("*"))
+                    McpLogger.Log($"[UniMcp] 非本机访问: 使用本机IP http://<本机IP>:{mcpPort}/ （需防火墙放行该端口）");
                 McpLogger.Log($"[UniMcp] 可用工具数量: {availableTools.Count}");
 
                 // 打印所有可用工具的名称
