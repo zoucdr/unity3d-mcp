@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
 using UniMcp.Executer;
+using UniMcp.Prompts;
 using System.Collections;
 using System.Reflection;
 
@@ -401,10 +402,11 @@ namespace UniMcp
         public static List<string> GetEnabledToolNames()
         {
             var allToolNames = Instance.availableTools.Keys.ToList();
-            // 额外添加 batch_call、async_call、sync_call
+            // 额外添加系统自带门面/工具（非 IToolMethod，不通过反射发现）
             allToolNames.Add("batch_call");
             allToolNames.Add("async_call");
             allToolNames.Add("sync_call");
+            allToolNames.Add("get_prompt");
             return McpLocalSettings.Instance.FilterEnabledTools(allToolNames);
         }
 
@@ -668,6 +670,7 @@ namespace UniMcp
                 AddAsyncMcpTool();
                 AddBatchMcpTool();
                 AddSyncMcpTool();
+                AddGetPromptDetailTool();
 
                 // 获取所有程序集
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -1122,6 +1125,69 @@ namespace UniMcp
             catch (Exception ex)
             {
                 LogError($"[UniMcp] 添加SyncCall工具失败: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 构建单个提示词的详情（供 get_prompt 工具和内部使用），仅返回 MCP 客户端需要的 prompt_text
+        /// </summary>
+        /// <param name="promptName">提示词名称</param>
+        /// <returns>详情 JsonNode（name + prompt_text），未找到时返回 null</returns>
+        private JsonNode BuildPromptDetailResult(string promptName)
+        {
+            if (string.IsNullOrEmpty(promptName) || !availablePrompts.TryGetValue(promptName, out var prompt))
+                return null;
+            var result = new JsonClass();
+            result.Add("name", new JsonData(prompt.Name));
+            result.Add("prompt_text", new JsonData(prompt.PromptText));
+            return result;
+        }
+
+        /// <summary>
+        /// 供 GetPromptDetailTool 等外部调用：根据名称获取提示词详情
+        /// </summary>
+        internal JsonNode GetPromptDetailByName(string promptName)
+        {
+            return BuildPromptDetailResult(promptName);
+        }
+
+        /// <summary>
+        /// 添加 get_prompt 工具到可用工具列表（系统自带，供 MCP 客户端查询提示词详情）
+        /// </summary>
+        private void AddGetPromptDetailTool()
+        {
+            try
+            {
+                string toolName = "get_prompt";
+                Log($"[UniMcp] 手动添加 GetPromptDetail 工具: {toolName}");
+
+                mcpToolInstanceCache[toolName] = new GetPromptTool();
+
+                var toolInfo = new ToolInfo
+                {
+                    name = toolName,
+                    description = L.T("Get the prompt text by name. Returns name and prompt_text. Use after prompts/list to get the content of a specific prompt.", "根据名称获取提示词正文。返回 name 与 prompt_text。可在 prompts/list 之后查询指定提示词内容。"),
+                    inputSchema = new JsonClass
+                    {
+                        { "type", new JsonData("object") },
+                        { "properties", new JsonClass
+                            {
+                                { "name", new JsonClass {
+                                    { "type", new JsonData("string") },
+                                    { "description", new JsonData(L.T("Prompt name to query (from prompts/list)", "要查询的提示词名称（来自 prompts/list）")) }
+                                }}
+                            }
+                        },
+                        { "required", new JsonArray { new JsonData("name") } }
+                    }
+                };
+                toolInfos[toolName] = toolInfo;
+
+                Log($"[UniMcp] 成功添加 GetPromptDetail 工具: {toolName}");
+            }
+            catch (Exception ex)
+            {
+                LogError($"[UniMcp] 添加 GetPromptDetail 工具失败: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -2003,6 +2069,14 @@ namespace UniMcp
 
                 // 尝试匹配自定义路由（在 MCP 处理之前）
                 string requestPath = request.Url.AbsolutePath;
+
+                // 内置 /files 路由：基于当前端口将 Unity 工程目录作为只读 HTTP 文件服务
+                if (await ProjectFilesHttpService.TryHandleRequestAsync(request, response, requestPath))
+                {
+                    Log($"[UniMcp] /files 路由处理完成 from {clientEndpoint}");
+                    return;
+                }
+
                 string requestBody = "";
 
                 // 先读取请求体（如果有）

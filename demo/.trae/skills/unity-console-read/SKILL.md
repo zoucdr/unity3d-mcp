@@ -3,7 +3,7 @@ name: unity-console-read
 description: 读取或清除 Unity 编辑器控制台日志。
 ---
 
-# Unity MCP: console_write
+# Unity MCP: console_read
 
 通过 `args` 传递参数。
 
