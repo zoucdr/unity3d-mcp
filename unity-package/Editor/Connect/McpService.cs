@@ -605,15 +605,18 @@ namespace UniMcp
         {
             mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-            // 初始化工具发现
-            DiscoverTools();
-            DiscoverPrompts();
-            DiscoverResources();
-
             // 初始化实例
             if (McpLocalSettings.Instance.McpOpenState)
-            {
+            {   
+                // 初始化工具发现、Prompts、Resources
+                DiscoverTools();
+                DiscoverPrompts();
+                DiscoverResources();
                 CoroutineRunner.StartCoroutine(StartServiceDelay());
+            }
+            else
+            {
+                McpLogger.Log("[UniMcp] MCP服务状态为关闭，不自动启动");
             }
             //监听程序集刷新事件
             AssemblyReloadEvents.beforeAssemblyReload += ForceStop;
