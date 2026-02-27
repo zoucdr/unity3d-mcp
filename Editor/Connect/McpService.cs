@@ -1958,6 +1958,130 @@ namespace UniMcp
         }
 
         /// <summary>
+        /// 处理 SSE (Server-Sent Events) 连接
+        /// </summary>
+        private async Task HandleSSEConnection(HttpListenerContext context, CancellationToken cancellationToken)
+        {
+            HttpListenerRequest request = context.Request;
+            HttpListenerResponse response = context.Response;
+            string clientEndpoint = request.RemoteEndPoint?.ToString() ?? "Unknown";
+            
+            try
+            {
+                McpLogger.Log($"[UniMcp] 建立SSE连接: {clientEndpoint}");
+                
+                // 获取客户端连接的实际地址（不要硬编码 127.0.0.1）
+                string host = request.Headers["Host"] ?? request.Url.Authority;
+                string scheme = request.Url.Scheme; // http 或 https
+                string messageEndpoint = $"{scheme}://{host}/message";
+                
+                McpLogger.Log($"[UniMcp] 消息端点: {messageEndpoint}");
+                
+                // 发送 endpoint 消息（MCP 协议要求）
+                // 注意：不要在发送数据前单独 Flush，HttpListener 会自动在第一次写入时发送头部
+                await SendSSEMessage(response, "endpoint", new JsonClass
+                {
+                    { "uri", new JsonData(messageEndpoint) }
+                });
+                
+                McpLogger.Log($"[UniMcp] SSE初始化完成，进入保持连接循环");
+                
+                // 保持连接直到取消或连接断开
+                int heartbeatCount = 0;
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        // 每30秒发送一个心跳消息
+                        await Task.Delay(30000, cancellationToken);
+                        
+                        // 发送心跳
+                        heartbeatCount++;
+                        await SendSSEComment(response, $"heartbeat {heartbeatCount}");
+                        McpLogger.Log($"[UniMcp] 发送心跳 #{heartbeatCount} to {clientEndpoint}");
+                    }
+                    catch (HttpListenerException)
+                    {
+                        // 客户端断开连接
+                        McpLogger.Log($"[UniMcp] 客户端断开SSE连接: {clientEndpoint}");
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        // 网络错误，连接已断开
+                        McpLogger.Log($"[UniMcp] SSE连接网络错误，连接已断开: {clientEndpoint}");
+                        break;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                McpLogger.Log($"[UniMcp] SSE连接被取消: {clientEndpoint}");
+            }
+            catch (HttpListenerException ex)
+            {
+                McpLogger.LogWarning($"[UniMcp] SSE连接已断开 ({ex.Message}): {clientEndpoint}");
+            }
+            catch (IOException ex)
+            {
+                McpLogger.LogWarning($"[UniMcp] SSE连接网络错误 ({ex.Message}): {clientEndpoint}");
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError($"[UniMcp] SSE连接错误: {ex.Message}");
+                McpLogger.LogError($"[UniMcp] 堆栈跟踪: {ex.StackTrace}");
+            }
+            finally
+            {
+                try { response.Close(); } catch { }
+                McpLogger.Log($"[UniMcp] SSE连接已关闭: {clientEndpoint}");
+            }
+        }
+        
+        /// <summary>
+        /// 发送 SSE 消息
+        /// </summary>
+        private async Task SendSSEMessage(HttpListenerResponse response, string eventType, JsonNode data)
+        {
+            try
+            {
+                var output = response.OutputStream;
+                string jsonData = data.ToString();
+                
+                // SSE 格式：event: eventType\ndata: jsonData\n\n
+                string message = $"event: {eventType}\ndata: {jsonData}\n\n";
+                byte[] buffer = Encoding.UTF8.GetBytes(message);
+                
+                McpLogger.Log($"[UniMcp] 准备发送SSE消息: {eventType}");
+                McpLogger.Log($"[UniMcp] SSE消息内容: {message.Replace("\n", "\\n")}");
+                
+                await output.WriteAsync(buffer, 0, buffer.Length);
+                await output.FlushAsync();
+                
+                McpLogger.Log($"[UniMcp] ✓ SSE消息已发送并刷新: {eventType}");
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError($"[UniMcp] 发送SSE消息失败: {ex.Message}");
+                McpLogger.LogError($"[UniMcp] 堆栈跟踪: {ex.StackTrace}");
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// 发送 SSE 注释（用于心跳）
+        /// </summary>
+        private async Task SendSSEComment(HttpListenerResponse response, string comment)
+        {
+            var output = response.OutputStream;
+            string message = $": {comment}\n\n";
+            byte[] buffer = Encoding.UTF8.GetBytes(message);
+            
+            await output.WriteAsync(buffer, 0, buffer.Length);
+            await output.FlushAsync();
+        }
+
+        /// <summary>
         /// 处理 MCP HTTP 请求
         /// </summary>
         /// <param name="context">HTTP监听上下文</param>
@@ -2018,29 +2142,19 @@ namespace UniMcp
                 {
                     if (isSSERequest)
                     {
-                        McpLogger.Log($"[UniMcp] 检测到SSE请求，返回不支持SSE的响应");
-
-                        // 对于SSE请求，返回一个明确的错误响应，告知客户端使用HTTP POST
-                        response.StatusCode = 501; // Not Implemented
-                        response.ContentType = "application/json";
-
-                        string errorResponse = CreateMcpErrorResponse(null, -32601, "SSE not supported, please use HTTP POST for MCP requests");
-                        byte[] errorBytes = Encoding.UTF8.GetBytes(errorResponse);
-
-                        try
-                        {
-                            await response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
-                            await response.OutputStream.FlushAsync();
-                            response.Close();
-
-                            McpLogger.Log($"[UniMcp] SSE不支持响应已发送");
-                        }
-                        catch (Exception sseEx)
-                        {
-                            McpLogger.LogError($"[UniMcp] 发送SSE不支持响应失败: {sseEx.Message}");
-                            try { response.Close(); } catch { }
-                        }
-
+                        McpLogger.Log($"[UniMcp] 检测到SSE请求，建立SSE连接");
+                        
+                        // 设置SSE响应头
+                        response.StatusCode = 200;
+                        response.ContentType = "text/event-stream; charset=utf-8";
+                        response.Headers.Add("Cache-Control", "no-cache");
+                        response.Headers.Add("Connection", "keep-alive");
+                        response.Headers.Add("X-Accel-Buffering", "no"); // 禁止代理缓冲
+                        
+                        McpLogger.Log($"[UniMcp] SSE响应头已设置，开始处理连接");
+                        
+                        // 处理SSE连接
+                        await HandleSSEConnection(context, cancellationToken);
                         return;
                     }
                     else
@@ -2196,6 +2310,43 @@ namespace UniMcp
                     }
 
                     // GET请求不需要记录到请求记录中，直接返回
+                    return;
+                }
+
+                // 处理 /message 端点（SSE 配套的 POST 端点）
+                if (request.HttpMethod == "POST" && requestPath.EndsWith("/message"))
+                {
+                    McpLogger.Log($"[UniMcp] 收到 /message POST 请求 from {clientEndpoint}");
+                    
+                    try
+                    {
+                        // 处理 JSON-RPC 请求
+                        string messageResponseJson = await ProcessMcpRequest(requestBody);
+                        byte[] messageResponseBytes = Encoding.UTF8.GetBytes(messageResponseJson);
+                        
+                        response.StatusCode = 200;
+                        response.ContentType = "application/json";
+                        await response.OutputStream.WriteAsync(messageResponseBytes, 0, messageResponseBytes.Length);
+                        response.Close();
+                        
+                        McpLogger.Log($"[UniMcp] /message 请求处理完成 from {clientEndpoint}");
+                    }
+                    catch (Exception ex)
+                    {
+                        McpLogger.LogError($"[UniMcp] /message 请求处理失败: {ex.Message}");
+                        
+                        string messageErrorResponse = CreateMcpErrorResponse(null, -32603, $"Internal error: {ex.Message}");
+                        byte[] messageErrorBytes = Encoding.UTF8.GetBytes(messageErrorResponse);
+                        
+                        try { response.StatusCode = 500; } catch { }
+                        try
+                        {
+                            await response.OutputStream.WriteAsync(messageErrorBytes, 0, messageErrorBytes.Length);
+                            response.Close();
+                        }
+                        catch { }
+                    }
+                    
                     return;
                 }
 
