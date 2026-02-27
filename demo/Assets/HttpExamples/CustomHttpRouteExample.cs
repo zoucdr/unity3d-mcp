@@ -16,7 +16,7 @@ namespace UniMcp.Examples
         /// 注册示例路由
         /// 可以在 Unity 编辑器启动时或通过菜单项调用
         /// </summary>
-        [MenuItem("UniMcp/Examples/Register Custom Routes")]
+        [MenuItem("Tools/UniMcp/Examples/Register Custom Routes")]
         public static void RegisterExampleRoutes()
         {
             var service = McpService.Instance;
@@ -132,7 +132,7 @@ namespace UniMcp.Examples
         /// <summary>
         /// 注销所有示例路由
         /// </summary>
-        [MenuItem("UniMcp/Examples/Unregister Custom Routes")]
+        [MenuItem("Tools/UniMcp/Examples/Unregister Custom Routes")]
         public static void UnregisterExampleRoutes()
         {
             var service = McpService.Instance;
@@ -151,7 +151,7 @@ namespace UniMcp.Examples
         /// <summary>
         /// 清空所有自定义路由
         /// </summary>
-        [MenuItem("UniMcp/Examples/Clear All Custom Routes")]
+        [MenuItem("Tools/UniMcp/Examples/Clear All Custom Routes")]
         public static void ClearAllRoutes()
         {
             var service = McpService.Instance;
@@ -162,7 +162,7 @@ namespace UniMcp.Examples
         /// <summary>
         /// 列出所有已注册的路由
         /// </summary>
-        [MenuItem("UniMcp/Examples/List Custom Routes")]
+        [MenuItem("Tools/UniMcp/Examples/List Custom Routes")]
         public static void ListRoutes()
         {
             var service = McpService.Instance;
