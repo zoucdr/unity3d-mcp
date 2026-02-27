@@ -139,6 +139,49 @@ namespace UniMcp.Gui
             }
             EditorGUILayout.EndVertical();
 
+            // 描述开关 - 美化样式
+            EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField(L.T("Descriptions", "描述信息"), EditorStyles.miniLabel, GUILayout.Width(70));
+            var localSettings = McpService.GetLocalSettings();
+            bool enableDescriptions = localSettings.EnableDescriptions;
+            
+            // 根据状态设置不同颜色
+            Color descToggleOriginalBg = GUI.backgroundColor;
+            if (enableDescriptions)
+            {
+                GUI.backgroundColor = new Color(0.4f, 0.9f, 0.5f, 0.8f); // 绿色 - 启用
+            }
+            else
+            {
+                GUI.backgroundColor = new Color(0.9f, 0.6f, 0.3f, 0.8f); // 橙色 - 禁用
+            }
+            
+            bool newEnableDescriptions = EditorGUILayout.Toggle(enableDescriptions, GUILayout.Width(20));
+            GUI.backgroundColor = descToggleOriginalBg;
+            
+            if (newEnableDescriptions != enableDescriptions)
+            {
+                localSettings.EnableDescriptions = newEnableDescriptions;
+                
+                // 清除相关缓存，让下次请求返回新格式
+                McpService.ClearToolsListCache();
+                
+                string statusText = newEnableDescriptions ? 
+                    L.T("Descriptions enabled. Tools/Resources/Prompts will include full descriptions and parameter details.", 
+                        "描述已启用。工具/资源/提示词将包含完整描述和参数说明。") :
+                    L.T("Descriptions disabled. Only essential info will be sent. Use Skills/Rules for guidance.", 
+                        "描述已禁用。仅发送必要信息。请通过Skill/规则文件获取使用指导。");
+                
+                Debug.Log($"[McpServiceGUI] {statusText}");
+                
+                // 显示提示对话框
+                EditorUtility.DisplayDialog(
+                    L.T("Description Toggle", "描述开关"), 
+                    statusText, 
+                    L.T("OK", "确定"));
+            }
+            EditorGUILayout.EndVertical();
+
             // 状态窗口按钮 - 美化按钮样式
             GUIStyle statusButtonStyle = new GUIStyle(EditorStyles.miniButton)
             {
@@ -257,6 +300,10 @@ namespace UniMcp.Gui
             // 使用更美观的背景框
             EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.ExpandHeight(true));
 
+            // 确保方法已注册，供标题下拉框与下方列表使用
+            ToolsCall.EnsureMethodsRegisteredStatic();
+            var methodNames = ToolsCall.GetRegisteredMethodNames();
+
             // 美化标题栏：添加背景色和更好的布局
             Rect headerRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Height(28));
             
@@ -272,7 +319,35 @@ namespace UniMcp.Gui
                 normal = { textColor = new Color(0.9f, 0.9f, 0.95f) },
                 padding = new RectOffset(8, 0, 4, 0)
             };
-            EditorGUILayout.LabelField(L.T("🔧 Available Tools", "🔧 可用工具方法"), headerTitleStyle, GUILayout.ExpandWidth(true));
+
+            // 工具暴露模式下拉框：全部开启(纯MCP) / 全部关闭(技能方式) / 选择性开启(混合)
+            string[] toolModeOptions = new string[]
+            {
+                L.T("All On (Pure MCP)", "全部开启 (纯MCP)"),
+                L.T("All Off (Skill Mode)", "全部关闭 (技能方式)"),
+                L.T("Selective (Hybrid)", "选择性开启 (混合模式)")
+            };
+            var localSettings = McpService.GetLocalSettings();
+            bool allEnabled = methodNames.Count() > 0 && methodNames.All(n => localSettings.IsToolEnabled(n));
+            bool allDisabled = methodNames.Count() > 0 && methodNames.All(n => !localSettings.IsToolEnabled(n));
+            int currentMode = allEnabled ? 0 : (allDisabled ? 1 : 2);
+            int newMode = EditorGUILayout.Popup(currentMode, toolModeOptions, headerTitleStyle, GUILayout.Width(220));
+            if (newMode != currentMode)
+            {
+                if (newMode == 0)
+                {
+                    localSettings.SetToolsEnabled(methodNames, true);
+                    Debug.Log($"[McpServiceGUI] {L.T("Tools mode", "工具模式")}: {L.T("All On (Pure MCP)", "全部开启 (纯MCP)")}");
+                }
+                else if (newMode == 1)
+                {
+                    localSettings.SetToolsEnabled(methodNames, false);
+                    Debug.Log($"[McpServiceGUI] {L.T("Tools mode", "工具模式")}: {L.T("All Off (Skill Mode)", "全部关闭 (技能方式)")}");
+                }
+                // newMode == 2: Hybrid, no bulk change
+            }
+
+            EditorGUILayout.Space(8);
 
             // 工具信息按钮 - 美化样式
             GUIStyle toolInfoButtonStyle = new GUIStyle(EditorStyles.miniButton)
@@ -331,10 +406,6 @@ namespace UniMcp.Gui
             
             EditorGUILayout.Space(4);
 
-            // 确保方法已注册
-            ToolsCall.EnsureMethodsRegisteredStatic();
-            var methodNames = ToolsCall.GetRegisteredMethodNames();
-
             // 按分组分类方法
             var methodsByGroup = new Dictionary<string, List<(string methodName, IToolMethod method, string assemblyName)>>();
 
@@ -375,8 +446,11 @@ namespace UniMcp.Gui
                 }
 
                 // 检查组内工具的启用状态
-                bool hasEnabledTools = methods.Any(m => McpService.GetLocalSettings().IsToolEnabled(m.methodName));
-                bool allToolsEnabled = methods.All(m => McpService.GetLocalSettings().IsToolEnabled(m.methodName));
+                var localSettingsForGroup = McpService.GetLocalSettings();
+                bool hasEnabledTools = methods.Any(m => localSettingsForGroup.IsToolEnabled(m.methodName));
+                bool allToolsEnabled = methods.All(m => localSettingsForGroup.IsToolEnabled(m.methodName));
+                int enabledCountInGroup = methods.Count(m => localSettingsForGroup.IsToolEnabled(m.methodName));
+                int totalCountInGroup = methods.Count;
 
                 // 确定组开关的状态：全部启用时为true，部分启用时为mixed，全部禁用时为false
                 bool groupToggleState = allToolsEnabled;
@@ -468,10 +542,12 @@ namespace UniMcp.Gui
                 
                 // 绘制foldout，确保展开箭头可见
                 // 注意：foldoutRect定义了可点击展开的区域范围
+                // 组标题数量：全部开启显示总数，否则显示 开启数/总数（如 1/4）
+                string countText = allToolsEnabled ? $"{totalCountInGroup}" : $"{enabledCountInGroup}/{totalCountInGroup}";
                 groupFoldouts[groupName] = EditorGUI.Foldout(
                     groupFoldoutRect,        // ← 这个Rect定义了可点击展开的区域
                     groupFoldouts[groupName],
-                    $"{statusIcon} {groupIndex}. {groupName} ({methods.Count})",
+                    $"{statusIcon} {groupIndex}. {groupName} ({countText})",
                     true,
                     groupFoldoutStyle
                 );

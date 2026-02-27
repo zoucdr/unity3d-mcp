@@ -80,24 +80,32 @@ namespace UniMcp.Executer
         /// </summary>
         private void ExecuteMethod(string methodName, JsonClass args, Action<JsonNode> callback)
         {
+            InvokeMethodStatic(methodName, args, callback);
+        }
+
+        /// <summary>
+        /// 静态执行指定方法，供 SyncCall 等复用。
+        /// </summary>
+        public static void InvokeMethodStatic(string methodName, JsonClass args, Action<JsonNode> callback)
+        {
             McpLogger.Log($"[ToolsCall] Executing method: {methodName}->{args}");
             try
             {
-                EnsureMethodsRegistered();
+                EnsureMethodsRegisteredStatic();
                 if (!_registeredMethods.TryGetValue(methodName, out IToolMethod method))
                 {
                     callback(Response.Error($"ToolsCall Unknown method: '{methodName}'. Available methods: {string.Join(", ", _registeredMethods.Keys)}"));
                     return;
                 }
 
-                var state = new StateTreeContext(args, new System.Collections.Generic.Dictionary<string, object>());
+                var state = new StateTreeContext(args ?? new JsonClass(), new Dictionary<string, object>());
                 method.ExecuteMethod(state);
                 state.RegistComplete(callback);
             }
             catch (Exception e)
             {
                 McpLogger.LogError($"[ToolsCall] Failed to execute method '{methodName}': {e}");
-                callback(Response.Error($"Error executing method '{methodName}->{args}': {e.Message}"));
+                callback(Response.Error($"Error executing method '{methodName}': {e.Message}"));
             }
         }
 

@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1693,6 +1693,12 @@ return LoadFromCompressedStream(stream);
 
         public override string ToString()
         {
+            // 处理 null 值
+            if (m_Data == null || m_Data == "null")
+            {
+                return "null";
+            }
+            
             JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
@@ -1707,6 +1713,12 @@ return LoadFromCompressedStream(stream);
 
         public override string ToString(string aPrefix)
         {
+            // 处理 null 值
+            if (m_Data == null || m_Data == "null")
+            {
+                return "null";
+            }
+            
             JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
@@ -1721,6 +1733,12 @@ return LoadFromCompressedStream(stream);
 
         public override string ToPrettyStringInternal(int level, string indent)
         {
+            // 处理 null 值
+            if (m_Data == null || m_Data == "null")
+            {
+                return "null";
+            }
+            
             JsonNodeType nodeType = GetCachedNodeType();
             if (nodeType == JsonNodeType.Boolean)
             {
