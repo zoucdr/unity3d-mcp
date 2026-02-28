@@ -9,14 +9,15 @@ using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using UniMcp.Models;
+
 namespace UniMcp.Tools
 {
     /// <summary>
     /// Handles Python script execution including validation and running Python code.
-    /// 对应方法名: python_runner
+    /// 对应方法名: python_executer
     /// </summary>
-    [ToolName("python_runner", "Development Tools", "开发工具")]
-    public class PythonRunner : StateMethodBase
+    [ToolName("python_executer", "Development Tools", "开发工具")]
+    public class PythonExecuter : StateMethodBase
     {
         public override string Description => L.T("Execute and validate Python scripts", "执行和验证Python脚本");
 
