@@ -406,7 +406,7 @@ namespace UniMcp
             allToolNames.Add("batch_call");
             allToolNames.Add("async_call");
             allToolNames.Add("sync_call");
-            allToolNames.Add("get_prompt");
+            allToolNames.Add("get_prompt_detail");
             return McpLocalSettings.Instance.FilterEnabledTools(allToolNames);
         }
 
@@ -854,6 +854,25 @@ namespace UniMcp
                     }
                 }
 
+                // 加载 McpSettings 中通过数据配置的 ConfigurablePrompt
+                var configurablePrompts = McpSettings.Instance.GetConfigurablePrompts();
+                Log($"[UniMcp] 从配置数据加载 {configurablePrompts.Count} 个 ConfigurablePrompt");
+                foreach (var cp in configurablePrompts)
+                {
+                    if (cp == null || string.IsNullOrEmpty(cp.Name))
+                    {
+                        LogWarning("[UniMcp] ConfigurablePrompt 名称为空，跳过");
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(cp.PromptText))
+                    {
+                        LogWarning($"[UniMcp] ConfigurablePrompt '{cp.Name}' 缺少提示词文本，跳过");
+                        continue;
+                    }
+                    availablePrompts[cp.Name] = cp;
+                    Log($"[UniMcp] 成功注册 ConfigurablePrompt: {cp.Name}");
+                }
+
                 Log($"[UniMcp] Prompts发现完成，共发现 {availablePrompts.Count} 个Prompts");
 
                 // 列出所有注册的prompts
@@ -953,6 +972,20 @@ namespace UniMcp
                     {
                         LogError($"[UniMcp] 创建Resource实例失败 {resourceType.Name}: {ex.Message}\n{ex.StackTrace}");
                     }
+                }
+
+                // 加载 McpSettings 中通过数据配置的 ConfigurableResource
+                var configurableResources = McpSettings.Instance.GetConfigurableResources();
+                Log($"[UniMcp] 从配置数据加载 {configurableResources.Count} 个 ConfigurableResource");
+                foreach (var cr in configurableResources)
+                {
+                    if (cr == null || string.IsNullOrEmpty(cr.Url))
+                    {
+                        LogWarning("[UniMcp] ConfigurableResource URL 为空，跳过");
+                        continue;
+                    }
+                    availableResources[cr.Url] = cr;
+                    Log($"[UniMcp] 成功注册 ConfigurableResource: {cr.Url} ({cr.Name})");
                 }
 
                 Log($"[UniMcp] Resources发现完成，共发现 {availableResources.Count} 个Resources");
@@ -1161,14 +1194,14 @@ namespace UniMcp
         {
             try
             {
-                string toolName = "get_prompt";
+                var detailTool = new GetPromptDetailTool();
+                var toolName = detailTool.ToolName;
                 Log($"[UniMcp] 手动添加 GetPromptDetail 工具: {toolName}");
-
-                mcpToolInstanceCache[toolName] = new GetPromptTool();
+               mcpToolInstanceCache[toolName] = detailTool;
 
                 var toolInfo = new ToolInfo
                 {
-                    name = toolName,
+                    name = detailTool.ToolName,
                     description = L.T("Get the prompt text by name. Returns name and prompt_text. Use after prompts/list to get the content of a specific prompt.", "根据名称获取提示词正文。返回 name 与 prompt_text。可在 prompts/list 之后查询指定提示词内容。"),
                     inputSchema = new JsonClass
                     {

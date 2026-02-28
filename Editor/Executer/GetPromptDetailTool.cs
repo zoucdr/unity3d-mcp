@@ -8,9 +8,9 @@ namespace UniMcp.Prompts
     /// <summary>
     /// 系统自带工具：获取提示词详情，供 MCP 客户端查询
     /// </summary>
-    public sealed class GetPromptTool : McpTool
+    public sealed class GetPromptDetailTool : McpTool
     {
-        public override string ToolName => "get_prompt";
+        public override string ToolName => "get_prompt_detail";
 
         public override void HandleCommand(JsonNode ctx, Action<JsonNode> callback)
         {
