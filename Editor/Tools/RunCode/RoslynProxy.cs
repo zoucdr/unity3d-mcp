@@ -17,9 +17,9 @@ namespace UniMcp.Tools
 {
     /// <summary>
     /// 通过反射封装 Roslyn 编译能力。
-    /// Editor 启动时由 [InitializeOnLoad] 从 MonoBleedingEdge\lib\mono\{version}\ 自动加载 Roslyn DLL。
+    /// 首次调用 CompileToBytes / EnsureLoaded 时才从 MonoBleedingEdge\lib\mono\{version}\ 加载 Roslyn DLL，
+    /// 避免 Editor 启动时与项目自身的 System.Memory / System.Runtime.CompilerServices.Unsafe 等库版本冲突。
     /// </summary>
-    [InitializeOnLoad]
     public static class RoslynProxy
     {
         // ── 状态 ─────────────────────────────────────────────────────────────
@@ -40,9 +40,6 @@ namespace UniMcp.Tools
         private static MethodInfo      _compilationCreate;
         private static MethodInfo      _compilationEmit;
         private static ConstructorInfo _optionsCtor;
-
-        // ─────────────────────────────────────────────────────────────────────
-        static RoslynProxy() => EnsureLoaded();
 
         public static bool IsAvailable => _initialized && _initError == null;
 
